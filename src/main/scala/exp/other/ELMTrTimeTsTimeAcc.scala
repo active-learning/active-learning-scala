@@ -20,6 +20,7 @@ package exp.other
 
 import ml.models.Model
 import ml.neural.elm.EMELM
+import ml.classifiers._
 import util.{Datasets, Tempo}
 
 import scala.collection.mutable
@@ -29,7 +30,7 @@ import scala.util.Random
  * Created by davi on 21/05/14.
  */
 object ELMTrTimeTsTimeAcc extends App {
-  val dataset_path = "/home/davi/wcs/ucipp/uci/"
+/*  val dataset_path = "/home/davi/wcs/ucipp/uci/"
   if (args.length != 3) {
     println("Usage: ELMTrTimeTsTimeAcc dataset L N")
     sys.exit(0)
@@ -118,4 +119,5 @@ object ELMTrTimeTsTimeAcc extends App {
 //    println(l.mkString(" "))
   }
 
+*/
 }

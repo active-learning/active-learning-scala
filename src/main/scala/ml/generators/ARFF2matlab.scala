@@ -18,7 +18,6 @@
 
 package ml.generators
 
-import ml.neural.elm.CEOSELM
 import util.{Datasets, Tempo}
 
 import scala.util.Random
@@ -29,7 +28,7 @@ object ARFF2matlab extends App {
   rnd.shuffle(data).drop(2000) foreach {
     x => println(x.label + "," + x.toString_without_class)
   }
-  1 to 10 foreach {
+/*  1 to 10 foreach {
     _ =>
       Tempo.start
       val ceos = CEOSELM(0)
@@ -38,5 +37,5 @@ object ARFF2matlab extends App {
       data.take(2000).drop(30) foreach ceos.increment
       print(ceos.accuracy(data.drop(2000)))
       Tempo.print_stop
-  }
+  }*/
 }
