@@ -1,3 +1,6 @@
+/*
+this was not working, so i had to import a jar
+
 import sbt._
 import Keys._
 
@@ -18,3 +21,4 @@ object MyBuild extends Build {
 //  lazy val p2 = project in uri("https://github.com/extreme-learning-machine/elm-scala.git")
 
 }
+*/
