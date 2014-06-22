@@ -37,7 +37,9 @@ object GnosticQueries extends Queries with App {
     "strategies (i.e. not Rnd and Clu) mostly due to the fact that they can be stopped earlier when a predefined Q is given;\n" +
     "Parallel means 'to parallelize datasets, but serialize runs and folds."
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(getClass.getSimpleName.dropRight(1), args, desc)
-  val parallel = args(2) == "y"
+  val parallelDatasets = args(2).contains("d")
+  val parallelRuns = args(2).contains("r")
+  val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
   val samplingSize = 500
