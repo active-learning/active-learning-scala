@@ -65,7 +65,7 @@ trait Queries {
   def runStrats(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern])
 
   def run {
-    (if (parallelRuns) datasetNames.par else datasetNames) foreach { datasetName =>
+    (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
       //Open connection to load patterns.
       println("Loading patterns for dataset " + datasetName + " ...")
       val patts = source(datasetName) match {
