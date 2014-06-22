@@ -2,7 +2,8 @@ active-learning-scala
 =====================
 
 An Active Learning library for Scala
-Based on [machine-learning-scala](https://github.com/machine-learning-scala/mls "mls") framework.
+Based on [machine-learning-scala](https://github.com/machine-learning-scala/mls "mls") 
+and [extreme-learning-machine-scala](https://github.com/extreme-learning-machine/elm-scala "elm-scala") frameworks.
 This is result of research.
 Therefore, if you use this software in your own research,
 please cite properly using the information given at the end of this document.
