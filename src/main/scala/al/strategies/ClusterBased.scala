@@ -75,8 +75,10 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     val fw2 = new FileWriter(labels_file)
     fw2.write(rest.map(_.label).mkString("\n"))
     fw2.close()
+    println("Calling external program...")
     import scala.sys.process._
     val s = Seq("/home/davi/wcs/als/outros/hierarchical-al/sample", nclasses.toString, tree_file, labels_file, "foo").lines.map(_.toInt).toArray
+    println(" external program called.")
     s
   }
   var unlabeledSize = if (pool.length > 0) rest.length else -1 //Strategy with empty pool exists only to provide its name.

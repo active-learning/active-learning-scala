@@ -33,7 +33,9 @@ import ml.Pattern
  * Created by davi on 05/06/14.
  */
 trait Queries {
-  val parallel: Boolean
+  val parallelDatasets: Boolean
+  val parallelRuns: Boolean
+  val parallelFolds: Boolean
   val datasetNames: Seq[String]
   val source: (String) => Either[String, Stream[Pattern]]
   val dest: (String) => Dataset
@@ -63,7 +65,7 @@ trait Queries {
   def runStrats(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern])
 
   def run {
-    (if (parallel) datasetNames.par else datasetNames) foreach { datasetName =>
+    (if (parallelRuns) datasetNames.par else datasetNames) foreach { datasetName =>
       //Open connection to load patterns.
       println("Loading patterns for dataset " + datasetName + " ...")
       val patts = source(datasetName) match {
@@ -74,10 +76,10 @@ trait Queries {
       //Reopen connection to write queries.
       println("Beginning dataset " + datasetName + " ...")
       val db = dest(datasetName)
-      db.open(true)
-      (if (!parallel) (0 until 5).par else (0 until 5)) foreach { run =>
+      db.open(debug = true)
+      (if (parallelRuns) (0 until 5).par else 0 until 5) foreach { run =>
         println("  Beginning run " + run + " for " + datasetName + " ...")
-        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, !parallel) { case (tr, ts0, fold, minSize) =>
+        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, parallelFolds) { case (tr, ts0, fold, minSize) =>
           println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
           val pool = new Random(run).shuffle(tr)
           lazy val testSet = new Random(run).shuffle(ts0)

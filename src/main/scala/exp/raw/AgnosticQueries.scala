@@ -29,12 +29,14 @@ import util.Datasets
  */
 object AgnosticQueries extends Queries with App {
   val desc = "Version 0.2 \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
-  "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +
-  "Rnd because it is the baseline to define Q and\n" +
-  "Clu because it relies on external implementation.\n" +
-  "Parallel means 'to parallelize datasets, but serialize runs and folds."
+    "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +
+    "Rnd because it is the baseline to define Q and\n" +
+    "Clu because it relies on external implementation.\n" +
+    "Parallel means 'to parallelize datasets, but serialize runs and folds."
   val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
-  val parallel = args(2) == "y"
+  val parallelDatasets = args(2).contains("d")
+  val parallelRuns = args(2).contains("r")
+  val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
