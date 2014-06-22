@@ -3,6 +3,9 @@ active-learning-scala
 
 An Active Learning library for Scala
 Based on [machine-learning-scala](https://github.com/machine-learning-scala/mls "mls") framework.
+This is result of research.
+Therefore, if you use this software in your own research,
+please cite properly using the information given at the end of this document.
 
 Installation
 ------------
@@ -19,3 +22,25 @@ Installation
     cd active-learning-scala
     sbt run
 ```
+
+Citation
+--------
+[paper] (http://link.springer.com/chapter/10.1007/978-3-319-07617-1_54 "AL paper")
+
+MLA	
+Santos, Davi P., and André CPLF de Carvalho. "Comparison of Active Learning Strategies and Proposal of a Multiclass Hypothesis Space Search." Hybrid Artificial Intelligence Systems. Springer International Publishing, 2014. 618-629.
+
+APA	
+Santos, D. P., & de Carvalho, A. C. (2014). Comparison of Active Learning Strategies and Proposal of a Multiclass Hypothesis Space Search. In Hybrid Artificial Intelligence Systems (pp. 618-629). Springer International Publishing.
+
+Chicago	
+Santos, Davi P., and André CPLF de Carvalho. "Comparison of Active Learning Strategies and Proposal of a Multiclass Hypothesis Space Search." In Hybrid Artificial Intelligence Systems, pp. 618-629. Springer International Publishing, 2014.
+
+@incollection{santos2014comparison,
+  title={Comparison of Active Learning Strategies and Proposal of a Multiclass Hypothesis Space Search},
+  author={Santos, Davi P and Carvalho, Andr{\'e} CPLF},
+  booktitle={Hybrid Artificial Intelligence Systems},
+  pages={618--629},
+  year={2014},
+  publisher={Springer}
+}
