@@ -5,9 +5,7 @@ import app.db.{AppFile, Dataset}
 import exp.raw.CrossValidation
 import ml.Pattern
 import ml.classifiers._
-import util.{Tempo, Datasets}
-
-import scala.collection.mutable
+import util.{Datasets, Tempo}
 
 /*
 elm-scala: an implementation of ELM in Scala using MTJ

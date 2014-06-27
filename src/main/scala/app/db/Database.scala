@@ -44,18 +44,21 @@ trait Database extends Lock {
   val path: String
   val database: String
 
-  protected val dbOriginal = new File(path + database + ".db")
-  val dbCopy = new File("/tmp/" + database + ".db")
-  if (dbCopy.exists()) {
-    println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
-    sys.exit(0)
-  }
-  if (!dbOriginal.exists()) {
-    println(dbOriginal + " não existe! Talvez seja preciso rodar o conversor ARFF -> SQLite.")
-    sys.exit(0)
-  }
+  lazy val dbOriginal = new File(path + database + ".db")
+  lazy val dbCopy = new File("/tmp/" + database + ".db")
 
   def open(debug: Boolean = false) {
+    //check file existence and if it is in usen
+    if (dbCopy.exists()) {
+      println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
+      sys.exit(0)
+    }
+    if (!dbOriginal.exists()) {
+      println(dbOriginal + " não existe! Talvez seja preciso rodar o conversor ARFF -> SQLite.")
+      sys.exit(0)
+    }
+
+    //open
     try {
       FileUtils.copyFile(dbOriginal, dbCopy)
       Class.forName("org.sqlite.JDBC")
