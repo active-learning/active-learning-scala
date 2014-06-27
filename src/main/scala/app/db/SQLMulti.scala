@@ -42,7 +42,7 @@ object SQLMulti extends App {
   val statement = connection.createStatement()
   ???
   //todo:terminar
-  statement.executeUpdate("create table out (ds VARCHAR, att VARCHAR, val VARCHAR)")
+  statement.executeUpdate("create table out (ds VARCHAR, att VARCHAR, val VARCHAR)") // on conflict rollback)
 
   (if (parallel) datasetNames.par else datasetNames) foreach { datasetName =>
     val db = dest(datasetName)

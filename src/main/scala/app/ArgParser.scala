@@ -83,4 +83,13 @@ object ArgParser {
     }
     (args(0) + "/", args(1).split(",").toSeq, args.drop(3).mkString(" "))
   }
+
+  def testArgsWithTextNoPar(className: String, args: Array[String], text: String) = {
+    if (args.length != 3) {
+      println("____________\n" + text + "\n------------\nUsage:")
+      println(className + " base-dir dataset1,dataset2,...,datasetn collection-name(uci, ...)")
+      sys.exit(0)
+    }
+    (args(0) + "/", args(1).split(",").toSeq, args(2))
+  }
 }

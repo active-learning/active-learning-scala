@@ -375,5 +375,5 @@ object CreateAppFile extends App {
   af.createOtherTables()
   af.createTableOfLearners(learners)
   af.createTableOfStrategies(strats)
-  af.close
+  af.close()
 }

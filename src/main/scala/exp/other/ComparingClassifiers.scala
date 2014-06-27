@@ -26,7 +26,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 object ComparingClassifiers extends CrossValidation with App {
   println("First experiment:")
-  println("tae,wine,statlog-heart,flare,molecular-promoters,leukemia-haslinger,balance-scale,pima,car,breast-cancer-wisconsin-diagnostic,wine-quality-red,connectionist-mines-vs-rocks,cmc,vowel,monk1,breast-tissue,ionosphere,subject,australian,newthyroid,colon32,hayes-roth,bodies,vehicle,accute-inflammations,iris,yeast-4classes,tic-tac-toe")
+  println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
   println("")
   val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
@@ -38,23 +38,24 @@ object ComparingClassifiers extends CrossValidation with App {
 
   val resultsDb = Results(create = true)
   resultsDb.open(debug = true)
-  resultsDb.run(s"create table $className (learnerid INT, fold INT, accuracy FLOAT, time FLOAT, unique(learnerid, fold))")
+  resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
   run()
   resultsDb.close()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
-    val learner = KNN(5, "eucl") //Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
-//    val accs_ts = learners foreach { learner =>
-//      val lid = resultsDb.run(s"select rowid from app.learner where name = '$learner'").left.get
-//      val previous = resultsDb.run(s"select count(*) from $className where learnerid=$lid and fold=$fold").left.get
-//      if (previous > 0) {
-//        println("Results already done previously, skipping it.")
-//      } else {
+    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
+    learners foreach { learner =>
+      val lid = resultsDb.run(s"select rowid from app.learner where name = '$learner'").left.get
+      val did = resultsDb.run(s"select rowid from app.dataset where name = '${db.database}'").left.get
+      val previous = resultsDb.run(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").left.get
+      if (previous > 0) {
+        println("Results already done previously, skipping it.")
+      } else {
         val (m, t) = Tempo.timev(learner.build(pool))
         val acc = m.accuracy(testSet)
-//        resultsDb.run(s"insert into $className values ($lid, $fold, $acc, $t)")
-//      }
-//    }
+        resultsDb.run(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
+      }
+    }
   }
 }

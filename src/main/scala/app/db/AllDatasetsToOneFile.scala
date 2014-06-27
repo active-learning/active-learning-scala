@@ -39,7 +39,7 @@ object AllDatasetsToOneFile extends App {
   val connection = DriverManager.getConnection(url)
   val statement = connection.createStatement()
   statement.executeUpdate("attach '" + ArgParser.appPath + "app.db' as app")
-  statement.executeUpdate("create table att (dataset INT, index VARCHAR, value VARCHAR)")
+  statement.executeUpdate("create table att (datasetid INT, index VARCHAR, value VARCHAR) ") // on conflict rollback
 
   ??? //todo: terminar
   //todo: esse programa depende da existencia da tabela dataset na base app para consulta de ids

@@ -39,11 +39,11 @@ case class AppFile(create: Boolean = false) extends Database {
     try {
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
-      statement.executeUpdate("create table medida ( name VARCHAR, unique (name) )")
-      statement.executeUpdate("create table path ( name VARCHAR, desc VARCHAR, unique (name) )")
-      statement.executeUpdate("create table dataset ( name VARCHAR, path INT, unique (name) )")
-      statement.executeUpdate("create table meta ( dataset INT, name VARCHAR, value FLOAT, unique (dataset, name) )")
-      statement.executeUpdate("create table config ( name VARCHAR, value FLOAT, unique (name) )")
+      statement.executeUpdate("create table medida ( name VARCHAR, unique (name) on conflict rollback)")
+      statement.executeUpdate("create table path ( name VARCHAR, desc VARCHAR, unique (name) on conflict rollback)")
+      statement.executeUpdate("create table dataset ( name VARCHAR, pathid INT, unique (name) on conflict rollback)")
+      statement.executeUpdate("create table meta ( datasetid INT, name VARCHAR, value FLOAT, unique (dataset, name) on conflict rollback)")
+      statement.executeUpdate("create table config ( name VARCHAR, value FLOAT, unique (name) on conflict rollback)")
       statement.executeUpdate("end")
     } catch {
       case e: Throwable => e.printStackTrace
@@ -67,7 +67,7 @@ case class AppFile(create: Boolean = false) extends Database {
     try {
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
-      statement.executeUpdate("create table learner ( name VARCHAR, unique (name) )")
+      statement.executeUpdate("create table learner ( name VARCHAR, unique (name) on conflict rollback)")
       learners.zipWithIndex.foreach { case (learner, idx) => statement.executeUpdate("insert into learner values ('" + learner + "')")}
       statement.executeUpdate("end")
     } catch {
@@ -92,7 +92,7 @@ case class AppFile(create: Boolean = false) extends Database {
     try {
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
-      statement.executeUpdate("create table strategy ( name VARCHAR, learner INT, unique (name, learner) )")
+      statement.executeUpdate("create table strategy ( name VARCHAR, learnerid INT, unique (name, learnerid) on conflict rollback)")
       strats.zipWithIndex.foreach { case (strat, idx) =>
 
         //Fetch LearnerId by name.
