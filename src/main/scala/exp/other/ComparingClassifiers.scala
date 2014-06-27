@@ -1,13 +1,13 @@
 package exp.other
 
-import al.strategies.{ClusterBased, RandomSampling}
 import app.ArgParser
 import app.db.Dataset
-import exp.raw.AgnosticQueries._
 import exp.raw.CrossValidation
 import ml.Pattern
-import ml.classifiers.Learner
+import ml.classifiers._
 import util.Datasets
+
+import scala.collection.mutable
 
 /*
 elm-scala: an implementation of ELM in Scala using MTJ
@@ -30,9 +30,7 @@ object ComparingClassifiers extends CrossValidation with App {
   println("First experiment:")
   println("tae,wine,statlog-heart,flare,molecular-promoters,leukemia-haslinger,balance-scale,pima,car,breast-cancer-wisconsin-diagnostic,wine-quality-red,connectionist-mines-vs-rocks,cmc,vowel,monk1,breast-tissue,ionosphere,subject,australian,newthyroid,colon32,hayes-roth,bodies,vehicle,accute-inflammations,iris,yeast-4classes,tic-tac-toe")
   println("")
-
-  val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n" +
-    "Parallel means 'to parallelize datasets, but serialize runs and folds."
+  val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
@@ -40,29 +38,32 @@ object ComparingClassifiers extends CrossValidation with App {
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
+  val acss = mutable.Queue[Seq[Double]]()
+
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
-   ???
+    val learners = Seq(OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
+
   }
 
   run
 
-//    val tot = d.head.nattributes
-//    val nominais = (for (i <- 0 until tot) yield d.head.dataset.attribute(i).isNominal) count (_ == true)
-//    val numerics = tot - nominais
-//    val nclasses = d.head.numClasses
-//    val n = d.length
-//    val counts = (0 until nclasses) map (c => (0 until n) count (d(_).classValue == c))
-//    val p = (counts map (_ / n.toDouble)).toArray
-//    val maj = p.max
+  //    val tot = d.head.nattributes
+  //    val nominais = (for (i <- 0 until tot) yield d.head.dataset.attribute(i).isNominal) count (_ == true)
+  //    val numerics = tot - nominais
+  //    val nclasses = d.head.numClasses
+  //    val n = d.length
+  //    val counts = (0 until nclasses) map (c => (0 until n) count (d(_).classValue == c))
+  //    val p = (counts map (_ / n.toDouble)).toArray
+  //    val maj = p.max
 
-    //    lazy val accc45 = acc(C45(3))
-    //    lazy val accht = acc(HT())
-    //    lazy val accnb = acc(NB())
-    //    lazy val acc5nn = acc(KNN(5, "eucl"))
+  //    lazy val accc45 = acc(C45(3))
+  //    lazy val accht = acc(HT())
+  //    lazy val accnb = acc(NB())
+  //    lazy val acc5nn = acc(KNN(5, "eucl"))
 
-    //      println("   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(1 - normalized_entropy(p)) + " \\\\ ")
-    //    if (passive_accs) "   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(accc45) + " & " + "%.2f".format(accnb) + " & " + "%.2f".format(accht) + " & " + "%.2f".format(acc5nn) + " & " + "%.2f".format(maj) + " \\\\ "
-//    "   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(maj) + " \\\\ "
+  //      println("   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(1 - normalized_entropy(p)) + " \\\\ ")
+  //    if (passive_accs) "   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(accc45) + " & " + "%.2f".format(accnb) + " & " + "%.2f".format(accht) + " & " + "%.2f".format(acc5nn) + " & " + "%.2f".format(maj) + " \\\\ "
+  //    "   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(maj) + " \\\\ "
 
   println( """
 \begin{table}[h]
@@ -75,18 +76,18 @@ object ComparingClassifiers extends CrossValidation with App {
    & \multicolumn{1}{|c|}{\#Numeric}
    & \multicolumn{1}{|c|}{\#Nominal}
    & \multicolumn{1}{|c|}{\#Classes}""" +
-     """& \multicolumn{1}{|c|}{C4.5}
+    """& \multicolumn{1}{|c|}{C4.5}
    & \multicolumn{1}{|c|}{NB}
    & \multicolumn{1}{|c|}{HT}
    & \multicolumn{1}{|c|}{5-NN}"""
-    )
+  )
 
-//  println(strs.mkString("\n") + """
-//\hline
-//\end{tabular}
-//\label{details}
-//\end{center}
-//\end{table}
-//                                """)
+  //  println(strs.mkString("\n") + """
+  //\hline
+  //\end{tabular}
+  //\label{details}
+  //\end{center}
+  //\end{table}
+  //                                """)
 
 }

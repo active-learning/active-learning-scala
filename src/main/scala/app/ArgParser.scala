@@ -56,7 +56,8 @@ object ArgParser {
     if (args.length != numArgs) {
       println("____________\n" + text + "\n------------\nUsage:")
       if (numArgs == 2) println(className + " base-dir dataset1,dataset2,...,datasetn")
-      else println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf")
+      else println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf\n" +
+        "Parallel means 'to parallelize datasets, but serialize runs and folds'.")
       sys.exit(0)
     }
     (args(0) + "/", args(1).split(",").toSeq)
@@ -65,7 +66,8 @@ object ArgParser {
   def testArgsWithLearner(className: String, args: Array[String], text: String): (String, Seq[String], (Int, Int) => Learner) = {
     if (args.length != 4) {
       println("____________\n" + text + "\n------------\nUsage:")
-      println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf learner")
+      println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf learner\n" +
+        "Parallel means 'to parallelize datasets, but serialize runs and folds'.")
       sys.exit(0)
     }
     def learner(Lmax: Int, seed: Int) = args(3) match {
@@ -77,7 +79,8 @@ object ArgParser {
   def testArgsWithText(className: String, args: Array[String], text: String) = {
     if (args.length < 4) {
       println("____________\n" + text + "\n------------\nUsage:")
-      println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf text")
+      println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf text\n" +
+        "Parallel means 'to parallelize datasets, but serialize runs and folds'.")
       sys.exit(0)
     }
     (args(0) + "/", args(1).split(",").toSeq, args.drop(3).mkString(" "))
