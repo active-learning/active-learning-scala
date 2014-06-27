@@ -1,7 +1,7 @@
 package exp.other
 
 import app.ArgParser
-import app.db.{AppFile, Dataset}
+import app.db.{Results, AppFile, Dataset}
 import exp.raw.CrossValidation
 import ml.Pattern
 import ml.classifiers._
@@ -36,24 +36,25 @@ object ComparingClassifiers extends CrossValidation with App {
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-  val af = AppFile()
-  af.open(debug = true)
-  af.run(s"create table $className (learnerid INT, fold INT, accuracy FLOAT, time FLOAT, unique(learnerid, fold))")
+  val resultsDb = Results(create = true)
+  resultsDb.open(debug = true)
+  resultsDb.run(s"create table $className (learnerid INT, fold INT, accuracy FLOAT, time FLOAT, unique(learnerid, fold))")
+  resultsDb.save()
   run()
-  af.close()
+  resultsDb.close()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
-    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
-    val accs_ts = learners foreach { learner =>
-      val lid = af.run(s"select rowid from learner where name = '$learner'")
-      val previous = af.run(s"select count(*) from ${db.database} where learnerid=$lid and fold=$fold").left.get
-      if (previous > 0) {
-        println("Results already done previously, skipping it.")
-      } else {
+    val learner = KNN(5, "eucl") //Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
+//    val accs_ts = learners foreach { learner =>
+//      val lid = resultsDb.run(s"select rowid from app.learner where name = '$learner'").left.get
+//      val previous = resultsDb.run(s"select count(*) from $className where learnerid=$lid and fold=$fold").left.get
+//      if (previous > 0) {
+//        println("Results already done previously, skipping it.")
+//      } else {
         val (m, t) = Tempo.timev(learner.build(pool))
         val acc = m.accuracy(testSet)
-        af.run(s"insert into ${db.database} values ($lid, $acc, $t))")
-      }
-    }
+//        resultsDb.run(s"insert into $className values ($lid, $fold, $acc, $t)")
+//      }
+//    }
   }
 }

@@ -18,7 +18,7 @@
 
 package app.db
 
-import java.io.File
+import java.io.{FileWriter, File}
 import java.sql.{Connection, DriverManager}
 
 import al.strategies.{RandomSampling, Strategy}
@@ -43,9 +43,15 @@ trait Database extends Lock {
   var connection: Connection = null
   val path: String
   val database: String
+  val create: Boolean
 
   lazy val dbOriginal = new File(path + database + ".db")
   lazy val dbCopy = new File("/tmp/" + database + ".db")
+
+  def createDatabase() = {
+    val fw = new FileWriter(dbOriginal)
+    fw.close()
+  }
 
   def open(debug: Boolean = false) {
     //check file existence and if it is in usen
@@ -53,8 +59,9 @@ trait Database extends Lock {
       println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
       sys.exit(0)
     }
+    if (create) createDatabase()
     if (!dbOriginal.exists()) {
-      println(dbOriginal + " não existe! Talvez seja preciso rodar o conversor ARFF -> SQLite.")
+      println(dbOriginal + " não existe!")
       sys.exit(0)
     }
 
@@ -87,8 +94,7 @@ trait Database extends Lock {
     }
   }
 
-  def run(sql0: String) = {
-    val sql = sql0.toLowerCase()
+  def run(sql: String) = {
     if (connection == null) {
       println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
@@ -96,7 +102,7 @@ trait Database extends Lock {
 
     try {
       val statement = connection.createStatement()
-      if (sql.startsWith("select ")) {
+      if (sql.toLowerCase.startsWith("select ")) {
         val resultSet = statement.executeQuery(sql)
         val rsmd = resultSet.getMetaData
         val numColumns = rsmd.getColumnCount
@@ -117,26 +123,33 @@ trait Database extends Lock {
           }
           queue.enqueue(seq)
         }
-        if (sql.startsWith("select count(*) from ")) Left(queue.head.head.toInt) else Right(queue)
+        if (sql.toLowerCase.startsWith("select count(*) from ")) Left(queue.head.head.toInt)
+        else {
+          if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
+        }
       } else {
         statement.execute(sql)
         Left(0)
       }
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".")
+        println("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
         sys.exit(0)
     }
   }
 
-  protected def copyDb() {
+  /**
+   * Antecipates cpying of file from /tmp to the original
+   * which would normally occur at close().
+   */
+  def save() {
     //    println("Copying " + dbCopy + " to " + dbOriginal + "...")
     FileUtils.copyFile(dbCopy, dbOriginal)
     //    println(" " + dbCopy + " to " + dbOriginal + " copied!")
   }
 
   def close() {
-    copyDb
+    save
     //    println("Deleting " + dbCopy + "...")
     dbCopy.delete()
     //    println(" " + dbCopy + " deleted!")

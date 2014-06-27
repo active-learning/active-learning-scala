@@ -18,7 +18,7 @@
 
 package app.db
 
-import java.io.File
+import java.io.{FileWriter, File}
 
 import al.strategies._
 import al.strategies.Uncertainty
@@ -301,23 +301,23 @@ object CreateAppFile extends App {
     RandomSampling(Seq()),
     ClusterBased(Seq()),
 
-    FastPerfectRealisticAccuracy(interaELM(1, 0), Seq(), sampleSizePerfect),
-    Uncertainty(interaELM(1, 0), Seq()),
-    Entropy(interaELM(1, 0), Seq()),
-    Margin(interaELM(1, 0), Seq()),
-    new SGmulti(interaELM(1, 0), Seq(), "consensus"),
-    new SGmulti(interaELM(1, 0), Seq(), "majority"),
-    new SGmultiJS(interaELM(1, 0), Seq()),
-    ExpErrorReduction(interaELM(1, 0), Seq(), "entropy", sampleSize),
-    ExpErrorReduction(interaELM(1, 0), Seq(), "accuracy", sampleSize),
-    DensityWeightedTrainingUtility(interaELM(1, 0), Seq(), 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(interaELM(1, 0), Seq(), 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(interaELM(1, 0), Seq(), 1, 1, "maha"),
-    DensityWeightedTrainingUtility(interaELM(1, 0), Seq(), 1, 1, "manh"),
-    MahalaWeighted(interaELM(1, 0), Seq(), 1),
-    MahalaWeightedRefreshed(interaELM(1, 0), Seq(), 1, sampleSize),
-    MahalaWeightedTrainingUtility(interaELM(1, 0), Seq(), 1, 1),
-    MahalaWeightedRefreshedTrainingUtility(interaELM(1, 0), Seq(), 1, 1, sampleSize),
+    FastPerfectRealisticAccuracy(interaELM(1), Seq(), sampleSizePerfect),
+    Uncertainty(interaELM(1), Seq()),
+    Entropy(interaELM(1), Seq()),
+    Margin(interaELM(1), Seq()),
+    new SGmulti(interaELM(1), Seq(), "consensus"),
+    new SGmulti(interaELM(1), Seq(), "majority"),
+    new SGmultiJS(interaELM(1), Seq()),
+    ExpErrorReduction(interaELM(1), Seq(), "entropy", sampleSize),
+    ExpErrorReduction(interaELM(1), Seq(), "accuracy", sampleSize),
+    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "maha"),
+    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "manh"),
+    MahalaWeighted(interaELM(1), Seq(), 1),
+    MahalaWeightedRefreshed(interaELM(1), Seq(), 1, sampleSize),
+    MahalaWeightedTrainingUtility(interaELM(1), Seq(), 1, 1),
+    MahalaWeightedRefreshedTrainingUtility(interaELM(1), Seq(), 1, 1, sampleSize),
 
     FastPerfectRealisticAccuracy(NB(), Seq(), sampleSizePerfect),
     Uncertainty(NB(), Seq()),
@@ -364,11 +364,16 @@ object CreateAppFile extends App {
     sys.exit(0)
   }
 
+  val learners = Seq(NoLearner(), NB(), C45(), interaELM(1),
+    KNN(5, "eucl"), HT(),
+    IELM(1), EIELM(1), CIELM(1), OSELM(math.sqrt(1).toInt)
+  )
+
   //opens (creates) app.db
-  val af = AppFile()
+  val af = AppFile(create = true)
   af.open(debug = true)
   af.createOtherTables()
-  af.createTableOfLearners(Seq(NoLearner(), NB(), C45(), interaELM(1, 0)))
+  af.createTableOfLearners(learners)
   af.createTableOfStrategies(strats)
   af.close
 }

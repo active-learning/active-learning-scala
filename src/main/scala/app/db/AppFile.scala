@@ -20,12 +20,12 @@ package app.db
 
 import java.sql.{Connection, DriverManager}
 import org.apache.commons.io.FileUtils
-import java.io.File
+import java.io.{FileWriter, File}
 import al.strategies.Strategy
 import app.ArgParser
 import ml.classifiers.Learner
 
-case class AppFile() extends Database {
+case class AppFile(create: Boolean = false) extends Database {
   println("App. path = " + ArgParser.appPath)
   val database = "app"
   val path = ArgParser.appPath

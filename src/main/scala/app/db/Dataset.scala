@@ -33,7 +33,7 @@ import scala.util.Random
  * Cada instancia desta classe representa uma conexao a
  * um arquivo db que é um dataset.
  */
-case class Dataset(path: String)(dataset: String) extends Database {
+case class Dataset(path: String, create: Boolean = false)(dataset: String) extends Database {
   val database = dataset
 
   /**
@@ -110,7 +110,7 @@ case class Dataset(path: String)(dataset: String) extends Database {
           sys.exit(0)
       }
       println(q + " queries written to " + dbCopy + ". Backing up tmpFile...")
-      copyDb()
+      save()
       release()
     }
     q

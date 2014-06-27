@@ -35,6 +35,7 @@ object SQLMulti extends App {
   val sql = arr(0)
   val sql2 = arr(1)
 
+  //todo:useDatabase class
   Class.forName("org.sqlite.JDBC")
   val url = "jdbc:sqlite::memory:"
   val connection = DriverManager.getConnection(url)
