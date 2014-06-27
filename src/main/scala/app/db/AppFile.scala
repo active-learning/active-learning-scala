@@ -25,35 +25,10 @@ import al.strategies.Strategy
 import app.ArgParser
 import ml.classifiers.Learner
 
-case class AppFile() {
+case class AppFile() extends Database {
   println("App. path = " + ArgParser.appPath)
-  val alsFileStr = ArgParser.appPath + "app.db"
-  val dbOriginal = new File(alsFileStr)
-  if (dbOriginal.exists) {
-    println("Deleting previous " + dbOriginal)
-    dbOriginal.delete()
-    println(" previous " + dbOriginal + " deleted!")
-  }
-  val dbCopy = new File("/tmp/app.db")
-  if (dbCopy.exists()) {
-    println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
-    sys.exit(0)
-  }
-  var connection: Connection = null
-
-  def open {
-    try {
-      Class.forName("org.sqlite.JDBC")
-      val url = "jdbc:sqlite:////" + dbCopy
-      connection = DriverManager.getConnection(url)
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems opening db connection: " + dbCopy + ":")
-        println(e.getMessage)
-        sys.exit(0)
-    }
-    println("Connection to " + dbCopy + " opened.")
-  }
+  val database = "app"
+  val path = ArgParser.appPath
 
   def createOtherTables() {
     if (connection == null) {
@@ -147,17 +122,6 @@ case class AppFile() {
         sys.exit(0)
     }
     println(strats.length + " queries written to " + dbCopy + ".")
-  }
-
-  def close {
-    println("Copying " + dbCopy + " to " + dbOriginal + "...")
-    FileUtils.copyFile(dbCopy, dbOriginal)
-    println(" " + dbCopy + " to " + dbOriginal + " copied!")
-    println("Deleting " + dbCopy + "...")
-    dbCopy.delete()
-    println(" " + dbCopy + " deleted!")
-    connection.close()
-    connection = null
   }
 }
 

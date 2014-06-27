@@ -31,72 +31,10 @@ import scala.util.Random
 
 /**
  * Cada instancia desta classe representa uma conexao a
- * um arquivo db, ou seja, um dataset.
- * Uma vez aberta, a conexao aceita consultas simultaneas
- * que sao resolvidas pelo SQLite.
- * É preciso fechar a conexão para que o arquivo seja
- * copiado de volta para seu local de origem.
- * O programa é interrompido (espera-se) caso mais de
- * uma conexão seja tentada no mesmo arquivo.
+ * um arquivo db que é um dataset.
  */
-case class Dataset(path: String)(dataset: String) {
-  //Lock
-  private val rnd = new Random(10)
-  private var available = true
-
-  private def acquire = {
-    Thread.sleep((rnd.nextDouble() * 100).toInt)
-    synchronized {
-      while (!available) wait()
-      available = false
-    }
-  }
-
-  private def release = {
-    Thread.sleep((rnd.nextDouble() * 100).toInt)
-    synchronized {
-      available = true
-      notify()
-    }
-  }
-
-  private val dbOriginal = new File(path + dataset + ".db")
-  private val dbCopy = new File("/tmp/" + dataset + ".db")
-  if (dbCopy.exists()) {
-    println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
-    sys.exit(0)
-  }
-  if (!dbOriginal.exists()) {
-    println(dbOriginal + " não existe! Talvez seja preciso rodar o conversor ARFF -> SQLite.")
-    sys.exit(0)
-  }
-  private var connection: Connection = null
-
-  def open(debug: Boolean = false) {
-    try {
-      FileUtils.copyFile(dbOriginal, dbCopy)
-      Class.forName("org.sqlite.JDBC")
-      val url = "jdbc:sqlite:////" + dbCopy
-      connection = DriverManager.getConnection(url)
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems opening db connection: " + dbCopy + ":")
-        println(e.getMessage)
-        sys.exit(0)
-    }
-    if (debug) println("Connection to " + dbCopy + " opened.")
-    //    println("Attaching App dataset...")
-    val appPath = ArgParser.appPath
-    try {
-      val statement = connection.createStatement()
-      statement.executeUpdate("attach '" + appPath + "app.db' as app")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems Attaching " + appPath + ".")
-        sys.exit(0)
-    }
-    //    println(" Dataset " + appPath + "app.db attached!")
-  }
+case class Dataset(path: String)(dataset: String) extends Database {
+  val database = dataset
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
@@ -156,7 +94,7 @@ case class Dataset(path: String)(dataset: String) {
       val Qtaken = if (Q == Int.MinValue) Int.MaxValue else Q
       val seq = strat.queries.take(Qtaken).map(_.id).toVector
       q = seq.length
-      acquire
+      acquire()
       try {
         val statement = connection.createStatement()
         statement.executeUpdate("begin")
@@ -172,67 +110,10 @@ case class Dataset(path: String)(dataset: String) {
           sys.exit(0)
       }
       println(q + " queries written to " + dbCopy + ". Backing up tmpFile...")
-      copyDb
-      release
+      copyDb()
+      release()
     }
     q
-  }
-
-  def run(sql0: String) = {
-    val sql = sql0.toLowerCase()
-    if (connection == null) {
-      println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(0)
-    }
-
-    try {
-      val statement = connection.createStatement()
-      if (sql.startsWith("select ")) {
-        val resultSet = statement.executeQuery(sql)
-        val rsmd = resultSet.getMetaData
-        val numColumns = rsmd.getColumnCount
-        val columnsType = new Array[Int](numColumns + 1)
-        columnsType(0) = 0
-        1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
-
-        val queue = mutable.Queue[Seq[Double]]()
-        while (resultSet.next()) {
-          val seq = 1 to numColumns map { i =>
-            //            val s = columnsType(i) match {
-            //              case java.sql.Types.BOOLEAN | java.sql.Types.DATE | java.sql.Types.TIMESTAMP | java.sql.Types.TINYINT | java.sql.Types.SMALLINT | java.sql.Types.INTEGER | java.sql.Types.BIGINT | java.sql.Types.CHAR | java.sql.Types.VARCHAR => resultSet.getString(i)
-            //              case java.sql.Types.NVARCHAR => resultSet.getNString(i)
-            //              case java.sql.Types.FLOAT | java.sql.Types.NUMERIC | java.sql.Types.DOUBLE => "%2.2f".format(resultSet.getDouble(i))
-            //              case _ => resultSet.getString(i)
-            //            }
-            resultSet.getDouble(i)
-          }
-          queue.enqueue(seq)
-        }
-        Right(queue)
-      } else {
-        val rowCount = statement.execute(sql)
-        Left(rowCount)
-      }
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".")
-        sys.exit(0)
-    }
-  }
-
-  private def copyDb {
-    //    println("Copying " + dbCopy + " to " + dbOriginal + "...")
-    FileUtils.copyFile(dbCopy, dbOriginal)
-    //    println(" " + dbCopy + " to " + dbOriginal + " copied!")
-  }
-
-  def close {
-    copyDb
-    //    println("Deleting " + dbCopy + "...")
-    dbCopy.delete()
-    //    println(" " + dbCopy + " deleted!")
-    connection.close()
-    connection = null
   }
 }
 

@@ -23,7 +23,7 @@ import util.Datasets
 import scala.util._
 import scala.util.Left
 import al.strategies.{Strategy, ClusterBased, RandomSampling}
-import app.db.Dataset
+import app.db.{Lock, Dataset}
 import scala.Right
 import ml.classifiers.NB
 import app.ArgParser
@@ -32,7 +32,8 @@ import ml.Pattern
 /**
  * Created by davi on 05/06/14.
  */
-trait CrossValidation {
+trait CrossValidation extends Lock {
+  //lock is just to increment finished datasets counter
   lazy val className = getClass.getSimpleName.dropRight(1)
   val parallelDatasets: Boolean
   val parallelRuns: Boolean
@@ -41,10 +42,12 @@ trait CrossValidation {
   val source: (String) => Either[String, Stream[Pattern]]
   val dest: (String) => Dataset
   var finished = 0
+
+  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern])
+
   var available = true
   val rnd = new Random(0)
 
-  //lock to just increment finished datasets counter
   def inc {
     Thread.sleep((rnd.nextDouble() * 100).toInt)
     acquire
@@ -53,19 +56,7 @@ trait CrossValidation {
     release
   }
 
-  def acquire = synchronized {
-    while (!available) wait()
-    available = false
-  }
-
-  def release = synchronized {
-    available = true
-    notify()
-  }
-
-  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern])
-
-  def run {
+  def run() {
     (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
       //Open connection to load patterns.
       println("Loading patterns for dataset " + datasetName + " ...")

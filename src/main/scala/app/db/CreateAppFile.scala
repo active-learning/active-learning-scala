@@ -18,6 +18,8 @@
 
 package app.db
 
+import java.io.File
+
 import al.strategies._
 import al.strategies.Uncertainty
 import al.strategies.Margin
@@ -31,6 +33,7 @@ import al.strategies.MahalaWeightedRefreshed
 import al.strategies.MahalaWeighted
 import al.strategies.DensityWeightedTrainingUtility
 import al.strategies.Entropy
+import app.ArgParser
 import ml.classifiers._
 import al.strategies.Uncertainty
 import al.strategies.Margin
@@ -352,8 +355,18 @@ object CreateAppFile extends App {
     MahalaWeightedTrainingUtility(C45(), Seq(), 1, 1),
     MahalaWeightedRefreshedTrainingUtility(C45(), Seq(), 1, 1, sampleSize)
   )
+
+  //ensures there is no previous file
+  val alsFileStr = ArgParser.appPath + "app.db"
+  val dbOriginal = new File(alsFileStr)
+  if (dbOriginal.exists) {
+    println("File " + dbOriginal + " already exists! Delete it first.")
+    sys.exit(0)
+  }
+
+  //opens (creates) app.db
   val af = AppFile()
-  af.open
+  af.open(debug = true)
   af.createOtherTables()
   af.createTableOfLearners(Seq(NoLearner(), NB(), C45(), interaELM(1, 0)))
   af.createTableOfStrategies(strats)

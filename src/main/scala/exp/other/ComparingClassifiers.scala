@@ -1,7 +1,7 @@
 package exp.other
 
 import app.ArgParser
-import app.db.Dataset
+import app.db.{AppFile, Dataset}
 import exp.raw.CrossValidation
 import ml.Pattern
 import ml.classifiers._
@@ -38,22 +38,26 @@ object ComparingClassifiers extends CrossValidation with App {
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-//  val accs = mutable.Queue[Seq[Double]]()
-//  val ts = mutable.Queue[Seq[Double]]()
+  //  val accs = mutable.Queue[Seq[Double]]()
+  //  val ts = mutable.Queue[Seq[Double]]()
+  val af = AppFile()
+  af.open(debug = true)
+  run()
+  af.close()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
-//    val accs_ts = learners fore { learner =>
-//      val (m, t) = Tempo.timev(learner.build(pool))
-//      val acc = m.accuracy(testSet)
-//      (acc, t)
-//    }
-//    accs.enqueue(accs_ts.map(_._1))
-//    ts.enqueue(accs_ts.map(_._2))
+    //    val accs_ts = learners fore { learner =>
+    //      val (m, t) = Tempo.timev(learner.build(pool))
+    //      val acc = m.accuracy(testSet)
+    //      (acc, t)
+    //    }
+    //    accs.enqueue(accs_ts.map(_._1))
+    //    ts.enqueue(accs_ts.map(_._2))
 
   }
 
-  run
+
 
   //    val tot = d.head.nattributes
   //    val nominais = (for (i <- 0 until tot) yield d.head.dataset.attribute(i).isNominal) count (_ == true)
