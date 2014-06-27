@@ -32,8 +32,8 @@ import util.Datasets
 /**
  * Created by davi on 05/06/14.
  */
-object GnosticQueries extends Queries with App {
-  val desc = "Version 0.2 \n Generates queries for the given list of datasets according to provided hardcoded GNOSTIC " +
+object GnosticQueries extends CrossValidation with App {
+  val desc = "Version 1.0 \n Generates queries for the given list of datasets according to provided hardcoded GNOSTIC " +
     "strategies (i.e. not Rnd and Clu) mostly due to the fact that they can be stopped earlier when a predefined Q is given;\n" +
     "Parallel means 'to parallelize datasets, but serialize runs and folds."
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(getClass.getSimpleName.dropRight(1), args, desc)
@@ -44,7 +44,7 @@ object GnosticQueries extends Queries with App {
   val dest = Dataset(path) _
   val samplingSize = 500
 
-  def runStrats(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
+  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
     val strats = List(
       PerfectRealisticAccuracy(learner(pool.length / 2, run), pool),
       Uncertainty(learner(pool.length / 2, run), pool),

@@ -27,8 +27,8 @@ import util.Datasets
 /**
  * Created by davi on 05/06/14.
  */
-object AgnosticQueries extends Queries with App {
-  val desc = "Version 0.2 \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
+object AgnosticQueries extends CrossValidation with App {
+  val desc = "Version " + ArgParser.version + " \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
     "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +
     "Rnd because it is the baseline to define Q and\n" +
     "Clu because it relies on external implementation.\n" +
@@ -40,7 +40,7 @@ object AgnosticQueries extends Queries with App {
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-  def runStrats(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
+  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
     db.writeQueries(RandomSampling(pool), run, fold)
     db.writeQueries(ClusterBased(pool), run, fold)
   }

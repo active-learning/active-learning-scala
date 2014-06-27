@@ -18,7 +18,7 @@
 
 package app
 
-import java.io.File
+import java.io.{FileWriter, File}
 
 import ml.classifiers.{Learner, NB}
 import util.Datasets
@@ -27,6 +27,9 @@ import weka.core.Instances
 import scala.util.{Failure, Success, Try}
 
 object ArgParser {
+  //  lazy val majorVersion = scala.io.Source.fromFile("majV").getLines().toList.head
+  //  lazy val minorVersion = scala.io.Source.fromFile("minV").getLines().toList.head
+  lazy val version = scala.io.Source.fromFile("VERSION").getLines().toList.head
   val appPath = new File(".").getCanonicalPath + "/"
 
   def applyArgs(args: Array[String])(f: (String, => Option[Instances]) => Unit) {

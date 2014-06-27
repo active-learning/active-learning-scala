@@ -32,7 +32,7 @@ import ml.Pattern
 /**
  * Created by davi on 05/06/14.
  */
-trait Queries {
+trait CrossValidation {
   val parallelDatasets: Boolean
   val parallelRuns: Boolean
   val parallelFolds: Boolean
@@ -62,7 +62,7 @@ trait Queries {
     notify()
   }
 
-  def runStrats(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern])
+  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern])
 
   def run {
     (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
@@ -83,8 +83,9 @@ trait Queries {
           println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
           val pool = new Random(run).shuffle(tr)
           lazy val testSet = new Random(run).shuffle(ts0)
-          println("    Will write queries for fold " + fold + " of run " + run + " for " + datasetName + " ...")
-          runStrats(db, run, fold, pool, testSet)
+
+          runCore(db, run, fold, pool, testSet)
+
           println("    Pool " + fold + " of run " + run + " finished for " + datasetName + " ! Total of " + finished + " datasets finished!")
         }
         println("  Run " + run + " finished for " + datasetName + " !")
