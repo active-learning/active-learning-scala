@@ -33,7 +33,7 @@ object AgnosticQueries extends CrossValidation with App {
     "Rnd because it is the baseline to define Q and\n" +
     "Clu because it relies on external implementation.\n" +
     "Parallel means 'to parallelize datasets, but serialize runs and folds."
-  val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
+  val (path, datasetNames) = ArgParser.testArgs(className,args, 3, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
   val parallelFolds = args(2).contains("f")

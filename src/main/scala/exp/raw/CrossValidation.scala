@@ -33,6 +33,7 @@ import ml.Pattern
  * Created by davi on 05/06/14.
  */
 trait CrossValidation {
+  lazy val className = getClass.getSimpleName.dropRight(1)
   val parallelDatasets: Boolean
   val parallelRuns: Boolean
   val parallelFolds: Boolean

@@ -5,7 +5,7 @@ import app.db.Dataset
 import exp.raw.CrossValidation
 import ml.Pattern
 import ml.classifiers._
-import util.Datasets
+import util.{Tempo, Datasets}
 
 import scala.collection.mutable
 
@@ -31,17 +31,25 @@ object ComparingClassifiers extends CrossValidation with App {
   println("tae,wine,statlog-heart,flare,molecular-promoters,leukemia-haslinger,balance-scale,pima,car,breast-cancer-wisconsin-diagnostic,wine-quality-red,connectionist-mines-vs-rocks,cmc,vowel,monk1,breast-tissue,ionosphere,subject,australian,newthyroid,colon32,hayes-roth,bodies,vehicle,accute-inflammations,iris,yeast-4classes,tic-tac-toe")
   println("")
   val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
-  val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
+  val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-  val acss = mutable.Queue[Seq[Double]]()
+//  val accs = mutable.Queue[Seq[Double]]()
+//  val ts = mutable.Queue[Seq[Double]]()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
-    val learners = Seq(OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
+    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
+//    val accs_ts = learners fore { learner =>
+//      val (m, t) = Tempo.timev(learner.build(pool))
+//      val acc = m.accuracy(testSet)
+//      (acc, t)
+//    }
+//    accs.enqueue(accs_ts.map(_._1))
+//    ts.enqueue(accs_ts.map(_._2))
 
   }
 
