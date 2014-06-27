@@ -45,26 +45,36 @@ object ComparingClassifiers extends CrossValidation with App {
 
 
   val resultsDb = Results(create = true)
-  resultsDb.open(debug = true)
-  resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
+  if (resultsDb.open(debug = true))
+    resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
   run()
   resultsDb.close()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
-    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
-    learners foreach { learner =>
+    val did = resultsDb.run(s"select rowid from app.dataset where name = '${db.database}'").left.get
+    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"), C45())
+
+    //Heavy processing.
+    val results = learners map { learner =>
       val lid = resultsDb.run(s"select rowid from app.learner where name = '$learner'").left.get
-      val did = resultsDb.run(s"select rowid from app.dataset where name = '${db.database}'").left.get
       val previous = resultsDb.run(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").left.get
       if (previous > 0) {
         println("Results already done previously, skipping it.")
+        None
       } else {
         val (m, t) = Tempo.timev(learner.build(pool))
         val acc = m.accuracy(testSet)
-        resultsDb.run(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
+        Some(acc, t, lid)
       }
     }
-    if (fold == 4) resultsDb.save()
+
+    //Just collecting results.
+    resultsDb.run("begin")
+    results.flatten foreach { case (acc, t, lid) =>
+      resultsDb.run(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
+    }
+    resultsDb.run("end")
+    if (fold == 4 && run == 4) resultsDb.save()
   }
 }

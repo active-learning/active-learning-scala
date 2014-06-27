@@ -53,16 +53,27 @@ trait Database extends Lock {
     fw.close()
   }
 
-  def open(debug: Boolean = false) {
+  /**
+   * Opens connection to database.
+   * @param debug true, if the dataset had to be created (create parameter should be also true)
+   */
+  def open(debug: Boolean = false) = {
     //check file existence and if it is in usen
     if (dbCopy.exists()) {
       println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
       sys.exit(0)
     }
-    if (create) createDatabase()
-    if (!dbOriginal.exists()) {
-      println(dbOriginal + " não existe!")
-      sys.exit(0)
+    var created = false
+    if (create) {
+      if (!dbOriginal.exists()) {
+        createDatabase()
+        created = true
+      }
+    } else {
+      if (!dbOriginal.exists()) {
+        println(dbOriginal + " não existe!")
+        sys.exit(0)
+      }
     }
 
     //open
@@ -92,6 +103,7 @@ trait Database extends Lock {
       }
       if (debug) println(" Dataset " + appPath + "app.db attached!")
     }
+    created
   }
 
   def run(sql: String) = {

@@ -33,7 +33,7 @@ trait Lock {
   private val rnd = new Random(10)
   private var available = true
 
-  protected def acquire() = {
+  def acquire() = {
     Thread.sleep((rnd.nextDouble() * 100).toInt)
     synchronized {
       while (!available) wait()
@@ -41,7 +41,7 @@ trait Lock {
     }
   }
 
-  protected def release() = {
+  def release() = {
     Thread.sleep((rnd.nextDouble() * 100).toInt)
     synchronized {
       available = true
