@@ -114,10 +114,10 @@ trait Database extends Lock {
           }
           queue.enqueue(seq)
         }
-        Right(queue)
+        if (sql.startsWith("select count(*) from ")) Left(queue.head.head.toInt) else Right(queue)
       } else {
-        val rowCount = statement.execute(sql)
-        Left(rowCount)
+        statement.execute(sql)
+        Left(0)
       }
     } catch {
       case e: Throwable => e.printStackTrace

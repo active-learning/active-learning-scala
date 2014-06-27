@@ -38,68 +38,24 @@ object ComparingClassifiers extends CrossValidation with App {
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-  //  val accs = mutable.Queue[Seq[Double]]()
-  //  val ts = mutable.Queue[Seq[Double]]()
   val af = AppFile()
   af.open(debug = true)
+  af.run(s"create table $className (learnerid INT, fold INT, accuracy FLOAT, time FLOAT, unique(learnerid, fold))")
   run()
   af.close()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"))
-    //    val accs_ts = learners fore { learner =>
-    //      val (m, t) = Tempo.timev(learner.build(pool))
-    //      val acc = m.accuracy(testSet)
-    //      (acc, t)
-    //    }
-    //    accs.enqueue(accs_ts.map(_._1))
-    //    ts.enqueue(accs_ts.map(_._2))
-
+    val accs_ts = learners foreach { learner =>
+      val lid = af.run(s"select rowid from learner where name = '$learner'")
+      val previous = af.run(s"select count(*) from ${db.database} where learnerid=$lid and fold=$fold").left.get
+      if (previous > 0) {
+        println("Results already done previously, skipping it.")
+      } else {
+        val (m, t) = Tempo.timev(learner.build(pool))
+        val acc = m.accuracy(testSet)
+        af.run(s"insert into ${db.database} values ($lid, $acc, $t))")
+      }
+    }
   }
-
-
-
-  //    val tot = d.head.nattributes
-  //    val nominais = (for (i <- 0 until tot) yield d.head.dataset.attribute(i).isNominal) count (_ == true)
-  //    val numerics = tot - nominais
-  //    val nclasses = d.head.numClasses
-  //    val n = d.length
-  //    val counts = (0 until nclasses) map (c => (0 until n) count (d(_).classValue == c))
-  //    val p = (counts map (_ / n.toDouble)).toArray
-  //    val maj = p.max
-
-  //    lazy val accc45 = acc(C45(3))
-  //    lazy val accht = acc(HT())
-  //    lazy val accnb = acc(NB())
-  //    lazy val acc5nn = acc(KNN(5, "eucl"))
-
-  //      println("   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(1 - normalized_entropy(p)) + " \\\\ ")
-  //    if (passive_accs) "   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(accc45) + " & " + "%.2f".format(accnb) + " & " + "%.2f".format(accht) + " & " + "%.2f".format(acc5nn) + " & " + "%.2f".format(maj) + " \\\\ "
-  //    "   " + abbrev(dataset) + " & " + n + " & " + numerics + " & " + nominais + " & " + nclasses + " & " + "%.2f".format(maj) + " \\\\ "
-
-  println( """
-\begin{table}[h]
-\caption{Dataset details. Last column indicates the proportion of the majoritary class. Passive accuracies are also provided.}""" +
-    """\begin{center}
-\begin{tabular}{|l|r|r|r|r|r|r|r|r|r|}
-   \hline
-   \multicolumn{1}{|c|}{Dataset}
-   & \multicolumn{1}{|c|}{\#Instances}
-   & \multicolumn{1}{|c|}{\#Numeric}
-   & \multicolumn{1}{|c|}{\#Nominal}
-   & \multicolumn{1}{|c|}{\#Classes}""" +
-    """& \multicolumn{1}{|c|}{C4.5}
-   & \multicolumn{1}{|c|}{NB}
-   & \multicolumn{1}{|c|}{HT}
-   & \multicolumn{1}{|c|}{5-NN}"""
-  )
-
-  //  println(strs.mkString("\n") + """
-  //\hline
-  //\end{tabular}
-  //\label{details}
-  //\end{center}
-  //\end{table}
-  //                                """)
-
 }
