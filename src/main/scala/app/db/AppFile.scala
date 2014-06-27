@@ -42,7 +42,7 @@ case class AppFile(create: Boolean = false) extends Database {
       statement.executeUpdate("create table medida ( name VARCHAR, unique (name) on conflict rollback)")
       statement.executeUpdate("create table path ( name VARCHAR, desc VARCHAR, unique (name) on conflict rollback)")
       statement.executeUpdate("create table dataset ( name VARCHAR, pathid INT, unique (name) on conflict rollback)")
-      statement.executeUpdate("create table meta ( datasetid INT, name VARCHAR, value FLOAT, unique (dataset, name) on conflict rollback)")
+      statement.executeUpdate("create table meta ( datasetid INT, name VARCHAR, value FLOAT, unique (datasetid, name) on conflict rollback)")
       statement.executeUpdate("create table config ( name VARCHAR, value FLOAT, unique (name) on conflict rollback)")
       statement.executeUpdate("end")
     } catch {

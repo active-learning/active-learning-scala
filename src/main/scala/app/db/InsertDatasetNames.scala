@@ -26,14 +26,14 @@ import java.sql.DriverManager
  */
 object InsertDatasetNames extends App {
   val desc = "Version " + ArgParser.version + " \n Insert given path and dataset names in app.db."
-  val (path, datasetNames, pathName) = ArgParser.testArgsWithTextNoPar(getClass.getSimpleName.dropRight(1), args, 2, desc)
+  val (path, datasetNames, pathName) = ArgParser.testArgsWithTextNoPar(getClass.getSimpleName.dropRight(1), args, desc)
   val dest = Dataset(path) _
 
   val af = AppFile()
   af.open()
   af.run(s"begin")
   af.run(s"insert into path values ('$pathName', '$path')")
-  val pid = af.run(s"select rowid from path where name='$pathName'")
+  val pid = af.run(s"select rowid from path where name='$pathName'").left.get
   datasetNames foreach { datasetName =>
     af.run(s"insert into dataset values ('$datasetName', $pid)")
   }

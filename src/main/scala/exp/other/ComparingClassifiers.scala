@@ -36,6 +36,14 @@ object ComparingClassifiers extends CrossValidation with App {
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
+  //warming ELMs up
+  val warmingdata = Datasets.arff(bina = true)("banana.arff") match {
+    case Right(x) => x
+    case Left(str) => println("Could not load banana dataset from the program path: " + str); sys.exit(0)
+  }
+  CIELM(5).build(warmingdata).accuracy(warmingdata)
+
+
   val resultsDb = Results(create = true)
   resultsDb.open(debug = true)
   resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
@@ -57,5 +65,6 @@ object ComparingClassifiers extends CrossValidation with App {
         resultsDb.run(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
       }
     }
+    if (fold == 4) resultsDb.save()
   }
 }
