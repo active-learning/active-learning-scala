@@ -63,12 +63,12 @@ object ComparingClassifiers extends CrossValidation with App {
       val lid = resultsDb.run(s"select rowid from app.learner where name = '$learner'").left.get
       val previous = resultsDb.run(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").left.get
       if (previous > 0) {
-        println(s"Results already done previously for $name, skipping it.")
+        println(s"Results already done previously for $name , skipping it.")
         None
       } else {
         val (m, t) = Tempo.timev(learner.build(pool))
         val acc = m.accuracy(testSet)
-        println(s"$name finished!")
+        println(s"Run $run, pool $fold: $learner finished for $name !")
         Some(acc, t, lid)
       }
     }
