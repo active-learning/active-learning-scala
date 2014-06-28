@@ -27,7 +27,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 object ComparingClassifiers extends CrossValidation with App with Lock {
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
-  println("")
+  println("sqlite3 -header res.db \"attach 'app.db' as app; select substr(l.name || '...........', 1, 15) as learner, round(sum(accuracy)/25, 3) as m, time, d.name as dataset from app.learner as l, app.dataset as d, ComparingClassifiers where l.rowid=learnerid group by l.name, d.name order by d.name, m desc;\" | sed -r 's/[\|]+/\t/g'")
   val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
