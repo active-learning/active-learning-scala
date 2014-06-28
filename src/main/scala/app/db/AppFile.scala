@@ -18,9 +18,6 @@
 
 package app.db
 
-import java.sql.{Connection, DriverManager}
-import org.apache.commons.io.FileUtils
-import java.io.{FileWriter, File}
 import al.strategies.Strategy
 import app.ArgParser
 import ml.classifiers.Learner
@@ -79,7 +76,7 @@ case class AppFile(create: Boolean = false) extends Database {
         println(" " + dbCopy + " deleted!")
         sys.exit(0)
     }
-    println(learners.length + " queries written to " + dbCopy + ".")
+    println(learners.length + " learners written to " + dbCopy + ".")
   }
 
   def createTableOfStrategies(strats: Seq[Strategy]) {
@@ -121,7 +118,7 @@ case class AppFile(create: Boolean = false) extends Database {
         println(" " + dbCopy + " deleted!")
         sys.exit(0)
     }
-    println(strats.length + " queries written to " + dbCopy + ".")
+    println(strats.length + " strategies written to " + dbCopy + ".")
   }
 }
 
