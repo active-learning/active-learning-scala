@@ -1,7 +1,7 @@
 package exp.other
 
 import app.ArgParser
-import app.db.{Results, AppFile, Dataset}
+import app.db.{Dataset, Results}
 import exp.raw.CrossValidation
 import ml.Pattern
 import ml.classifiers._
@@ -53,7 +53,7 @@ object ComparingClassifiers extends CrossValidation with App {
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
     val did = resultsDb.run(s"select rowid from app.dataset where name = '${db.database}'").left.get
-    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(pool.size / 3), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"), C45())
+    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(math.min(300, pool.size / 3)), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"), C45())
 
     //Heavy processing.
     val results = learners map { learner =>
