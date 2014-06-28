@@ -52,19 +52,23 @@ object ComparingClassifiers extends CrossValidation with App {
   resultsDb.close()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
-    val did = resultsDb.run(s"select rowid from app.dataset where name = '${db.database}'").left.get
-    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), interaELM(math.min(300, pool.size / 3)), OSELM(math.sqrt(pool.size).toInt), HT(), NB(), KNN(5, "eucl"), C45())
+    val name = db.database
+    val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
+    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
+      interaELM(math.min(300, pool.size / 3)), OSELM(math.sqrt(pool.size).toInt),
+      HT(), NB(), KNN(5, "eucl"), C45())
 
     //Heavy processing.
     val results = learners map { learner =>
       val lid = resultsDb.run(s"select rowid from app.learner where name = '$learner'").left.get
       val previous = resultsDb.run(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").left.get
       if (previous > 0) {
-        println("Results already done previously, skipping it.")
+        println(s"Results already done previously for $name, skipping it.")
         None
       } else {
         val (m, t) = Tempo.timev(learner.build(pool))
         val acc = m.accuracy(testSet)
+        println(s"$name finished!")
         Some(acc, t, lid)
       }
     }
