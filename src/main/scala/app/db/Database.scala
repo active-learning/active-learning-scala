@@ -18,16 +18,13 @@
 
 package app.db
 
-import java.io.{FileWriter, File}
+import java.io.{File, FileWriter}
 import java.sql.{Connection, DriverManager}
 
-import al.strategies.{RandomSampling, Strategy}
 import app.ArgParser
 import org.apache.commons.io.FileUtils
-import util.{ALDatasets, Datasets}
 
 import scala.collection.mutable
-import scala.util.Random
 
 /**
  * Cada instancia desta classe representa uma conexao a
@@ -152,7 +149,7 @@ trait Database extends Lock {
 
   /**
    * Antecipates cpying of file from /tmp to the original
-   * which would normally occur at close().
+   * which would does not occur at close().
    */
   def save() {
     //    println("Copying " + dbCopy + " to " + dbOriginal + "...")
@@ -161,7 +158,6 @@ trait Database extends Lock {
   }
 
   def close() {
-    save
     //    println("Deleting " + dbCopy + "...")
     dbCopy.delete()
     //    println(" " + dbCopy + " deleted!")

@@ -18,8 +18,9 @@
 
 package app.db
 
-import app.ArgParser
 import java.sql.DriverManager
+
+import app.ArgParser
 
 /**
  * Created by davi on 09/06/14.
@@ -65,7 +66,8 @@ object SQLMulti extends App {
     val tempStatem2 = connection.createStatement()
     val rs = tempStatem2.execute(sql2)
     println(rs)
-
+    ???
+    db.save()
     db.close
   }
 }

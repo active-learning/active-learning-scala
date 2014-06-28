@@ -1,7 +1,7 @@
 package exp.other
 
 import app.ArgParser
-import app.db.{Dataset, Results}
+import app.db.{Dataset, Lock, Results}
 import exp.raw.CrossValidation
 import ml.Pattern
 import ml.classifiers._
@@ -24,7 +24,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-object ComparingClassifiers extends CrossValidation with App {
+object ComparingClassifiers extends CrossValidation with App with Lock {
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
   println("")
@@ -74,11 +74,13 @@ object ComparingClassifiers extends CrossValidation with App {
     }
 
     //Just collecting results.
+    acquire()
     resultsDb.run("begin")
     results.flatten foreach { case (acc, t, lid) =>
       resultsDb.run(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
     }
     resultsDb.run("end")
     if (fold == 4 && run == 4) resultsDb.save()
+    release()
   }
 }

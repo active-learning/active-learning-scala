@@ -19,7 +19,6 @@
 package app.db
 
 import app.ArgParser
-import java.sql.DriverManager
 
 /**
  * Created by davi on 09/06/14.
@@ -40,6 +39,7 @@ object SQLBatch extends App {
         println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
       case Left(rowCount) => println(rowCount)
     }
-    db.close
+    db.save()
+    db.close()
   }
 }

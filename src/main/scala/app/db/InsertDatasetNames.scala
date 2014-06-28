@@ -19,7 +19,6 @@
 package app.db
 
 import app.ArgParser
-import java.sql.DriverManager
 
 /**
  * Created by davi on 09/06/14.
@@ -38,5 +37,6 @@ object InsertDatasetNames extends App {
     af.run(s"insert into dataset values ('$datasetName', $pid)")
   }
   af.run(s"end")
+  af.save()
   af.close()
 }
