@@ -34,7 +34,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
   val parallelRuns = args(2).contains("r")
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
-  val dest = Dataset(path) _
+  val dest = Dataset(path, createOnAbsence = false, readOnly = true) _
 
   //warming ELMs up
   val warmingdata = Datasets.arff(bina = true)("banana.arff") match {
