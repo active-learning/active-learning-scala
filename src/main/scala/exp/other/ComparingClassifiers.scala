@@ -95,7 +95,7 @@ object TableForComparingClassifiers extends App with ClassName {
   val conditions = "d.rowid=datasetid and l.rowid=learnerid"
   val aggregators = "group by learnerid, datasetid order by le, m;\""
   val q = resultsDb.runStr(s"select $fields from $sources where $conditions $aggregators").right.get
-  val g = q.groupBy(seq => seq.last)
+  val g = q.groupBy(seq => seq.dropRight(1).last)
   for ((dataset, queue) <- g) {
     println(dataset)
     val pad = queue.map(_.head.size).max
