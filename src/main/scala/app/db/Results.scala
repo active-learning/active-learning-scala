@@ -20,7 +20,7 @@ package app.db
 
 import app.ArgParser
 
-case class Results(create: Boolean = false, readOnly: Boolean = false) extends Database {
+case class Results(createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {
   val database = "res"
   val path = ArgParser.appPath
 }

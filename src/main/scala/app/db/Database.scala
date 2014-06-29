@@ -40,7 +40,7 @@ trait Database extends Lock {
   var connection: Connection = null
   val path: String
   val database: String
-  val create: Boolean
+  val createOnAbsence: Boolean
   val readOnly: Boolean
 
   lazy val dbOriginal = new File(path + database + ".db")
@@ -66,7 +66,7 @@ trait Database extends Lock {
       sys.exit(0)
     }
     var created = false
-    if (create) {
+    if (createOnAbsence) {
       if (!dbOriginal.exists()) {
         createDatabase()
         created = true

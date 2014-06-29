@@ -22,7 +22,7 @@ import al.strategies.Strategy
 import app.ArgParser
 import ml.classifiers.Learner
 
-case class AppFile(create: Boolean = false, readOnly: Boolean = false) extends Database {
+case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {
   println("App. path = " + ArgParser.appPath)
   val database = "app"
   val path = ArgParser.appPath

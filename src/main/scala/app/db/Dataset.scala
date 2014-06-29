@@ -25,7 +25,7 @@ import util.{ALDatasets, Datasets}
  * Cada instancia desta classe representa uma conexao a
  * um arquivo db que é um dataset.
  */
-case class Dataset(path: String, create: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
+case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   val database = dataset
 
   /**

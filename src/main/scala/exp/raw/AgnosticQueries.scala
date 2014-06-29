@@ -31,8 +31,7 @@ object AgnosticQueries extends CrossValidation with App {
   val desc = "Version " + ArgParser.version + " \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
     "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +
     "Rnd because it is the baseline to define Q and\n" +
-    "Clu because it relies on external implementation.\n" +
-    "Parallel means 'to parallelize datasets, but serialize runs and folds."
+    "Clu because it relies on external implementation.\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")

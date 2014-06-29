@@ -18,15 +18,10 @@
 
 package exp.raw
 
-import al.strategies._
-import app.db.Dataset
+import al.strategies.{MahalaWeightedRefreshed, MahalaWeightedRefreshedTrainingUtility, MahalaWeightedTrainingUtility, _}
 import app.ArgParser
-import ml.Pattern
-import al.strategies.MahalaWeightedRefreshedTrainingUtility
-import al.strategies.PerfectAccuracy
-import al.strategies.MahalaWeightedTrainingUtility
 import app.db.Dataset
-import al.strategies.MahalaWeightedRefreshed
+import ml.Pattern
 import util.Datasets
 
 /**
@@ -34,8 +29,7 @@ import util.Datasets
  */
 object GnosticQueries extends CrossValidation with App {
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded GNOSTIC " +
-    "strategies (i.e. not Rnd and Clu) mostly due to the fact that they can be stopped earlier when a predefined Q is given;\n" +
-    "Parallel means 'to parallelize datasets, but serialize runs and folds."
+    "strategies (i.e. not Rnd and Clu) mostly due to the fact that they can be stopped earlier when a predefined Q is given;\n"
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")

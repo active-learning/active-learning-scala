@@ -18,9 +18,9 @@
 
 package app
 
-import java.io.{FileWriter, File}
+import java.io.File
 
-import ml.classifiers.{Learner, NB}
+import ml.classifiers._
 import util.Datasets
 import weka.core.Instances
 
@@ -71,6 +71,19 @@ object ArgParser {
     }
     def learner(Lmax: Int, seed: Int) = args(3) match {
       case "NB" => NB()
+      case "CI" => CIELM(Lmax * 2)
+      case "I" => IELM(Lmax * 2)
+      case "C45" => C45()
+      case "HT" => HT()
+      case "1NNc" => KNN(1, "cheb")
+      case "1NNe" => KNN(1, "eucl")
+      case "1NNm" => KNN(1, "manh")
+      case "3NNc" => KNN(3, "cheb")
+      case "3NNe" => KNN(3, "eucl")
+      case "3NNm" => KNN(3, "manh")
+      case "5NNc" => KNN(5, "cheb")
+      case "5NNe" => KNN(5, "eucl")
+      case "5NNm" => KNN(5, "manh")
     }
     (args(0) + "/", args(1).split(",").toSeq, learner)
   }

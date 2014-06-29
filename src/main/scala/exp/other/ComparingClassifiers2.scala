@@ -24,11 +24,10 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-object ComparingClassifiers extends CrossValidation with App with Lock {
+object ComparingClassifiers2 extends CrossValidation with App with Lock {
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
-  println("sqlite3 -header res.db \"attach 'app.db' as app; select l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, time, d.name from ComparingClassifiers as c, app.learner as l, app.dataset as d where d.rowid=datasetid and l.rowid=learnerid group by learnerid, datasetid order by le, m;\"" + " | sed -r 's/[\\|]+/\t/g'")
-  val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
+  val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
@@ -55,9 +54,9 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
     val name = db.database
     val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
-    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
-      interaELM(math.min(300, pool.size / 3)), OSELM(math.sqrt(pool.size).toInt),
-      HT(), NB(), KNN(5, "eucl"), C45(), ECIELM(pool.size))
+    val learners = Seq(IELM(pool.size * 2), EIELM(pool.size * 2), CIELM(pool.size * 2),
+      OSELM(math.sqrt(pool.size).toInt),
+      HT(), NB(), KNN(5, "eucl"), C45(), ECIELM(pool.size * 2))
 
     //Heavy processing.
     val results = learners map { learner =>
@@ -86,7 +85,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
   }
 }
 
-object TableForComparingClassifiers extends App with ClassName {
+object TableForComparingClassifiers2 extends App with ClassName {
   println("learner \taccur.  \ttime\tdataset\n---------------------------------------")
   val resultsDb = Results(createOnAbsence = false, readOnly = true)
   resultsDb.open()
