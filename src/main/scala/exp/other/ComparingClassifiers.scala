@@ -49,6 +49,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
     resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
   run()
+  resultsDb.save()
   resultsDb.close()
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {

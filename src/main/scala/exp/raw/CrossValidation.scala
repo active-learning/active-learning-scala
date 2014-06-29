@@ -18,16 +18,12 @@
 
 package exp.raw
 
+import app.db.{Dataset, Lock}
+import ml.Pattern
 import util.Datasets
 
-import scala.util._
-import scala.util.Left
-import al.strategies.{Strategy, ClusterBased, RandomSampling}
-import app.db.{Lock, Dataset}
 import scala.Right
-import ml.classifiers.NB
-import app.ArgParser
-import ml.Pattern
+import scala.util.{Left, _}
 
 /**
  * Created by davi on 05/06/14.
@@ -48,12 +44,12 @@ trait CrossValidation extends Lock {
   var available = true
   val rnd = new Random(0)
 
-  def inc {
+  def inc() {
     Thread.sleep((rnd.nextDouble() * 100).toInt)
-    acquire
+    acquire()
     finished += 1
     Thread.sleep((rnd.nextDouble() * 100).toInt)
-    release
+    release()
   }
 
   def run() {
@@ -83,11 +79,12 @@ trait CrossValidation extends Lock {
         println("  Run " + run + " finished for " + datasetName + " !")
         println("")
       }
-      inc
+      inc()
       println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
       println("")
       println("")
-      db.close
+      db.save()
+      db.close()
     }
   }
 }

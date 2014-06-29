@@ -22,7 +22,7 @@ import java.io.File
 
 import al.strategies.{ClusterBased, DensityWeightedTrainingUtility, Entropy, ExpErrorReduction, FastPerfectRealisticAccuracy, MahalaWeighted, MahalaWeightedRefreshed, MahalaWeightedRefreshedTrainingUtility, MahalaWeightedTrainingUtility, Margin, RandomSampling, SGmulti, SGmultiJS, Uncertainty}
 import app.ArgParser
-import ml.classifiers.{NoLearner, interaELM, _}
+import ml.classifiers._
 
 object CreateAppFile extends App {
   //commented code: aproveitar no futuro qnd for gerar tabela de meta-atributos
@@ -100,7 +100,8 @@ object CreateAppFile extends App {
 
   val learners = Seq(NoLearner(), NB(), C45(), interaELM(1),
     KNN(5, "eucl"), HT(),
-    IELM(1), EIELM(1), CIELM(1), OSELM(math.sqrt(1).toInt)
+    IELM(1), EIELM(1), CIELM(1), OSELM(math.sqrt(1).toInt),
+    ECIELM(1)
   )
 
   //opens (creates) app.db
