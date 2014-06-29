@@ -211,7 +211,7 @@ trait Database extends Lock {
    */
   def save() {
     if (readOnly) {
-      println("readOnly databases cannot save(), and there is no reason to accept.")
+      println("readOnly databases don't accept save(), and there is no reason to accept.")
       sys.exit(0)
     }
     FileUtils.copyFile(dbCopy, dbOriginal)
