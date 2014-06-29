@@ -22,12 +22,16 @@ import al.strategies.Strategy
 import app.ArgParser
 import ml.classifiers.Learner
 
-case class AppFile(create: Boolean = false) extends Database {
+case class AppFile(create: Boolean = false, readOnly: Boolean = false) extends Database {
   println("App. path = " + ArgParser.appPath)
   val database = "app"
   val path = ArgParser.appPath
 
   def createOtherTables() {
+    if (readOnly) {
+      println("Cannot create tables on a readOnly database!")
+      sys.exit(0)
+    }
     if (connection == null) {
       println("Impossible to get connection to create other tables. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
@@ -55,6 +59,10 @@ case class AppFile(create: Boolean = false) extends Database {
   }
 
   def createTableOfLearners(learners: Seq[Learner]) {
+    if (readOnly) {
+      println("Cannot create tables on a readOnly database!")
+      sys.exit(0)
+    }
     if (connection == null) {
       println("Impossible to get connection to write " + learners.length + " learners. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
@@ -80,6 +88,10 @@ case class AppFile(create: Boolean = false) extends Database {
   }
 
   def createTableOfStrategies(strats: Seq[Strategy]) {
+    if (readOnly) {
+      println("Cannot create tables on a readOnly database!")
+      sys.exit(0)
+    }
     if (connection == null) {
       println("Impossible to get connection to write " + strats.length + " strategies. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)

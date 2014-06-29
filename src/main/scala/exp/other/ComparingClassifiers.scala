@@ -87,15 +87,32 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
 }
 
 object TableForComparingClassifiers extends App with ClassName {
-  val resultsDb = Results()
+  println("learner \taccur.  \ttime\tdataset\n---------------------------------------")
+  val resultsDb = Results(create = false, readOnly = true)
   resultsDb.open()
-  val fields = "l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, sum(time), d.name"
+  val fields = "l.name as le, round(avg(accuracy), 3) as m, round(sum(time),3), d.name, count(*)"
   val sources = s"${className.drop(8)} as c, app.learner as l, app.dataset as d"
   val conditions = "d.rowid=datasetid and l.rowid=learnerid"
   val aggregators = "group by learnerid, datasetid order by le, m;\""
   val q = resultsDb.runStr(s"select $fields from $sources where $conditions $aggregators").right.get
-
-
-  println(q)
+  val g = q.groupBy(seq => seq.last)
+  for ((dataset, queue) <- g) {
+    println(dataset)
+    val pad = queue.map(_.head.size).max
+    val max = queue.map(_(1)).max
+    val min = queue.map(_(1)).min
+    for (seq <- queue) {
+      if (seq.last.toInt != 25) {
+        println(s"Incomplete results: folds*runs=${seq.last}")
+        sys.exit(0)
+      }
+      if (seq(1) == max) print("+")
+      else {
+        if (seq(1) == min) print("-") else print(" ")
+      }
+      println(seq.dropRight(1).map(_.padTo(pad, " ").mkString).mkString("|"))
+    }
+    println("")
+  }
   resultsDb.close()
 }
