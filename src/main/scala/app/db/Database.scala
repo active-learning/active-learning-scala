@@ -41,11 +41,16 @@ trait Database extends Lock {
   val path: String
   val database: String
   val create: Boolean
+  val readOnly: Boolean
 
   lazy val dbOriginal = new File(path + database + ".db")
-  lazy val dbCopy = new File("/tmp/" + database + ".db")
+  lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
 
   def createDatabase() = {
+    if (readOnly) {
+      println("Cannot init a readOnly database!")
+      sys.exit(0)
+    }
     val fw = new FileWriter(dbOriginal)
     fw.close()
   }
@@ -56,7 +61,7 @@ trait Database extends Lock {
    */
   def open(debug: Boolean = false) = {
     //check file existence and if it is in usen
-    if (dbCopy.exists()) {
+    if (dbCopy.exists() && !readOnly) {
       println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
       sys.exit(0)
     }
@@ -75,7 +80,7 @@ trait Database extends Lock {
 
     //open
     try {
-      FileUtils.copyFile(dbOriginal, dbCopy)
+      if (!readOnly) FileUtils.copyFile(dbOriginal, dbCopy)
       Class.forName("org.sqlite.JDBC")
       val url = "jdbc:sqlite:////" + dbCopy
       connection = DriverManager.getConnection(url)
@@ -137,6 +142,59 @@ trait Database extends Lock {
           if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
         }
       } else {
+        if (readOnly) {
+          println("readOnly databases only accept select SQL command!")
+          sys.exit(0)
+        }
+
+        statement.execute(sql)
+        Left(0)
+      }
+    } catch {
+      case e: Throwable => e.printStackTrace
+        println("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
+        sys.exit(0)
+    }
+  }
+
+  def runStr(sql: String) = {
+    if (connection == null) {
+      println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
+      sys.exit(0)
+    }
+
+    try {
+      val statement = connection.createStatement()
+      if (sql.toLowerCase.startsWith("select ")) {
+        val resultSet = statement.executeQuery(sql)
+        val rsmd = resultSet.getMetaData
+        val numColumns = rsmd.getColumnCount
+        val columnsType = new Array[Int](numColumns + 1)
+        columnsType(0) = 0
+        1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
+
+        val queue = mutable.Queue[Seq[String]]()
+        while (resultSet.next()) {
+          val seq = 1 to numColumns map { i =>
+            //            val s = columnsType(i) match {
+            //              case java.sql.Types.BOOLEAN | java.sql.Types.DATE | java.sql.Types.TIMESTAMP | java.sql.Types.TINYINT | java.sql.Types.SMALLINT | java.sql.Types.INTEGER | java.sql.Types.BIGINT | java.sql.Types.CHAR | java.sql.Types.VARCHAR => resultSet.getString(i)
+            //              case java.sql.Types.NVARCHAR => resultSet.getNString(i)
+            //              case java.sql.Types.FLOAT | java.sql.Types.NUMERIC | java.sql.Types.DOUBLE => "%2.2f".format(resultSet.getDouble(i))
+            //              case _ => resultSet.getString(i)
+            //            }
+            resultSet.getString(i)
+          }
+          queue.enqueue(seq)
+        }
+        if (sql.toLowerCase.startsWith("select count(*) from ")) Left(queue.head.head.toInt)
+        else {
+          if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
+        }
+      } else {
+        if (readOnly) {
+          println("readOnly databases only accept select SQL command!")
+          sys.exit(0)
+        }
         statement.execute(sql)
         Left(0)
       }
@@ -152,14 +210,15 @@ trait Database extends Lock {
    * which would does not occur at close().
    */
   def save() {
-    //    println("Copying " + dbCopy + " to " + dbOriginal + "...")
+    if (readOnly) {
+      println("readOnly databases cannot save(), and there is no reason to accept.")
+      sys.exit(0)
+    }
     FileUtils.copyFile(dbCopy, dbOriginal)
-    //    println(" " + dbCopy + " to " + dbOriginal + " copied!")
   }
 
   def close() {
-    //    println("Deleting " + dbCopy + "...")
-    dbCopy.delete()
+    if (!readOnly) dbCopy.delete()
     //    println(" " + dbCopy + " deleted!")
     connection.close()
     connection = null

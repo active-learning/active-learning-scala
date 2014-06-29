@@ -23,14 +23,13 @@ import ml.Pattern
 import util.Datasets
 
 import scala.Right
-import scala.util.{Left, _}
+import scala.util._
 
 /**
  * Created by davi on 05/06/14.
  */
-trait CrossValidation extends Lock {
+trait CrossValidation extends Lock with ClassName {
   //lock is just to increment finished datasets counter
-  lazy val className = getClass.getSimpleName.dropRight(1)
   val parallelDatasets: Boolean
   val parallelRuns: Boolean
   val parallelFolds: Boolean

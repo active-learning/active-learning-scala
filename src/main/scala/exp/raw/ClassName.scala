@@ -16,12 +16,11 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package app.db
+package exp.raw
 
-import app.ArgParser
-
-case class Results(create: Boolean = false, readOnly: Boolean = false) extends Database {
-  val database = "res"
-  val path = ArgParser.appPath
+/**
+ * Created by davi on 05/06/14.
+ */
+trait ClassName {
+  lazy val className = getClass.getSimpleName.dropRight(1)
 }
-

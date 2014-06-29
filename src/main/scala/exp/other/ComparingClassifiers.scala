@@ -2,7 +2,7 @@ package exp.other
 
 import app.ArgParser
 import app.db.{Dataset, Lock, Results}
-import exp.raw.CrossValidation
+import exp.raw.{ClassName, CrossValidation}
 import ml.Pattern
 import ml.classifiers._
 import util.{Datasets, Tempo}
@@ -27,7 +27,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 object ComparingClassifiers extends CrossValidation with App with Lock {
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
-  println("sqlite3 -header res.db \"attach 'app.db' as app; select substr(l.name || '...........', 1, 15) as learner, round(sum(accuracy)/25, 3) as m, time, d.name as dataset from app.learner as l, app.dataset as d, ComparingClassifiers where l.rowid=learnerid group by l.name, d.name order by d.name, m desc;\" | sed -r 's/[\\|]+/\t/g'")
+  println("sqlite3 -header res.db \"attach 'app.db' as app; select l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, time, d.name from ComparingClassifiers as c, app.learner as l, app.dataset as d where d.rowid=datasetid and l.rowid=learnerid group by learnerid, datasetid order by le, m;\"" + " | sed -r 's/[\\|]+/\t/g'")
   val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
@@ -57,7 +57,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
     val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
       interaELM(math.min(300, pool.size / 3)), OSELM(math.sqrt(pool.size).toInt),
-      HT(), NB(), KNN(5, "eucl"), C45())
+      HT(), NB(), KNN(5, "eucl"), C45(), ECIELM(pool.size))
 
     //Heavy processing.
     val results = learners map { learner =>
@@ -84,4 +84,18 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
     if (fold == 4 && run == 4) resultsDb.save()
     release()
   }
+}
+
+object TableForComparingClassifiers extends App with ClassName {
+  val resultsDb = Results()
+  resultsDb.open()
+  val fields = "l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, sum(time), d.name"
+  val sources = s"${className.drop(8)} as c, app.learner as l, app.dataset as d"
+  val conditions = "d.rowid=datasetid and l.rowid=learnerid"
+  val aggregators = "group by learnerid, datasetid order by le, m;\""
+  val q = resultsDb.runStr(s"select $fields from $sources where $conditions $aggregators").right.get
+
+
+  println(q)
+  resultsDb.close()
 }
