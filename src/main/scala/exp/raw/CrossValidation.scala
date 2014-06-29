@@ -66,10 +66,16 @@ trait CrossValidation extends Lock with ClassName {
       db.open(debug = true)
       (if (parallelRuns) (0 until 5).par else 0 until 5) foreach { run =>
         println("  Beginning run " + run + " for " + datasetName + " ...")
-        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, parallelFolds) { case (tr, ts0, fold, minSize) =>
+        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, parallelFolds) { case (tr0, ts0, fold, minSize) =>
           println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
+
+          //z-score
+          val f = Datasets.zscoreFilter(tr0)
+          val tr = Datasets.applyFilter(tr0, f)
+          val ts = Datasets.applyFilter(ts0, f)
+
           val pool = new Random(run).shuffle(tr)
-          lazy val testSet = new Random(run).shuffle(ts0)
+          lazy val testSet = new Random(run).shuffle(ts)
 
           runCore(db, run, fold, pool, testSet)
 

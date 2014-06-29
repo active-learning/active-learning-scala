@@ -37,7 +37,7 @@ object ArgParser {
     val names = args(1).split(",").toList
     val par = args.length > 2 && args(2) == "y"
     (if (par) names.par else names).foreach { name =>
-      lazy val lazyInsts = Datasets.arff(bina = true, debug = false)(path + name + ".arff") match {
+      lazy val lazyInsts = Datasets.arff(bina = true, debug = false)(path + name + ".arff", zscored = false) match {
         case Left(str) => println(str + "\nSkipping dataset '" + name + "'."); None
         case Right(data) =>
           println("Processing '" + name + "':")
@@ -72,7 +72,10 @@ object ArgParser {
     def learner(Lmax: Int, seed: Int) = args(3) match {
       case "NB" => NB()
       case "CI" => CIELM(Lmax * 2)
+      case "ECI" => ECIELM(Lmax * 2)
       case "I" => IELM(Lmax * 2)
+      case "EI" => EIELM(Lmax * 2)
+      case "intera" => interaELM(Lmax / 3)
       case "C45" => C45()
       case "HT" => HT()
       case "1NNc" => KNN(1, "cheb")
