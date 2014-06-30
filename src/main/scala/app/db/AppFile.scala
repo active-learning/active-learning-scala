@@ -77,7 +77,7 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
       statement.executeUpdate("end")
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems inserting queries into: " + dbCopy + ":")
+        println("\nProblems inserting learners into: " + dbCopy + ":")
         println(e.getMessage)
         println("Deleting " + dbCopy + "...")
         dbCopy.delete()
@@ -101,14 +101,14 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
     try {
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
-      statement.executeUpdate("create table strategy ( name VARCHAR unique (name) on conflict rollback)")
+      statement.executeUpdate("create table strategy ( name VARCHAR, unique (name) on conflict rollback)")
       strats.zipWithIndex.foreach { case (strat, idx) =>
         statement.executeUpdate(s"insert into strategy values ('$strat')")
       }
       statement.executeUpdate("end")
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems inserting queries into: " + dbCopy + ":")
+        println("\nProblems inserting strategies into: " + dbCopy + ":")
         println(e.getMessage)
         println("Deleting " + dbCopy + "...")
         dbCopy.delete()

@@ -44,5 +44,5 @@ object AgnosticQueries extends CrossValidation with App {
     db.saveQueries(ClusterBased(pool), run, fold)
   }
 
-  run
+  run()
 }

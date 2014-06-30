@@ -74,7 +74,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
       }
     }
 
-    //Just collecting results.
+    //Just collecting and storing results.
     acquire()
     resultsDb.run("begin")
     results.flatten foreach { case (acc, t, lid) =>
