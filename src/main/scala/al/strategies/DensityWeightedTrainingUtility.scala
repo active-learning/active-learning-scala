@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{Learner, NB}
+import ml.classifiers.{Learner, NBBatch}
 import ml.models.Model
 import util.Datasets
 
@@ -41,7 +41,7 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
 }
 
 object DWTUTest extends App {
-  def learner = NB()
+  def learner = NBBatch()
   val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
   val n = (patts.length * 0.5).toInt
   val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")

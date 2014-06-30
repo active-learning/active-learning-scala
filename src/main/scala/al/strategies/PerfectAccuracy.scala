@@ -18,7 +18,7 @@
 
 package al.strategies
 import ml.Pattern
-import ml.classifiers.{Learner, NB}
+import ml.classifiers.{Learner, NBBatch}
 import ml.models.Model
 import util.Datasets
 
@@ -47,7 +47,7 @@ case class PerfectAccuracy(learner: Learner, pool: Seq[Pattern], testSet: Seq[Pa
 }
 
 object PTest extends App {
-  def learner = NB()
+  def learner = NBBatch()
 
   //KNN(5, "eucl")
   //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)

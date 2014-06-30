@@ -21,7 +21,7 @@ import java.io.FileWriter
 import java.util.UUID
 
 import ml.Pattern
-import ml.classifiers.{NB, NoLearner}
+import ml.classifiers.{NBBatch, NoLearner}
 import ml.clusterers.HC.HClusterer
 import util.Datasets
 
@@ -107,7 +107,7 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
 }
 
 object CTest extends App {
-  def learner = NB()
+  def learner = NBBatch()
 
   val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
   //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)

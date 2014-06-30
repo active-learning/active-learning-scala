@@ -57,7 +57,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
     val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
       interaELM(math.min(300, pool.size / 3)), OSELM(math.sqrt(pool.size).toInt),
-      HT(), NB(), KNN(5, "eucl"), C45(), ECIELM(pool.size))
+      VFDTBatch(), NBBatch(), KNNBatch(5, "eucl"), C45(), ECIELM(pool.size))
 
     //Heavy processing.
     val results = learners map { learner =>

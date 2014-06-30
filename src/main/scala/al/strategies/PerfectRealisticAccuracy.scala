@@ -42,7 +42,7 @@ case class PerfectRealisticAccuracy(learner: Learner, pool: Seq[Pattern], debug:
 }
 
 object PRTest extends App {
-  def learner = NB()
+  def learner = NBBatch()
 
   //KNN(5, "eucl")
   //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)

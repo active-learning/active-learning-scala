@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{Learner, NB}
+import ml.classifiers.{Learner, NBBatch}
 import ml.models.Model
 import util.{Datasets, Tempo}
 
@@ -97,7 +97,7 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
 }
 
 object EERTest extends App {
-  def learner = NB()
+  def learner = NBBatch()
 
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get._1).take(4000)
   val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-3class").right.get).take(2000)
