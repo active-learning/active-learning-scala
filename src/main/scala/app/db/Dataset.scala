@@ -116,7 +116,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
           val str = s"insert into query values ($stratId,$learnerId,$run,$fold,$idx,$pattId)"
           statement.executeUpdate(str)
         }
-        seq.zipWithIndex.foreach { case (pattId, idx) => statement.executeUpdate(s"insert into time values ($stratId,$learnerId,$run,$fold,$t)")}
+        statement.executeUpdate(s"insert into time values ($stratId,$learnerId,$run,$fold,$t)")
         statement.executeUpdate("end")
       } catch {
         case e: Throwable => e.printStackTrace
