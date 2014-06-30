@@ -49,7 +49,21 @@ trait CrossValidation extends Lock with ClassName {
     release()
   }
 
+  var running = true
   def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern]) => Unit) {
+    running = true
+    new Thread(new Runnable() {
+      override def run() {
+        while (running) {
+          Thread.sleep(1000)
+          if (Runtime.getRuntime.totalMemory() / 1000000d > 29000) {
+            println("Limite de 29000MB de memoria atingido.")
+            sys.exit(0)
+          }
+        }
+      }
+    }).start()
+
     (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
       //Open connection to load patterns.
       println("Loading patterns for dataset " + datasetName + " ...")
@@ -89,5 +103,7 @@ trait CrossValidation extends Lock with ClassName {
       if (!db.readOnly) db.save()
       db.close()
     }
+    running = false
+    Thread.sleep(2000)
   }
 }
