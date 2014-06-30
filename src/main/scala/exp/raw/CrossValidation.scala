@@ -74,8 +74,8 @@ trait CrossValidation extends Lock with ClassName {
           val tr = Datasets.applyFilter(tr0, f)
           val ts = Datasets.applyFilter(ts0, f)
 
-          val pool = new Random(run).shuffle(tr)
-          lazy val testSet = new Random(run).shuffle(ts)
+          val pool = new Random(run * 100 + fold).shuffle(tr)
+          lazy val testSet = new Random(run * 100 + fold).shuffle(ts)
 
           runCore(db, run, fold, pool, testSet)
 
