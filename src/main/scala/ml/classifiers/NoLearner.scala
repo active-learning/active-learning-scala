@@ -26,6 +26,8 @@ import ml.models.Model
  */
 case class NoLearner() extends Learner {
   override val toString = "None"
+  val notes = ""
+
   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
   def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???

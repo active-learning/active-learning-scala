@@ -73,7 +73,7 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
       statement.executeUpdate("create table learner ( name VARCHAR, unique (name) on conflict rollback)")
-      learners.zipWithIndex.foreach { case (learner, idx) => statement.executeUpdate("insert into learner values ('" + learner + "')")}
+      learners.zipWithIndex.foreach { case (learner, idx) => statement.executeUpdate(s"insert into learner values ('$learner')")}
       statement.executeUpdate("end")
     } catch {
       case e: Throwable => e.printStackTrace
@@ -101,24 +101,9 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
     try {
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
-      statement.executeUpdate("create table strategy ( name VARCHAR, learnerid INT, unique (name, learnerid) on conflict rollback)")
+      statement.executeUpdate("create table strategy ( name VARCHAR unique (name) on conflict rollback)")
       strats.zipWithIndex.foreach { case (strat, idx) =>
-
-        //Fetch LearnerId by name.
-        var learnerId = -1
-        try {
-          val statement0 = connection.createStatement()
-          val resultSet0 = statement0.executeQuery("select rowid from learner where name='" + strat.learner + "'")
-          println("select rowid from learner where name='" + strat.learner + "'")
-          resultSet0.next()
-          learnerId = resultSet0.getInt("rowid")
-        } catch {
-          case e: Throwable => e.printStackTrace
-            println("\nProblems inserting queries into: " + dbCopy + ".")
-            sys.exit(0)
-        }
-
-        statement.executeUpdate("insert into strategy values ('" + strat + "', " + learnerId + ")")
+        statement.executeUpdate(s"insert into strategy values ('$strat')")
       }
       statement.executeUpdate("end")
     } catch {

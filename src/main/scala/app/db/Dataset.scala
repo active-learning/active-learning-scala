@@ -45,7 +45,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       sys.exit(0)
     }
     if (connection == null) {
-      println("Impossible to get connection to write queries at the run " + run + " and fold " + fold + " for strategy " + strat + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
+      println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
     }
 
@@ -58,7 +58,20 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       stratId = resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems inserting queries into: " + dbCopy + ".")
+        println("\nProblems consulting strategy to insert queries into: " + dbCopy + ".")
+        sys.exit(0)
+    }
+
+    //Fetch StrategyId by name.
+    var learnerId = -1
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + strat.learner + "'")
+      resultSet.next()
+      learnerId = resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        println("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
         sys.exit(0)
     }
     //    println("Strategy " + strat + " has id " + stratId + ".")
@@ -69,7 +82,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     var q = -1
     try {
       val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select count(rowid) as q from query where strategyid=" + stratId + " and run=" + run + " and fold=" + fold)
+      val resultSet = statement.executeQuery(s"select count(rowid) as q from query where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold")
       resultSet.next()
       q = resultSet.getInt("q")
       if (q > 0) {
@@ -94,7 +107,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       try {
         val statement = connection.createStatement()
         statement.executeUpdate("begin")
-        seq.zipWithIndex.foreach { case (paId, idx) => statement.executeUpdate("insert into query values (" + stratId + "," + run + "," + fold + "," + idx + "," + paId + ")")}
+        seq.zipWithIndex.foreach { case (paId, idx) => statement.executeUpdate(s"insert into query values ($stratId,$learnerId,$run,$fold,$idx,$paId)")}
         statement.executeUpdate("end")
       } catch {
         case e: Throwable => e.printStackTrace

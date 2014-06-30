@@ -20,7 +20,7 @@ package app.db
 
 import java.io.File
 
-import al.strategies.{ClusterBased, DensityWeightedTrainingUtility, Entropy, ExpErrorReduction, FastPerfectRealisticAccuracy, MahalaWeighted, MahalaWeightedRefreshed, MahalaWeightedRefreshedTrainingUtility, MahalaWeightedTrainingUtility, Margin, RandomSampling, SGmulti, SGmultiJS, Uncertainty}
+import al.strategies._
 import app.ArgParser
 import ml.classifiers._
 
@@ -35,59 +35,23 @@ object CreateAppFile extends App {
     RandomSampling(Seq()),
     ClusterBased(Seq()),
 
-    FastPerfectRealisticAccuracy(interaELM(1), Seq(), sampleSizePerfect),
-    Uncertainty(interaELM(1), Seq()),
-    Entropy(interaELM(1), Seq()),
-    Margin(interaELM(1), Seq()),
-    new SGmulti(interaELM(1), Seq(), "consensus"),
-    new SGmulti(interaELM(1), Seq(), "majority"),
-    new SGmultiJS(interaELM(1), Seq()),
-    ExpErrorReduction(interaELM(1), Seq(), "entropy", sampleSize),
-    ExpErrorReduction(interaELM(1), Seq(), "accuracy", sampleSize),
-    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "maha"),
-    DensityWeightedTrainingUtility(interaELM(1), Seq(), 1, 1, "manh"),
-    MahalaWeighted(interaELM(1), Seq(), 1),
-    MahalaWeightedRefreshed(interaELM(1), Seq(), 1, sampleSize),
-    MahalaWeightedTrainingUtility(interaELM(1), Seq(), 1, 1),
-    MahalaWeightedRefreshedTrainingUtility(interaELM(1), Seq(), 1, 1, sampleSize),
-
-    FastPerfectRealisticAccuracy(NB(), Seq(), sampleSizePerfect),
-    Uncertainty(NB(), Seq()),
-    Entropy(NB(), Seq()),
-    Margin(NB(), Seq()),
-    new SGmulti(NB(), Seq(), "consensus"),
-    new SGmulti(NB(), Seq(), "majority"),
-    new SGmultiJS(NB(), Seq()),
-    ExpErrorReduction(NB(), Seq(), "entropy", sampleSize),
-    ExpErrorReduction(NB(), Seq(), "accuracy", sampleSize),
-    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "maha"),
-    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "manh"),
-    MahalaWeighted(NB(), Seq(), 1),
-    MahalaWeightedRefreshed(NB(), Seq(), 1, sampleSize),
-    MahalaWeightedTrainingUtility(NB(), Seq(), 1, 1),
-    MahalaWeightedRefreshedTrainingUtility(NB(), Seq(), 1, 1, sampleSize),
-
-    FastPerfectRealisticAccuracy(C45(), Seq(), sampleSizePerfect),
-    Uncertainty(C45(), Seq()),
-    Entropy(C45(), Seq()),
-    Margin(C45(), Seq()),
-    new SGmulti(C45(), Seq(), "consensus"),
-    new SGmulti(C45(), Seq(), "majority"),
-    new SGmultiJS(C45(), Seq()),
-    ExpErrorReduction(C45(), Seq(), "entropy", sampleSize),
-    ExpErrorReduction(C45(), Seq(), "accuracy", sampleSize),
-    DensityWeightedTrainingUtility(C45(), Seq(), 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(C45(), Seq(), 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(C45(), Seq(), 1, 1, "maha"),
-    DensityWeightedTrainingUtility(C45(), Seq(), 1, 1, "manh"),
-    MahalaWeighted(C45(), Seq(), 1),
-    MahalaWeightedRefreshed(C45(), Seq(), 1, sampleSize),
-    MahalaWeightedTrainingUtility(C45(), Seq(), 1, 1),
-    MahalaWeightedRefreshedTrainingUtility(C45(), Seq(), 1, 1, sampleSize)
+    Uncertainty(NoLearner(), Seq()),
+    Entropy(NoLearner(), Seq()),
+    Margin(NoLearner(), Seq()),
+    new SGmulti(NoLearner(), Seq(), "consensus"),
+    new SGmulti(NoLearner(), Seq(), "majority"),
+    new SGmultiJS(NoLearner(), Seq()),
+    ExpErrorReduction(NoLearner(), Seq(), "entropy", sampleSize),
+    ExpErrorReduction(NoLearner(), Seq(), "accuracy", sampleSize),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), 1, 1, "maha"),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), 1, 1, "manh"),
+    MahalaWeighted(NoLearner(), Seq(), 1),
+    MahalaWeightedRefreshed(NoLearner(), Seq(), 1, sampleSize),
+    MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
+    MahalaWeightedRefreshedTrainingUtility(NoLearner(), Seq(), 1, 1, sampleSize),
+    FastPerfectRealisticAccuracy(NoLearner(), Seq(), sampleSizePerfect)
   )
 
   //ensures there is no previous file
@@ -98,11 +62,9 @@ object CreateAppFile extends App {
     sys.exit(0)
   }
 
-  val learners = Seq(NoLearner(), NB(), C45(), interaELM(1),
-    KNN(5, "eucl", Seq()), VFDT(),
-    IELM(1), EIELM(1), CIELM(1), OSELM(math.sqrt(1).toInt),
-    ECIELM(1),
-    KNN(5, "manh", Seq())
+  val learners = Seq(NoLearner(), NB(), C45(), VFDT(), KNN(5, "eucl", Seq()), KNN(5, "manh", Seq()),
+    IELM(1), EIELM(1), CIELM(1), ECIELM(1),
+    interaELM(1), OSELM(math.sqrt(1).toInt)
   )
 
   //opens (creates) app.db

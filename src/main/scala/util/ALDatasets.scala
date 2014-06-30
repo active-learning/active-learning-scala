@@ -28,7 +28,7 @@ object ALDatasets {
   import scala.collection.JavaConversions._
 
   /**
-   * Reads a SQLite patterns in the querying order.
+   * Reads SQLite patterns in the querying order.
    * Assigns the rowid to pattern id.
    */
   def queriesFromSQLite(path: String)(dataset: String)(run: Int, fold: Int) = {
