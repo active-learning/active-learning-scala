@@ -17,8 +17,9 @@
  */
 
 package al.strategies
+
 import ml.Pattern
-import ml.classifiers.{NBBatch, NoLearner}
+import ml.classifiers.{NB, NoLearner}
 import util.Datasets
 
 import scala.util.Random
@@ -49,7 +50,8 @@ case class RandomSampling(pool: Seq[Pattern], debug: Boolean = false)
 
 
 object RTest extends App {
-  def learner = NBBatch()
+  def learner = NB()
+
   val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
   val n = (patts.length * 0.5).toInt
   val s = RandomSampling(patts.take(n))

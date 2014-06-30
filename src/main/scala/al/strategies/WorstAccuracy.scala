@@ -17,8 +17,9 @@
  */
 
 package al.strategies
+
 import ml.Pattern
-import ml.classifiers.{Learner, NBBatch}
+import ml.classifiers.{Learner, NB}
 import ml.models.Model
 import util.Datasets
 
@@ -47,14 +48,15 @@ case class WorstAccuracy(learner: Learner, pool: Seq[Pattern], testSet: Seq[Patt
 }
 
 object WTest extends App {
-  val learner = NBBatch() //KNN(5, "eucl")
-//  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
+  val learner = NB()
+  //KNN(5, "eucl")
+  //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
   val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
   val n = (patts.length * 0.5).toInt
   val s = WorstAccuracy(learner, patts.take(n), patts.drop(n).take(100))
-//  val m = learner.build(patts.take(n))
-//  println(m.accuracy(patts.drop(n)))
+  //  val m = learner.build(patts.take(n))
+  //  println(m.accuracy(patts.drop(n)))
   val b = s.queries.toList
-//  println(b.map(_.id))
-//  println(NB().build(b).accuracy(patts.drop(n)))
+  //  println(b.map(_.id))
+  //  println(NB().build(b).accuracy(patts.drop(n)))
 }

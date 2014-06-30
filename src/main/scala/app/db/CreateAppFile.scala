@@ -53,23 +53,23 @@ object CreateAppFile extends App {
     MahalaWeightedTrainingUtility(interaELM(1), Seq(), 1, 1),
     MahalaWeightedRefreshedTrainingUtility(interaELM(1), Seq(), 1, 1, sampleSize),
 
-    FastPerfectRealisticAccuracy(NBBatch(), Seq(), sampleSizePerfect),
-    Uncertainty(NBBatch(), Seq()),
-    Entropy(NBBatch(), Seq()),
-    Margin(NBBatch(), Seq()),
-    new SGmulti(NBBatch(), Seq(), "consensus"),
-    new SGmulti(NBBatch(), Seq(), "majority"),
-    new SGmultiJS(NBBatch(), Seq()),
-    ExpErrorReduction(NBBatch(), Seq(), "entropy", sampleSize),
-    ExpErrorReduction(NBBatch(), Seq(), "accuracy", sampleSize),
-    DensityWeightedTrainingUtility(NBBatch(), Seq(), 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(NBBatch(), Seq(), 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(NBBatch(), Seq(), 1, 1, "maha"),
-    DensityWeightedTrainingUtility(NBBatch(), Seq(), 1, 1, "manh"),
-    MahalaWeighted(NBBatch(), Seq(), 1),
-    MahalaWeightedRefreshed(NBBatch(), Seq(), 1, sampleSize),
-    MahalaWeightedTrainingUtility(NBBatch(), Seq(), 1, 1),
-    MahalaWeightedRefreshedTrainingUtility(NBBatch(), Seq(), 1, 1, sampleSize),
+    FastPerfectRealisticAccuracy(NB(), Seq(), sampleSizePerfect),
+    Uncertainty(NB(), Seq()),
+    Entropy(NB(), Seq()),
+    Margin(NB(), Seq()),
+    new SGmulti(NB(), Seq(), "consensus"),
+    new SGmulti(NB(), Seq(), "majority"),
+    new SGmultiJS(NB(), Seq()),
+    ExpErrorReduction(NB(), Seq(), "entropy", sampleSize),
+    ExpErrorReduction(NB(), Seq(), "accuracy", sampleSize),
+    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "maha"),
+    DensityWeightedTrainingUtility(NB(), Seq(), 1, 1, "manh"),
+    MahalaWeighted(NB(), Seq(), 1),
+    MahalaWeightedRefreshed(NB(), Seq(), 1, sampleSize),
+    MahalaWeightedTrainingUtility(NB(), Seq(), 1, 1),
+    MahalaWeightedRefreshedTrainingUtility(NB(), Seq(), 1, 1, sampleSize),
 
     FastPerfectRealisticAccuracy(C45(), Seq(), sampleSizePerfect),
     Uncertainty(C45(), Seq()),
@@ -98,10 +98,11 @@ object CreateAppFile extends App {
     sys.exit(0)
   }
 
-  val learners = Seq(NoLearner(), NBBatch(), C45(), interaELM(1),
-    KNNBatch(5, "eucl"), VFDTBatch(),
+  val learners = Seq(NoLearner(), NB(), C45(), interaELM(1),
+    KNN(5, "eucl", Seq()), VFDT(),
     IELM(1), EIELM(1), CIELM(1), OSELM(math.sqrt(1).toInt),
-    ECIELM(1)
+    ECIELM(1),
+    KNN(5, "manh", Seq())
   )
 
   //opens (creates) app.db

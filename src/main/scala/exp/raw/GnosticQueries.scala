@@ -18,7 +18,7 @@
 
 package exp.raw
 
-import al.strategies.{MahalaWeightedRefreshed, MahalaWeightedRefreshedTrainingUtility, MahalaWeightedTrainingUtility, _}
+import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
@@ -40,23 +40,23 @@ object GnosticQueries extends CrossValidation with App {
 
   def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
     val strats = List(
-      PerfectRealisticAccuracy(learner(pool.length / 2, run), pool),
-      Uncertainty(learner(pool.length / 2, run), pool),
-      Entropy(learner(pool.length / 2, run), pool),
-      Margin(learner(pool.length / 2, run), pool),
-      new SGmulti(learner(pool.length / 2, run), pool, "consensus"),
-      new SGmulti(learner(pool.length / 2, run), pool, "majority"),
-      new SGmultiJS(learner(pool.length / 2, run), pool),
-      ExpErrorReduction(learner(pool.length / 2, run), pool, "entropy", samplingSize),
-      ExpErrorReduction(learner(pool.length / 2, run), pool, "accuracy", samplingSize),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run), pool, 1, 1, "cheb"),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run), pool, 1, 1, "eucl"),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run), pool, 1, 1, "maha"),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run), pool, 1, 1, "manh"),
-      MahalaWeighted(learner(pool.length / 2, run), pool, 1),
-      MahalaWeightedRefreshed(learner(pool.length / 2, run), pool, 1, samplingSize),
-      MahalaWeightedTrainingUtility(learner(pool.length / 2, run), pool, 1, 1),
-      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run), pool, 1, 1, samplingSize)
+      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
+      Uncertainty(learner(pool.length / 2, run, pool), pool),
+      Entropy(learner(pool.length / 2, run, pool), pool),
+      Margin(learner(pool.length / 2, run, pool), pool),
+      new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
+      new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
+      new SGmultiJS(learner(pool.length / 2, run, pool), pool),
+      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
+      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
+      MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
+      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
+      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
+      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
     )
     ??? //de onde tirar o Q de cada dataset?
 //    strats foreach (strat => db.writeQueries(strat, run, fold, Q))

@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{Learner, NBBatch}
+import ml.classifiers.{Learner, NB}
 import ml.models.Model
 import util.{Datasets, Tempo}
 
@@ -97,14 +97,14 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
 }
 
 object EERTest extends App {
-  def learner = NBBatch()
+  def learner = NB()
 
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get._1).take(4000)
   val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-3class").right.get).take(2000)
   println(patts.length)
   val n = (patts.length * 0.5).toInt
-//  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 200)
-//    val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 200)
+  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 200)
+  //    val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 200)
   val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
 
   //  val m = learner.build(patts.take(n))
@@ -125,6 +125,6 @@ object EERTest extends App {
     q => mr = learner.update(mr)(q)
       mr.accuracy(patts.drop(n))
   }
-//  ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
+  //  ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
   ac1.zip(ac2).foreach { case (a, b) => println(a)}
 }

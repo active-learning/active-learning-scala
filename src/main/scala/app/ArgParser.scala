@@ -20,6 +20,7 @@ package app
 
 import java.io.File
 
+import ml.Pattern
 import ml.classifiers._
 import util.Datasets
 import weka.core.Instances
@@ -63,30 +64,30 @@ object ArgParser {
     (args(0) + "/", args(1).split(",").toSeq)
   }
 
-  def testArgsWithLearner(className: String, args: Array[String], text: String): (String, Seq[String], (Int, Int) => Learner) = {
+  def testArgsWithLearner(className: String, args: Array[String], text: String): (String, Seq[String], (Int, Int, Seq[Pattern]) => Learner) = {
     if (args.length != 4) {
       println("____________\n" + text + "\n------------\nUsage:")
       println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf learner")
       sys.exit(0)
     }
-    def learner(Lmax: Int, seed: Int) = args(3) match {
-      case "NB" => NBBatch()
+    def learner(Lmax: Int, seed: Int, pool: Seq[Pattern]) = args(3) match {
+      case "NB" => NB()
       case "CI" => CIELM(Lmax * 2)
       case "ECI" => ECIELM(Lmax * 2)
       case "I" => IELM(Lmax * 2)
       case "EI" => EIELM(Lmax * 2)
       case "intera" => interaELM(Lmax / 3)
       case "C45" => C45()
-      case "HT" => VFDTBatch()
-      case "1NNc" => KNNBatch(1, "cheb")
-      case "1NNe" => KNNBatch(1, "eucl")
-      case "1NNm" => KNNBatch(1, "manh")
-      case "3NNc" => KNNBatch(3, "cheb")
-      case "3NNe" => KNNBatch(3, "eucl")
-      case "3NNm" => KNNBatch(3, "manh")
-      case "5NNc" => KNNBatch(5, "cheb")
-      case "5NNe" => KNNBatch(5, "eucl")
-      case "5NNm" => KNNBatch(5, "manh")
+      case "VFDT" => VFDT()
+      case "1NNc" => KNN(1, "cheb", pool)
+      case "1NNe" => KNN(1, "eucl", pool)
+      case "1NNm" => KNN(1, "manh", pool)
+      case "3NNc" => KNN(3, "cheb", pool)
+      case "3NNe" => KNN(3, "eucl", pool)
+      case "3NNm" => KNN(3, "manh", pool)
+      case "5NNc" => KNN(5, "cheb", pool)
+      case "5NNe" => KNN(5, "eucl", pool)
+      case "5NNm" => KNN(5, "manh", pool)
     }
     (args(0) + "/", args(1).split(",").toSeq, learner)
   }

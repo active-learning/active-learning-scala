@@ -28,8 +28,8 @@ import scala.util.Random
 
 object Queries_visualized extends App {
   val arff = "/home/davi/unversioned/experimentos/fourclusters.arff"
-val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
-//  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
+  val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
+  //  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
   val train = data.take(1500)
   val test = data.drop(1500)
 
@@ -45,12 +45,13 @@ val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
   //  CARTBag(0,20)
   //  C45Bag(0,10)
   //    RIPPER()
-          VFDTBatch()
-//    OSELMdyn(best(test.take(100), 0), 0)
-//    OSELMdyn(compromise(), 0)
-//    OSELMdyn(esPRESS(0), 0)
-//  c.build(train)
-//  sys.exit(0)
+    VFDT()
+
+  //    OSELMdyn(best(test.take(100), 0), 0)
+  //    OSELMdyn(compromise(), 0)
+  //    OSELMdyn(esPRESS(0), 0)
+  //  c.build(train)
+  //  sys.exit(0)
 
   //    EnsOSELMdyn(halfway(), 0, 1)
   //  EnsOSELMdyn(compromise(), 0, 1)
@@ -65,11 +66,11 @@ val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
   val cc = c //OSELMdyn(compromise(), 0)
 
   val e =
-      ClusterBased(train, debug = true) //143 10:178
+    ClusterBased(train, debug = true) //143 10:178
   //    Margin(c, train, debug = true)
-//          Entropy(c, train, debug = true)
+  //          Entropy(c, train, debug = true)
   //        Uncertainty(c, train, debug = true) //212 10:199
-//    SGmulti(c, train, "consensus", debug = true) //143 10:146 ponto fraco: talvez seja mais sensível ao peso dos exemplos de fundo
+  //    SGmulti(c, train, "consensus", debug = true) //143 10:146 ponto fraco: talvez seja mais sensível ao peso dos exemplos de fundo
   //      SGmultiJS(c, train, debug = true) //149 ponto fraco: não consulta quando concordam na dúvida
   //                       SGmultiMargin(c, train, debug = true) //168 ponto fraco: concentra demais as consultas na fronteira de decisão
   //                     DensityWeightedTrainingUtility(c, train, 1,1, "maha", debug = true)
@@ -85,8 +86,8 @@ val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
   //                      ExpErrorReduction(c, train, "entropy", 200, debug = true)
   //    ExpErrorReduction(c, train, "accuracy", 200, debug)
   //                 ExpErrorReduction(c, train, "gmeans", 100, debug = true)
-//           ExpModelChange(c, train, debug = true)
-//    RandomSampling(train, debug = true)
+  //           ExpModelChange(c, train, debug = true)
+  //    RandomSampling(train, debug = true)
 
   var labeled = List[Pattern]()
   val ts = test
