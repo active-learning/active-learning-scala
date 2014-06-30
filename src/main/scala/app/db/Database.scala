@@ -23,6 +23,7 @@ import java.sql.{Connection, DriverManager}
 
 import app.ArgParser
 import org.apache.commons.io.FileUtils
+import util.Lock
 
 import scala.collection.mutable
 

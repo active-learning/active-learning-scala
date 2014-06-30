@@ -1,11 +1,11 @@
 package exp.other
 
 import app.ArgParser
-import app.db.{Dataset, Lock, Results}
+import app.db.{Dataset, Results}
 import exp.raw.{ClassName, CrossValidation}
 import ml.Pattern
 import ml.classifiers._
-import util.{Datasets, Tempo}
+import util.{Datasets, Lock, Tempo}
 
 /*
 elm-scala: an implementation of ELM in Scala using MTJ
@@ -48,11 +48,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
   if (resultsDb.open(debug = true) || resultsDb.run(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").left.get == 0)
     resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
-  run()
-  resultsDb.save()
-  resultsDb.close()
-
-  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
+  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
     val name = db.database
     val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
@@ -84,6 +80,9 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
     if (fold == 4 && run == 4) resultsDb.save()
     release()
   }
+
+  resultsDb.save()
+  resultsDb.close()
 }
 
 object TableForComparingClassifiers extends App with ClassName {

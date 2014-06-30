@@ -38,7 +38,7 @@ object GnosticQueries extends CrossValidation with App {
   val dest = Dataset(path) _
   val samplingSize = 500
 
-  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern]) {
+  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
     val strats = List(
       PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
       Uncertainty(learner(pool.length / 2, run, pool), pool),
@@ -58,11 +58,13 @@ object GnosticQueries extends CrossValidation with App {
       MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
       MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
     )
+
+    //checa se as queries desse run/fold existem para Random/NoLearner
+
     ??? //de onde tirar o Q de cada dataset?
-//    strats foreach (strat => db.writeQueries(strat, run, fold, Q))
+    //    strats foreach (strat => db.writeQueries(strat, run, fold, Q))
   }
 
-  run
 }
 
 

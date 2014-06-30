@@ -18,9 +18,9 @@
 
 package exp.raw
 
-import app.db.{Dataset, Lock}
+import app.db.Dataset
 import ml.Pattern
-import util.Datasets
+import util.{Datasets, Lock}
 
 import scala.Right
 import scala.util._
@@ -38,8 +38,6 @@ trait CrossValidation extends Lock with ClassName {
   val dest: (String) => Dataset
   var finished = 0
 
-  def runCore(db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: => Seq[Pattern])
-
   var available = true
   val rnd = new Random(0)
 
@@ -51,7 +49,7 @@ trait CrossValidation extends Lock with ClassName {
     release()
   }
 
-  def run() {
+  def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern]) => Unit) {
     (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
       //Open connection to load patterns.
       println("Loading patterns for dataset " + datasetName + " ...")
@@ -75,7 +73,7 @@ trait CrossValidation extends Lock with ClassName {
           val ts = Datasets.applyFilter(ts0, f)
 
           val pool = new Random(run * 100 + fold).shuffle(tr)
-          lazy val testSet = new Random(run * 100 + fold).shuffle(ts)
+          lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: useless memory being allocated
 
           runCore(db, run, fold, pool, testSet)
 
