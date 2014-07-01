@@ -53,9 +53,11 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
     val name = db.database
     val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
-    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
-      interaELM(math.min(300, pool.size / 3)), OSELM(math.sqrt(pool.size).toInt),
-      VFDT(), NB(), KNN(5, "eucl", pool), C45(), ECIELM(pool.size))
+    val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
+      interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)),
+      interawELM(5), interawfELM(5),
+      OSELM(math.sqrt(pool.size).toInt),
+      VFDT(), NB(), KNN(5, "eucl", pool), C45())
 
     //Heavy processing.
     val results = learners map { learner =>
