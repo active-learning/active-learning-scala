@@ -105,7 +105,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
     val max = queue.map(_(1)).max
     val min = queue.map(_(1)).min
     for (seq <- queue) {
-      if (seq.last.toInt != 25) {
+      if (seq.last.toInt != 10) {
         println(s"Incomplete results: folds*runs=${seq.last}")
         sys.exit(0)
       }
