@@ -24,7 +24,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-object ComparingClassifiers extends CrossValidation with App with Lock {
+object ComparingBatchClassifiers extends CrossValidation with App with Lock {
   val runs = 1
   val folds = 10
   println("First experiment:")
@@ -87,7 +87,7 @@ object ComparingClassifiers extends CrossValidation with App with Lock {
   resultsDb.close()
 }
 
-object TableForComparingClassifiers extends App with ClassName {
+object TableForComparingBatchClassifiers extends App with ClassName {
   println("learner \taccur.  \ttime\tdataset\n---------------------------------------")
   val resultsDb = Results(createOnAbsence = false, readOnly = true)
   resultsDb.open()
