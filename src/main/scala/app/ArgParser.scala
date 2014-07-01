@@ -72,11 +72,18 @@ object ArgParser {
     }
     def learner(Lmax: Int, seed: Int, pool: Seq[Pattern]) = args(3) match {
       case "NB" => NB()
-      case "CI" => CIELM(Lmax * 2)
-      case "ECI" => ECIELM(Lmax * 2)
-      case "I" => IELM(Lmax * 2)
-      case "EI" => EIELM(Lmax * 2)
-      case "intera" => interaELM(Lmax / 3)
+
+      case "CI" => CIELM(Lmax * 2, seed)
+      case "ECI" => ECIELM(Lmax * 2, seed)
+      case "I" => IELM(Lmax * 2, seed)
+      case "EI" => EIELM(Lmax * 2, seed)
+
+      case "CI2" => CIELM(Lmax * 2, seed, "2")
+      case "ECI2" => ECIELM(Lmax * 2, seed, "2")
+      case "I2" => IELM(Lmax * 2, seed, "2")
+      case "EI2" => EIELM(Lmax * 2, seed, "2")
+
+      case "intera" => interaELM(Lmax / 3, seed)
       case "C45" => C45()
       case "VFDT" => VFDT()
       case "1NNc" => KNN(1, "cheb", pool)
