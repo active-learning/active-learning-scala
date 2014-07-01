@@ -24,8 +24,8 @@ import app.ArgParser
  * Created by davi on 09/06/14.
  */
 object SQLBatch extends App {
-  val desc = "Version 0.1 \n Apply SQL queries to all provided databases independently." +
-    "This program is needed because SQLite has a limited of only 20 simultaneous attached datasets."
+  val desc = s"Version ${ArgParser.version} \n Apply SQL queries to all provided databases independently." +
+    "This program is needed because SQLite has a limit of only 20 simultaneous attached datasets."
   val (path, datasetNames, sql) = ArgParser.testArgsWithText(getClass.getSimpleName.dropRight(1), args, desc)
   val parallel = args(2) == "y"
   val dest = Dataset(path) _
