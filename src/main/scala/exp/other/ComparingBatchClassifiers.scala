@@ -74,7 +74,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
       }
     }
 
-    //Just collecting and storing results.
+    println("Just collecting and storing results.")
     acquire()
     resultsDb.run("begin")
     results.flatten foreach { case (acc, t, lid) =>
@@ -83,6 +83,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
     resultsDb.run("end")
     if (fold == 4 && run == 4) resultsDb.save()
     release()
+    println("collected!")
   }
 
   resultsDb.save()
@@ -105,7 +106,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
     val max = queue.map(_(1)).max
     val min = queue.map(_(1)).min
     for (seq <- queue) {
-      if (seq.last.toInt != 10) {
+      if (seq.last.toInt != 11) {
         println(s"Incomplete results: folds*runs=${seq.last}")
         sys.exit(0)
       }
