@@ -30,6 +30,8 @@ import scala.util._
  */
 trait CrossValidation extends Lock with ClassName {
   //lock is just to increment finished datasets counter
+  val runs: Int
+  val folds: Int
   val parallelDatasets: Boolean
   val parallelRuns: Boolean
   val parallelFolds: Boolean
@@ -39,17 +41,18 @@ trait CrossValidation extends Lock with ClassName {
   var finished = 0
 
   var available = true
-  val rnd = new Random(0)
+  val rndForLock = new Random(System.currentTimeMillis() % 100000)
 
   def inc() {
-    Thread.sleep((rnd.nextDouble() * 100).toInt)
+    Thread.sleep((rndForLock.nextDouble() * 100).toInt)
     acquire()
     finished += 1
-    Thread.sleep((rnd.nextDouble() * 100).toInt)
+    Thread.sleep((rndForLock.nextDouble() * 100).toInt)
     release()
   }
 
   var running = true
+
   def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern]) => Unit) {
     running = true
     new Thread(new Runnable() {
@@ -76,9 +79,9 @@ trait CrossValidation extends Lock with ClassName {
       println("Beginning dataset " + datasetName + " ...")
       val db = dest(datasetName)
       db.open(debug = true)
-      (if (parallelRuns) (0 until 5).par else 0 until 5) foreach { run =>
+      (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
         println("  Beginning run " + run + " for " + datasetName + " ...")
-        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, parallelFolds) { case (tr0, ts0, fold, minSize) =>
+        Datasets.kfoldCV(new Random(run).shuffle(patts), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
           println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
 
           //z-score
@@ -87,7 +90,7 @@ trait CrossValidation extends Lock with ClassName {
           val ts = Datasets.applyFilter(ts0, f)
 
           val pool = new Random(run * 100 + fold).shuffle(tr)
-          lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: useless memory being allocated
+          lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: useless memory being allocated?
 
           runCore(db, run, fold, pool, testSet)
 

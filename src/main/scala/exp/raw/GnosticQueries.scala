@@ -28,6 +28,8 @@ import util.Datasets
  * Created by davi on 05/06/14.
  */
 object GnosticQueries extends CrossValidation with App {
+  val runs = 5
+  val folds = 5
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded GNOSTIC " +
     "strategies (i.e. not Rnd and Clu) mostly due to the fact that they can be stopped earlier when a predefined Q is given;\n"
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
