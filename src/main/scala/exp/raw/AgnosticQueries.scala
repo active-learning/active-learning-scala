@@ -18,7 +18,6 @@
 
 package exp.raw
 
-import al.strategies.{ClusterBased, RandomSampling}
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
@@ -40,9 +39,31 @@ object AgnosticQueries extends CrossValidation with App {
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-
+  testar time queries no QueriesTest(tah em algum canto, ver por alt + f7 em agnost)
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
-    db.saveQueries(RandomSampling(pool), run, fold)
-    db.saveQueries(ClusterBased(pool), run, fold)
+    /*
+    ~200 datasets
+    25 pools
+    ~5 slow strategies
+    total: 25000
+    avg time for cluster-based in feasible 169 datasets: 182s
+    worst time in feasible 169 datasets: 2h
+
+    other datasets (require more memory = less threads): 35
+    total number of pools: 35 * 25 * 5 = 4375
+    estimated time per pool: 4h
+    estimated total CPU time: 4 * 4375 = 17500h = 24meses
+    estimated total wall time: 24meses / (2servers * 2threads) = 6 meses
+
+    available time: 3meses * 2servers * 2threads = ~8000h
+    available time limit per pool: 8000 / 4375 = ~2h
+
+    time limit chosen (only 2 strats are really slow): 4h
+
+
+
+     */
+    //    db.saveQueries(RandomSampling(pool), run, fold)
+    //    db.saveQueries(ClusterBased(pool), run, fold)
   }
 }

@@ -19,10 +19,9 @@
 package al.strategies
 
 import ml.Pattern
-import util.{Graphics, Tempo}
-import Graphics.Plot
-import util.Tempo
 import ml.classifiers.Learner
+import util.Graphics
+import util.Graphics.Plot
 
 /**
  * Only distinct patterns are accepted into the pool.
@@ -51,6 +50,21 @@ trait Strategy {
    */
   def queries: Stream[Pattern] = firstof_each_class.toStream ++ resume_queries_impl(rest, firstof_each_class)
 
+  /**
+   * Se estourar o tempo limite,
+   * espera a query atual terminar
+   * e retorna aquelas feitas até esse ponto.
+   * @param seconds
+   */
+  def timeLimitedQueries(seconds: Int) = {
+    val ti = System.currentTimeMillis()
+    var t = 0d
+    queries.takeWhile { _ =>
+      t = (System.currentTimeMillis() - ti) / 1000d
+      t <= seconds
+    }
+  }
+
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern]
 
   /**
@@ -61,6 +75,7 @@ trait Strategy {
    * Exception if they are not complete yet.
    */
   def resume_queries(labeled: Seq[Pattern]) = {
+    ??? //todo: I donk know if resuming queries is a good idea
     if (firstof_each_class != labeled.take(nclasses)) {
       println("Queries cannot be resumed, there should be the exact one-instance-per-class subset at the beginning.")
       println("Expected: " + firstof_each_class)

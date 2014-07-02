@@ -29,7 +29,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
   val folds = 10
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
-  println("sqlite3 -header res.db \"attach 'app.db' as app; select l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, time, d.name from ComparingClassifiers as c, app.learner as l, app.dataset as d where d.rowid=datasetid and l.rowid=learnerid group by learnerid, datasetid order by le, m;\"" + " | sed -r 's/[\\|]+/\t/g'")
+  println("sqlite3 -header results.db \"attach 'app.db' as app; select l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, time, d.name from ComparingClassifiers as c, app.learner as l, app.dataset as d where d.rowid=datasetid and l.rowid=learnerid group by learnerid, datasetid order by le, m;\"" + " | sed -r 's/[\\|]+/\t/g'")
   val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
@@ -46,7 +46,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
   CIELM(5).build(warmingdata).accuracy(warmingdata)
 
 
-  val resultsDb = Results(createOnAbsence = true)
+  val resultsDb = Results("/home/davi/wcs/ucipp/uci", createOnAbsence = true)
   if (resultsDb.open(debug = true) || resultsDb.run(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").left.get == 0)
     resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
@@ -92,7 +92,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
 
 object TableForComparingBatchClassifiers extends App with ClassName {
   println("learner \taccur.  \ttime\tdataset\n---------------------------------------")
-  val resultsDb = Results(createOnAbsence = false, readOnly = true)
+  val resultsDb = Results("/home/davi/wcs/ucipp/uci", createOnAbsence = false, readOnly = true)
   resultsDb.open()
   val fields = "l.name as le, round(avg(accuracy), 3) as m, round(sum(time),3), d.name, count(*)"
   val sources = s"${className.drop(8)} as c, app.learner as l, app.dataset as d"

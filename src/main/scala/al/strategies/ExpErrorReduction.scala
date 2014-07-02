@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{Learner, NB}
+import ml.classifiers._
 import ml.models.Model
 import util.{Datasets, Tempo}
 
@@ -97,21 +97,25 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
 }
 
 object EERTest extends App {
-  def learner = NB()
+  def learner = interawfELM(1)
 
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get._1).take(4000)
-  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-3class").right.get).take(2000)
+  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
   println(patts.length)
-  val n = (patts.length * 0.5).toInt
-  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 200)
+  val n = (patts.length * 0.8).toInt
+  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 1000)
   //    val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 200)
-  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
+  //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
 
   //  val m = learner.build(patts.take(n))
   //  println(m.accuracy(patts.drop(n)))
-  Tempo.start
-  val l = s.queries.toList
-  Tempo.print_stop
+  val l = s.queries
+  (4 to 100) foreach { n =>
+    Tempo.start
+    l(n)
+    Tempo.print_stop
+  }
+  sys.exit(0)
 
   var m = learner.build(l.take(patts.head.nclasses))
   val ac1 = l.drop(patts.head.nclasses) map {

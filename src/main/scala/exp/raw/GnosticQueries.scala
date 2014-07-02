@@ -38,11 +38,11 @@ object GnosticQueries extends CrossValidation with App {
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-  val samplingSize = 500
+  val samplingSize = 1000
 
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
     val strats = List(
-      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
+      //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
       Uncertainty(learner(pool.length / 2, run, pool), pool),
       Entropy(learner(pool.length / 2, run, pool), pool),
       Margin(learner(pool.length / 2, run, pool), pool),
@@ -64,7 +64,7 @@ object GnosticQueries extends CrossValidation with App {
     //checa se as queries desse run/fold existem para Random/NoLearner
 
     ??? //de onde tirar o Q de cada dataset?
-    //    strats foreach (strat => db.writeQueries(strat, run, fold, Q))
+    strats foreach (strat => db.saveQueries(strat, run, fold, Q))
   }
 
 }
