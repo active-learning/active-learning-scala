@@ -18,10 +18,7 @@
 
 package app.db
 
-import app.ArgParser
-
-case class Results(createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {
-  val database = "res"
-  val path = ArgParser.appPath
+case class Results(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {
+  val database = "results"
 }
 
