@@ -65,7 +65,7 @@ object CreateAppFile extends App {
   val learners = Seq(NoLearner(), NB(), C45(), VFDT(), KNN(5, "eucl", Seq()), KNN(5, "manh", Seq()),
     IELM(1), EIELM(1), CIELM(1), ECIELM(1),
     interaELM(1),
-    interaELMNoEM(1), interawELM(5), interawfELM(5),
+    interaELMNoEM(1), interawELM(15), interawfELM(15),
     OSELM(math.sqrt(1).toInt)
   )
 

@@ -24,6 +24,8 @@ import ml.Pattern
 import ml.classifiers._
 import util.{Datasets, Lock, Tempo}
 
+import scala.util.Random
+
 object ComparingBatchClassifiers extends CrossValidation with App with Lock {
   val runs = 1
   val folds = 10
@@ -55,7 +57,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
     val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
       interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)),
-      interawELM(5), interawfELM(5),
+      interawELM(15), interawfELM(15),
       OSELM(math.sqrt(pool.size).toInt),
       VFDT(), NB(), KNN(5, "eucl", pool), C45())
 
@@ -81,7 +83,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
       resultsDb.run(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
     }
     resultsDb.run("end")
-    if (fold == 4 && run == 4) resultsDb.save()
+    if (fold % 3 == 0) resultsDb.save()
     release()
     println("collected!")
   }
@@ -106,7 +108,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
     val max = queue.map(_(1)).max
     val min = queue.map(_(1)).min
     for (seq <- queue) {
-      if (seq.last.toInt != 11) {
+      if (seq.last.toInt != 10) {
         println(s"Incomplete results: folds*runs=${seq.last}")
         sys.exit(0)
       }
@@ -119,4 +121,18 @@ object TableForComparingBatchClassifiers extends App with ClassName {
     println("")
   }
   resultsDb.close()
+}
+
+object interasTest extends App {
+//  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("banana").right.get)
+  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("nursery").right.get).take(2000)
+  val pool = data.take(1000)
+  val ts = data.drop(1000)
+  val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
+    interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)),
+    interawELM(15), interawfELM(15))
+  learners foreach { l =>
+    val m = l.build(pool)
+    println(s"$l : ${m.accuracy(ts)}    L: ${m.L}")
+  }
 }
