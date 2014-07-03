@@ -100,22 +100,25 @@ object EERTest extends App {
   def learner = interawfELM(1)
 
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get._1).take(4000)
-  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
-  println(patts.length)
+  //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
+  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("gas-drift").right.get)
+  println(patts.length + " " + patts.head.nclasses)
   val n = (patts.length * 0.8).toInt
-  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 1000)
-  //    val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 200)
-  //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
+  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 2000) //1min. p/ query
+  //      val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 2000) //40s p/ query
+  //    val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
+  val s = ClusterBased(patts.take(n))
 
   //  val m = learner.build(patts.take(n))
   //  println(m.accuracy(patts.drop(n)))
   val l = s.queries
-  (4 to 100) foreach { n =>
+  (patts.head.nclasses to 100) foreach { n =>
     Tempo.start
     l(n)
     Tempo.print_stop
   }
   sys.exit(0)
+
 
   var m = learner.build(l.take(patts.head.nclasses))
   val ac1 = l.drop(patts.head.nclasses) map {
@@ -129,6 +132,6 @@ object EERTest extends App {
     q => mr = learner.update(mr)(q)
       mr.accuracy(patts.drop(n))
   }
-  //  ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
-  ac1.zip(ac2).foreach { case (a, b) => println(a)}
+  ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
+  //  ac1.zip(ac2).foreach { case (a, b) => println(a)}
 }

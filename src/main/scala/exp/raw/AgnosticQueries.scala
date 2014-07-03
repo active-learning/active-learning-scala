@@ -40,7 +40,6 @@ object AgnosticQueries extends CrossValidation with App {
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-  //  testar time queries no QueriesTest(tah em algum canto, ver por alt + f7 em agnost)
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
     /*
     ~200 datasets
