@@ -20,7 +20,6 @@ package al.strategies
 
 import ml.Pattern
 import ml.classifiers.Learner
-import util.Graphics
 import util.Graphics.Plot
 
 /**
@@ -54,15 +53,17 @@ trait Strategy {
    * Se estourar o tempo limite,
    * espera a query atual terminar
    * e retorna aquelas feitas até esse ponto.
+   * Logo, a atual é desperdiçada.
    * @param seconds
    */
-  def timeLimitedQueries(seconds: Int) = {
+  def timeLimitedQueries(seconds: Double) = {
     val ti = System.currentTimeMillis()
     var t = 0d
-    queries.takeWhile { _ =>
+    val withinTimeLimit = queries.takeWhile { _ =>
       t = (System.currentTimeMillis() - ti) / 1000d
       t <= seconds
-    }
+    }.toSeq
+    withinTimeLimit
   }
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern]

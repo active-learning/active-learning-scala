@@ -64,7 +64,7 @@ object AgnosticQueries extends CrossValidation with App {
 
 
      */
-    db.saveQueries(RandomSampling(pool), run, fold, 3600 * 100)
-    db.saveQueries(ClusterBased(pool), run, fold, 3600 * 100)
+    db.saveQueries(RandomSampling(pool), run, fold, Int.MaxValue)
+    db.saveQueries(ClusterBased(pool), run, fold, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }
 }

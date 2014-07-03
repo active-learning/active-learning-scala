@@ -22,6 +22,7 @@ import app.db.{Dataset, Results}
 import exp.raw.{ClassName, CrossValidation}
 import ml.Pattern
 import ml.classifiers._
+import ml.models.ELMModel
 import util.{Datasets, Lock, Tempo}
 
 import scala.util.Random
@@ -133,6 +134,6 @@ object interasTest extends App {
     interawELM(15), interawfELM(15))
   learners foreach { l =>
     val m = l.build(pool)
-    println(s"$l : ${m.accuracy(ts)}    L: ${m.L}")
+    println(s"$l : ${m.accuracy(ts)}    L: ${m.asInstanceOf[ELMModel].L}")
   }
 }
