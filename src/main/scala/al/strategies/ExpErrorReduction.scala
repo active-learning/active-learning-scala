@@ -101,11 +101,13 @@ object EERTest extends App {
   //    val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get).take(4000)
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
   //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("gas-drift").right.get.take(1000))
-  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get.take(400))
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(400))
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilter(patts0, filter)
 
-  def learner = NB() //KNN(5, "eucl", patts) //interawELM(5)
+  //todo: update de interaXXX não funfa
+  def learner = interaELMNoEM(20)
+
   println(patts.length + " " + patts.head.nclasses)
   val n = (patts.length * 0.5).toInt
   val s = ExpErrorReduction(learner, patts.take(n), "entropy", 100) //1min. p/ query
