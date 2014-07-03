@@ -101,7 +101,7 @@ object EERTest extends App {
 
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get._1).take(4000)
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
-  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("gas-drift").right.get)
+  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("gas-drift").right.get.take(args(0).toInt))
   println(patts.length + " " + patts.head.nclasses)
   val n = (patts.length * 0.8).toInt
   //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 2000) //1min. p/ query
