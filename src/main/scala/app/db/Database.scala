@@ -45,6 +45,7 @@ trait Database extends Lock {
   val readOnly: Boolean
 
   lazy val dbOriginal = new File(path + database + ".db")
+  lazy val dbLock = new File(path + "locked/" + database + ".db")
   lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
 
   def createDatabase() = {
@@ -61,10 +62,20 @@ trait Database extends Lock {
    * @param debug true, if the dataset had to be created (create parameter should be also true)
    */
   def open(debug: Boolean = false) = {
-    //check file existence and if it is in usen
+    //check file existence and if it is in use
     if (dbCopy.exists() && !readOnly) {
       println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
       sys.exit(0)
+    }
+    if (dbLock.exists()) {
+      if (dbOriginal.exists()) {
+        println(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
+        sys.exit(0)
+      } else {
+        println(s"$dbOriginal is locked as $dbLock!")
+        sys.exit(0)
+      }
+      //todo: maybe a locked database should be readable
     }
     var created = false
     if (createOnAbsence) {
@@ -81,8 +92,11 @@ trait Database extends Lock {
 
     //open
     try {
-      if (!readOnly) FileUtils.copyFile(dbOriginal, dbCopy)
-      Class.forName("org.sqlite.JDBC")
+      if (!readOnly) {
+        FileUtils.copyFile(dbOriginal, dbCopy)
+        lockFile()
+      }
+      Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
       val url = "jdbc:sqlite:////" + dbCopy
       connection = DriverManager.getConnection(url)
     } catch {
@@ -207,15 +221,38 @@ trait Database extends Lock {
   }
 
   /**
-   * Antecipates cpying of file from /tmp to the original
-   * which would does not occur at close().
+   * Antecipates copying of file from /tmp to the original (locked)
+   * which does not occur at close().
    */
   def save() {
     if (readOnly) {
       println("readOnly databases don't accept save(), and there is no reason to accept.")
       sys.exit(0)
     }
-    FileUtils.copyFile(dbCopy, dbOriginal)
+    FileUtils.copyFile(dbCopy, dbLock)
+  }
+
+  /**
+   * rename file to dataset.db.locked.
+   * All this shit is needed because of SQLite relying on NFS locks.
+   */
+  def lockFile() {
+    if (readOnly) {
+      println("readOnly databases don't accept lockFile(), and there is no reason to accept.")
+      sys.exit(0)
+    }
+    FileUtils.copyFile(dbOriginal, dbLock)
+  }
+
+  /**
+   * rename dataset.db.locked to original name.
+   */
+  def unlockFile() {
+    if (readOnly) {
+      println("readOnly databases don't accept unlockFile(), and there is no reason to accept.")
+      sys.exit(0)
+    }
+    FileUtils.copyFile(dbLock, dbOriginal)
   }
 
   def close() {
@@ -223,6 +260,7 @@ trait Database extends Lock {
     //    println(" " + dbCopy + " deleted!")
     connection.close()
     connection = null
+    unlockFile()
   }
 }
 
