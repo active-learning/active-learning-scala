@@ -64,7 +64,7 @@ object GnosticQueries extends CrossValidation with App {
     //checa se as queries desse run/fold existem para Random/NoLearner
 
     ??? //de onde tirar o Q de cada dataset?
-    strats foreach (strat => db.saveQueries(strat, run, fold, Q))
+    //    strats foreach (strat => db.saveQueries(strat, run, fold, Q))
   }
 
 }

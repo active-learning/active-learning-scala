@@ -18,6 +18,7 @@
 
 package exp.raw
 
+import al.strategies.{ClusterBased, RandomSampling}
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
@@ -39,7 +40,7 @@ object AgnosticQueries extends CrossValidation with App {
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-  testar time queries no QueriesTest(tah em algum canto, ver por alt + f7 em agnost)
+  //  testar time queries no QueriesTest(tah em algum canto, ver por alt + f7 em agnost)
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
     /*
     ~200 datasets
@@ -63,7 +64,7 @@ object AgnosticQueries extends CrossValidation with App {
 
 
      */
-    //    db.saveQueries(RandomSampling(pool), run, fold)
-    //    db.saveQueries(ClusterBased(pool), run, fold)
+    db.saveQueries(RandomSampling(pool), run, fold, 3600 * 100)
+    db.saveQueries(ClusterBased(pool), run, fold, 3600 * 100)
   }
 }

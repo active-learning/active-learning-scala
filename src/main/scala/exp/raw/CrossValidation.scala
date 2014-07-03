@@ -18,6 +18,8 @@
 
 package exp.raw
 
+import java.util.Calendar
+
 import app.db.Dataset
 import ml.Pattern
 import util.{Datasets, Lock}
@@ -94,7 +96,7 @@ trait CrossValidation extends Lock with ClassName {
 
           runCore(db, run, fold, pool, testSet)
 
-          println("    Pool " + fold + " of run " + run + " finished for " + datasetName + " ! Total of " + finished + " datasets finished!")
+          println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
         }
         println("  Run " + run + " finished for " + datasetName + " !")
         println("")
