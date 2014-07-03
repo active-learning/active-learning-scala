@@ -97,27 +97,34 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
 }
 
 object EERTest extends App {
-  def learner = interawfELM(1)
 
-  //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get._1).take(4000)
+  //    val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get).take(4000)
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
-  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("gas-drift").right.get.take(args(0).toInt))
+  //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("gas-drift").right.get.take(1000))
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get.take(400))
+  val filter = Datasets.zscoreFilter(patts0)
+  val patts = Datasets.applyFilter(patts0, filter)
+
+  def learner = NB() //KNN(5, "eucl", patts) //interawELM(5)
   println(patts.length + " " + patts.head.nclasses)
-  val n = (patts.length * 0.8).toInt
-  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 2000) //1min. p/ query
+  val n = (patts.length * 0.5).toInt
+  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 100) //1min. p/ query
   //      val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 2000) //40s p/ query
-  //    val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
-  val s = ClusterBased(patts.take(n))
+  //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
+  //  val s = ClusterBased(patts.take(n))
 
   //  val m = learner.build(patts.take(n))
   //  println(m.accuracy(patts.drop(n)))
   val l = s.queries
-  (patts.head.nclasses to 100) foreach { n =>
+  (patts.head.nclasses until n).zipWithIndex foreach { case (n, i) =>
     Tempo.start
     l(n)
-    Tempo.print_stop
+    if (i % 20 == 0) {
+      print(i + " ")
+      Tempo.print_stop
+    }
   }
-  sys.exit(0)
+  //  sys.exit(0)
 
 
   var m = learner.build(l.take(patts.head.nclasses))
