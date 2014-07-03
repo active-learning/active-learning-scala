@@ -72,7 +72,7 @@ trait Database extends Lock {
         println(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
         sys.exit(0)
       } else {
-        println(s"$dbOriginal is locked as $dbLock!")
+        println(s"$dbOriginal is locked as $dbLock! Cannot open it.")
         sys.exit(0)
       }
       //todo: maybe a locked database should be readable
@@ -241,7 +241,11 @@ trait Database extends Lock {
       println("readOnly databases don't accept lockFile(), and there is no reason to accept.")
       sys.exit(0)
     }
-    FileUtils.copyFile(dbOriginal, dbLock)
+    if (dbLock.exists()) {
+      println(s"$dbLock should not exist; $dbOriginal needs to take its place.")
+      sys.exit(0)
+    }
+    dbOriginal.renameTo(dbLock)
   }
 
   /**
@@ -252,7 +256,11 @@ trait Database extends Lock {
       println("readOnly databases don't accept unlockFile(), and there is no reason to accept.")
       sys.exit(0)
     }
-    FileUtils.copyFile(dbLock, dbOriginal)
+    if (dbOriginal.exists()) {
+      println(s"$dbOriginal should not exist; $dbLock needs to take its place.")
+      sys.exit(0)
+    }
+    dbLock.renameTo(dbOriginal)
   }
 
   def close() {
