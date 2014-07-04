@@ -74,7 +74,10 @@ trait CrossValidation extends Lock with ClassName {
       println("Loading patterns for dataset " + datasetName + " ...")
       val patts = source(datasetName) match {
         case Right(x) => x
-        case Left(error) => println(error); sys.exit(0)
+        case Left(error) =>
+          println(error)
+          println(datasetName + " not found; probably it is in use.")
+          sys.exit(0)
       }
 
       //Reopen connection to write queries.
