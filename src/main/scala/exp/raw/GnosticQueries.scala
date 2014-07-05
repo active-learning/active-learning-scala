@@ -51,6 +51,7 @@ object GnosticQueries extends CrossValidation with App {
       new SGmultiJS(learner(pool.length / 2, run, pool), pool),
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
+      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
@@ -65,13 +66,26 @@ object GnosticQueries extends CrossValidation with App {
 
     ??? //de onde tirar o Q de cada dataset?
     //    strats foreach (strat => db.saveQueries(strat, run, fold, Q))
+
+    /*
+    ~200 datasets
+    25 pools
+    ~5 slow strategies
+    total: 25000
+    avg time for cluster-based in feasible 169 datasets: 182s
+    worst time in feasible 169 datasets: 2h
+
+    other datasets (require more memory = less threads): 35
+    total number of pools: 35 * 25 * 5 = 4375
+    estimated time per pool: 4h
+    estimated total CPU time: 4 * 4375 = 17500h = 24meses
+    estimated total wall time: 24meses / (2servers * 2threads) = 6 meses
+
+    available time: 3meses * 2servers * 2threads = ~8000h
+    available time limit per pool: 8000 / 4375 = ~2h
+
+    time limit chosen (only 2 strats are really slow): 4h
+     */
   }
 
 }
-
-
-//def learner(Lmax: Int, seed: Int) =
-////      C45()
-//NB()
-////      interaELM(Lmax, seed)
-

@@ -28,7 +28,8 @@ object SQLBatch extends App {
     "This program is needed because SQLite has a limit of only 20 simultaneous attached datasets. Parallel:y|n"
   val (path, datasetNames, sql) = ArgParser.testArgsWithText(getClass.getSimpleName.dropRight(1), args, desc)
   val parallel = args(2) == "y"
-  val dest = Dataset(path) _
+  val readOnly = sql.toLowerCase.startsWith("select ")
+  val dest = Dataset(path, createOnAbsence = false, readOnly) _
 
   (if (parallel) datasetNames.par else datasetNames) foreach { datasetName =>
     val db = dest(datasetName)
@@ -39,7 +40,7 @@ object SQLBatch extends App {
         println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
       case Left(rowCount) => println(rowCount)
     }
-    db.save()
+    if (!readOnly) db.save()
     db.close()
   }
 }

@@ -264,11 +264,13 @@ trait Database extends Lock {
   }
 
   def close() {
-    if (!readOnly) dbCopy.delete()
     //    println(" " + dbCopy + " deleted!")
     connection.close()
     connection = null
-    unlockFile()
+    if (!readOnly) {
+      dbCopy.delete()
+      unlockFile()
+    }
   }
 }
 
