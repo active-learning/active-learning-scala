@@ -34,9 +34,6 @@ case class NoLearner() extends Learner {
 
   def expected_change(model: Model)(pattern: Pattern) = ???
 
-  //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]): Model
-  def updateAll(model: Model, fast_mutable: Boolean)(patterns: Seq[Pattern]) = ???
-
   /**
    * Every call to build generates a model from scratch
    * (and reinstanciate all needed internal mutable objects, if any).

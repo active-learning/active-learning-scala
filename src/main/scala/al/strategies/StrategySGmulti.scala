@@ -30,10 +30,11 @@ trait StrategySGmulti extends Strategy {
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
     val specific_pools = {
-      for (c <- 0 until nclasses) yield (distinct_pool map (_.relabeled_reweighted(c, background_weight, new_missed = false))).toList
+      for (c <- 0 until nclasses) yield (distinct_pool ++ labeled map (_.relabeled_reweighted(c, background_weight, new_missed = false))).toList
     }.toArray
-    val initial_models = specific_pools map learner.build
-    val current_models = initial_models map (m => learner.updateAll(m, fast_mutable = true)(labeled))
+    val current_models = specific_pools map learner.build
+    //    val initial_models = specific_pools map learner.build
+    //    val current_models = initial_models map (m => learner.updateAll(m, fast_mutable = true)(labeled))
     queries_rec(current_models, unlabeled, labeled)
   }
 

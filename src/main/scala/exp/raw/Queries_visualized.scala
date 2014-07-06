@@ -58,7 +58,7 @@ object Queries_visualized extends App {
   //  EnsOSELMdyn(fullunderfitting(), 0, 1)
   //  EnsOSELMdyn(fulloverfitting(), 0, 1)
   //          C45()
-    KNN(5, "eucl", data)
+    KNN(125, "eucl", data)
 
   //    NBBatch()
   //  NB()
