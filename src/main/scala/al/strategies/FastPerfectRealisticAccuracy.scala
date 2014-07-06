@@ -43,7 +43,7 @@ case class FastPerfectRealisticAccuracy(learner: Learner, pool: Seq[Pattern], sa
 
   def next(currentModel: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val (unlabeledSamp, unlabeledSampSize) = if (unlabeledSize > sampleSize) (rnd.shuffle(unlabeled).take(sampleSize), sampleSize) else (unlabeled, unlabeledSize)
-    val (acc, p, m) = (unlabeledSamp.par map { pa =>
+    val (acc, p, m) = (unlabeledSamp map { pa =>
       val newModel = learner.update(currentModel)(pa)
       (newModel.accuracy(unlabeledSamp, unlabeledSampSize), pa, newModel)
     }).maxBy(_._1)

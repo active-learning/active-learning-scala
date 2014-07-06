@@ -45,7 +45,7 @@ case class SGmultiJS(learner: Learner, pool: Seq[Pattern], debug: Boolean = fals
     } else {
       plot.zera()
       if (models_to_visualize.head != null) for (p <- distinct_pool) {
-        val js0 = 1 - JSdivergence(models_to_visualize.map(m => m.distribution(p))).toFloat
+        val js0 = 1 - normalizedJSdivergence(models_to_visualize.map(m => m.distribution(p))).toFloat
         val cor = if (js0 >= 0.8) {
           Graphics.n2cor(models_to_visualize.map(_.distribution(p)).transpose.map(_.sum).zipWithIndex.max._2)
         } else new Color(js0, js0, js0)

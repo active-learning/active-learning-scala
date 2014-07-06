@@ -56,12 +56,12 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
       Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled)
     } else {
       val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
-      lazy val optimistic_patterns = unlabeledSamp.par.map { p =>
+      lazy val optimistic_patterns = unlabeledSamp.map { p =>
         p.relabeled_reweighted(current_model.predict(p), 1, new_missed = false)
       }.toVector
 
       val (selected, label_estimate, _) = (
-        for (pattern <- unlabeledSamp.par; c <- 0 until nclasses) yield {
+        for (pattern <- unlabeledSamp; c <- 0 until nclasses) yield {
           lazy val artificially_labeled_pattern = pattern.relabeled_reweighted(c, 1, new_missed = false)
           lazy val art_model = learner.update(current_model)(artificially_labeled_pattern)
           criterionInt match {
@@ -100,25 +100,27 @@ object EERTest extends App {
 
   //    val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get).take(4000)
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
-  //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("gas-drift").right.get.take(1000))
-  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(1000))
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/locked")("gas-drift").right.get.take(500))
+  //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilter(patts0, filter)
 
   //todo: update de interaXXX não funfa
-  def learner = KNN(5, "eucl", patts) //interaELMNoEM(20)
+  def learner = VFDT() //5, "eucl", patts) //interaELMNoEM(20)
 
   println(patts.length + " " + patts.head.nclasses)
   val n = (patts.length * 0.5).toInt
-  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 100) //1min. p/ query
-  //      val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 2000) //40s p/ query
+  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 400) //400:280s
+  val s = SGmulti(learner, patts.take(n), "consensus") //400:280s
+  //        val s = ExpErrorReduction(learner, patts.take(n), "gmeans", 400) //100:15s 200:45s 400:300s 1000:2000s
+  //        val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 100)
   //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
   //  val s = ClusterBased(patts.take(n))
 
   //  val m = learner.build(patts.take(n))
   //  println(m.accuracy(patts.drop(n)))
   val l = s.queries
-  (patts.head.nclasses until n).zipWithIndex foreach { case (n, i) =>
+  (patts.head.nclasses until patts.head.nclasses * 2).zipWithIndex foreach { case (n, i) =>
     Tempo.start
     l(n)
     //    if (i % 20 == 0) {
@@ -144,3 +146,54 @@ object EERTest extends App {
   ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
   //  ac1.zip(ac2).foreach { case (a, b) => println(a)}
 }
+
+
+/*
+TITLE-ABS-KEY(
+  "active learning"AND(
+    reviewORsurveyORcomparisonORcombiningORselectionORchoiceORstacked
+  )
+)ANDSUBJAREA(
+  multORcengORCHEMORcompOReartORenerORengiORenviORmateORmathORphys
+)AND(
+  EXCLUDE(
+    DOCTYPE,"le"
+  )OREXCLUDE(
+    DOCTYPE,"Undefined"
+  )
+)
+AND(
+  EXCLUDE(
+    SUBJAREA,"SOCI"
+  )OREXCLUDE(
+    SUBJAREA,"EART"
+  )OREXCLUDE(
+    SUBJAREA,"BIOC"
+  )OREXCLUDE(
+    SUBJAREA,"PHYS"
+  )OREXCLUDE(
+    SUBJAREA,"NEUR"
+  )OREXCLUDE(
+    SUBJAREA,"CHEM"
+  )
+)AND(
+  EXCLUDE(
+    SUBJAREA,"MEDI"
+  )OREXCLUDE(
+    SUBJAREA,"BUSI"
+  )OREXCLUDE(
+    SUBJAREA,"ARTS"
+  )OREXCLUDE(
+    SUBJAREA,"ENVI"
+  )OREXCLUDE(
+    SUBJAREA,"CENG"
+  )OREXCLUDE(
+    SUBJAREA,"AGRI"
+  )OREXCLUDE(
+    SUBJAREA,"MEDI"
+  )OREXCLUDE(
+    SUBJAREA,"BUSI"
+  )OREXCLUDE(
+    SUBJAREA,"ARTS"
+    )OREXCLUDE(SUBJAREA,"ENVI")OREXCLUDE(SUBJAREA,"CENG")OREXCLUDE(SUBJAREA,"AGRI")OREXCLUDE(SUBJAREA,"MATE")OREXCLUDE(SUBJAREA,"ENER")OREXCLUDE(SUBJAREA,"HEAL")OREXCLUDE(SUBJAREA,"ECON")OREXCLUDE(SUBJAREA,"MULT")OREXCLUDE(SUBJAREA,"PSYC")OREXCLUDE(SUBJAREA,"NURS")OREXCLUDE(SUBJAREA,"MEDI")OREXCLUDE(SUBJAREA,"BUSI")OREXCLUDE(SUBJAREA,"ARTS")OREXCLUDE(SUBJAREA,"MATE")OREXCLUDE(SUBJAREA,"ENER")OREXCLUDE(SUBJAREA,"HEAL")OREXCLUDE(SUBJAREA,"ECON")OREXCLUDE(SUBJAREA,"MULT")OREXCLUDE(SUBJAREA,"PSYC")OREXCLUDE(SUBJAREA,"NURS"))AND(LIMIT-TO(SUBJAREA,"COMP"))
+ */

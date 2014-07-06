@@ -19,13 +19,10 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.Learner
 import ml.models.Model
-import util.Graphics
 import util.Graphics.Plot
 
 trait StrategySGmulti extends Strategy {
-  val learner: Learner
   lazy val background_weight = 1 / (distinct_pool.length.toDouble * nclasses)
   //The more classes we have, bigger is the disagreement; we have to compensate reducing the artificial weights.
   lazy val plots = Array.fill(nclasses)(new Plot)
@@ -33,7 +30,7 @@ trait StrategySGmulti extends Strategy {
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
     val specific_pools = {
-      for (c <- 0 until nclasses) yield distinct_pool map (_.relabeled_reweighted(c, background_weight, new_missed = false))
+      for (c <- 0 until nclasses) yield (distinct_pool map (_.relabeled_reweighted(c, background_weight, new_missed = false))).toList
     }.toArray
     val initial_models = specific_pools map learner.build
     val current_models = initial_models map (m => learner.updateAll(m, fast_mutable = true)(labeled))
