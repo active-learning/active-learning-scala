@@ -20,10 +20,10 @@ package al.strategies
 
 import ml.Pattern
 import ml.neural.old.Neural
-import no.uib.cipr.matrix.{DenseMatrix, DenseVector}
+import no.uib.cipr.matrix.{MatrixSingularException, DenseMatrix, DenseVector}
 import org.math.array.StatisticSample
 
-trait StrategyWithMahala extends StrategyWithLearner {
+trait StrategyWithMahala extends StrategyWithLearner with DistanceMeasure {
   lazy val maha_at_pool_for_mean = mahalanobis_to_mean(distinct_pool)
 
   private def premaha(patterns: Seq[Pattern]) = Neural.pinv(new DenseMatrix(StatisticSample.covariance((patterns map (_.array)).toArray)))
@@ -62,12 +62,15 @@ trait StrategyWithMahala extends StrategyWithLearner {
       i += 1
     }
     val result = new DenseMatrix(1, pa.nattributes)
-    diff.mult(Sinv, result)
-    val result2 = new DenseVector(1)
-    result.mult(difft, result2)
-    val d = Math.sqrt(result2.get(0))
-    //         println("d = " + d)
-    d
+    try {
+      diff.mult(Sinv, result)
+      val result2 = new DenseVector(1)
+      result.mult(difft, result2)
+      Math.sqrt(result2.get(0))
+    } catch {
+      case MatrixSingularException => println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
+        distance_to("eucl")(pa, Pattern(823476234, mean.toList, 0, 1, missed = false, pa.parent))
+    }
   }
 }
 

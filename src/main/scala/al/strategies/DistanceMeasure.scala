@@ -20,8 +20,9 @@ package al.strategies
 
 import ml.Pattern
 import ml.classifiers.Learner
+import ml.neural.elm
 import ml.neural.old.Neural
-import no.uib.cipr.matrix.{DenseMatrix, DenseVector}
+import no.uib.cipr.matrix.{MatrixSingularException, DenseMatrix, DenseVector}
 import org.math.array.StatisticSample
 import weka.core._
 
@@ -42,7 +43,7 @@ trait DistanceMeasure {
     list.toArray
   }
   //TODO: CovarianceOps.invert() do EJML pode tirar vantagem na hora de inverter uma matrix de covariancia.
-  //  Por outro lado, não de trata de um pinv()
+  //  Por outro lado, não se trata de um pinv()
   //  lazy val CovMatrixInv =     Neural.toArray(Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix))))
   lazy val CovMatrixInv = Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix)))
   lazy val euclidean_ruler = new EuclideanDistance(dataset)
@@ -69,12 +70,15 @@ trait DistanceMeasure {
       i += 1
     }
     val result = new DenseMatrix(1, pa.nattributes)
-    diff.mult(CovMatrixInv, result)
-    val result2 = new DenseVector(1)
-    result.mult(difft, result2)
-    val d = Math.sqrt(result2.get(0))
-    //         println("d = " + d)
-    d
+    try {
+      diff.mult(CovMatrixInv, result)
+      val result2 = new DenseVector(1)
+      result.mult(difft, result2)
+      Math.sqrt(result2.get(0))
+    } catch {
+      case MatrixSingularException => println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
+        distance_to("eucl")(pa, pb)
+    }
   }
 
 
