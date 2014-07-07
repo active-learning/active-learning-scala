@@ -50,7 +50,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       println("Cannot save queries on a readOnly database!")
       sys.exit(0)
     }
-    if (connection == null) {
+    if (!isOpen) {
       println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
     }

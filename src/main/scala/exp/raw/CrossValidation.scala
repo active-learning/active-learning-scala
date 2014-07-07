@@ -72,44 +72,42 @@ trait CrossValidation extends Lock with ClassName {
     (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
       //Open connection to load patterns.
       println("Loading patterns for dataset " + datasetName + " ...")
-      val patts = source(datasetName) match {
-        case Right(x) => x
+      source(datasetName) match {
         case Left(error) =>
           println(error)
-          println(datasetName + " not found; probably it is in use.")
-          sys.exit(0)
+          println(datasetName + " is probably in use. Skipping it...")
+        case Right(patts) =>
+          //Reopen connection to write queries.
+          println("Beginning dataset " + datasetName + " ...")
+          val db = dest(datasetName)
+          db.open(debug = true)
+          (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+            println("  Beginning run " + run + " for " + datasetName + " ...")
+            Datasets.kfoldCV(new Random(run).shuffle(patts), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
+              println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
+
+              //z-score
+              val f = Datasets.zscoreFilter(tr0)
+              val tr = Datasets.applyFilter(tr0, f)
+              val ts = Datasets.applyFilter(ts0, f)
+
+              val pool = new Random(run * 100 + fold).shuffle(tr)
+              lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: useless memory being allocated?
+
+              runCore(db, run, fold, pool, testSet)
+
+              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
+            }
+            println("  Run " + run + " finished for " + datasetName + " !")
+            println("")
+          }
+          inc()
+          println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+          println("")
+          println("")
+          if (!db.readOnly) db.save()
+          db.close()
       }
-
-      //Reopen connection to write queries.
-      println("Beginning dataset " + datasetName + " ...")
-      val db = dest(datasetName)
-      db.open(debug = true)
-      (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-        println("  Beginning run " + run + " for " + datasetName + " ...")
-        Datasets.kfoldCV(new Random(run).shuffle(patts), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
-          println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
-
-          //z-score
-          val f = Datasets.zscoreFilter(tr0)
-          val tr = Datasets.applyFilter(tr0, f)
-          val ts = Datasets.applyFilter(ts0, f)
-
-          val pool = new Random(run * 100 + fold).shuffle(tr)
-          lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: useless memory being allocated?
-
-          runCore(db, run, fold, pool, testSet)
-
-          println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
-        }
-        println("  Run " + run + " finished for " + datasetName + " !")
-        println("")
-      }
-      inc()
-      println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
-      println("")
-      println("")
-      if (!db.readOnly) db.save()
-      db.close()
     }
     running = false
     Thread.sleep(2000)

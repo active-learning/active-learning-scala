@@ -48,6 +48,8 @@ trait Database extends Lock {
   lazy val dbLock = new File(path + "locked/" + database + ".db")
   lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
 
+  def isOpen = connection != null
+
   def createDatabase() = {
     if (readOnly) {
       println("Cannot init a readOnly database!")
@@ -62,6 +64,10 @@ trait Database extends Lock {
    * @param debug true, if the dataset had to be created (create parameter should be also true)
    */
   def open(debug: Boolean = false) = {
+    if (isOpen) {
+      println(s"Database $dbOriginal already opened as $dbCopy!")
+      sys.exit(0)
+    }
     //check file existence and if it is in use
     if (dbCopy.exists() && !readOnly) {
       println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
@@ -124,7 +130,7 @@ trait Database extends Lock {
   }
 
   def run(sql: String) = {
-    if (connection == null) {
+    if (!isOpen) {
       println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
     }
@@ -173,7 +179,7 @@ trait Database extends Lock {
   }
 
   def runStr(sql: String) = {
-    if (connection == null) {
+    if (!isOpen) {
       println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
     }

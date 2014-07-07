@@ -48,29 +48,30 @@ object GnosticQueries extends CrossValidation with App {
       new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
       new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
       new SGmultiJS(learner(pool.length / 2, run, pool), pool),
-      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
-      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
-      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize),
+      DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
       MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
+      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
+      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
+      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
+      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
       //      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
       //      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
       //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
     )
 
     //checa se as queries desse run/fold existem para Random/NoLearner
-    if (db.rndComplete != 25) {
-      println(s" ${db.rndComplete} Random Sampling results incomplete.")
-      db.close()
-      sys.exit(0)
+    if (db.isOpen && db.rndComplete != runs * folds) {
+      println(s" ${db.rndComplete} Random Sampling results incomplete. Skipping dataset $db for fold $fold of run $run.")
+      //      db.close()
+      //      sys.exit(0)
+    } else {
+      //de onde tirar o Q de cada dataset? limitar por tempo
+      strats foreach (strat => db.saveQueries(strat, run, fold, 100 * 3600))
     }
-
-    //de onde tirar o Q de cada dataset? limitar por tempo
-    strats foreach (strat => db.saveQueries(strat, run, fold, 100 * 3600))
 
     /*
     ~200 datasets
