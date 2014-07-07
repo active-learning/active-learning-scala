@@ -21,7 +21,7 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers.Learner
 import ml.neural.old.Neural
-import no.uib.cipr.matrix.DenseMatrix
+import no.uib.cipr.matrix.{DenseMatrix, DenseVector}
 import org.math.array.StatisticSample
 import weka.core._
 
@@ -55,21 +55,26 @@ trait DistanceMeasure {
    * @return
    */
   def mahadist(pa: Pattern, pb: Pattern) = {
-    ??? //testar
-    val diff = new DenseMatrix(1, natts)
+    //todo: testar
     val x = pa.vector
     val y = pb.vector
+    val diff = new DenseMatrix(1, pa.nattributes)
+    val difft = new DenseVector(pa.nattributes)
     var i = 0
     val xl = pa.nattributes
     while (i < xl) {
-      diff.set(0, i, x(i) - y(i))
+      val v = x(i) - y(i)
+      diff.set(0, i, v)
+      difft.set(i, v)
       i += 1
     }
-    val result = new DenseMatrix(1, natts)
+    val result = new DenseMatrix(1, pa.nattributes)
     diff.mult(CovMatrixInv, result)
-    val result2 = new DenseMatrix(natts, 1)
-    result.mult(diff.transpose, result2)
-    Math.sqrt(result2.get(0, 0))
+    val result2 = new DenseVector(1)
+    result.mult(difft, result2)
+    val d = Math.sqrt(result2.get(0))
+    //         println("d = " + d)
+    d
   }
 
 

@@ -51,7 +51,8 @@ object CreateAppFile extends App {
     MahalaWeightedRefreshed(NoLearner(), Seq(), 1, sampleSize),
     MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
     MahalaWeightedRefreshedTrainingUtility(NoLearner(), Seq(), 1, 1, sampleSize),
-    FastPerfectRealisticAccuracy(NoLearner(), Seq(), sampleSizePerfect)
+    FastPerfectRealisticAccuracy(NoLearner(), Seq(), sampleSizePerfect),
+    DensityWeighted(NoLearner(), Seq(), 1, "eucl")
   )
 
   //ensures there is no previous file
