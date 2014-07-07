@@ -76,8 +76,8 @@ trait DistanceMeasure {
       result.mult(difft, result2)
       Math.sqrt(result2.get(0))
     } catch {
-      case MatrixSingularException => println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
-        distance_to("eucl")(pa, pb)
+      case _: MatrixSingularException => println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
+        euclidean_ruler.distance(pa, pb)
     }
   }
 

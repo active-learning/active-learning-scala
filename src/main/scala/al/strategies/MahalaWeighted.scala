@@ -26,18 +26,19 @@ import no.uib.cipr.matrix.{MatrixSingularException, DenseMatrix}
 import ml.models.Model
 
 case class MahalaWeighted(learner: Learner, pool: Seq[Pattern], beta: Double, debug: Boolean = false)
-   extends StrategyWithLearner with StrategyWithMahala with MarginMeasure {
-   override val toString = "Mahala Weighted b" + beta
-   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
-      try {
-         val ud = maha_at_pool_for_mean(unlabeled)
-         unlabeled maxBy {
-            x =>
-               val similarity = 1d / (1 + ud(x))  //mean includes x, but no problem since the pool is big
-               (1 - margin(current_model)(x)) * math.pow(similarity, beta)
-         }
-      } catch {
-         case ex: MatrixSingularException => println(" MahalaW: singular matrix! Defaulting to Random Sampling..."); unlabeled.head
+  extends StrategyWithLearner with StrategyWithMahala with MarginMeasure {
+  override val toString = "Mahala Weighted b" + beta
+
+  protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
+    try {
+      val ud = maha_at_pool_for_mean(unlabeled)
+      unlabeled maxBy {
+        x =>
+          val similarity = 1d / (1 + ud(x)) //mean includes x, but no problem since the pool is big
+          (1 - margin(current_model)(x)) * math.pow(similarity, beta)
       }
-   }
+    } catch {
+      case ex: MatrixSingularException => println(" MahalaW: singular matrix! Defaulting to Random Sampling..."); unlabeled.head
+    }
+  }
 }

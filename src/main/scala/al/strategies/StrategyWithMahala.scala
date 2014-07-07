@@ -25,6 +25,7 @@ import org.math.array.StatisticSample
 
 trait StrategyWithMahala extends StrategyWithLearner with DistanceMeasure {
   lazy val maha_at_pool_for_mean = mahalanobis_to_mean(distinct_pool)
+  lazy val distance_name = ""
 
   private def premaha(patterns: Seq[Pattern]) = Neural.pinv(new DenseMatrix(StatisticSample.covariance((patterns map (_.array)).toArray)))
 
@@ -68,8 +69,8 @@ trait StrategyWithMahala extends StrategyWithLearner with DistanceMeasure {
       result.mult(difft, result2)
       Math.sqrt(result2.get(0))
     } catch {
-      case MatrixSingularException => println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
-        distance_to("eucl")(pa, Pattern(823476234, mean.toList, 0, 1, missed = false, pa.parent))
+      case _: MatrixSingularException => println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
+        distance_to("eucl")(pa, Pattern(823476234, mean.toList, 0d, 1d, missed = false, pa.parent, weka = true))
     }
   }
 }
