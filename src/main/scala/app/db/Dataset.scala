@@ -64,7 +64,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       stratId = resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems consulting strategy to insert queries into: " + dbCopy + ".")
+        println("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
         sys.exit(0)
     }
 

@@ -34,10 +34,10 @@ object SQLBatch extends App {
   (if (parallel) datasetNames.par else datasetNames) foreach { datasetName =>
     val db = dest(datasetName)
     db.open()
-    print(datasetName + " ")
     db.run(sql) match {
       case Right(queue) =>
-        println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
+        //        println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
+        println(queue.map(_.mkString(" ")).mkString("\n") + " " + datasetName)
       case Left(rowCount) => println(rowCount)
     }
     if (!readOnly) db.save()
