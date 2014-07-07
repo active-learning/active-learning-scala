@@ -30,8 +30,8 @@ object Queries_visualized extends App {
   //  val arff = "/home/davi/unversioned/experimentos/fourclusters.arff"
   //  val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
   val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("banana").right.get).take(2000)
-  val train = data.take(1500)
-  val test = data.drop(1500)
+  val train = data.take(1000)
+  val test = data.drop(1000)
 
   println("train = " + train.length)
 
@@ -44,9 +44,10 @@ object Queries_visualized extends App {
   //      MLP(20,0)
   //  CARTBag(0,20)
   //  C45Bag(0,10)
-  //      RIPPER()
-  //    VFDT()
+    RIPPER()
 
+  //    VFDT()
+  //NB()
   //    OSELMdyn(best(test.take(100), 0), 0)
   //    OSELMdyn(compromise(), 0)
   //    OSELMdyn(esPRESS(0), 0)
@@ -57,8 +58,8 @@ object Queries_visualized extends App {
   //  EnsOSELMdyn(compromise(), 0, 1)
   //  EnsOSELMdyn(fullunderfitting(), 0, 1)
   //  EnsOSELMdyn(fulloverfitting(), 0, 1)
-  //          C45()
-    KNN(125, "eucl", data)
+  //            C45()
+  //    KNN(5, "eucl", data)
 
   //    NBBatch()
   //  NB()
@@ -67,20 +68,21 @@ object Queries_visualized extends App {
   val cc = c //OSELMdyn(compromise(), 0)
 
   val e =
-  //    ClusterBased(train, debug = true) //143 10:178
-  //    Margin(c, train, debug = true)
-  //          Entropy(c, train, debug = true)
-  //        Uncertainty(c, train, debug = true) //212 10:199
+  //      ClusterBased(train, debug = true) //143 10:178
+  //        Margin(c, train, debug = true)
+  //            Entropy(c, train, debug = true)
+  //    Uncertainty(c, train, debug = true) //212 10:199
+  //  RandomSampling(train, true)
   //    SGmulti(c, train, "consensus", debug = true) //143 10:146 ponto fraco: talvez seja mais sensível ao peso dos exemplos de fundo
-    SGmultiJS(c, train, debug = true) //149 ponto fraco: não consulta quando concordam na dúvida
+  //    SGmultiJS(c, train, debug = true) //149 ponto fraco: não consulta quando concordam na dúvida
   //                       SGmultiMargin(c, train, debug = true) //168 ponto fraco: concentra demais as consultas na fronteira de decisão
   //                     DensityWeightedTrainingUtility(c, train, 1,1, "maha", debug = true)
   //           QBCJS(c, train, debug = true) //2:168 10:143
   //           QBCJSMargin(c, train, debug = true) //2:168 10:168
-  //    DensityWeighted(c, train, 1d, "eucl", debug = true)
-  //           MahalaWeightedTrainingUtility(c, train, 1d, 1d, debug = true)
+  //      DensityWeighted(c, train, 1d, "eucl", debug = true)
+    MahalaWeightedTrainingUtility(c, train, 1d, 1d, debug = true)
   //           MahalaWeightedRefreshedTrainingUtility(c, train, 1d, 1d, 200, debug = true)
-  //           MahalaWeighted(c, train, 1d, debug = true)
+  //               MahalaWeighted(c, train, 1d, debug = true)
   //           MahalaWeightedRefreshed(c, train, 1d, 100, debug = true)
   //                    DensityWeightedTrainingUtility(c, train, 1,1, "eucl", debug = true)
   //                     DensityWeightedTrainingUtility(c, train, 1,1, "manh", debug = true)
@@ -108,7 +110,7 @@ object Queries_visualized extends App {
         Thread.sleep(1000)
         sys.exit(0)
       }
-      Thread.sleep(1000)
+      Thread.sleep(100)
     }
   }
 }
