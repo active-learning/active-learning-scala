@@ -63,8 +63,9 @@ object GnosticQueries extends CrossValidation with App {
     )
 
     //checa se as queries desse run/fold existem para Random/NoLearner
-    if (!db.rndComplete) {
-      println("Random Sampling results incomplete.")
+    if (db.rndComplete != 25) {
+      println(s" ${db.rndComplete} Random Sampling results incomplete.")
+      db.close()
       sys.exit(0)
     }
 
