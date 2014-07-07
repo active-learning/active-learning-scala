@@ -27,7 +27,7 @@ import util.{ALDatasets, Datasets, Tempo}
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   val database = dataset
-  lazy val rndComplete = run(s"select rowid from query group by run,fold").left.get
+  lazy val rndComplete = run(s"select * from query group by run,fold").right.get.length
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
