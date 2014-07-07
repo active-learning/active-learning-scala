@@ -90,6 +90,13 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
     math.sqrt(pseudo_accuracies_per_class.product)
   }
 
+  /**
+   * O exemplo que causa a menor entropia é o desejado,
+   * pois isso indica que ele e o rótulo vão conferir mais certeza com relação ao pool.
+   * @param m
+   * @param unlabeled
+   * @return
+   */
   private def criterion_entropy(m: Model, unlabeled: Seq[Pattern]) = unlabeled.map {
     u => val d = m.distribution(u)
       entropy(d)
@@ -100,7 +107,7 @@ object EERTest extends App {
 
   //    val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get).take(4000)
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
-  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/locked")("gas-drift").right.get.take(500))
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/locked")("gas-drift").right.get.take(1000000))
   //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilter(patts0, filter)
@@ -110,10 +117,12 @@ object EERTest extends App {
 
   println(patts.length + " " + patts.head.nclasses)
   val n = (patts.length * 0.5).toInt
-  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 400) //400:280s
-  val s = SGmulti(learner, patts.take(n), "consensus") //400:280s
-  //        val s = ExpErrorReduction(learner, patts.take(n), "gmeans", 400) //100:15s 200:45s 400:300s 1000:2000s
-  //        val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 100)
+  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 25) //25:7s 400:280s
+  //  val s = SGmulti(learner, patts.take(n), "consensus")
+  //1000:1s
+  //  val s = MahalaWeightedTrainingUtility(learner, patts.take(n), 1, 1)//13s
+  //          val s = ExpErrorReduction(learner, patts.take(n), "gmeans", 25) //25:7s 100:15s 200:45s 400:300s 1000:2000s
+  //          val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 25) //25:7s 250:260s
   //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
   //  val s = ClusterBased(patts.take(n))
 

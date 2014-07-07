@@ -29,10 +29,10 @@ trait StrategySGmulti extends Strategy {
   lazy val models_to_visualize = new Array[Model](nclasses)
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
-    val specific_pools = {
+    val specificPoolsPlusLabeled = {
       for (c <- 0 until nclasses) yield (distinct_pool ++ labeled map (_.relabeled_reweighted(c, background_weight, new_missed = false))).toList
     }.toArray
-    val current_models = specific_pools map learner.build
+    val current_models = specificPoolsPlusLabeled map learner.build
     //    val initial_models = specific_pools map learner.build
     //    val current_models = initial_models map (m => learner.updateAll(m, fast_mutable = true)(labeled))
     queries_rec(current_models, unlabeled, labeled)

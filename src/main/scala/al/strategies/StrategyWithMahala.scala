@@ -19,9 +19,9 @@
 package al.strategies
 
 import ml.Pattern
-import org.math.array.{StatisticSample, LinearAlgebra}
-import no.uib.cipr.matrix.DenseMatrix
 import ml.neural.old.Neural
+import no.uib.cipr.matrix.{DenseMatrix, DenseVector}
+import org.math.array.StatisticSample
 
 trait StrategyWithMahala extends StrategyWithLearner {
   lazy val maha_at_pool_for_mean = mahalanobis_to_mean(distinct_pool)
@@ -49,20 +49,23 @@ trait StrategyWithMahala extends StrategyWithLearner {
   }
 
   protected def mahalanobis0(mean: Array[Double], Sinv: DenseMatrix)(pa: Pattern): Double = {
-    ??? //testar
+    //todo: testar
     val x = pa.vector
     val diff = new DenseMatrix(1, pa.nattributes)
+    val difft = new DenseVector(pa.nattributes)
     var i = 0
     val xl = pa.nattributes
     while (i < xl) {
-      diff.set(0, i, x(i) - mean(i))
+      val v = x(i) - mean(i)
+      diff.set(0, i, v)
+      difft.set(i, v)
       i += 1
     }
     val result = new DenseMatrix(1, pa.nattributes)
     diff.mult(Sinv, result)
-    val result2 = new DenseMatrix(pa.nattributes, 1)
-    result.mult(diff.transpose, result2)
-    val d = Math.sqrt(result2.get(0, 0))
+    val result2 = new DenseVector(1)
+    result.mult(difft, result2)
+    val d = Math.sqrt(result2.get(0))
     //         println("d = " + d)
     d
   }

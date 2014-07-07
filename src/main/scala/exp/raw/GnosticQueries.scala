@@ -38,11 +38,10 @@ object GnosticQueries extends CrossValidation with App {
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-  val samplingSize = 1000
+  val samplingSize = 500
 
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
     val strats = List(
-      //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
       Uncertainty(learner(pool.length / 2, run, pool), pool),
       Entropy(learner(pool.length / 2, run, pool), pool),
       Margin(learner(pool.length / 2, run, pool), pool),
@@ -57,15 +56,20 @@ object GnosticQueries extends CrossValidation with App {
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
       MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
-      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
-      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
+      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
+      //      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
+      //      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
+      //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
     )
 
     //checa se as queries desse run/fold existem para Random/NoLearner
+    if (!db.rndComplete) {
+      println("Random Sampling results incomplete.")
+      sys.exit(0)
+    }
 
-    ??? //de onde tirar o Q de cada dataset?
-    //    strats foreach (strat => db.saveQueries(strat, run, fold, Q))
+    //de onde tirar o Q de cada dataset? limitar por tempo
+    strats foreach (strat => db.saveQueries(strat, run, fold, 100 * 3600))
 
     /*
     ~200 datasets
