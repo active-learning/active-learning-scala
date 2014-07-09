@@ -17,73 +17,38 @@ for a in $(ls *.labels -rS); do wc -l $a; done | sort -n
 magic,bank-marketing-full,skin-segmentation
 
 # parou por motivo desconhecido
-localization-for-person-activity,arabic-digit
+localization-for-person-activity,arabic-digit,walking-activity
 
 # inacabados exceto confirmadamente não-continuáveis
-musk,walking-activity,madelon,gas-drift,gas-drift-different-concentrations,nomao,amazon,har,poker-9class,tamilnadu-electricity
+madelon,gas-drift,gas-drift-different-concentrations,nomao,amazon,har,poker-9class,tamilnadu-electricity
 
 # terminados
-first-order-theorem,balloons-yellow-small,balloons-adult+stretch,balloons-adult-stretch,shuttle-landing-control,lenses,trains,hayes-roth,blogger,soybean-small,iris,teaching-assistant-evaluation,fertility-diagnosis,breast-tissue-4class,breast-tissue-6class,post-operative-patient,acute-inflammations-urinary,acute-inflammations-nephritis,habermans-survival,heart-disease-processed-switzerland,appendicitis,lung-cancer,thyroid-newthyroid,lymphography,glioma16,heart-disease-processed-va,bupa,zoo,qualitative-bankruptcy,balance-scale,led7digit,monks3,monks1,seeds,heart-disease-processed-hungarian,glass,statlog-heart,user-knowledge,wine,heart-disease-reprocessed-hungarian,blood-transfusion-service,ecoli,hepatitis,heart-disease-processed-cleveland,mammographic-mass,wholesale-channel,wholesale-region,robot-failure-lp3,robot-failure-lp2,dresses-sales,breast-cancer-wisconsin,colon32,monks2,saheart,planning-relax,volcanoes-e2,volcanoes-e5,flags,vertebra-column-2c,vertebra-column-3c,indian-liver-patient,volcanoes-e1,pima-indians-diabetes,spect-heart,autoUniv-au7-cpd1-500,flare,volcanoes-e4,molecular-promotor-gene,volcanoes-e3,robot-failure-lp1,voting,volcanoes-a4,volcanoes-a3,thoracic-surgery,robot-failure-lp4,volcanoes-a2,movement-libras-1,movement-libras-9,parkinsons,horse-colic-surgical,autoUniv-au7-700,connectionist-vowel-reduced,statlog-australian-credit,tic-tac-toe,leaf,credit-approval,autoUniv-au1-1000,leukemia-haslinger,robot-failure-lp5,banknote-authentication,spectf-heart,car-evaluation,yeast-4class,dermatology,cmc,statlog-vehicle-silhouettes,statlog-german-credit-numeric,autoUniv-au7-300-drift-au7-cpd1-800,yeast,dbworld-subjects-stemmed,meta-data,volcanoes-a1,annealing,connectionist-vowel,banana,statlog-german-credit,ionosphere,autoUniv-au6-cd1-400,robot-nav-sensor-readings-2,wine-quality-red,connectionist-mines-vs-rocks,wdbc,robot-nav-sensor-readings-4,autoUniv-au6-250-drift-au6-cd1-500,seismic-bumps,qsar-biodegradation,climate-simulation-craches,abalone-11class,volcanoes-d4,volcanoes-d1,volcanoes-d2,volcanoes-d3,movement-libras-10,autoUniv-au6-1000,abalone-3class,volcanoes-b5,volcanoes-b6,volcanoes-b1,volcanoes-b4,cardiotocography-3class,cardiotocography-10class,volcanoes-b3,volcanoes-b2,nursery-4class,page-blocks,wilt,movement-libras,wine-quality-white-5class,thyroid-ann,phoneme,artificial-characters,thyroid-sick,systhetic-control,steel-plates-faults,thyroid-dis,thyroid-allrep,thyroid-allhypo,thyroid-allhyper,thyroid-allbp,statlog-image-segmentation,wine-quality-5class,statlog-landsat-satellite,thyroid-sick-euthyroid,thyroid-hypothyroid,arrhythmia,turkiye-student,lsvt-voice-rehabilitation,nursery,kr-vs-kp,waveform-v1,pendigits,plant-species-leaves-texture,spambase,ringnorm,mushroom,robot-nav-sensor-readings-24,letter,mushroom-expanded,plant-species-leaves-margin,molecular-splice-junction,optdigits,semeion,hill-valley-with-noise,ozone-eighthr,ozone-onehr,digits2,plant-species-leaves-shape,dbworld-bodies-stemmed,waveform-v2,twonorm,hill-valley-without-noise,mfeat-fourier,micro-mass-mixed-spectra,texture,eeg-eye-state,micro-mass-pure-spectra,cnae-9,arcene,multiple-features
+musk,first-order-theorem,balloons-yellow-small,balloons-adult+stretch,balloons-adult-stretch,shuttle-landing-control,lenses,trains,hayes-roth,blogger,soybean-small,iris,teaching-assistant-evaluation,fertility-diagnosis,breast-tissue-4class,breast-tissue-6class,post-operative-patient,acute-inflammations-urinary,acute-inflammations-nephritis,habermans-survival,heart-disease-processed-switzerland,appendicitis,lung-cancer,thyroid-newthyroid,lymphography,glioma16,heart-disease-processed-va,bupa,zoo,qualitative-bankruptcy,balance-scale,led7digit,monks3,monks1,seeds,heart-disease-processed-hungarian,glass,statlog-heart,user-knowledge,wine,heart-disease-reprocessed-hungarian,blood-transfusion-service,ecoli,hepatitis,heart-disease-processed-cleveland,mammographic-mass,wholesale-channel,wholesale-region,robot-failure-lp3,robot-failure-lp2,dresses-sales,breast-cancer-wisconsin,colon32,monks2,saheart,planning-relax,volcanoes-e2,volcanoes-e5,flags,vertebra-column-2c,vertebra-column-3c,indian-liver-patient,volcanoes-e1,pima-indians-diabetes,spect-heart,autoUniv-au7-cpd1-500,flare,volcanoes-e4,molecular-promotor-gene,volcanoes-e3,robot-failure-lp1,voting,volcanoes-a4,volcanoes-a3,thoracic-surgery,robot-failure-lp4,volcanoes-a2,movement-libras-1,movement-libras-9,parkinsons,horse-colic-surgical,autoUniv-au7-700,connectionist-vowel-reduced,statlog-australian-credit,tic-tac-toe,leaf,credit-approval,autoUniv-au1-1000,leukemia-haslinger,robot-failure-lp5,banknote-authentication,spectf-heart,car-evaluation,yeast-4class,dermatology,cmc,statlog-vehicle-silhouettes,statlog-german-credit-numeric,autoUniv-au7-300-drift-au7-cpd1-800,yeast,dbworld-subjects-stemmed,meta-data,volcanoes-a1,annealing,connectionist-vowel,banana,statlog-german-credit,ionosphere,autoUniv-au6-cd1-400,robot-nav-sensor-readings-2,wine-quality-red,connectionist-mines-vs-rocks,wdbc,robot-nav-sensor-readings-4,autoUniv-au6-250-drift-au6-cd1-500,seismic-bumps,qsar-biodegradation,climate-simulation-craches,abalone-11class,volcanoes-d4,volcanoes-d1,volcanoes-d2,volcanoes-d3,movement-libras-10,autoUniv-au6-1000,abalone-3class,volcanoes-b5,volcanoes-b6,volcanoes-b1,volcanoes-b4,cardiotocography-3class,cardiotocography-10class,volcanoes-b3,volcanoes-b2,nursery-4class,page-blocks,wilt,movement-libras,wine-quality-white-5class,thyroid-ann,phoneme,artificial-characters,thyroid-sick,systhetic-control,steel-plates-faults,thyroid-dis,thyroid-allrep,thyroid-allhypo,thyroid-allhyper,thyroid-allbp,statlog-image-segmentation,wine-quality-5class,statlog-landsat-satellite,thyroid-sick-euthyroid,thyroid-hypothyroid,arrhythmia,turkiye-student,lsvt-voice-rehabilitation,nursery,kr-vs-kp,waveform-v1,pendigits,plant-species-leaves-texture,spambase,ringnorm,mushroom,robot-nav-sensor-readings-24,letter,mushroom-expanded,plant-species-leaves-margin,molecular-splice-junction,optdigits,semeion,hill-valley-with-noise,ozone-eighthr,ozone-onehr,digits2,plant-species-leaves-shape,dbworld-bodies-stemmed,waveform-v2,twonorm,hill-valley-without-noise,mfeat-fourier,micro-mass-mixed-spectra,texture,eeg-eye-state,micro-mass-pure-spectra,cnae-9,arcene,multiple-features
 
+# ordenados por tempo medio para fazer queries
+trains,shuttle-landing-control,lenses,balloons-adult-stretch,blogger,balloons-yellow-small,glioma16,zoo,soybean-small,led7digit,balloons-adult+stretch,acute-inflammations-urinary,acute-inflammations-nephritis,hayes-roth,lung-cancer,teaching-assistant-evaluation,fertility-diagnosis,appendicitis,movement-libras-1,post-operative-patient,breast-tissue-6class,breast-tissue-4class,colon32,iris,heart-disease-processed-switzerland,qualitative-bankruptcy,movement-libras-9,robot-failure-lp2,robot-failure-lp3,thyroid-newthyroid,seeds,planning-relax,wine,glass,hepatitis,habermans-survival,heart-disease-processed-va,vertebra-column-3c,vertebra-column-2c,leukemia-haslinger,ecoli,bupa,statlog-heart,heart-disease-reprocessed-hungarian,spect-heart,heart-disease-processed-hungarian,user-knowledge,parkinsons,lymphography,monks3,voting,monks1,leaf,blood-transfusion-service,wholesale-region,wholesale-channel,saheart,breast-cancer-wisconsin,heart-disease-processed-cleveland,balance-scale,connectionist-vowel-reduced,monks2,mammographic-mass,robot-failure-lp1,indian-liver-patient,pima-indians-diabetes,autoUniv-au7-cpd1-500,robot-failure-lp4,movement-libras-10,movement-libras,ionosphere,climate-simulation-craches,flare,volcanoes-e1,volcanoes-e2,lsvt-voice-rehabilitation,connectionist-mines-vs-rocks,volcanoes-e5,dbworld-subjects-stemmed,spectf-heart,robot-failure-lp5,volcanoes-e4,autoUniv-au7-700,thoracic-surgery,volcanoes-e3,statlog-australian-credit,banknote-authentication,autoUniv-au6-cd1-400,systhetic-control,connectionist-vowel,meta-data,volcanoes-a4,volcanoes-a3,autoUniv-au6-250-drift-au6-cd1-500,wdbc,yeast-4class,volcanoes-a2,statlog-vehicle-silhouettes,flags,volcanoes-a1,yeast,horse-colic-surgical,molecular-promotor-gene,statlog-image-segmentation,autoUniv-au7-300-drift-au7-cpd1-800,wine-quality-red,annealing,autoUniv-au1-1000,qsar-biodegradation,autoUniv-au6-1000,statlog-german-credit-numeric,steel-plates-faults,tic-tac-toe,credit-approval,seismic-bumps,thyroid-allhypo,thyroid-allbp,thyroid-allrep,thyroid-dis,thyroid-sick,thyroid-allhyper,cmc,plant-species-leaves-margin,wine-quality-white-5class,statlog-german-credit,wilt,cardiotocography-10class,cardiotocography-3class,artificial-characters,phoneme,thyroid-ann,car-evaluation,plant-species-leaves-texture,abalone-3class,dermatology,kr-vs-kp,page-blocks,madelon,robot-nav-sensor-readings-4,hill-valley-without-noise,waveform-v1,abalone-11class,mfeat-fourier,dresses-sales,thyroid-sick-euthyroid,volcanoes-b1,plant-species-leaves-shape,volcanoes-b3,thyroid-hypothyroid,volcanoes-d2,volcanoes-b6,volcanoes-b2,volcanoes-d1,robot-nav-sensor-readings-24,volcanoes-b4,arrhythmia,volcanoes-d4,volcanoes-d3,hill-valley-with-noise,dbworld-bodies-stemmed,wine-quality-5class,banana,twonorm,statlog-landsat-satellite,ringnorm,volcanoes-b5,turkiye-student,spambase,robot-nav-sensor-readings-2,pendigits,waveform-v2,skin-segmentation,ozone-eighthr,nursery,micro-mass-pure-spectra,nursery-4class,ozone-onehr,magic,optdigits,eeg-eye-state,texture,nomao,letter,bank-marketing-full,arcene,mushroom-expanded,multiple-features,semeion,micro-mass-mixed-spectra,digits2,cnae-9,first-order-theorem,mushroom,musk,gas-drift,molecular-splice-junction,musk
 
-TITLE-ABS-KEY(
-	"active learning"AND(
-	  reviewORsurveyORcomparisonORcombiningORselectionORchoiceORstacked
-	)
-)ANDSUBJAREA(
-	multORcengORCHEMORcompOReartORenerORengiORenviORmateORmathORphys
-)AND(
-	EXCLUDE(
-		DOCTYPE,"le"
-	)OREXCLUDE(
-		DOCTYPE,"Undefined"
-	)
-)AND(
-	EXCLUDE(
-	    SUBJAREA,"SOCI"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"EART"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"BIOC"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"PHYS"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"NEUR"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"CHEM"
-	)
-)AND(
-	EXCLUDE(
-	    SUBJAREA,"MEDI"
-	)OREXCLUDE(
-	    SUBJAREA,"BUSI"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"ARTS"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"ENVI"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"CENG"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"AGRI"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"MEDI"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"BUSI"
-	  
-	)OREXCLUDE(
-	    SUBJAREA,"ARTS"
-	    
+scopus
+TITLE-ABS-KEY("active learning"
+)AND SUBJAREA(multORcengORCHEMORcompOReartORenerORengiORenviORmateORmathORphys)
+
+AND(	EXCLUDE(DOCTYPE,"le"
+	)OREXCLUDE(DOCTYPE,"Undefined")
+)AND(	EXCLUDE(SUBJAREA,"SOCI"
+	)OREXCLUDE(SUBJAREA,"EART"
+	)OREXCLUDE(SUBJAREA,"BIOC"
+	)OREXCLUDE(SUBJAREA,"PHYS"
+	)OREXCLUDE(SUBJAREA,"NEUR"
+	)OREXCLUDE(SUBJAREA,"CHEM")
+)AND(	EXCLUDE(SUBJAREA,"MEDI"
+	)OREXCLUDE(SUBJAREA,"BUSI"
+	)OREXCLUDE(SUBJAREA,"ARTS"
+	)OREXCLUDE(SUBJAREA,"ENVI"
+	)OREXCLUDE(SUBJAREA,"CENG"
+	)OREXCLUDE(SUBJAREA,"AGRI"
+	)OREXCLUDE(SUBJAREA,"MEDI"
+	)OREXCLUDE(SUBJAREA,"BUSI"
+	)OREXCLUDE(SUBJAREA,"ARTS"    
 	)OREXCLUDE(SUBJAREA,"ENVI"
 	)OREXCLUDE(SUBJAREA,"CENG"
 	)OREXCLUDE(SUBJAREA,"AGRI"
@@ -104,7 +69,16 @@ TITLE-ABS-KEY(
 	)OREXCLUDE(SUBJAREA,"MULT"
 	)OREXCLUDE(SUBJAREA,"PSYC"
 	)OREXCLUDE(SUBJAREA,"NURS")
-)AND(
-	LIMIT-TO(SUBJAREA,"COMP")
-)
+)AND(	LIMIT-TO(SUBJAREA,"COMP"))
 
+As bases com escopo mais restrito (todas exceto Scholar) cumprem o papel de alcançar artigos importantes mais recentes, mesmo que tenham poucas citações, pois os veículos de publicação são de maior qualidade.
+
+ACM (8/7/14 - 42 results)
+"active learning" and (Keywords:"active learning") and (PublishedAs:journal OR PublishedAs:proceeding OR PublishedAs:transaction)
+  and (FtFlag:yes) and (AbstractFlag:yes)
+  and (not education) and (not transductive) and (not Keywords:genetic) and (not Keywords:usability) and (not submodular) and
+    (not submodularity) and (not Keywords:stream) and (not drift) and (not evolving) and (not "cross-domain") and
+    (not "streaming") and (not "stream") and (not "evolving") and (not "pedagogy") and (not collaborative) and
+    (not crowd) and (not laboratory) and (not regression) and (not engagement)
+
+( ( ( ("active learning" and ( PublishedAs:journal OR PublishedAs:proceeding OR PublishedAs:transaction ) and (FtFlag:yes) and (AbstractFlag:yes) and (not education) ) and (Keywords:"active learning") ) and (not transductive) ) ) and (not Keywords:genetic) and (not Keywords:usability) and (not submodular) and (not submodularity) and (not Keywords:stream) and (not drift) and (not evolving) and (not "cross-domain") and (not "streaming") and (not "stream") and (not "evolving") and (not "pedagogy") and (not collaborative) and (not crowd) and (not laboratory) and (not regression) and (not engagement)
