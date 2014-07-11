@@ -141,19 +141,22 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
 object DatasetTest extends App {
   //load patterns
-  val patts = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get
+  //  val patts = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get
 
   //reorder patterns as queries
-  val shuffled = patts.drop(5) ++ patts.take(4)
+  //  val shuffled = patts.drop(5) ++ patts.take(4)
 
   //write queries
-  //  val d = Dataset("/home/davi/wcs/ucipp/uci/")("iris")
-  //  d.open(debug = true)
+  val d = Dataset("/home/davi/wcs/ucipp/uci/")("iris")
+  d.open(debug = true)
   //  d.saveQueries(RandomSampling(patts), 64, 17, 0.2)
-  //  d.close()
 
   //load queries as patterns
-  val qpatts = ALDatasets.queriesFromSQLite("/home/davi/wcs/ucipp/uci/")("iris")(RandomSampling(Seq()), 4, 4).right.get
+  val qpatts = ALDatasets.queriesFromSQLite("/home/davi/wcs/ucipp/uci/")(d)(RandomSampling(Seq()), 0, 0) match {
+    case Right(x) => x
+    case Left(str) => println(s"Problema: $str"); sys.exit(0)
+  }
+  d.close()
   qpatts foreach println
 
 }

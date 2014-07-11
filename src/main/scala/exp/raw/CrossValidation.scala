@@ -23,6 +23,7 @@ import java.util.Calendar
 import app.db.Dataset
 import ml.Pattern
 import util.{Datasets, Lock}
+import weka.filters.unsupervised.attribute.Standardize
 
 import scala.Right
 import scala.util._
@@ -55,7 +56,7 @@ trait CrossValidation extends Lock with ClassName {
 
   var running = true
 
-  def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern]) => Unit) {
+  def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern], Standardize) => Unit) {
     running = true
     new Thread(new Runnable() {
       override def run() {
@@ -74,6 +75,7 @@ trait CrossValidation extends Lock with ClassName {
       println("Loading patterns for dataset " + datasetName + " ...")
       source(datasetName) match {
         case Left(error) =>
+          println(datasetName + " is probably in use. Skipping it...")
           println(error)
           println(datasetName + " is probably in use. Skipping it...")
         case Right(patts) =>
@@ -94,7 +96,7 @@ trait CrossValidation extends Lock with ClassName {
               val pool = new Random(run * 100 + fold).shuffle(tr)
               lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: this is used only in Predictions and for Perfect-like strategies
 
-              runCore(db, run, fold, pool, testSet)
+              runCore(db, run, fold, pool, testSet, f)
 
               println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
             }

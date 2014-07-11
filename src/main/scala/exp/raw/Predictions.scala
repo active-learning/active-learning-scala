@@ -23,6 +23,7 @@ import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
 import util.{ALDatasets, Datasets}
+import weka.filters.unsupervised.attribute.Standardize
 
 object Predictions extends CrossValidation with App {
   val runs = 5
@@ -40,7 +41,7 @@ object Predictions extends CrossValidation with App {
   val dest = Dataset(path) _
   val samplingSize = 500
 
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
+  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     //ignores pool
     val strats = List(
       RandomSampling(Seq()),
@@ -74,21 +75,34 @@ object Predictions extends CrossValidation with App {
           //      db.close()
           //      sys.exit(0)
         } else {
-          fetchQueries(db.database)(strat, run, fold) match {
-            case Right(queries) =>
-              val initial = queries.take(queries.head.nclasses)
-              val rest = queries.drop(queries.head.nclasses)
-              val model = learner(pool.length / 2, run, pool).build(initial)
+          fetchQueries(db)(strat, run, fold) match {
+            case Right(queries_qids) =>
+              val queries = queries_qids.map(_._1)
+              val qids = queries_qids.map(_._2)
+              val le = learner(pool.length / 2, run, pool)
+              val zscoredQueries = Datasets.applyFilter(queries, f)
+              val initial = zscoredQueries.take(zscoredQueries.head.nclasses)
+              val rest = zscoredQueries.drop(zscoredQueries.head.nclasses)
+              var model = le.build(initial)
 
+              acquire()
               db.run("begin")
-              rest map { trainingPattern =>
-                val qid = trainingPattern.id
+              val lid = db.run(s"select rowid from app.learner where name='${strat.learner}'").left.get
+              rest.zip(qids.drop(initial.length)) map { case (trainingPattern, qid) =>
+                model = le.update(model, fast_mutable = true)(trainingPattern)
                 testSet map { testingPattern =>
                   val pred = model.output(testingPattern)
-                  db.run("insert into prediction values ($lid, $qid, $iid, $output, $value)")
+                  pred.zipWithIndex.foreach { case (value, output) =>
+                    val sql = s"insert into prediction values ($lid, $qid, ${testingPattern.id}, $output, $value)"
+                    //                    println(sql)
+                    db.run(sql)
+                  }
                 }
               }
               db.run("end")
+              db.save()
+              release()
+
             case Left(str) => println(s"Problem loading queries for $strat: $str")
           }
         }

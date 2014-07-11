@@ -24,6 +24,7 @@ import ml.Pattern
 import ml.classifiers._
 import ml.models.ELMModel
 import util.{Datasets, Lock, Tempo}
+import weka.filters.unsupervised.attribute.Standardize
 
 import scala.util.Random
 
@@ -53,7 +54,7 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
   if (resultsDb.open(debug = true) || resultsDb.run(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").left.get == 0)
     resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
+  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val name = db.database
     val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),

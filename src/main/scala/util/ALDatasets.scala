@@ -24,7 +24,7 @@ import al.strategies.Strategy
 import app.db.Dataset
 import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
-import weka.experiment.InstanceQuery
+import weka.experiment.{InstanceQuerySQLite, InstanceQuery}
 
 object ALDatasets {
 
@@ -33,38 +33,32 @@ object ALDatasets {
   /**
    * Reads SQLite patterns in the querying order.
    */
-  def queriesFromSQLite(path: String)(dataset: String)(strategy: Strategy, run: Int, fold: Int) = {
+  def queriesFromSQLite(path: String)(db: Dataset)(strategy: Strategy, run: Int, fold: Int) = {
     val learner = strategy.learner
-    val arq = path + dataset + ".db"
-    val dbCopy = new File("/tmp/" + dataset + ".db")
-    if (dbCopy.exists()) {
-      println(dbCopy + " was found! Talvez outro processo esteja atualizando a base de dados " + arq + ".")
-      sys.exit(0)
+    val arq = db.dbCopy
+    val qids = db.run(s"select q.rowid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
+      case Right(x) => x.map(_.head.toInt)
+      case Left(str) => println(s"Problems fetching query ids from $db : $str")
+        sys.exit(0)
     }
-    val dbOriginal = new File(path + dataset + ".db")
-    if (!dbOriginal.exists()) {
-      println(dbOriginal + " não existe! Talvez seja preciso rodar o conversor ARFF -> SQLite.")
-      sys.exit(0)
-    }
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    val queriedInstanceIds = db.run(s"select instid from query, strategy as s, learner as l where run = $run and fold = $fold and strategyid=s.id and s.name='$strategy' and learnerid=l.id and l.name='$learner' order by position") match {
-      case Right(x) => Seq(0) //x.map(_.head)
-      case Left(str) => println(s"Problems fetching queries from $dataset !")
+    val queriedInstanceIds = db.run(s"select q.instid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
+      case Right(x) => x.map(_.head.toInt)
+      case Left(str) => println(s"Problems fetching queries from $db : $str")
         sys.exit(0)
     }
     try {
-      val query = new InstanceQuery()
+      val query = new InstanceQuerySQLite()
       query.setDatabaseURL("jdbc:sqlite:////" + arq)
-      query.setQuery(s"select inst.* from query as q, inst as i, strategy as s, learner as l where q.instid = i.rowid and run = $run and fold = $fold and strategyid=s.id and s.name='$strategy' and learnerid=l.id and l.name='$learner' order by position")
+      query.setQuery(s"select i.* from query as q, inst as i, app.strategy as s, app.learner as l where q.instid = i.rowid and run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position")
       query.setDebug(false)
       val instances = query.retrieveInstances()
       instances.setClassIndex(instances.numAttributes() - 1)
-      instances.setRelationName(dataset)
+      instances.setRelationName(db.database)
       val parent = PatternParent(instances)
       val patterns = instances.zip(queriedInstanceIds).map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
-      Right(patterns.toStream)
+      Right(patterns.zip(qids).toStream)
     } catch {
-      case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+      case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }
   }
 }

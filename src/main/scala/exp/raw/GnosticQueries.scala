@@ -23,6 +23,7 @@ import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
 import util.Datasets
+import weka.filters.unsupervised.attribute.Standardize
 
 /**
  * Created by davi on 05/06/14.
@@ -40,7 +41,7 @@ object GnosticQueries extends CrossValidation with App {
   val dest = Dataset(path) _
   val samplingSize = 500
 
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
+  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val strats = List(
       Uncertainty(learner(pool.length / 2, run, pool), pool),
       Entropy(learner(pool.length / 2, run, pool), pool),

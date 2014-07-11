@@ -23,6 +23,7 @@ import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
 import util.Datasets
+import weka.filters.unsupervised.attribute.Standardize
 
 /**
  * Created by davi on 05/06/14.
@@ -40,7 +41,7 @@ object AgnosticQueries extends CrossValidation with App {
   val parallelFolds = args(2).contains("f")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern]) =>
+  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     db.saveQueries(RandomSampling(pool), run, fold, Int.MaxValue)
     db.saveQueries(ClusterBased(pool), run, fold, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }
