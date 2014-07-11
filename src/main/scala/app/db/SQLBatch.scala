@@ -39,7 +39,7 @@ object SQLBatch extends App {
         case Right(queue) =>
           //        println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
           println(queue.map(_.mkString(" ")).mkString("\n") + " " + datasetName)
-        case Left(rowCount) => println(rowCount)
+        case Left(rowCount) => println(rowCount + " " + datasetName)
       }
       if (!readOnly) db.save()
       db.close()

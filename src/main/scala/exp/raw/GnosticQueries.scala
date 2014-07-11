@@ -69,8 +69,8 @@ object GnosticQueries extends CrossValidation with App {
       //      db.close()
       //      sys.exit(0)
     } else {
-      //de onde tirar o Q de cada dataset? limitar por tempo
-      strats foreach (strat => db.saveQueries(strat, run, fold, 100 * 3600))
+      //de onde tirar o Q de cada dataset? limitar por tempo!
+      strats foreach (strat => db.saveQueries(strat, run, fold, 6 * 3600))
     }
 
     /*
