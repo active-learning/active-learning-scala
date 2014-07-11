@@ -19,6 +19,7 @@
 package app.db
 
 import al.strategies.{RandomSampling, Strategy}
+import ml.classifiers.Learner
 import util.{ALDatasets, Datasets, Tempo}
 
 /**
@@ -27,7 +28,9 @@ import util.{ALDatasets, Datasets, Tempo}
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   val database = dataset
-  lazy val rndComplete = run(s"select * from query group by run,fold").right.get.length
+  lazy val rndCompletePools = run(s"select * from query group by run,fold where strategyid=1").right.get.length
+
+  def completePools(strategy: Strategy) = run(s"select * from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}' group by run,fold").right.get.length
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
@@ -144,13 +147,13 @@ object DatasetTest extends App {
   val shuffled = patts.drop(5) ++ patts.take(4)
 
   //write queries
-  val d = Dataset("/home/davi/wcs/ucipp/uci/")("iris")
-  d.open(debug = true)
-  d.saveQueries(RandomSampling(patts), 64, 17, 0.2)
-  d.close()
+  //  val d = Dataset("/home/davi/wcs/ucipp/uci/")("iris")
+  //  d.open(debug = true)
+  //  d.saveQueries(RandomSampling(patts), 64, 17, 0.2)
+  //  d.close()
 
   //load queries as patterns
-  val qpatts = ALDatasets.queriesFromSQLite("/home/davi/wcs/ucipp/uci/")("iris")(4, 9).right.get
+  val qpatts = ALDatasets.queriesFromSQLite("/home/davi/wcs/ucipp/uci/")("iris")(RandomSampling(Seq()), 4, 4).right.get
   qpatts foreach println
 
 }

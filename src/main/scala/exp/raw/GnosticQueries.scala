@@ -64,8 +64,8 @@ object GnosticQueries extends CrossValidation with App {
     )
 
     //checa se as queries desse run/fold existem para Random/NoLearner
-    if (db.isOpen && db.rndComplete != runs * folds) {
-      println(s" ${db.rndComplete} Random Sampling results incomplete. Skipping dataset $db for fold $fold of run $run.")
+    if (db.isOpen && db.rndCompletePools != runs * folds) {
+      println(s" ${db.rndCompletePools} Random Sampling results incomplete. Skipping dataset $db for fold $fold of run $run.")
       //      db.close()
       //      sys.exit(0)
     } else {

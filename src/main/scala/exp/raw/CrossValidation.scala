@@ -92,7 +92,7 @@ trait CrossValidation extends Lock with ClassName {
               val ts = Datasets.applyFilter(ts0, f)
 
               val pool = new Random(run * 100 + fold).shuffle(tr)
-              lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: useless memory being allocated?
+              lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: this is used only in Predictions and for Perfect-like strategies
 
               runCore(db, run, fold, pool, testSet)
 

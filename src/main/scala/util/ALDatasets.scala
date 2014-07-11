@@ -20,6 +20,9 @@ package util
 
 import java.io.{File, IOException}
 
+import al.strategies.Strategy
+import app.db.Dataset
+import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
 import weka.experiment.InstanceQuery
 
@@ -29,9 +32,9 @@ object ALDatasets {
 
   /**
    * Reads SQLite patterns in the querying order.
-   * Assigns the rowid to pattern id.
    */
-  def queriesFromSQLite(path: String)(dataset: String)(run: Int, fold: Int) = {
+  def queriesFromSQLite(path: String)(dataset: String)(strategy: Strategy, run: Int, fold: Int) = {
+    val learner = strategy.learner
     val arq = path + dataset + ".db"
     val dbCopy = new File("/tmp/" + dataset + ".db")
     if (dbCopy.exists()) {
@@ -43,16 +46,22 @@ object ALDatasets {
       println(dbOriginal + " não existe! Talvez seja preciso rodar o conversor ARFF -> SQLite.")
       sys.exit(0)
     }
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
+    val queriedInstanceIds = db.run(s"select instid from query, strategy as s, learner as l where run = $run and fold = $fold and strategyid=s.id and s.name='$strategy' and learnerid=l.id and l.name='$learner' order by position") match {
+      case Right(x) => Seq(0) //x.map(_.head)
+      case Left(str) => println(s"Problems fetching queries from $dataset !")
+        sys.exit(0)
+    }
     try {
       val query = new InstanceQuery()
       query.setDatabaseURL("jdbc:sqlite:////" + arq)
-      query.setQuery("select inst.* from query, inst where query.instid = inst.rowid and run = " + run + " and fold = " + fold + " order by position")
+      query.setQuery(s"select inst.* from query as q, inst as i, strategy as s, learner as l where q.instid = i.rowid and run = $run and fold = $fold and strategyid=s.id and s.name='$strategy' and learnerid=l.id and l.name='$learner' order by position")
       query.setDebug(false)
       val instances = query.retrieveInstances()
       instances.setClassIndex(instances.numAttributes() - 1)
       instances.setRelationName(dataset)
       val parent = PatternParent(instances)
-      val patterns = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
+      val patterns = instances.zip(queriedInstanceIds).map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
       Right(patterns.toStream)
     } catch {
       case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
