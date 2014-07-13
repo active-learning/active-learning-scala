@@ -38,6 +38,7 @@ import scala.collection.mutable
  * uma conexão seja tentada no mesmo arquivo.
  */
 trait Database extends Lock {
+  override lazy val toString = database
   var connection: Connection = null
   val path: String
   val database: String

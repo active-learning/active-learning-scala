@@ -131,7 +131,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
           println(" " + dbCopy + " deleted!")
           sys.exit(0)
       }
-      println(q + " queries written to " + dbCopy + ". Backing up tmpFile...")
+      println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
       save()
       release()
     }

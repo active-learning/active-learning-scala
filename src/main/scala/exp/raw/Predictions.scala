@@ -75,6 +75,8 @@ object Predictions extends CrossValidation with App {
           //      db.close()
           //      sys.exit(0)
         } else {
+          ??? //testar se prediciotns jah foram feitas
+          //usar db na RAM
           fetchQueries(db)(strat, run, fold) match {
             case Right(queries_qids) =>
               val queries = queries_qids.map(_._1)
