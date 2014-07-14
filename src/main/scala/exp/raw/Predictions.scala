@@ -21,6 +21,7 @@ package exp.raw
 import al.strategies._
 import app.ArgParser
 import app.db.Dataset
+import exp.raw.GnosticQueries._
 import ml.Pattern
 import util.{ALDatasets, Datasets}
 import weka.filters.unsupervised.attribute.Standardize
@@ -36,14 +37,17 @@ object Predictions extends CrossValidation with App {
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
   val parallelFolds = args(2).contains("f")
+  val parallelStrats = args(2).contains("s")
   val source = Datasets.patternsFromSQLite(path) _
   val fetchQueries = ALDatasets.queriesFromSQLite(path) _
   val dest = Dataset(path) _
   val samplingSize = 500
 
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+    ??? //é inviavel armazenar predicoes, uma base de 1000 exemplos daria gigabytes em disco e o acesso aos registros seria tao lento que compensa recalcular a metrica
+
     //ignores pool
-    val strats = List(
+    val strats0 = List(
       RandomSampling(Seq()),
       ClusterBased(Seq()),
       Uncertainty(learner(1, run, Seq()), Seq()),
@@ -66,6 +70,7 @@ object Predictions extends CrossValidation with App {
       //      MahalaWeightedRefreshedTrainingUtility(learner(1, run, Seq()), Seq(), 1, 1, samplingSize)
       //      PerfectRealisticAccuracy(learner(1, run, Seq()), Seq()),
     )
+    val strats = if (parallelStrats) strats0.par else strats0
 
     strats foreach {
       strat =>
@@ -89,7 +94,7 @@ object Predictions extends CrossValidation with App {
 
               acquire()
               db.run("begin")
-              val lid = db.run(s"select rowid from app.learner where name='${strat.learner}'").left.get
+              val lid = db.run(s"select rowid from app.learner where name='$learner'").left.get
               rest.zip(qids.drop(initial.length)) map { case (trainingPattern, qid) =>
                 model = le.update(model, fast_mutable = true)(trainingPattern)
                 testSet map { testingPattern =>
