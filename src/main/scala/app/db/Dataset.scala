@@ -28,7 +28,7 @@ import util.{ALDatasets, Datasets, Tempo}
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   val database = dataset
-  lazy val rndCompletePools = run(s"select * from query group by run,fold where strategyid=1").right.get.length
+  lazy val rndCompletePools = run(s"select * from query where strategyid=1 group by run,fold").right.get.length
 
   def completePools(strategy: Strategy) = run(s"select * from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}' group by run,fold").right.get.length
 
