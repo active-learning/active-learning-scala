@@ -37,12 +37,13 @@ object GnosticQueries extends CrossValidation with App {
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
   val parallelFolds = args(2).contains("f")
+  val parallelStrats = args(2).contains("s")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
   val samplingSize = 500
 
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
-    val strats = List(
+    val strats0 = List(
       Uncertainty(learner(pool.length / 2, run, pool), pool),
       Entropy(learner(pool.length / 2, run, pool), pool),
       Margin(learner(pool.length / 2, run, pool), pool),
@@ -63,6 +64,7 @@ object GnosticQueries extends CrossValidation with App {
       //      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
       //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
     )
+    val strats = if (parallelStrats) strats0.par else strats0
 
     //checa se as queries desse run/fold existem para Random/NoLearner
     if (db.isOpen && db.rndCompletePools != runs * folds) {
