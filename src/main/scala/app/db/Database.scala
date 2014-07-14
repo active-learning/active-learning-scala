@@ -81,7 +81,7 @@ trait Database extends Lock {
       //todo: maybe a locked database should be readable
     }
     if (dbCopy.exists() && !readOnly) {
-      println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
+      println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
       sys.exit(0)
     }
 
