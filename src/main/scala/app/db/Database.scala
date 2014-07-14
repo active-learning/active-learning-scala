@@ -70,10 +70,6 @@ trait Database extends Lock {
       sys.exit(0)
     }
     //check file existence and if it is in use
-    if (dbCopy.exists() && !readOnly) {
-      println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
-      sys.exit(0)
-    }
     if (dbLock.exists()) {
       if (dbOriginal.exists()) {
         println(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
@@ -84,6 +80,11 @@ trait Database extends Lock {
       }
       //todo: maybe a locked database should be readable
     }
+    if (dbCopy.exists() && !readOnly) {
+      println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ".")
+      sys.exit(0)
+    }
+
     var created = false
     if (createOnAbsence) {
       if (!dbOriginal.exists()) {
