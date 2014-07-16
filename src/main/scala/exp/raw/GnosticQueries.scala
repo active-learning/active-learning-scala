@@ -63,7 +63,7 @@ object GnosticQueries extends CrossValidation with App {
       //      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
       //      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
       //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
-    )
+    ).reverse
     val strats = if (parallelStrats) strats0.par else strats0
 
     //checa se as queries desse run/fold existem para Random/NoLearner
