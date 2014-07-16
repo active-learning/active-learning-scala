@@ -79,7 +79,7 @@ import java.util.*;
  * @author Len Trigg (trigg@cs.waikato.ac.nz)
  * @version $Revision: 10203 $
  */
-public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
+public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.OptionHandler,
         InstanceQueryAdapter {
 
     /**
@@ -112,8 +112,8 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
         super();
     }
 
-    public static Instances retrieveInstances(InstanceQueryAdapter adapter,
-                                              ResultSet rs) throws Exception {
+    public static weka.core.Instances retrieveInstances(InstanceQueryAdapter adapter,
+                                                        ResultSet rs) throws Exception {
         if (adapter.getDebug()) {
             System.err.println("Getting metadata...");
         }
@@ -140,19 +140,19 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
 
                 case STRING:
                     // System.err.println("String --> nominal");
-                    attributeTypes[i - 1] = Attribute.NOMINAL;
+                    attributeTypes[i - 1] = weka.core.Attribute.NOMINAL;
                     nominalIndexes[i - 1] = new Hashtable<String, Double>();
                     nominalStrings[i - 1] = new ArrayList<String>();
                     break;
                 case TEXT:
                     // System.err.println("Text --> string");
-                    attributeTypes[i - 1] = Attribute.STRING;
+                    attributeTypes[i - 1] = weka.core.Attribute.STRING;
                     nominalIndexes[i - 1] = new Hashtable<String, Double>();
                     nominalStrings[i - 1] = new ArrayList<String>();
                     break;
                 case BOOL:
                     // System.err.println("boolean --> nominal");
-                    attributeTypes[i - 1] = Attribute.NOMINAL;
+                    attributeTypes[i - 1] = weka.core.Attribute.NOMINAL;
                     nominalIndexes[i - 1] = new Hashtable<String, Double>();
                     nominalIndexes[i - 1].put("false", new Double(0));
                     nominalIndexes[i - 1].put("true", new Double(1));
@@ -162,37 +162,37 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     break;
                 case DOUBLE:
                     // System.err.println("BigDecimal --> numeric");
-                    attributeTypes[i - 1] = Attribute.NUMERIC;
+                    attributeTypes[i - 1] = weka.core.Attribute.NUMERIC;
                     break;
                 case BYTE:
                     // System.err.println("byte --> numeric");
-                    attributeTypes[i - 1] = Attribute.NUMERIC;
+                    attributeTypes[i - 1] = weka.core.Attribute.NUMERIC;
                     break;
                 case SHORT:
                     // System.err.println("short --> numeric");
-                    attributeTypes[i - 1] = Attribute.NUMERIC;
+                    attributeTypes[i - 1] = weka.core.Attribute.NUMERIC;
                     break;
                 case INTEGER:
                     // System.err.println("int --> numeric");
-                    attributeTypes[i - 1] = Attribute.NUMERIC;
+                    attributeTypes[i - 1] = weka.core.Attribute.NUMERIC;
                     break;
                 case LONG:
                     // System.err.println("long --> numeric");
-                    attributeTypes[i - 1] = Attribute.NUMERIC;
+                    attributeTypes[i - 1] = weka.core.Attribute.NUMERIC;
                     break;
                 case FLOAT:
                     // System.err.println("float --> numeric");
-                    attributeTypes[i - 1] = Attribute.NUMERIC;
+                    attributeTypes[i - 1] = weka.core.Attribute.NUMERIC;
                     break;
                 case DATE:
-                    attributeTypes[i - 1] = Attribute.DATE;
+                    attributeTypes[i - 1] = weka.core.Attribute.DATE;
                     break;
                 case TIME:
-                    attributeTypes[i - 1] = Attribute.DATE;
+                    attributeTypes[i - 1] = weka.core.Attribute.DATE;
                     break;
                 default:
                     // System.err.println("Unknown column type");
-                    attributeTypes[i - 1] = Attribute.STRING;
+                    attributeTypes[i - 1] = weka.core.Attribute.STRING;
             }
         }
 
@@ -208,7 +208,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
         if (adapter.getDebug()) {
             System.err.println("Creating instances...");
         }
-        ArrayList<Instance> instances = new ArrayList<Instance>();
+        ArrayList<weka.core.Instance> instances = new ArrayList<weka.core.Instance>();
         int rowCount = 0;
         while (rs.next()) {
             if (rowCount % 100 == 0) {
@@ -229,7 +229,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                         String str = rs.getString(i);
 
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             Double index = nominalIndexes[i - 1].get(str);
                             if (index == null) {
@@ -244,7 +244,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                         String txt = rs.getString(i);
 
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             Double index = nominalIndexes[i - 1].get(txt);
                             if (index == null) {
@@ -261,7 +261,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case BOOL:
                         boolean boo = rs.getBoolean(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             vals[i - 1] = (boo ? 1.0 : 0.0);
                         }
@@ -271,7 +271,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                         double dd = rs.getDouble(i);
                         // Use the column precision instead of 4?
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             // newInst.setValue(i - 1, bd.doubleValue());
                             vals[i - 1] = dd;
@@ -280,7 +280,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case BYTE:
                         byte by = rs.getByte(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             vals[i - 1] = by;
                         }
@@ -288,7 +288,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case SHORT:
                         short sh = rs.getShort(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             vals[i - 1] = sh;
                         }
@@ -296,7 +296,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case INTEGER:
                         int in = rs.getInt(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             vals[i - 1] = in;
                         }
@@ -304,7 +304,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case LONG:
                         long lo = rs.getLong(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             vals[i - 1] = lo;
                         }
@@ -312,7 +312,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case FLOAT:
                         float fl = rs.getFloat(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             vals[i - 1] = fl;
                         }
@@ -320,7 +320,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case DATE:
                         Date date = rs.getDate(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             // TODO: Do a value check here.
                             vals[i - 1] = date.getTime();
@@ -329,19 +329,19 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
                     case TIME:
                         Time time = rs.getTime(i);
                         if (rs.wasNull()) {
-                            vals[i - 1] = Utils.missingValue();
+                            vals[i - 1] = weka.core.Utils.missingValue();
                         } else {
                             // TODO: Do a value check here.
                             vals[i - 1] = time.getTime();
                         }
                         break;
                     default:
-                        vals[i - 1] = Utils.missingValue();
+                        vals[i - 1] = weka.core.Utils.missingValue();
                 }
             }
-            Instance newInst;
+            weka.core.Instance newInst;
             if (adapter.getSparseData()) {
-                newInst = new SparseInstance(1.0, vals);
+                newInst = new weka.core.SparseInstance(1.0, vals);
             } else {
                 newInst = new DenseInstance(1.0, vals);
             }
@@ -354,33 +354,33 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
         if (adapter.getDebug()) {
             System.err.println("Creating header...");
         }
-        ArrayList<Attribute> attribInfo = new ArrayList<Attribute>();
+        ArrayList<weka.core.Attribute> attribInfo = new ArrayList<weka.core.Attribute>();
         for (int i = 0; i < numAttributes; i++) {
       /* Fix for databases that uppercase column names */
             // String attribName = attributeCaseFix(md.getColumnName(i + 1));
             String attribName = adapter.attributeCaseFix(columnNames.get(i));
             switch (attributeTypes[i]) {
-                case Attribute.NOMINAL:
-                    attribInfo.add(new Attribute(attribName, nominalStrings[i]));
+                case weka.core.Attribute.NOMINAL:
+                    attribInfo.add(new weka.core.Attribute(attribName, nominalStrings[i]));
                     break;
-                case Attribute.NUMERIC:
-                    attribInfo.add(new Attribute(attribName));
+                case weka.core.Attribute.NUMERIC:
+                    attribInfo.add(new weka.core.Attribute(attribName));
                     break;
-                case Attribute.STRING:
-                    Attribute att = new Attribute(attribName, (ArrayList<String>) null);
+                case weka.core.Attribute.STRING:
+                    weka.core.Attribute att = new weka.core.Attribute(attribName, (ArrayList<String>) null);
                     attribInfo.add(att);
                     for (int n = 0; n < nominalStrings[i].size(); n++) {
                         att.addStringValue(nominalStrings[i].get(n));
                     }
                     break;
-                case Attribute.DATE:
-                    attribInfo.add(new Attribute(attribName, (String) null));
+                case weka.core.Attribute.DATE:
+                    attribInfo.add(new weka.core.Attribute(attribName, (String) null));
                     break;
                 default:
                     throw new Exception("Unknown attribute type");
             }
         }
-        Instances result = new Instances("QueryResult", attribInfo,
+        weka.core.Instances result = new weka.core.Instances("QueryResult", attribInfo,
                 instances.size());
         for (int i = 0; i < instances.size(); i++) {
             result.add(instances.get(i));
@@ -399,7 +399,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
 
         try {
             InstanceQuerySQLite iq = new InstanceQuerySQLite();
-            String query = Utils.getOption('Q', args);
+            String query = weka.core.Utils.getOption('Q', args);
             if (query.length() == 0) {
                 iq.setQuery("select * from Experiment_index");
             } else {
@@ -407,18 +407,18 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
             }
             iq.setOptions(args);
             try {
-                Utils.checkForRemainingOptions(args);
+                weka.core.Utils.checkForRemainingOptions(args);
             } catch (Exception e) {
                 System.err.println("Options for weka.experiment.InstanceQuery:\n");
-                Enumeration<Option> en = iq.listOptions();
+                Enumeration<weka.core.Option> en = iq.listOptions();
                 while (en.hasMoreElements()) {
-                    Option o = en.nextElement();
+                    weka.core.Option o = en.nextElement();
                     System.err.println(o.synopsis() + "\n" + o.description());
                 }
                 System.exit(1);
             }
 
-            Instances aha = iq.retrieveInstances();
+            weka.core.Instances aha = iq.retrieveInstances();
             iq.disconnectFromDatabase();
             // query returned no result -> exit
             if (aha == null) {
@@ -427,7 +427,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
             // The dataset may be large, so to make things easier we'll
             // output an instance at a time (rather than having to convert
             // the entire dataset to one large string)
-            System.out.println(new Instances(aha, 0));
+            System.out.println(new weka.core.Instances(aha, 0));
             for (int i = 0; i < aha.numInstances(); i++) {
                 System.out.println(aha.instance(i));
             }
@@ -444,28 +444,28 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
      * @return an enumeration of all options
      */
     @Override
-    public Enumeration<Option> listOptions() {
-        Vector<Option> result = new Vector<Option>();
+    public Enumeration<weka.core.Option> listOptions() {
+        Vector<weka.core.Option> result = new Vector<weka.core.Option>();
 
-        result.addElement(new Option("\tSQL query to execute.", "Q", 1,
+        result.addElement(new weka.core.Option("\tSQL query to execute.", "Q", 1,
                 "-Q <query>"));
 
-        result.addElement(new Option(
+        result.addElement(new weka.core.Option(
                 "\tReturn sparse rather than normal instances.", "S", 0, "-S"));
 
-        result.addElement(new Option("\tThe username to use for connecting.", "U",
+        result.addElement(new weka.core.Option("\tThe username to use for connecting.", "U",
                 1, "-U <username>"));
 
-        result.addElement(new Option("\tThe password to use for connecting.", "P",
+        result.addElement(new weka.core.Option("\tThe password to use for connecting.", "P",
                 1, "-P <password>"));
 
-        result.add(new Option(
+        result.add(new weka.core.Option(
                 "\tThe custom properties file to use instead of default ones,\n"
                         + "\tcontaining the database parameters.\n" + "\t(default: none)",
                 "custom-props", 1, "-custom-props <file>"
         ));
 
-        result.addElement(new Option("\tEnables debug output.", "D", 0, "-D"));
+        result.addElement(new weka.core.Option("\tEnables debug output.", "D", 0, "-D"));
 
         return result.elements();
     }
@@ -637,31 +637,31 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
 
         String tmpStr;
 
-        setSparseData(Utils.getFlag('S', options));
+        setSparseData(weka.core.Utils.getFlag('S', options));
 
-        tmpStr = Utils.getOption('Q', options);
+        tmpStr = weka.core.Utils.getOption('Q', options);
         if (tmpStr.length() != 0) {
             setQuery(tmpStr);
         }
 
-        tmpStr = Utils.getOption('U', options);
+        tmpStr = weka.core.Utils.getOption('U', options);
         if (tmpStr.length() != 0) {
             setUsername(tmpStr);
         }
 
-        tmpStr = Utils.getOption('P', options);
+        tmpStr = weka.core.Utils.getOption('P', options);
         if (tmpStr.length() != 0) {
             setPassword(tmpStr);
         }
 
-        tmpStr = Utils.getOption("custom-props", options);
+        tmpStr = weka.core.Utils.getOption("custom-props", options);
         if (tmpStr.length() == 0) {
             setCustomPropsFile(null);
         } else {
             setCustomPropsFile(new File(tmpStr));
         }
 
-        setDebug(Utils.getFlag('D', options));
+        setDebug(weka.core.Utils.getFlag('D', options));
     }
 
     /**
@@ -671,7 +671,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
      * @return the instances contained in the result of the query
      * @throws Exception if an error occurs
      */
-    public Instances retrieveInstances() throws Exception {
+    public weka.core.Instances retrieveInstances() throws Exception {
         return retrieveInstances(m_Query);
     }
 
@@ -683,7 +683,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
      * query doesn't return a ResultSet, e.g., DELETE/INSERT/UPDATE
      * @throws Exception if an error occurs
      */
-    public Instances retrieveInstances(String query) throws Exception {
+    public weka.core.Instances retrieveInstances(String query) throws Exception {
 
         if (m_Debug) {
             System.err.println("Executing query: " + query);
@@ -708,7 +708,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements OptionHandler,
             System.err.println("Getting metadata...");
         }
 
-        Instances result = retrieveInstances(this, rs);
+        weka.core.Instances result = retrieveInstances(this, rs);
         close(rs);
 
         return result;

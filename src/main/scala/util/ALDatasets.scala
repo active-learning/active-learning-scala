@@ -18,17 +18,13 @@
 
 package util
 
-import java.io.{File, IOException}
-
 import al.strategies.Strategy
 import app.db.Dataset
-import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
-import weka.experiment.{InstanceQuerySQLite, InstanceQuery}
+import weka.experiment.InstanceQuerySQLite
+import scala.collection.JavaConversions._
 
 object ALDatasets {
-
-  import scala.collection.JavaConversions._
 
   /**
    * Reads SQLite patterns in the querying order.
