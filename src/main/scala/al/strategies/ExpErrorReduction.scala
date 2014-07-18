@@ -53,7 +53,7 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val res = if (labeled.last.missed) {
-      Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled)
+      Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled) //todo: for multiclass, margin is better than unc. but the original paper don't do this way.
     } else {
       val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
       lazy val optimistic_patterns = unlabeledSamp.map { p =>
