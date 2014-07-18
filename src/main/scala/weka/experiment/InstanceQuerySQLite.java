@@ -691,7 +691,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
         connectToDatabase();
         execute("attach 'app.db' as app");
 
-        if (execute(query) == false) {
+        if (!execute(query)) {
             if (m_PreparedStatement.getUpdateCount() == -1) {
                 throw new Exception("Query didn't produce results");
             } else {
