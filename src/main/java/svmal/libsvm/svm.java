@@ -1035,7 +1035,6 @@ class SVR_Q extends Kernel {
 }
 
 public class svm {
-    s
     /**
      * ****************************************************************
      */
@@ -1043,14 +1042,13 @@ public class svm {
             {
                     "c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr",
             };
-    tatic
-    final String kernel_type_table[] =
+    static final String kernel_type_table[] =
             {
                     "linear", "polynomial", "rbf", "sigmoid",
             };
-    ********************
-    svm fixed
-    START**************************/
+    /**
+     * ***************** svm fixed START *************************
+     */
     public static double g_maxFix = 2;
     private static double g_fix = 2;
 
@@ -1610,8 +1608,8 @@ public class svm {
             for (k = 0; k < cj; k++)
                 sum += coef2[sj + k] * kvalue[sj + k];
             sum -= model.rho[p++];
-			/* currently, if sum>0 then classification is label[0], and we want to
-			   return sum>0 <=> classification is 1 */
+            /* currently, if sum>0 then classification is label[0], and we want to
+               return sum>0 <=> classification is 1 */
             if (model.label[0] == 1) {
                 return sum;
             } else if (model.label[0] == 0) {
