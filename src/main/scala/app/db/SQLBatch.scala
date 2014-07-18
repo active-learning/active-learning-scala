@@ -25,7 +25,7 @@ import app.ArgParser
  */
 object SQLBatch extends App {
   val desc = s"Version ${ArgParser.version} \n Apply SQL queries to all provided databases independently." +
-    "This program is needed because SQLite has a limit of only 20 simultaneous attached datasets. Parallel(s:str):y|n"
+    "This program is needed because SQLite has a limit of only 20 simultaneous attached datasets. Parallel(str):y|n"
   val (path, datasetNames, sql) = ArgParser.testArgsWithText(getClass.getSimpleName.dropRight(1), args, desc)
   val parallel = args(2) == "y"
   val readOnly = sql.toLowerCase.startsWith("select ")
@@ -35,11 +35,10 @@ object SQLBatch extends App {
     val db = dest(datasetName)
     if (db.dbOriginal.exists()) {
       db.open()
-      if (args(2).contains("str")) db.runStr(sql)
-      else db.run(sql) match {
+      (if (args(2).contains("str")) db.runStr(sql) else db.run(sql)) match {
         case Right(queue) =>
           //        println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
-          println(queue.map(_.mkString(" ")).mkString("\n") + " " + datasetName)
+          println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n"))
         case Left(rowCount) => println(rowCount + " " + datasetName)
       }
       if (!readOnly) db.save()
