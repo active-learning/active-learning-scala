@@ -1,0 +1,1 @@
+package svmal.weka.active;import svmal.weka.core.DataContainer;import java.io.Serializable;public abstract class ActiveLearner implements Serializable {    final int NO_CLASS = -1;    public abstract void buildClassifier(DataContainer data) throws Exception;    public abstract int instanceToQuery(DataContainer pool) throws Exception;}

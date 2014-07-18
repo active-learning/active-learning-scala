@@ -107,7 +107,7 @@ object EERTest extends App {
 
   //    val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get).take(4000)
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
-  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/locked")("gas-drift").right.get.take(1000000))
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
   //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilter(patts0, filter)
@@ -155,54 +155,3 @@ object EERTest extends App {
   ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
   //  ac1.zip(ac2).foreach { case (a, b) => println(a)}
 }
-
-
-/*
-TITLE-ABS-KEY(
-  "active learning"AND(
-    reviewORsurveyORcomparisonORcombiningORselectionORchoiceORstacked
-  )
-)ANDSUBJAREA(
-  multORcengORCHEMORcompOReartORenerORengiORenviORmateORmathORphys
-)AND(
-  EXCLUDE(
-    DOCTYPE,"le"
-  )OREXCLUDE(
-    DOCTYPE,"Undefined"
-  )
-)
-AND(
-  EXCLUDE(
-    SUBJAREA,"SOCI"
-  )OREXCLUDE(
-    SUBJAREA,"EART"
-  )OREXCLUDE(
-    SUBJAREA,"BIOC"
-  )OREXCLUDE(
-    SUBJAREA,"PHYS"
-  )OREXCLUDE(
-    SUBJAREA,"NEUR"
-  )OREXCLUDE(
-    SUBJAREA,"CHEM"
-  )
-)AND(
-  EXCLUDE(
-    SUBJAREA,"MEDI"
-  )OREXCLUDE(
-    SUBJAREA,"BUSI"
-  )OREXCLUDE(
-    SUBJAREA,"ARTS"
-  )OREXCLUDE(
-    SUBJAREA,"ENVI"
-  )OREXCLUDE(
-    SUBJAREA,"CENG"
-  )OREXCLUDE(
-    SUBJAREA,"AGRI"
-  )OREXCLUDE(
-    SUBJAREA,"MEDI"
-  )OREXCLUDE(
-    SUBJAREA,"BUSI"
-  )OREXCLUDE(
-    SUBJAREA,"ARTS"
-    )OREXCLUDE(SUBJAREA,"ENVI")OREXCLUDE(SUBJAREA,"CENG")OREXCLUDE(SUBJAREA,"AGRI")OREXCLUDE(SUBJAREA,"MATE")OREXCLUDE(SUBJAREA,"ENER")OREXCLUDE(SUBJAREA,"HEAL")OREXCLUDE(SUBJAREA,"ECON")OREXCLUDE(SUBJAREA,"MULT")OREXCLUDE(SUBJAREA,"PSYC")OREXCLUDE(SUBJAREA,"NURS")OREXCLUDE(SUBJAREA,"MEDI")OREXCLUDE(SUBJAREA,"BUSI")OREXCLUDE(SUBJAREA,"ARTS")OREXCLUDE(SUBJAREA,"MATE")OREXCLUDE(SUBJAREA,"ENER")OREXCLUDE(SUBJAREA,"HEAL")OREXCLUDE(SUBJAREA,"ECON")OREXCLUDE(SUBJAREA,"MULT")OREXCLUDE(SUBJAREA,"PSYC")OREXCLUDE(SUBJAREA,"NURS"))AND(LIMIT-TO(SUBJAREA,"COMP"))
- */

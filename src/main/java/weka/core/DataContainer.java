@@ -1,1 +1,0 @@
-package weka.core;public interface DataContainer {    public void addInstance(InstanceContainer o);    public void deleteInstance(int indx);    public InstanceContainer getInstance(int indx);    public int size();    public DataContainer makeEmptyCopy();}

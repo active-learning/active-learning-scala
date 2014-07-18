@@ -21,7 +21,7 @@ package exp.raw
 import al.strategies._
 import app.ArgParser
 import app.db.Dataset
-import exp.raw.GnosticQueries._
+import exp.raw.HeavyGnosticQueries._
 import ml.Pattern
 import util.{ALDatasets, Datasets}
 import weka.filters.unsupervised.attribute.Standardize
