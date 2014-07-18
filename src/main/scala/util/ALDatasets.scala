@@ -21,6 +21,8 @@ package util
 import al.strategies.Strategy
 import app.db.Dataset
 import ml.{Pattern, PatternParent}
+import weka.classifiers.libsvm.SvmLibProblem
+import weka.core.Instance
 import weka.experiment.InstanceQuerySQLite
 import scala.collection.JavaConversions._
 
@@ -56,5 +58,24 @@ object ALDatasets {
     } catch {
       case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }
+  }
+
+
+  /**
+   * Create a new Datacontainer (Instances for SVM) converted from Patterns.
+   * @param patterns
+   * @return
+   */
+  def patterns2svminstances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+    println("Empty sequence of patterns; cannot generate Weka Instances object.")
+    sys.exit(0)
+  } else {
+    //    val new_instances = new SvmLibProblem(patterns.head.dataset, 0, 0)
+    //    patterns foreach { patt =>
+    //      val newInst = new Instance(patt.weight(), patt.array, patt.array.size + 1)
+    //      newInst.setDataset(patt.dataset())
+    //      new_instances.addInstance()
+    //    }
+    //    new_instances
   }
 }
