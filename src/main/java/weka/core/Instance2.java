@@ -1,7 +1,6 @@
 package weka.core;
 
 import java.io.Serializable;
-import java.util.Enumeration;
 
 /**
  * Created by davi on 7/17/14.
@@ -18,23 +17,23 @@ public class Instance2 extends DenseInstance implements Copyable, Serializable, 
      * doesn't have access to any dataset.  Only if an instance has
      * access to a dataset, it knows about the actual attribute types.
      */
-    protected Instances m_Dataset;
+//    protected Instances m_Dataset;
 
     /**
      * The instance's attribute values.
      */
-    protected double[] m_AttValues;
+//    protected double[] m_AttValues;
 
     /**
      * The instance's weight.
      */
-    protected double m_Weight;
+//    protected double m_Weight;
 
     protected int m_index = -1; // in dataset if exists
 
-    public Instance2(Instance instance) {
-        super(instance);
-    }
+//    public Instance2(Instance instance) {
+//        super(instance);
+//    }
     /************************************************/
 
     /**
@@ -57,17 +56,6 @@ public class Instance2 extends DenseInstance implements Copyable, Serializable, 
      */
     public Instance2(double weight, double[] attValues) {
         super(weight, attValues);
-    }
-
-    /**
-     * Constructor of an instance that sets weight to one, all values to
-     * be missing, and the reference to the dataset to null. (ie. the instance
-     * doesn't have access to information about the attribute types)
-     *
-     * @param numAttributes the size of the instance
-     */
-    public Instance2(int numAttributes) {
-        super(numAttributes);
     }
 
     /**
@@ -98,130 +86,130 @@ public class Instance2 extends DenseInstance implements Copyable, Serializable, 
 
         try {
 
-            // Create numeric attributes "length" and "weight"
-            Attribute length = new Attribute("length");
-            Attribute weight = new Attribute("weight");
-
-            // Create vector to hold nominal values "first", "second", "third"
-            FastVector my_nominal_values = new FastVector(3);
-            my_nominal_values.addElement("first");
-            my_nominal_values.addElement("second");
-            my_nominal_values.addElement("third");
-
-            // Create nominal attribute "position"
-            Attribute position = new Attribute("position", my_nominal_values);
-
-            // Create vector of the above attributes
-            FastVector attributes = new FastVector(3);
-            attributes.addElement(length);
-            attributes.addElement(weight);
-            attributes.addElement(position);
-
-            // Create the empty dataset "race" with above attributes
-            Instances race = new Instances("race", attributes, 0);
-
-            // Make position the class attribute
-            race.setClassIndex(position.index());
-
-            // Create empty instance with three attribute values
-            Instance inst = new Instance2(3);
-
-            // Set instance's values for the attributes "length", "weight", and "position"
-            inst.setValue(length, 5.3);
-            inst.setValue(weight, 300);
-            inst.setValue(position, "first");
-
-            // Set instance's dataset to be the dataset "race"
-            inst.setDataset(race);
-
-            // Print the instance
-            System.out.println("The instance: " + inst);
-
-            // Print the first attribute
-            System.out.println("First attribute: " + inst.attribute(0));
-
-            // Print the class attribute
-            System.out.println("Class attribute: " + inst.classAttribute());
-
-            // Print the class index
-            System.out.println("Class index: " + inst.classIndex());
-
-            // Say if class is missing
-            System.out.println("Class is missing: " + inst.classIsMissing());
-
-            // Print the instance's class value in internal format
-            System.out.println("Class value (internal format): " + inst.classValue());
-
-            // Print a shallow copy of this instance
-            Instance copy = (Instance) inst.copy();
-            System.out.println("Shallow copy: " + copy);
-
-            // Set dataset for shallow copy
-            copy.setDataset(inst.dataset());
-            System.out.println("Shallow copy with dataset set: " + copy);
-
-            // Unset dataset for copy, delete first attribute, and insert it again
-            copy.setDataset(null);
-            copy.deleteAttributeAt(0);
-            copy.insertAttributeAt(0);
-            copy.setDataset(inst.dataset());
-            System.out.println("Copy with first attribute deleted and inserted: " + copy);
-
-            // Enumerate attributes (leaving out the class attribute)
-            System.out.println("Enumerating attributes (leaving out class):");
-            Enumeration enm = inst.enumerateAttributes();
-            while (enm.hasMoreElements()) {
-                Attribute att = (Attribute) enm.nextElement();
-                System.out.println(att);
-            }
-
-            // Headers are equivalent?
-            System.out.println("Header of original and copy equivalent: " +
-                    inst.equalHeaders(copy));
-
-            // Test for missing values
-            System.out.println("Length of copy missing: " + copy.isMissing(length));
-            System.out.println("Weight of copy missing: " + copy.isMissing(weight.index()));
-            System.out.println("Length of copy missing: " +
-                    Instance2.isMissingValue(copy.value(length)));
-            System.out.println("Missing value coded as: " + Instance2.missingValue());
-
-            // Prints number of attributes and classes
-            System.out.println("Number of attributes: " + copy.numAttributes());
-            System.out.println("Number of classes: " + copy.numClasses());
-
-            // Replace missing values
-            double[] meansAndModes = {2, 3, 0};
-            copy.replaceMissingValues(meansAndModes);
-            System.out.println("Copy with missing value replaced: " + copy);
-
-            // Setting and getting values and weights
-            copy.setClassMissing();
-            System.out.println("Copy with missing class: " + copy);
-            copy.setClassValue(0);
-            System.out.println("Copy with class value set to first value: " + copy);
-            copy.setClassValue("third");
-            System.out.println("Copy with class value set to \"third\": " + copy);
-            copy.setMissing(1);
-            System.out.println("Copy with second attribute set to be missing: " + copy);
-            copy.setMissing(length);
-            System.out.println("Copy with length set to be missing: " + copy);
-            copy.setValue(0, 0);
-            System.out.println("Copy with first attribute set to 0: " + copy);
-            copy.setValue(weight, 1);
-            System.out.println("Copy with weight attribute set to 1: " + copy);
-            copy.setValue(position, "second");
-            System.out.println("Copy with position set to \"second\": " + copy);
-            copy.setValue(2, "first");
-            System.out.println("Copy with last attribute set to \"first\": " + copy);
-            System.out.println("Current weight of instance copy: " + copy.weight());
-            copy.setWeight(2);
-            System.out.println("Current weight of instance copy (set to 2): " + copy.weight());
-            System.out.println("Last value of copy: " + copy.toString(2));
-            System.out.println("Value of position for copy: " + copy.toString(position));
-            System.out.println("Last value of copy (internal format): " + copy.value(2));
-            System.out.println("Value of position for copy (internal format): " +
-                    copy.value(position));
+//            // Create numeric attributes "length" and "weight"
+//            Attribute length = new Attribute("length");
+//            Attribute weight = new Attribute("weight");
+//
+//            // Create vector to hold nominal values "first", "second", "third"
+//            FastVector my_nominal_values = new FastVector(3);
+//            my_nominal_values.addElement("first");
+//            my_nominal_values.addElement("second");
+//            my_nominal_values.addElement("third");
+//
+//            // Create nominal attribute "position"
+//            Attribute position = new Attribute("position", my_nominal_values);
+//
+//            // Create vector of the above attributes
+//            FastVector attributes = new FastVector(3);
+//            attributes.addElement(length);
+//            attributes.addElement(weight);
+//            attributes.addElement(position);
+//
+//            // Create the empty dataset "race" with above attributes
+//            Instances race = new Instances("race", attributes, 0);
+//
+//            // Make position the class attribute
+//            race.setClassIndex(position.index());
+//
+//            // Create empty instance with three attribute values
+//            Instance inst = new Instance2(3);
+//
+//            // Set instance's values for the attributes "length", "weight", and "position"
+//            inst.setValue(length, 5.3);
+//            inst.setValue(weight, 300);
+//            inst.setValue(position, "first");
+//
+//            // Set instance's dataset to be the dataset "race"
+//            inst.setDataset(race);
+//
+//            // Print the instance
+//            System.out.println("The instance: " + inst);
+//
+//            // Print the first attribute
+//            System.out.println("First attribute: " + inst.attribute(0));
+//
+//            // Print the class attribute
+//            System.out.println("Class attribute: " + inst.classAttribute());
+//
+//            // Print the class index
+//            System.out.println("Class index: " + inst.classIndex());
+//
+//            // Say if class is missing
+//            System.out.println("Class is missing: " + inst.classIsMissing());
+//
+//            // Print the instance's class value in internal format
+//            System.out.println("Class value (internal format): " + inst.classValue());
+//
+//            // Print a shallow copy of this instance
+//            Instance copy = (Instance) inst.copy();
+//            System.out.println("Shallow copy: " + copy);
+//
+//            // Set dataset for shallow copy
+//            copy.setDataset(inst.dataset());
+//            System.out.println("Shallow copy with dataset set: " + copy);
+//
+//            // Unset dataset for copy, delete first attribute, and insert it again
+//            copy.setDataset(null);
+//            copy.deleteAttributeAt(0);
+//            copy.insertAttributeAt(0);
+//            copy.setDataset(inst.dataset());
+//            System.out.println("Copy with first attribute deleted and inserted: " + copy);
+//
+//            // Enumerate attributes (leaving out the class attribute)
+//            System.out.println("Enumerating attributes (leaving out class):");
+//            Enumeration enm = inst.enumerateAttributes();
+//            while (enm.hasMoreElements()) {
+//                Attribute att = (Attribute) enm.nextElement();
+//                System.out.println(att);
+//            }
+//
+//            // Headers are equivalent?
+//            System.out.println("Header of original and copy equivalent: " +
+//                    inst.equalHeaders(copy));
+//
+//            // Test for missing values
+//            System.out.println("Length of copy missing: " + copy.isMissing(length));
+//            System.out.println("Weight of copy missing: " + copy.isMissing(weight.index()));
+//            System.out.println("Length of copy missing: " +
+//                    Instance2.isMissingValue(copy.value(length)));
+//            System.out.println("Missing value coded as: " + Instance2.missingValue());
+//
+//            // Prints number of attributes and classes
+//            System.out.println("Number of attributes: " + copy.numAttributes());
+//            System.out.println("Number of classes: " + copy.numClasses());
+//
+//            // Replace missing values
+//            double[] meansAndModes = {2, 3, 0};
+//            copy.replaceMissingValues(meansAndModes);
+//            System.out.println("Copy with missing value replaced: " + copy);
+//
+//            // Setting and getting values and weights
+//            copy.setClassMissing();
+//            System.out.println("Copy with missing class: " + copy);
+//            copy.setClassValue(0);
+//            System.out.println("Copy with class value set to first value: " + copy);
+//            copy.setClassValue("third");
+//            System.out.println("Copy with class value set to \"third\": " + copy);
+//            copy.setMissing(1);
+//            System.out.println("Copy with second attribute set to be missing: " + copy);
+//            copy.setMissing(length);
+//            System.out.println("Copy with length set to be missing: " + copy);
+//            copy.setValue(0, 0);
+//            System.out.println("Copy with first attribute set to 0: " + copy);
+//            copy.setValue(weight, 1);
+//            System.out.println("Copy with weight attribute set to 1: " + copy);
+//            copy.setValue(position, "second");
+//            System.out.println("Copy with position set to \"second\": " + copy);
+//            copy.setValue(2, "first");
+//            System.out.println("Copy with last attribute set to \"first\": " + copy);
+//            System.out.println("Current weight of instance copy: " + copy.weight());
+//            copy.setWeight(2);
+//            System.out.println("Current weight of instance copy (set to 2): " + copy.weight());
+//            System.out.println("Last value of copy: " + copy.toString(2));
+//            System.out.println("Value of position for copy: " + copy.toString(position));
+//            System.out.println("Last value of copy (internal format): " + copy.value(2));
+//            System.out.println("Value of position for copy (internal format): " +
+//                    copy.value(position));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -263,11 +251,7 @@ public class Instance2 extends DenseInstance implements Copyable, Serializable, 
      * @param attIndex the attribute's index
      */
     public boolean isMissing(int attIndex) {
-
-        if (Double.isNaN(m_AttValues[attIndex])) {
-            return true;
-        }
-        return false;
+        return Double.isNaN(m_AttValues[attIndex]);
     }
 
     /**
