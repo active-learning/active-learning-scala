@@ -53,7 +53,7 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val res = if (labeled.last.missed) {
-      Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled) //todo: for multiclass, margin is better than unc. but the original paper don't do this way.
+      Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled) //todo: for multiclass, margin is better than unc. but the original paper don't do it this way.
     } else {
       val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
       lazy val optimistic_patterns = unlabeledSamp.map { p =>
@@ -117,11 +117,12 @@ object EERTest extends App {
 
   println(patts.length + " " + patts.head.nclasses)
   val n = (patts.length * 0.5).toInt
-  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 25) //25:7s 400:280s
+  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 25) //25:7s 400:280s
   //  val s = SGmulti(learner, patts.take(n), "consensus")
   //1000:1s
-  //  val s = MahalaWeightedTrainingUtility(learner, patts.take(n), 1, 1)//13s
-  //          val s = ExpErrorReduction(learner, patts.take(n), "gmeans", 25) //25:7s 100:15s 200:45s 400:300s 1000:2000s
+  //    val s = MahalaWeightedTrainingUtility(learner, patts.take(n), 1, 1)//13s
+  //    val s = MahalaWeightedRefreshedTrainingUtility(learner, patts.take(n), 1, 1, 25)//25:90000s
+  val s = ExpErrorReduction(learner, patts.take(n), "gmeans", 25) //25:7s 100:15s 200:45s 400:300s 1000:2000s
   //          val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 25) //25:7s 250:260s
   //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
   //  val s = ClusterBased(patts.take(n))

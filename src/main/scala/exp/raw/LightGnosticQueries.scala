@@ -31,8 +31,8 @@ import weka.filters.unsupervised.attribute.Standardize
 object LightGnosticQueries extends CrossValidation with App {
   val runs = 5
   val folds = 5
-  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded GNOSTIC " +
-    "strategies (i.e. not Rnd and Clu) mostly due to the fact that they can be stopped earlier when a predefined Q is given;\n"
+  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded light GNOSTIC " +
+    "strategies (i.e. not Rnd, Clu and not EER) mostly due to the fact that they are fast and don't need to be stopped earlier;\n"
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
@@ -56,13 +56,7 @@ object LightGnosticQueries extends CrossValidation with App {
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
       MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
-      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
-      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
-      ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
-      //      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
-      //      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
-      //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
+      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
     ).reverse
     val strats = if (parallelStrats) strats0.par else strats0
 
@@ -72,29 +66,9 @@ object LightGnosticQueries extends CrossValidation with App {
       //      db.close()
       //      sys.exit(0)
     } else {
-      //de onde tirar o Q de cada dataset? limitar por tempo!
+      //limitação por tempo basicamente não é usada em light strategies.
       strats foreach (strat => db.saveQueries(strat, run, fold, 8000))
     }
-
-    /*
-    ~200 datasets
-    25 pools
-    ~5 slow strategies
-    total: 25000
-    avg time for cluster-based in feasible 169 datasets: 182s
-    worst time in feasible 169 datasets: 2h
-
-    other datasets (require more memory = less threads): 35
-    total number of pools: 35 * 25 * 5 = 4375
-    estimated time per pool: 4h
-    estimated total CPU time: 4 * 4375 = 17500h = 24meses
-    estimated total wall time: 24meses / (2servers * 2threads) = 6 meses
-
-    available time: 3meses * 2servers * 2threads = ~8000h
-    available time limit per pool: 8000 / 4375 = ~2h
-
-    time limit chosen (only 2 strats are really slow): 4h
-     */
   }
 
 }

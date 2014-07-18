@@ -31,8 +31,8 @@ import weka.filters.unsupervised.attribute.Standardize
 object HeavyGnosticQueries extends CrossValidation with App {
   val runs = 5
   val folds = 5
-  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded GNOSTIC " +
-    "strategies (i.e. not Rnd and Clu) mostly due to the fact that they can be stopped earlier when a predefined Q is given;\n"
+  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
+    "strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of 8000s;\n"
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
   val parallelDatasets = args(2).contains("d")
   val parallelRuns = args(2).contains("r")
@@ -48,9 +48,9 @@ object HeavyGnosticQueries extends CrossValidation with App {
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
       //      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
-      //      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize)
-      //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool),
-    ).reverse
+      //      MahalaWeightedRefreshedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, samplingSize) //Too slow
+      //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool), //useless
+    )
     val strats = if (parallelStrats) strats0.par else strats0
 
     //checa se as queries desse run/fold existem para Random/NoLearner
@@ -62,26 +62,5 @@ object HeavyGnosticQueries extends CrossValidation with App {
       //de onde tirar o Q de cada dataset? limitar por tempo!
       strats foreach (strat => db.saveQueries(strat, run, fold, 8000))
     }
-
-    /*
-    ~200 datasets
-    25 pools
-    ~5 slow strategies
-    total: 25000
-    avg time for cluster-based in feasible 169 datasets: 182s
-    worst time in feasible 169 datasets: 2h
-
-    other datasets (require more memory = less threads): 35
-    total number of pools: 35 * 25 * 5 = 4375
-    estimated time per pool: 4h
-    estimated total CPU time: 4 * 4375 = 17500h = 24meses
-    estimated total wall time: 24meses / (2servers * 2threads) = 6 meses
-
-    available time: 3meses * 2servers * 2threads = ~8000h
-    available time limit per pool: 8000 / 4375 = ~2h
-
-    time limit chosen (only 2 strats are really slow): 4h
-     */
   }
-
 }
