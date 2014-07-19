@@ -60,7 +60,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
       //      sys.exit(0)
     } else {
       //de onde tirar o Q de cada dataset? limitar por tempo!
-      strats foreach (strat => db.saveQueries(strat, run, fold, 8000))
+      strats foreach (strat => db.saveQueries(strat, run, fold, 1500))
     }
   }
 }
