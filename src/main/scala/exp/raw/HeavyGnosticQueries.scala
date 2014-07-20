@@ -45,6 +45,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val strats0 = List(
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
+      ExpErrorReductionMargin(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
       //      MahalaWeightedRefreshed(learner(pool.length / 2, run, pool), pool, 1, samplingSize),
@@ -60,7 +61,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
       //      sys.exit(0)
     } else {
       //de onde tirar o Q de cada dataset? limitar por tempo!
-      strats foreach (strat => db.saveQueries(strat, run, fold, 1500))
+      strats foreach (strat => db.saveQueries(strat, run, fold, 3600)) //7.2s p/ EER query
     }
   }
 }

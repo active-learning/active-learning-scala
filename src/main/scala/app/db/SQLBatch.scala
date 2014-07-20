@@ -37,8 +37,8 @@ object SQLBatch extends App {
       db.open()
       (if (args(2).contains("str")) db.runStr(sql) else db.run(sql)) match {
         case Right(queue) =>
-          //        println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
-          println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n"))
+          //                  println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
+          println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n") + " " + datasetName)
         case Left(rowCount) => println(rowCount + " " + datasetName)
       }
       if (!readOnly) db.save()

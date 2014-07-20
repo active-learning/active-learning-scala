@@ -53,7 +53,7 @@ case class ExpErrorReductionDWTU(learner: Learner, pool: Seq[Pattern], criterion
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val res = if (labeled.last.missed) {
       ???
-      //      DensityWeightedTrainingUtility(learner, distinct_pool, 1, 1, "eucl").next(current_model, unlabeled, labeled) //todo: for multiclass, margin is better than unc. but the original paper don't do it this way.
+      //      DensityWeightedTrainingUtility(learner, distinct_pool, 1, 1, "eucl").next(current_model, unlabeled, labeled)
     } else {
       val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
       lazy val optimistic_patterns = unlabeledSamp.map { p =>
