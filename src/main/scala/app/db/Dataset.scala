@@ -113,18 +113,19 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val (seq, t) = Tempo.timev(strat.timeLimitedQueries(seconds).take(Qtaken).map(_.id).toVector)
       q = seq.length
       acquire()
+      var str = ""
       try {
         val statement = connection.createStatement()
         statement.executeUpdate("begin")
         seq.zipWithIndex.foreach { case (pattId, idx) =>
-          val str = s"insert into query values ($stratId,$learnerId,$run,$fold,$idx,$pattId)"
+          str = s"insert into query values ($stratId,$learnerId,$run,$fold,$idx,$pattId)"
           statement.executeUpdate(str)
         }
         statement.executeUpdate(s"insert into time values ($stratId,$learnerId,$run,$fold,$t)")
         statement.executeUpdate("end")
       } catch {
         case e: Throwable => e.printStackTrace
-          println("\nProblems inserting queries into: " + dbCopy + ":")
+          println(s"\nProblems inserting queries for $strat / ${strat.learner} into: " + dbCopy + s": \"$str\":")
           println(e.getMessage)
           println("Deleting " + dbCopy + "...")
           dbCopy.delete()
