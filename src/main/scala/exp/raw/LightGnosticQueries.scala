@@ -67,7 +67,7 @@ object LightGnosticQueries extends CrossValidation with App {
       //      sys.exit(0)
     } else {
       //limitação por tempo basicamente não é usada em light strategies.
-      strats foreach (strat => db.saveQueries(strat, run, fold, 3600))
+      strats foreach (strat => db.saveQueries(strat, run, fold, 4000))
     }
   }
 
