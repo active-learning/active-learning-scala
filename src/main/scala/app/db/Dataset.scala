@@ -125,7 +125,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         statement.executeUpdate("end")
       } catch {
         case e: Throwable => e.printStackTrace
-          println(s"\nProblems inserting queries for $strat / ${strat.learner} into: " + dbCopy + s": \"$str\":")
+          println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
           println(e.getMessage)
           println("Deleting " + dbCopy + "...")
           dbCopy.delete()
