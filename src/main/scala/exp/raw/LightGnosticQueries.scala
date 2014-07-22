@@ -66,14 +66,14 @@ object LightGnosticQueries extends CrossValidation with App {
       //      db.close()
       //      sys.exit(0)
     } else {
-      //checa se tabela de matrizes de confusão está pronta para Random/learner
+      //checa se tabela de matrizes de confusão existe para Random/learner
       val n = pool.length * pool.head.nclasses * pool.head.nclasses
       val nn = db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
       if (nn != n) {
         println(s"$nn hits should be $n for run $run fold $fold for $db")
       } else {
-        //calcula Q
-
+        //calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
+        ???
 
         strats foreach (strat => db.saveQueries(strat, run, fold, 21600))
       }

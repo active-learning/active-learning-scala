@@ -27,9 +27,8 @@ import scala.util.Random
 
 /**
  * Defaults to Uncertainty if it misses the label.
- * Resuming is not recommended.
- *
- * outdated: When resuming queries it is impossible to know if the last label estimate was right. It is assumed it hit.
+ * Resuming is not exact, but who cares?
+ * When resuming queries it is impossible to know if the last label estimate was right. It is assumed it hit.
  * @param learner
  * @param pool
  * @param criterion

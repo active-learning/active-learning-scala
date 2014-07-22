@@ -30,15 +30,16 @@ object ALDatasets {
 
   /**
    * Reads SQLite patterns in the querying order.
+   * Z-score is not applied.
    */
   def queriesFromSQLite(path: String)(db: Dataset)(strategy: Strategy, run: Int, fold: Int) = {
     val learner = strategy.learner
     val arq = db.dbCopy
-    val qids = db.exec(s"select q.rowid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
-      case Right(x) => x.map(_.head.toInt)
-      case Left(str) => println(s"Problems fetching query ids from $db : $str")
-        sys.exit(0)
-    }
+    //    val qids = db.exec(s"select q.rowid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
+    //      case Right(x) => x.map(_.head.toInt)
+    //      case Left(str) => println(s"Problems fetching query ids from $db : $str")
+    //        sys.exit(0)
+    //    }
     val queriedInstanceIds = db.exec(s"select q.instid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
       case Right(x) => x.map(_.head.toInt)
       case Left(str) => println(s"Problems fetching queries from $db : $str")
@@ -54,7 +55,8 @@ object ALDatasets {
       instances.setRelationName(db.database)
       val parent = PatternParent(instances)
       val patterns = instances.zip(queriedInstanceIds).map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
-      Right(patterns.zip(qids).toStream)
+      //      Right(patterns.zip(qids).toStream)
+      Right(patterns.toStream)
     } catch {
       case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }

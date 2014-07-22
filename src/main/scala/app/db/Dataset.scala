@@ -19,14 +19,59 @@
 package app.db
 
 import al.strategies.{RandomSampling, Strategy}
+import exp.raw.RandomHits._
+import ml.Pattern
 import ml.classifiers.Learner
 import util.{ALDatasets, Datasets, Tempo}
+import weka.filters.unsupervised.attribute.Standardize
 
 /**
  * Cada instancia desta classe representa uma conexao a
  * um arquivo db que é um dataset.
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
+  def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern]) = {
+    val lid = fetchlid(learner)
+    val sid = fetchsid(strat)
+    val fetchQueries = ALDatasets.queriesFromSQLite(path) _
+
+    //descobre em que ponto das queries retomar
+    val performed = performedQueries(RandomSampling(Seq()))
+
+    //retoma
+    fetchQueries(this)(RandomSampling(Seq()), run, fold) match {
+      case Right(queries) =>
+        val zscoredQueries = Datasets.applyFilter(queries, f)
+        val initial = zscoredQueries.take(performed + 1)
+        val rest = zscoredQueries.drop(performed + 1)
+        var model = learner.build(initial)
+
+        acquire()
+        exec("begin")
+        rest.zipWithIndex map { case (trainingPattern, idx) =>
+          model = learner.update(model, fast_mutable = true)(trainingPattern)
+          val confusion = model.confusion(testSet)
+          val position = performed + idx
+          var i = 0
+          var j = 0
+          while (i < nc) {
+            while (j < nc) {
+              val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)}})"
+              //                    println(sql)
+              exec(sql)
+              j += 1
+            }
+            i += 1
+          }
+        }
+        exec("end")
+        save()
+        release()
+
+      case Left(str) => println(s"Problem loading queries for Rnd: $str")
+    }
+  }
+
   val database = dataset
   lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
 
@@ -34,7 +79,11 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     exec(s"select count(*) from hit where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)} and run=$run and fold=$fold").left.get
   }
 
-  def completePools(strategy: Strategy) = exec(s"select * from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}' group by run,fold").right.get.length
+  def completePools(strategy: Strategy) =
+    exec(s"select * from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}' group by run,fold").right.get.length
+
+  def performedQueries(strategy: Strategy) =
+    exec(s"select max(position) from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}'").right.get.head.head.toInt + 1
 
   def fetchsid(strat: Strategy) = {
     //Fetch StrategyId by name.
@@ -43,7 +92,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
       resultSet.next()
-      stratId = resultSet.getInt("rowid")
+      resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
         println("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")

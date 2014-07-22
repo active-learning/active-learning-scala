@@ -53,7 +53,8 @@ object CreateAppFile extends App {
     MahalaWeightedRefreshedTrainingUtility(NoLearner(), Seq(), 1, 1, sampleSize),
     FastPerfectRealisticAccuracy(NoLearner(), Seq(), sampleSizePerfect),
     DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
-    ExpErrorReduction(NoLearner(), Seq(), "gmeans", sampleSize)
+    ExpErrorReduction(NoLearner(), Seq(), "gmeans", sampleSize),
+    ExpErrorReductionMargin(NoLearner(), Seq(), "entropy", sampleSize)
   )
 
   //ensures there is no previous file
