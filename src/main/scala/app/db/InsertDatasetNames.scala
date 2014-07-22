@@ -30,13 +30,13 @@ object InsertDatasetNames extends App {
 
   val af = AppFile()
   af.open()
-  af.run(s"begin")
-  af.run(s"insert into path values ('$pathName', '$path')")
-  val pid = af.run(s"select rowid from path where name='$pathName'").left.get
+  af.exec(s"begin")
+  af.exec(s"insert into path values ('$pathName', '$path')")
+  val pid = af.exec(s"select rowid from path where name='$pathName'").left.get
   datasetNames foreach { datasetName =>
-    af.run(s"insert into dataset values ('$datasetName', $pid)")
+    af.exec(s"insert into dataset values ('$datasetName', $pid)")
   }
-  af.run(s"end")
+  af.exec(s"end")
   af.save()
   af.close()
 }

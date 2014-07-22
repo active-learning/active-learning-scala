@@ -93,8 +93,8 @@ object Predictions extends CrossValidation with App {
               var model = le.build(initial)
 
               acquire()
-              db.run("begin")
-              val lid = db.run(s"select rowid from app.learner where name='$learner'").left.get
+              db.exec("begin")
+              val lid = db.exec(s"select rowid from app.learner where name='$learner'").left.get
               rest.zip(qids.drop(initial.length)) map { case (trainingPattern, qid) =>
                 model = le.update(model, fast_mutable = true)(trainingPattern)
                 testSet map { testingPattern =>
@@ -102,11 +102,11 @@ object Predictions extends CrossValidation with App {
                   pred.zipWithIndex.foreach { case (value, output) =>
                     val sql = s"insert into prediction values ($lid, $qid, ${testingPattern.id}, $output, $value)"
                     //                    println(sql)
-                    db.run(sql)
+                    db.exec(sql)
                   }
                 }
               }
-              db.run("end")
+              db.exec("end")
               db.save()
               release()
 

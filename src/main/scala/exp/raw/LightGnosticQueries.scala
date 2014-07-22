@@ -66,8 +66,17 @@ object LightGnosticQueries extends CrossValidation with App {
       //      db.close()
       //      sys.exit(0)
     } else {
-      //limitação por tempo basicamente não é usada em light strategies.
-      strats foreach (strat => db.saveQueries(strat, run, fold, 4000))
+      //checa se tabela de matrizes de confusão está pronta para Random/learner
+      val n = pool.length * pool.head.nclasses * pool.head.nclasses
+      val nn = db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
+      if (nn != n) {
+        println(s"$nn hits should be $n for run $run fold $fold for $db")
+      } else {
+        //calcula Q
+
+
+        strats foreach (strat => db.saveQueries(strat, run, fold, 21600))
+      }
     }
   }
 

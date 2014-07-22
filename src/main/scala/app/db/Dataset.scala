@@ -28,9 +28,42 @@ import util.{ALDatasets, Datasets, Tempo}
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   val database = dataset
-  lazy val rndCompletePools = run(s"select * from query where strategyid=1 group by run,fold").right.get.length
+  lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
 
-  def completePools(strategy: Strategy) = run(s"select * from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}' group by run,fold").right.get.length
+  def rndCompleteHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
+    exec(s"select count(*) from hit where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)} and run=$run and fold=$fold").left.get
+  }
+
+  def completePools(strategy: Strategy) = exec(s"select * from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}' group by run,fold").right.get.length
+
+  def fetchsid(strat: Strategy) = {
+    //Fetch StrategyId by name.
+    var stratId = -1
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
+      resultSet.next()
+      stratId = resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        println("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
+        sys.exit(0)
+    }
+  }
+
+  def fetchlid(learner: Learner) = {
+    //Fetch LearnerId by name.
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        println("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
+        sys.exit(0)
+    }
+  }
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
@@ -57,32 +90,8 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
     }
-
-    //Fetch StrategyId by name.
-    var stratId = -1
-    try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
-      resultSet.next()
-      stratId = resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
-        sys.exit(0)
-    }
-
-    //Fetch LearnerId by name.
-    var learnerId = -1
-    try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + strat.learner + "'")
-      resultSet.next()
-      learnerId = resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
-        sys.exit(0)
-    }
+    val stratId = fetchsid(strat)
+    val learnerId = fetchlid(strat.learner)
     //    println("Strategy " + strat + " has id " + stratId + ".")
     //Check if the job was already done before.
     //It assumes that there is no inconsistency like a partial job/half transactions (e.g. half of the queries) registered in dataset.

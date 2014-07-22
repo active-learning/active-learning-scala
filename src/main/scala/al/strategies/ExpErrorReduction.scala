@@ -39,9 +39,7 @@ import scala.util.Random
 case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: String, sample: Int, debug: Boolean = false)
   extends StrategyWithLearner with Sample with EntropyMeasure {
   override val toString = "Expected Error Reduction s" + sample + " (" + criterion + ")"
-  var unlabeledSize = if (pool.length > 0) rest.length else -1
   //Strategy with empty pool exists only to provide its name.
-  lazy val rnd = new Random(0)
   val Ventropy = 0
   val Vaccuracy = 1
   val Vgmeans = 2
@@ -55,6 +53,8 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
     val res = if (labeled.last.missed) {
       Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled) //todo: for multiclass, margin is better than unc. but the original paper don't do it this way.
     } else {
+      val unlabeledSize = unlabeled.size
+      val rnd = new Random(unlabeledSize)
       val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
       lazy val optimistic_patterns = unlabeledSamp.map { p =>
         p.relabeled_reweighted(current_model.predict(p), 1, new_missed = false)
@@ -73,7 +73,6 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
       selected.relabeled_reweighted(selected.label, selected.weight, label_estimate != selected.label)
 
     }
-    unlabeledSize -= 1
     res
   }
 

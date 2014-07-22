@@ -36,13 +36,13 @@ import scala.util.Random
 case class MahalaWeightedRefreshedTrainingUtility(learner: Learner, pool: Seq[Pattern], alpha: Double, beta: Double, sample: Int, debug: Boolean = false)
   extends StrategyWithMahala with MarginMeasure with Sample {
   override val toString = "Mahala Weighted Refreshed TU a" + alpha + " b" + beta + " s" + sample
-  var unlabeledSize = if (pool.length > 0) rest.length else -1
-  var labeledSize = if (pool.length > 0) firstof_each_class.length else -1
   //Strategy with empty pool exists only to provide its name.
-  lazy val rnd = new Random(0)
 
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
+    val labeledSize = labeled.size
+    val unlabeledSize = unlabeled.size
+    val rnd = new Random(unlabeledSize)
     val (unlabeledSamp, unlabeledSampSize) = if (unlabeledSize > sample_internal) (rnd.shuffle(unlabeled).take(sample_internal), sample_internal) else (unlabeled, unlabeledSize)
     val res = try {
       val ud = mahalanobis_to(unlabeled)
@@ -56,8 +56,6 @@ case class MahalaWeightedRefreshedTrainingUtility(learner: Learner, pool: Seq[Pa
     } catch {
       case ex: MatrixSingularException => println(" MahalaWTU: singular matrix! Defaulting to Random Sampling..."); unlabeled.head
     }
-    unlabeledSize -= 1
-    labeledSize += 1
     res
   }
 }

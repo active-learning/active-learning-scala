@@ -35,7 +35,7 @@ object SQLBatch extends App {
     val db = dest(datasetName)
     if (db.dbOriginal.exists()) {
       db.open()
-      (if (args(2).contains("str")) db.runStr(sql) else db.run(sql)) match {
+      (if (args(2).contains("str")) db.runStr(sql) else db.exec(sql)) match {
         case Right(queue) =>
           //                  println(queue.mkString("\n" + datasetName.map(_ => ' ') + " "))
           println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n") + " " + datasetName)

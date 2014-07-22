@@ -51,12 +51,12 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
 
 
   val resultsDb = Results("/home/davi/wcs/ucipp/uci", createOnAbsence = true)
-  if (resultsDb.open(debug = true) || resultsDb.run(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").left.get == 0)
-    resultsDb.run(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
+  if (resultsDb.open(debug = true) || resultsDb.exec(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").left.get == 0)
+    resultsDb.exec(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val name = db.database
-    val did = resultsDb.run(s"select rowid from app.dataset where name = '$name'").left.get
+    val did = resultsDb.exec(s"select rowid from app.dataset where name = '$name'").left.get
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
       interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)),
       interawELM(15), interawfELM(15),
@@ -65,8 +65,8 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
 
     //Heavy processing.
     val results = learners map { learner =>
-      val lid = resultsDb.run(s"select rowid from app.learner where name = '$learner'").left.get
-      val previous = resultsDb.run(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").left.get
+      val lid = resultsDb.exec(s"select rowid from app.learner where name = '$learner'").left.get
+      val previous = resultsDb.exec(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").left.get
       if (previous > 0) {
         println(s"Results already done previously for $name , skipping it.")
         None
@@ -80,11 +80,11 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
 
     println("Just collecting and storing results.")
     acquire()
-    resultsDb.run("begin")
+    resultsDb.exec("begin")
     results.flatten foreach { case (acc, t, lid) =>
-      resultsDb.run(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
+      resultsDb.exec(s"insert into $className values ($did, $lid, $run, $fold, $acc, $t)")
     }
-    resultsDb.run("end")
+    resultsDb.exec("end")
     if (fold % 3 == 0) resultsDb.save()
     release()
     println("collected!")
@@ -126,7 +126,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
 }
 
 object interasTest extends App {
-//  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("banana").right.get)
+  //  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("banana").right.get)
   val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("nursery").right.get).take(2000)
   val pool = data.take(1000)
   val ts = data.drop(1000)

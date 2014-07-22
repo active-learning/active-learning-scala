@@ -34,12 +34,12 @@ object ALDatasets {
   def queriesFromSQLite(path: String)(db: Dataset)(strategy: Strategy, run: Int, fold: Int) = {
     val learner = strategy.learner
     val arq = db.dbCopy
-    val qids = db.run(s"select q.rowid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
+    val qids = db.exec(s"select q.rowid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
       case Right(x) => x.map(_.head.toInt)
       case Left(str) => println(s"Problems fetching query ids from $db : $str")
         sys.exit(0)
     }
-    val queriedInstanceIds = db.run(s"select q.instid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
+    val queriedInstanceIds = db.exec(s"select q.instid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
       case Right(x) => x.map(_.head.toInt)
       case Left(str) => println(s"Problems fetching queries from $db : $str")
         sys.exit(0)

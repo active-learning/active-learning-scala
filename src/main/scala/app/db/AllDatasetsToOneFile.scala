@@ -49,7 +49,7 @@ object AllDatasetsToOneFile extends App {
     val db = dest(datasetName)
     db.open()
 
-    db.run(sql) match {
+    db.exec(sql) match {
       case Right(queue) =>
         queue.foreach { seq =>
           seq.zipWithIndex.foreach { case (v, i) =>

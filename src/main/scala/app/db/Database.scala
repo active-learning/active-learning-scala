@@ -131,7 +131,7 @@ trait Database extends Lock {
     created
   }
 
-  def run(sql: String) = {
+  def exec(sql: String) = {
     if (!isOpen) {
       println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       sys.exit(0)
