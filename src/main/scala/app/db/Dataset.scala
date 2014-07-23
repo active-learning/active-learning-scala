@@ -42,8 +42,8 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     fetchQueries(this)(RandomSampling(Seq()), run, fold) match {
       case Right(queries) =>
         val zscoredQueries = Datasets.applyFilter(queries, f)
-        val initial = zscoredQueries.take(performed + 1)
-        val rest = zscoredQueries.drop(performed + 1)
+        val initial = zscoredQueries.take(performed)
+        val rest = zscoredQueries.drop(performed)
         var model = learner.build(initial)
 
         acquire()

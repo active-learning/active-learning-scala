@@ -108,7 +108,7 @@ object EERTest extends App {
   val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
   //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
   val filter = Datasets.zscoreFilter(patts0)
-  val patts = Datasets.applyFilter(patts0, filter)
+  val patts = Datasets.applyFilterChangingOrder(patts0, filter)
 
   //todo: update de interaXXX não funfa
   def learner = VFDT() //5, "eucl", patts) //interaELMNoEM(20)

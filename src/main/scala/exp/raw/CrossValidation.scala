@@ -90,8 +90,8 @@ trait CrossValidation extends Lock with ClassName {
 
               //z-score
               val f = Datasets.zscoreFilter(tr0)
-              val tr = Datasets.applyFilter(tr0, f)
-              val ts = Datasets.applyFilter(ts0, f)
+              val tr = Datasets.applyFilterChangingOrder(tr0, f)
+              val ts = Datasets.applyFilterChangingOrder(ts0, f)
 
               val pool = new Random(run * 100 + fold).shuffle(tr)
               lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: this is used only in Predictions and for Perfect-like strategies

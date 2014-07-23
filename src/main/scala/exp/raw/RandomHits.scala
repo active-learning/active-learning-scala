@@ -51,7 +51,7 @@ object RandomHits extends CrossValidation with App {
       val n = pool.length * pool.head.nclasses * pool.head.nclasses
       val nn = db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
       if (nn > n) println(s"$nn hits should be lesser than $n for run $run fold $fold for $db")
-      else if (nn < n) db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc)
+      else if (nn < n) db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
     }
   }
 }
