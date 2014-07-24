@@ -75,7 +75,7 @@ object LightGnosticQueries extends CrossValidation with App {
         //calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
         ???
 
-        strats foreach (strat => db.saveQueries(strat, run, fold, 21600))
+        strats foreach (strat => db.saveQueries(strat, run, fold, f, 21600))
       }
     }
   }

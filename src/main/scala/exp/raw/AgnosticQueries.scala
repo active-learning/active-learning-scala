@@ -42,7 +42,7 @@ object AgnosticQueries extends CrossValidation with App {
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
-    db.saveQueries(RandomSampling(pool), run, fold, Int.MaxValue)
-    db.saveQueries(ClusterBased(pool), run, fold, Int.MaxValue) //a small time limit would discard all the Cluster queries.
+    db.saveQueries(RandomSampling(pool), run, fold, f, Int.MaxValue)
+    db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }
 }
