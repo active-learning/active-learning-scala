@@ -30,9 +30,10 @@ object ALDatasets {
 
   /**
    * Reads SQLite patterns in the querying order.
+   * It opens a new connection, so it will not be able to open a connection under writing ops.
    * Z-score is not applied.
    */
-  def queriesFromSQLite(path: String)(db: Dataset)(strategy: Strategy, run: Int, fold: Int) = {
+  def queriesFromSQLite(db: Dataset)(strategy: Strategy, run: Int, fold: Int) = {
     val learner = strategy.learner
     val arq = db.dbCopy
     //    val qids = db.exec(s"select q.rowid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {

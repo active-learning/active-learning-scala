@@ -22,9 +22,6 @@ import java.sql.DriverManager
 
 import app.ArgParser
 
-/**
- * Created by davi on 09/06/14.
- */
 object AllDatasetsToOneFile extends App {
   val desc = "Version 0.1 \n Stores all provided datasets in a single SQLite file (/tmp/all-datasets.db)."
   val (path, datasetNames, sqls) = ArgParser.testArgsWithText(getClass.getSimpleName.dropRight(1), args, desc)

@@ -24,6 +24,8 @@ import ml.classifiers.Learner
 import util.{ALDatasets, Datasets, Tempo}
 import weka.filters.unsupervised.attribute.Standardize
 
+import scala.collection.mutable
+
 /**
  * Cada instancia desta classe representa uma conexao a
  * um arquivo db que é um dataset.
@@ -34,48 +36,57 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
   def where(strategy: Strategy, learner: Learner) = s", app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
-  def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern]) = {
+  def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern]) {
     val lid = fetchlid(learner)
     val sid = fetchsid(strat)
-    val fetchQueries = ALDatasets.queriesFromSQLite(path) _
 
     //descobre em que ponto das queries retomar
-    val timeStep = nextHitPosition(strat, learner)
-    val forBuild = math.max(nc, timeStep)
+    val nextPos = nextHitPosition(strat, learner, run, fold)
+    val timeStep = math.max(nc, nextPos)
     println("next:" + timeStep)
 
     //retoma hits
-    fetchQueries(this)(strat, run, fold) match {
-      case Right(queries) =>
-        val zscoredQueries = Datasets.applyFilter(queries, f)
-        val initial = zscoredQueries.take(forBuild)
-        val rest = zscoredQueries.drop(forBuild)
-        if (rest.nonEmpty) {
-          var model = learner.build(initial)
-          acquire()
-          exec("begin")
-          rest.zipWithIndex map { case (trainingPattern, idx) =>
-            model = learner.update(model, fast_mutable = true)(trainingPattern)
-            val confusion = model.confusion(testSet)
-            val position = forBuild + idx
-            var i = 0
-            var j = 0
-            while (i < nc) {
-              j = 0
-              while (j < nc) {
-                val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)})"
-                println("s:" + sql)
-                exec(sql)
-                j += 1
-              }
-              i += 1
-            }
-          }
-          exec("end")
-          save()
-          release()
-        }
+    acquire()
+    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
+      case Right(x) => x
       case Left(str) => println(s"Problem loading queries for Rnd: $str")
+        return
+    }
+    release()
+
+    val zscoredQueries = Datasets.applyFilter(queries, f)
+    val initial = zscoredQueries.take(timeStep)
+    val rest = zscoredQueries.drop(timeStep)
+    if (rest.nonEmpty) {
+      var model = learner.build(initial)
+
+      //train
+      val results = rest.zipWithIndex map { case (trainingPattern, idx) =>
+        model = learner.update(model, fast_mutable = true)(trainingPattern)
+        val confusion = model.confusion(testSet)
+        val position = timeStep + idx
+        var i = 0
+        var j = 0
+        val sqls = mutable.Queue[String]()
+        while (i < nc) {
+          j = 0
+          while (j < nc) {
+            val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)})"
+            sqls.enqueue(sql)
+            j += 1
+          }
+          i += 1
+        }
+        sqls
+      }
+
+      //save
+      acquire()
+      exec("begin")
+      results.flatten foreach { str => exec(str)}
+      exec("end")
+      save()
+      release()
     }
   }
 
@@ -91,11 +102,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     else exec(s"select max(position) from query${where(strategy, strategy.learner)} and run=$run and fold=$fold").right.get.head.head.toInt + 1
   }
 
-  def nextHitPosition(strategy: Strategy, learner: Learner) = {
-    val sql1 = "select count(*) from hit" + where(strategy, learner)
-    val sql2 = "select max(position) from hit" + where(strategy, learner)
-    println(sql1)
-    println(sql2)
+  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
+    val sql1 = "select count(*) from hit" + where(strategy, learner) + s" and run=$run and fold=$fold"
+    val sql2 = "select max(position) from hit" + where(strategy, learner) + s" and run=$run and fold=$fold"
     val n = exec(sql1).left.get
     if (n == 0) 0
     else exec(sql2).right.get.head.head.toInt + 1
@@ -226,7 +235,7 @@ object DatasetTest extends App {
   //  d.saveQueries(RandomSampling(patts), 64, 17, 0.2)
 
   //load queries as patterns
-  val qpatts = ALDatasets.queriesFromSQLite("/home/davi/wcs/ucipp/uci/")(d)(RandomSampling(Seq()), 0, 0) match {
+  val qpatts = ALDatasets.queriesFromSQLite(d)(RandomSampling(Seq()), 0, 0) match {
     case Right(x) => x
     case Left(str) => println(s"Problema: $str"); sys.exit(0)
   }
