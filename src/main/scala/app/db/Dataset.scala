@@ -19,7 +19,6 @@
 package app.db
 
 import al.strategies.{RandomSampling, Strategy}
-import exp.raw.RandomHits._
 import ml.Pattern
 import ml.classifiers.Learner
 import util.{ALDatasets, Datasets, Tempo}
@@ -30,64 +29,80 @@ import weka.filters.unsupervised.attribute.Standardize
  * um arquivo db que é um dataset.
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
+  val database = dataset
+  lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
+
+  def where(strategy: Strategy, learner: Learner) = s", app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
+
   def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern]) = {
     val lid = fetchlid(learner)
     val sid = fetchsid(strat)
     val fetchQueries = ALDatasets.queriesFromSQLite(path) _
 
     //descobre em que ponto das queries retomar
-    val performed = performedQueries(RandomSampling(Seq()))
+    val timeStep = nextHitPosition(strat, learner)
+    val forBuild = math.max(nc, timeStep)
+    println("next:" + timeStep)
 
-    //retoma
-    fetchQueries(this)(RandomSampling(Seq()), run, fold) match {
+    //retoma hits
+    fetchQueries(this)(strat, run, fold) match {
       case Right(queries) =>
         val zscoredQueries = Datasets.applyFilter(queries, f)
-        val initial = zscoredQueries.take(performed)
-        val rest = zscoredQueries.drop(performed)
-        var model = learner.build(initial)
-
-        acquire()
-        exec("begin")
-        rest.zipWithIndex map { case (trainingPattern, idx) =>
-          model = learner.update(model, fast_mutable = true)(trainingPattern)
-          val confusion = model.confusion(testSet)
-          val position = performed + idx
-          var i = 0
-          var j = 0
-          while (i < nc) {
-            while (j < nc) {
-              val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)}})"
-              //                    println(sql)
-              exec(sql)
-              j += 1
+        val initial = zscoredQueries.take(forBuild)
+        val rest = zscoredQueries.drop(forBuild)
+        if (rest.nonEmpty) {
+          var model = learner.build(initial)
+          acquire()
+          exec("begin")
+          rest.zipWithIndex map { case (trainingPattern, idx) =>
+            model = learner.update(model, fast_mutable = true)(trainingPattern)
+            val confusion = model.confusion(testSet)
+            val position = forBuild + idx
+            var i = 0
+            var j = 0
+            while (i < nc) {
+              j = 0
+              while (j < nc) {
+                val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)})"
+                println("s:" + sql)
+                exec(sql)
+                j += 1
+              }
+              i += 1
             }
-            i += 1
           }
+          exec("end")
+          save()
+          release()
         }
-        exec("end")
-        save()
-        release()
-
       case Left(str) => println(s"Problem loading queries for Rnd: $str")
     }
   }
 
-  val database = dataset
-  lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
-
-  def rndCompleteHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-    exec(s"select count(*) from hit where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)} and run=$run and fold=$fold").left.get
-  }
+  def rndCompleteHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
+    exec(s"select count(*) from hit${where(strategy, learner)} and run=$run and fold=$fold").left.get
 
   def completePools(strategy: Strategy) =
-    exec(s"select * from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}' group by run,fold").right.get.length
+    exec(s"select * from query as q${where(strategy, strategy.learner)} group by run,fold").right.get.length
 
-  def performedQueries(strategy: Strategy) =
-    exec(s"select max(position) from query as q, app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='${strategy.learner}'").right.get.head.head.toInt + 1
+  def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
+    val n = exec(s"select count(*) from query${where(strategy, strategy.learner)} and run=$run and fold=$fold").left.get
+    if (n == 0) 0
+    else exec(s"select max(position) from query${where(strategy, strategy.learner)} and run=$run and fold=$fold").right.get.head.head.toInt + 1
+  }
+
+  def nextHitPosition(strategy: Strategy, learner: Learner) = {
+    val sql1 = "select count(*) from hit" + where(strategy, learner)
+    val sql2 = "select max(position) from hit" + where(strategy, learner)
+    println(sql1)
+    println(sql2)
+    val n = exec(sql1).left.get
+    if (n == 0) 0
+    else exec(sql2).right.get.head.head.toInt + 1
+  }
 
   def fetchsid(strat: Strategy) = {
     //Fetch StrategyId by name.
-    var stratId = -1
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
