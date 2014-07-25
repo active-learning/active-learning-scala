@@ -25,9 +25,6 @@ import ml.Pattern
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
-/**
- * Created by davi on 05/06/14.
- */
 object HeavyGnosticQueries extends CrossValidation with App {
   val runs = 5
   val folds = 5
@@ -61,7 +58,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
       //      sys.exit(0)
     } else {
       //de onde tirar o Q de cada dataset? limitar por tempo!
-      strats foreach (strat => db.saveQueries(strat, run, fold, f, 4000)) //7.2s p/ EER query
+      strats foreach (strat => db.saveQueries(strat, run, fold, f, 4000))
     }
   }
 }

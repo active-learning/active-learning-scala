@@ -88,11 +88,9 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     println(" external program called...")
     s
   }
-  var unlabeledSize = if (pool.length > 0) rest.length else -1 //Strategy with empty pool exists only to provide its name.
 
   protected def next(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    val selected = rest(results(size - unlabeledSize))
-    unlabeledSize -= 1
+    val selected = rest(results(size - unlabeled.size))
     selected
   }
 
