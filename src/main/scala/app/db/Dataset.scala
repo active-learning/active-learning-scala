@@ -194,15 +194,12 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
 
     //Get queries from past jobs, if any.
-    println("getQs")
     val queries = fetchQueries(strat, run, fold, f)
     val nextPosition = queries.size
-    println(s"nexP:$nextPosition")
     if (nextPosition < Q && nextPosition < strat.pool.size) {
-      val (nextIds, t) = Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds).take(Q - nextPosition).map(_.id).toVector)
+      val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds).take(Q).map(_.id).toVector)
+      else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds).take(Q - nextPosition).map(_.id).toVector)
       q = nextIds.length
-      //    println(s"q:$q")
-      //    println(s"Q:$Q")
       acquire()
       var str = ""
       try {
