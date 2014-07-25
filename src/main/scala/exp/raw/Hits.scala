@@ -21,12 +21,12 @@ package exp.raw
 import al.strategies._
 import app.ArgParser
 import app.db.Dataset
-import exp.raw.LightGnosticQueries._
 import ml.Pattern
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object Hits extends CrossValidation with App {
+  val samplingSize = 500
   val runs = 5
   val folds = 5
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded strategies) for the given list of datasets."
@@ -49,9 +49,12 @@ object Hits extends CrossValidation with App {
       val n = pool.length * pool.head.nclasses * pool.head.nclasses
       val nn = db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
       if (nn > n) println(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db")
-      else if (nn < n) db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
+      else if (nn < n) {
+        println("Completig Rnd hits...")
+        db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
+      }
 
-      //para as outras strats, faz tantas matrizes de confusão quantas queries houver
+      //para as outras strats, faz tantas matrizes de confusão quantas queries existirem na base
       val strats0 = List(
         ClusterBased(pool),
         Uncertainty(learner(pool.length / 2, run, pool), pool),

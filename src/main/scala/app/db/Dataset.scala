@@ -63,7 +63,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     //descobre em que ponto das queries retomar os hits
     val nextPos = nextHitPosition(strat, learner, run, fold)
     val timeStep = math.max(nc, nextPos)
-    println("next:" + timeStep)
     val queries = fetchQueries(strat, run, fold, f)
 
     //retoma hits
