@@ -36,7 +36,6 @@ import scala.util.Random
 case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyAgnostic {
   override val toString = "Hierarchical Sampling"
-  println("The executable file used for Cluster-based strategy is part of HS. Hierarchical Sampling (HS) version 1.0 see LICENSE GPL file.")
   //  println(
   //    """
   //      |The executable file used for Cluster-based strategy is part of HS.
@@ -67,15 +66,16 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
   val learner = NoLearner()
   lazy val size = rest.length
   lazy val clusters = {
-    println("Calling Weka WARD clusterer...")
+    //    println("Calling Weka WARD clusterer...")
     val r = HClusterer(rest)
-    println(" Weka WARD clusterer called.")
+    //    println(" Weka WARD clusterer called.")
     r
   }
   lazy val uuid = UUID.randomUUID() + "_" + pool.hashCode + hashCode() + "_" + System.currentTimeMillis + "_" + pool.head.hashCode()
   lazy val tree_file = "/tmp/ClusterBased" + uuid + ".tree"
   lazy val labels_file = "/tmp/ClusterBased" + uuid + ".labels"
   lazy val results = {
+    println("The executable file used for Cluster-based strategy is part of HS. Hierarchical Sampling (HS) version 1.0 see LICENSE GPL file.")
     val fw = new FileWriter(tree_file)
     fw.write(clusters.parent_vector.mkString("\n"))
     fw.close()

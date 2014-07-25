@@ -34,7 +34,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   val database = dataset
   lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
 
-  def where(strategy: Strategy, learner: Learner) = s", app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
+  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
   def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize) = {
     acquire()
@@ -44,9 +44,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         sys.exit(0)
     }
     release()
-    queries
-    val zscoredQueries = Datasets.applyFilter(queries, f)
-    zscoredQueries
+    Datasets.applyFilter(queries, f)
   }
 
   def batchExec(results: Seq[String]) = {
@@ -100,20 +98,20 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   }
 
   def rndCompleteHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
-    exec(s"select count(*) from hit${where(strategy, learner)} and run=$run and fold=$fold").left.get
+    exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").left.get
 
   def completePools(strategy: Strategy) =
-    exec(s"select * from query as q${where(strategy, strategy.learner)} group by run,fold").right.get.length
+    exec(s"select * from query as q,${where(strategy, strategy.learner)} group by run,fold").right.get.length
 
   def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
-    val n = exec(s"select count(*) from query${where(strategy, strategy.learner)} and run=$run and fold=$fold").left.get
+    val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").left.get
     if (n == 0) 0
-    else exec(s"select max(position) from query${where(strategy, strategy.learner)} and run=$run and fold=$fold").right.get.head.head.toInt + 1
+    else exec(s"select max(position) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").right.get.head.head.toInt + 1
   }
 
   def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-    val sql1 = "select count(*) from hit" + where(strategy, learner) + s" and run=$run and fold=$fold"
-    val sql2 = "select max(position) from hit" + where(strategy, learner) + s" and run=$run and fold=$fold"
+    val sql1 = "select count(*) from hit," + where(strategy, learner) + s" and run=$run and fold=$fold"
+    val sql2 = "select max(position) from hit," + where(strategy, learner) + s" and run=$run and fold=$fold"
     val n = exec(sql1).left.get
     if (n == 0) 0
     else exec(sql2).right.get.head.head.toInt + 1
@@ -196,35 +194,44 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
 
     //Get queries from past jobs, if any.
+    println("getQs")
     val queries = fetchQueries(strat, run, fold, f)
     val nextPosition = queries.size
-    val (nextIds, t) = Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds).take(Q).map(_.id).toVector)
-    q = nextIds.length
-    acquire()
-    var str = ""
-    try {
-      val statement = connection.createStatement()
-      statement.executeUpdate("begin")
-      nextIds.zipWithIndex.foreach { case (pattId, idx) =>
-        val position = nextPosition + idx
-        str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
+    println(s"nexP:$nextPosition")
+    if (nextPosition < Q && nextPosition < strat.pool.size) {
+      val (nextIds, t) = Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds).take(Q - nextPosition).map(_.id).toVector)
+      q = nextIds.length
+      //    println(s"q:$q")
+      //    println(s"Q:$Q")
+      acquire()
+      var str = ""
+      try {
+        val statement = connection.createStatement()
+        statement.executeUpdate("begin")
+        nextIds.zipWithIndex.foreach { case (pattId, idx) =>
+          val position = nextPosition + idx
+          str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
+          statement.executeUpdate(str)
+        }
+        str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
         statement.executeUpdate(str)
+        str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
+        statement.executeUpdate(str)
+        statement.executeUpdate("end")
+      } catch {
+        case e: Throwable => e.printStackTrace
+          println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
+          println(e.getMessage)
+          println("Deleting " + dbCopy + "...")
+          dbCopy.delete()
+          println(" " + dbCopy + " deleted!")
+          sys.exit(0)
       }
-      statement.executeUpdate(s"insert into time values ($stratId,$learnerId,$run,$fold,$t)")
-      statement.executeUpdate("end")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
-        println(e.getMessage)
-        println("Deleting " + dbCopy + "...")
-        dbCopy.delete()
-        println(" " + dbCopy + " deleted!")
-        sys.exit(0)
-    }
-    println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
-    save()
-    release()
-    nextPosition + q
+      println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
+      save()
+      release()
+      nextPosition + q
+    } else nextPosition
   }
 }
 
