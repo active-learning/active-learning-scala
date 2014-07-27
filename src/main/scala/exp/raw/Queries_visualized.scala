@@ -68,6 +68,10 @@ object Queries_visualized extends App {
   val cc = c //OSELMdyn(compromise(), 0)
 
   val e =
+  //  SVM(train, "SELF_CONF", debug = true)
+  //    SVM(train, "KFF", debug = true)
+  //    SVM(train, "BALANCED_EE", debug = true)
+    SVMmulti(train, "SIMPLE", debug = true)
   //      ClusterBased(train, debug = true) //143 10:178
   //        Margin(c, train, debug = true)
   //            Entropy(c, train, debug = true)
@@ -80,7 +84,7 @@ object Queries_visualized extends App {
   //           QBCJS(c, train, debug = true) //2:168 10:143
   //           QBCJSMargin(c, train, debug = true) //2:168 10:168
   //      DensityWeighted(c, train, 1d, "eucl", debug = true)
-    MahalaWeightedTrainingUtility(c, train, 1d, 1d, debug = true)
+  //    MahalaWeightedTrainingUtility(c, train, 1d, 1d, debug = true)
   //           MahalaWeightedRefreshedTrainingUtility(c, train, 1d, 1d, 200, debug = true)
   //               MahalaWeighted(c, train, 1d, debug = true)
   //           MahalaWeightedRefreshed(c, train, 1d, 100, debug = true)

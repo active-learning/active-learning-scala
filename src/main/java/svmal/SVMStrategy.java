@@ -8,6 +8,7 @@ package svmal;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import ml.Pattern;
 import svmal.ml.active.BALANCED_EE;
 import svmal.ml.active.KFF;
 import svmal.ml.active.SELF_CONF;
@@ -20,14 +21,10 @@ import svmal.weka.core.InstanceContainer;
 import weka.core.*;
 
 public class SVMStrategy {
-
     ActiveLearner learner;
     DataContainer labeled = null;
     DataContainer unlabeled = null;
     private SvmLib svm = new SvmLib();
-
-//    public SVMStrategy(String strategy, weka.core.Instances firstOfEachClass, Instances rest) throws Exception {
-//    }
 
     /**
      * mutates both sets of instances!
@@ -112,6 +109,8 @@ public class SVMStrategy {
                  */
                 learner = new BALANCED_EE();
                 break;
+            default:
+                throw new Error("AL not found: " + strategy);
         }
     }
 
@@ -126,11 +125,24 @@ public class SVMStrategy {
         return result;
     }
 
+    public static Instances PatternsToInstances2(Pattern[] patts) {
+        Instances result = new Instances(patts[0].dataset(), 0, 0);
+        for (Pattern orig : patts) {
+            Instance2 inst2 = new Instance2(orig.weight(), orig.toDoubleArray());
+            inst2.setIndex(orig.id());
+            inst2.setDataset(result);
+            result.add(inst2);
+        }
+        return result;
+    }
+
     public static void main(String[] args) throws Exception {
         System.out.println("teste");
+
         BufferedReader dataReader = new BufferedReader(new FileReader("/home/davi/wcs/ucipp/uci/banana.arff"));
 //        BufferedReader dataReader = new BufferedReader(new FileReader("/home/davi/wcs/ucipp/uci/iris.arff"));
         Instances data = InstancesToInstances2(new Instances(dataReader));
+
         dataReader.close();
         data.setClassIndex(data.numAttributes() - 1);
 
@@ -147,7 +159,7 @@ public class SVMStrategy {
         }
     }
 
-    public Instance2 nextQuery() throws Exception {
+    public int nextQuery() throws Exception {
         learner.buildClassifier(labeled);
         int ind = learner.instanceToQuery(unlabeled);
         InstanceContainer ins = unlabeled.getInstance(ind);
@@ -155,6 +167,6 @@ public class SVMStrategy {
         System.out.println("idx " + ind + " class:" + ins.classValue());
 //        System.out.println("");
         labeled.addInstance(ins);
-        return null;
+        return ins.getIndex();
     }
 }

@@ -76,6 +76,7 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   var running = true
+  val memlimit = 28000
 
   def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern], Standardize) => Unit) {
     running = true
@@ -83,8 +84,8 @@ trait CrossValidation extends Lock with ClassName {
       override def run() {
         while (running) {
           Thread.sleep(700)
-          if (Runtime.getRuntime.totalMemory() / 1000000d > 28000) {
-            println("Limite de 29000MB de memoria atingido.")
+          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
+            println(s"Limite de $memlimit MB de memoria atingido.")
             sys.exit(0)
           }
         }
