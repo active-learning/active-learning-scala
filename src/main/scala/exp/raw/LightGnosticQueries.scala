@@ -42,19 +42,19 @@ object LightGnosticQueries extends CrossValidation with App {
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val nc = pool.head.nclasses
     val strats0 = List(
-      Uncertainty(learner(pool.length / 2, run, pool), pool)
-      //      Entropy(learner(pool.length / 2, run, pool), pool),
-      //      Margin(learner(pool.length / 2, run, pool), pool),
-      //      new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
-      //      new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
-      //      new SGmultiJS(learner(pool.length / 2, run, pool), pool),
-      //      DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
-      //      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
-      //      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
-      //      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
-      //      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
-      //      MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-      //      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
+      Uncertainty(learner(pool.length / 2, run, pool), pool),
+      Entropy(learner(pool.length / 2, run, pool), pool),
+      Margin(learner(pool.length / 2, run, pool), pool),
+      new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
+      new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
+      new SGmultiJS(learner(pool.length / 2, run, pool), pool),
+      DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
+      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
+      MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
+      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
     )
     val strats = if (parallelStrats) strats0.par else strats0
     if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
