@@ -67,20 +67,16 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val sid = fetchsid(strat)
 
     //descobre em que ponto das queries retomar os hits
-    Tempo.start
     val nextPos = nextHitPosition(strat, learner, run, fold)
-    Tempo.print_stop
     val timeStep = math.max(nc, nextPos)
     //    if (timeStep==3) println(s"next=3: $strat $learner $run $fold")
     val queries = fetchQueries(strat, run, fold, f)
-    Tempo.print_stop
 
     //retoma hits
     val initial = queries.take(timeStep)
     val rest = queries.drop(timeStep)
     if (rest.nonEmpty) {
       var model = learner.build(initial)
-      Tempo.print_stop
 
       //train
       val results = rest.zipWithIndex map { case (trainingPattern, idx) =>
@@ -101,11 +97,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         }
         sqls
       }
-      Tempo.print_stop
 
       //save
       batchWrite(results.toArray.flatten)
-      Tempo.print_stop
     }
   }
 
