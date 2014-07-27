@@ -46,7 +46,7 @@ trait CrossValidation extends Lock with ClassName {
   var finished = 0
   var available = true
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
-  val qmap = mutable.Map[String, Int]()
+  val qmap = mutable.Map[(String, String), Int]()
 
   /**
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
@@ -62,7 +62,7 @@ trait CrossValidation extends Lock with ClassName {
           sys.exit(0)
       }).sorted.toList(runs * folds / 2).toInt
     acquire()
-    val res = qmap.getOrElseUpdate(db.toString, Q)
+    val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
     release()
     res
   }
