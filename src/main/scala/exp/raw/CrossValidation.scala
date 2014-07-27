@@ -71,10 +71,10 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def inc() {
-    Thread.sleep((rndForLock.nextDouble() * 100).toInt)
+    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
     acquire()
     finished += 1
-    Thread.sleep((rndForLock.nextDouble() * 100).toInt)
+    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
     release()
   }
 
@@ -136,7 +136,7 @@ trait CrossValidation extends Lock with ClassName {
       }
     }
     running = false
-    Thread.sleep(1000)
+    Thread.sleep(30)
   }
 
   def checkRndQueriesAndHitsCompleteness(learner: Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
