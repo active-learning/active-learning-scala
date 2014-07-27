@@ -202,7 +202,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       resultSet.next()
       q = resultSet.getInt("q")
       if (q > Q || q > strat.pool.size) {
-        print("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are lesser than Q " + Q + s" and pool size ${strat.pool.size}. ")
+        print("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are greater than Q " + Q + s" or pool size ${strat.pool.size}. ")
         println("This will be assumed as ok.")
         //        sys.exit(0)
       }
