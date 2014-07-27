@@ -41,7 +41,7 @@ object Hits extends CrossValidation with App {
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val nc = pool.head.nclasses
 
-    if (checkRndQueriesAndHitsCompleteness(learner, db, pool, run, fold, testSet, f)) {
+    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
       //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular)
       val strats0 = List(
         ClusterBased(pool),

@@ -50,9 +50,9 @@ object HeavyGnosticQueries extends CrossValidation with App {
       //      PerfectRealisticAccuracy(learner(pool.length / 2, run, pool), pool), //useless
     )
     val strats = if (parallelStrats) strats0.par else strats0
-
-    ??? //copiar do light
-
-    strats foreach (strat => db.saveQueries(strat, run, fold, f, 3600))
+    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
+      val Q = q(db, learner(pool.length / 2, run, pool))
+      strats foreach (strat => db.saveQueries(strat, run, fold, f, 3600, Q))
+    }
   }
 }

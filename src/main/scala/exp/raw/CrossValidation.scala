@@ -27,8 +27,8 @@ import ml.classifiers.Learner
 import util.{Datasets, Lock}
 import weka.filters.unsupervised.attribute.Standardize
 
-import scala.Right
-import scala.util._
+import scala.util.Random
+import scala.collection.mutable
 
 /**
  * Created by davi on 05/06/14.
@@ -44,9 +44,31 @@ trait CrossValidation extends Lock with ClassName {
   val source: (String) => Either[String, Stream[Pattern]]
   val dest: (String) => Dataset
   var finished = 0
-
   var available = true
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
+  val qmap = mutable.Map[String, Int]()
+
+  /**
+   * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
+   */
+  def q(db: Dataset, learner: Learner) = {
+    acquire()
+    val res = qmap.getOrElseUpdate(db.toString, {
+      val Q = (for {
+        r <- 0 until runs
+        f <- 0 until folds
+        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
+      } yield db.exec(sql) match {
+          case Right(queue) => queue.head.head
+          case Left(str) => println(s"Problems calculating Q: $str")
+            sys.exit(0)
+        }).sorted.toList(runs * folds / 2).toInt
+      println("Q:" + Q)
+      Q
+    })
+    release()
+    res
+  }
 
   def inc() {
     Thread.sleep((rndForLock.nextDouble() * 100).toInt)
@@ -117,7 +139,7 @@ trait CrossValidation extends Lock with ClassName {
     Thread.sleep(1000)
   }
 
-  def checkRndQueriesAndHitsCompleteness(learner: (Int, Int, Seq[Pattern]) => Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
+  def checkRndQueriesAndHitsCompleteness(learner: Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
     //checa se as queries desse run/fold existem para Random/NoLearner
     if (db.isOpen && db.rndCompletePools != runs * folds) {
       println(s"Random Sampling query set of sequences incomplete, found ${db.rndCompletePools}, but ${runs * folds} expected. Skipping dataset $db for fold $fold of run $run (and all other pools).")
@@ -126,25 +148,25 @@ trait CrossValidation extends Lock with ClassName {
       //se tabela de matrizes de confusão estiver incompleta para o pool inteiro para Random/learner, retoma ela
       val nc = pool.head.nclasses
       val n = pool.length * nc * nc
-      val nn = nc * nc * nc + db.countHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
+      val nn = nc * nc * nc + db.countHits(RandomSampling(Seq()), learner, run, fold)
       if (nn > n) {
         println(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db")
         sys.exit(0)
       } else if (nn < n) {
         println(s"Completing Rnd hits (found $nn of $n for run $run and fold $fold) ...")
-        db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
+        db.saveHits(RandomSampling(Seq()), learner, run, fold, nc, f, testSet)
         println(s"Run again to continue this pool (run $run and fold $fold) for other stategies!")
         false
       } else {
         //queries and hits complete for Rnd for current pool, testing hits for all pools...
         val queries = db.rndCompletePerformedQueries
-        val hits = (db.rndCompleteHits(learner(pool.length / 2, run, pool)) + folds * runs * nc * nc * nc) / (nc.toDouble * nc)
+        val hits = (db.rndCompleteHits(learner) + folds * runs * nc * nc * nc) / (nc.toDouble * nc)
         if (hits != queries) print(s"This pool is ok (run $run and fold $fold), but ... ")
         if (hits > queries) {
           println(s" Expected $queries Rnd tuples in table 'hit' for $db, but excessive $hits found!")
           sys.exit(0)
         } else if (hits < queries) {
-          println(s" All pools have to be 'hit' by Rnd/${learner(pool.length / 2, run, pool)} to continue. Re-run to complete Rnd Hits.")
+          println(s" All pools have to be 'hit' by Rnd/${learner} to continue. Re-run to complete Rnd Hits.")
           false
         } else true
       }
