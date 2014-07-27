@@ -52,20 +52,17 @@ trait CrossValidation extends Lock with ClassName {
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
    */
   def q(db: Dataset, learner: Learner) = {
+    lazy val Q = (for {
+      r <- 0 until runs
+      f <- 0 until folds
+      sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
+    } yield db.exec(sql) match {
+        case Right(queue) => queue.head.head
+        case Left(str) => println(s"Problems calculating Q: $str")
+          sys.exit(0)
+      }).sorted.toList(runs * folds / 2).toInt
     acquire()
-    val res = qmap.getOrElseUpdate(db.toString, {
-      val Q = (for {
-        r <- 0 until runs
-        f <- 0 until folds
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
-      } yield db.exec(sql) match {
-          case Right(queue) => queue.head.head
-          case Left(str) => println(s"Problems calculating Q: $str")
-            sys.exit(0)
-        }).sorted.toList(runs * folds / 2).toInt
-      println("Q:" + Q)
-      Q
-    })
+    val res = qmap.getOrElseUpdate(db.toString, Q)
     release()
     res
   }

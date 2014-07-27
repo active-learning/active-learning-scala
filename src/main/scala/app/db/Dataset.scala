@@ -38,6 +38,8 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Assumes Rnd queries will never be partially recorded.
    */
   lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
+  val sidmap = mutable.Map[String, Int]()
+  val lidmap = mutable.Map[String, Int]()
 
   /**
    * Returns only the recorded number of tuples.
@@ -141,7 +143,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
   def fetchsid(strat: Strategy) = {
     //Fetch StrategyId by name.
-    try {
+    lazy val sid = try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
       resultSet.next()
@@ -151,11 +153,13 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         println("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
         sys.exit(0)
     }
+    sidmap.getOrElseUpdate(strat.toString, sid)
   }
+
 
   def fetchlid(learner: Learner) = {
     //Fetch LearnerId by name.
-    try {
+    lazy val lid = try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
       resultSet.next()
@@ -165,6 +169,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         println("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
         sys.exit(0)
     }
+    lidmap.getOrElseUpdate(learner.toString, lid)
   }
 
   /**
