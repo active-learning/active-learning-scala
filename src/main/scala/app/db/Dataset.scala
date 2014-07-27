@@ -63,6 +63,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     //descobre em que ponto das queries retomar os hits
     val nextPos = nextHitPosition(strat, learner, run, fold)
     val timeStep = math.max(nc, nextPos)
+    //    if (timeStep==3) println(s"next=3: $strat $learner $run $fold")
     val queries = fetchQueries(strat, run, fold, f)
 
     //retoma hits
@@ -96,11 +97,20 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
   }
 
+  /**
+   * Returns only the recorded number of tuples.
+   * You should add |Y|²*|Y| manually.
+   * @param strategy
+   * @param learner
+   * @param run
+   * @param fold
+   * @return
+   */
   def rndCompleteHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
     exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").left.get
 
   def completePools(strategy: Strategy) =
-    exec(s"select * from query as q,${where(strategy, strategy.learner)} group by run,fold").right.get.length
+    exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").right.get.length
 
   def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
     val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").left.get

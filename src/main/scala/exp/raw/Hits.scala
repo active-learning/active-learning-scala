@@ -46,11 +46,11 @@ object Hits extends CrossValidation with App {
     } else {
 
       //se tabela de matrizes de confusão estiver incompleta para o pool inteiro para Random/learner, retoma ela
-      val n = pool.length * pool.head.nclasses * pool.head.nclasses
-      val nn = db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
+      val n = pool.length * nc * nc
+      val nn = nc * nc * nc + db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
       if (nn > n) println(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db")
       else if (nn < n) {
-        println("Completig Rnd hits...")
+        println(s"Completing Rnd hits (found $nn of $n for run $run and fold $fold) ...")
         db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
       }
 
