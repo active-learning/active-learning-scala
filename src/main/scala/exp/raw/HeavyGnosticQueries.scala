@@ -51,14 +51,8 @@ object HeavyGnosticQueries extends CrossValidation with App {
     )
     val strats = if (parallelStrats) strats0.par else strats0
 
-    //checa se as queries desse run/fold existem para Random/NoLearner
-    if (db.isOpen && db.rndCompletePools != runs * folds) {
-      println(s" ${db.rndCompletePools} Random Sampling results incomplete. Skipping dataset $db for fold $fold of run $run.")
-      //      db.close()
-      //      sys.exit(0)
-    } else {
-      //de onde tirar o Q de cada dataset? limitar por tempo!
-      strats foreach (strat => db.saveQueries(strat, run, fold, f, 3600))
-    }
+    ??? //copiar do light
+
+    strats foreach (strat => db.saveQueries(strat, run, fold, f, 3600))
   }
 }

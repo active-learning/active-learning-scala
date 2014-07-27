@@ -21,13 +21,11 @@ package exp.raw
 import al.strategies._
 import app.ArgParser
 import app.db.Dataset
+import exp.raw.Hits._
 import ml.Pattern
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
-/**
- * Created by davi on 05/06/14.
- */
 object LightGnosticQueries extends CrossValidation with App {
   val runs = 5
   val folds = 5
@@ -43,6 +41,7 @@ object LightGnosticQueries extends CrossValidation with App {
   val samplingSize = 500
 
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+    val nc = pool.head.nclasses
     val strats0 = List(
       Uncertainty(learner(pool.length / 2, run, pool), pool),
       Entropy(learner(pool.length / 2, run, pool), pool),
@@ -60,20 +59,15 @@ object LightGnosticQueries extends CrossValidation with App {
     )
     val strats = if (parallelStrats) strats0.par else strats0
 
-    //checa se as queries desse run/fold existem para Random/NoLearner
-    if (db.isOpen && db.rndCompletePools != runs * folds) {
-      println(s" ${db.rndCompletePools} Random Sampling results incomplete. Skipping dataset $db for fold $fold of run $run.")
-      //      db.close()
-      //      sys.exit(0)
-    } else {
-      //checa se tabela de matrizes de confusão existe para Random/learner
-      lazy val n = pool.length * pool.head.nclasses * pool.head.nclasses
-      lazy val nn = db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
-      //      if (nn != n) {
-      //        println(s"$nn hits should be $n for run $run fold $fold for $db")
-      //      } else {
-      //        //calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
-      //        ???
+    if (checkRndQueriesAndHitsCompleteness(learner, db, pool, run, fold, testSet, f)) {
+      //calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
+      val sql = "select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=0 and f=0 and s=10 and l=2 order by a/(t+0.0) desc, p asc limit 1;"
+      val Q = for {
+        r <- 0 until runs
+        f <- 0 until folds
+      } yield db.exec(sql)
+      println("Q:" + Q)
+      ???
 
       strats foreach (strat => db.saveQueries(strat, run, fold, f, 3600))
       //      }

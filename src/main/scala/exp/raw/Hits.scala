@@ -37,24 +37,12 @@ object Hits extends CrossValidation with App {
   val parallelStrats = args(2).contains("s")
   val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
+
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val nc = pool.head.nclasses
 
-    //checa se as queries desse run/fold existem para Random/NoLearner
-    if (db.isOpen && db.rndCompletePools != runs * folds) {
-      println(s" ${db.rndCompletePools} Random Sampling query sequence incomplete. Skipping dataset $db for fold $fold of run $run.")
-    } else {
-
-      //se tabela de matrizes de confusão estiver incompleta para o pool inteiro para Random/learner, retoma ela
-      val n = pool.length * nc * nc
-      val nn = nc * nc * nc + db.rndCompleteHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
-      if (nn > n) println(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db")
-      else if (nn < n) {
-        println(s"Completing Rnd hits (found $nn of $n for run $run and fold $fold) ...")
-        db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
-      }
-
-      //para as outras strats, faz tantas matrizes de confusão quantas queries existirem na base
+    if (checkRndQueriesAndHitsCompleteness(learner, db, pool, run, fold, testSet, f)) {
+      //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular)
       val strats0 = List(
         ClusterBased(pool),
         Uncertainty(learner(pool.length / 2, run, pool), pool),

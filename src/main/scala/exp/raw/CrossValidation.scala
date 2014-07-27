@@ -20,8 +20,10 @@ package exp.raw
 
 import java.util.Calendar
 
+import al.strategies.RandomSampling
 import app.db.Dataset
 import ml.Pattern
+import ml.classifiers.Learner
 import util.{Datasets, Lock}
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -61,7 +63,7 @@ trait CrossValidation extends Lock with ClassName {
     new Thread(new Runnable() {
       override def run() {
         while (running) {
-          Thread.sleep(1000)
+          Thread.sleep(700)
           if (Runtime.getRuntime.totalMemory() / 1000000d > 29000) {
             println("Limite de 29000MB de memoria atingido.")
             sys.exit(0)
@@ -112,6 +114,40 @@ trait CrossValidation extends Lock with ClassName {
       }
     }
     running = false
-    Thread.sleep(2000)
+    Thread.sleep(1000)
+  }
+
+  def checkRndQueriesAndHitsCompleteness(learner: (Int, Int, Seq[Pattern]) => Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
+    //checa se as queries desse run/fold existem para Random/NoLearner
+    if (db.isOpen && db.rndCompletePools != runs * folds) {
+      println(s"Random Sampling query set of sequences incomplete, found ${db.rndCompletePools}, but ${runs * folds} expected. Skipping dataset $db for fold $fold of run $run (and all other pools).")
+      false
+    } else {
+      //se tabela de matrizes de confusão estiver incompleta para o pool inteiro para Random/learner, retoma ela
+      val nc = pool.head.nclasses
+      val n = pool.length * nc * nc
+      val nn = nc * nc * nc + db.countHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold)
+      if (nn > n) {
+        println(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db")
+        sys.exit(0)
+      } else if (nn < n) {
+        println(s"Completing Rnd hits (found $nn of $n for run $run and fold $fold) ...")
+        db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
+        println(s"Run again to continue this pool (run $run and fold $fold) for other stategies!")
+        false
+      } else {
+        //queries and hits complete for Rnd for current pool, testing hits for all pools...
+        val queries = db.rndCompletePerformedQueries
+        val hits = (db.rndCompleteHits(learner(pool.length / 2, run, pool)) + folds * runs * nc * nc * nc) / (nc.toDouble * nc)
+        if (hits != queries) print(s"This pool is ok (run $run and fold $fold), but ... ")
+        if (hits > queries) {
+          println(s" Expected $queries Rnd tuples in table 'hit' for $db, but excessive $hits found!")
+          sys.exit(0)
+        } else if (hits < queries) {
+          println(s" All pools have to be 'hit' by Rnd/${learner(pool.length / 2, run, pool)} to continue. Re-run to complete Rnd Hits.")
+          false
+        } else true
+      }
+    }
   }
 }

@@ -20,7 +20,7 @@ package app.db
 
 import al.strategies.{RandomSampling, Strategy}
 import ml.Pattern
-import ml.classifiers.Learner
+import ml.classifiers.{NoLearner, Learner}
 import util.{ALDatasets, Datasets, Tempo}
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -31,8 +31,21 @@ import scala.collection.mutable
  * um arquivo db que é um dataset.
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
+  val runs = 5
+  val folds = 5
   val database = dataset
+  /**
+   * Assumes Rnd queries will never be partially recorded.
+   */
   lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
+
+  /**
+   * Returns only the recorded number of tuples.
+   * You should add runs*folds*|Y|²*|Y| manually.
+   */
+  def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").left.get
+
+  lazy val rndCompletePerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").left.get
 
   def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
@@ -106,7 +119,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * @param fold
    * @return
    */
-  def rndCompleteHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
+  def countHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
     exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").left.get
 
   def completePools(strategy: Strategy) =
