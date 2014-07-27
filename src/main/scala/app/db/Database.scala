@@ -180,6 +180,31 @@ trait Database extends Lock {
     }
   }
 
+  def batchWrite(results: Array[String]) {
+    try {
+      val statement = connection.createStatement()
+      if (readOnly) {
+        println("readOnly databases does not accept batchExec!")
+        sys.exit(0)
+      }
+      acquire()
+      statement.execute("begin")
+      var i = 0
+      val n = results.size
+      while (i < n) {
+        statement.execute(results(i))
+        i += 1
+      }
+      statement.execute("end")
+      save()
+      release()
+    } catch {
+      case e: Throwable => e.printStackTrace
+        println("\nProblems executing batch SQL query in: " + dbCopy + ".\n" + e.getMessage)
+        sys.exit(0)
+    }
+  }
+
   def runStr(sql: String) = {
     if (!isOpen) {
       println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
@@ -218,7 +243,9 @@ trait Database extends Lock {
           println("readOnly databases only accept select SQL command!")
           sys.exit(0)
         }
+        acquire()
         statement.execute(sql)
+        release()
         Left(0)
       }
     } catch {

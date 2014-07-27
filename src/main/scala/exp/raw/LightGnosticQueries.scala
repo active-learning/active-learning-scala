@@ -40,7 +40,6 @@ object LightGnosticQueries extends CrossValidation with App {
   val samplingSize = 500
 
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
-    val nc = pool.head.nclasses
     val strats0 = List(
       Uncertainty(learner(pool.length / 2, run, pool), pool),
       Entropy(learner(pool.length / 2, run, pool), pool),
