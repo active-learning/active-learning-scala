@@ -133,7 +133,7 @@ trait CrossValidation extends Lock with ClassName {
       }
     }
     running = false
-    Thread.sleep(30)
+    Thread.sleep(1500)
   }
 
   def checkRndQueriesAndHitsCompleteness(learner: Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
