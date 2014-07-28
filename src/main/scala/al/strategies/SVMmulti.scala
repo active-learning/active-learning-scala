@@ -19,9 +19,8 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{KNN, NoLearner, Learner}
-import ml.models.Model
-import svmal.{SVMStrategymulti}
+import ml.classifiers.LASVM
+import svmal.SVMStrategymulti
 import util.Datasets
 
 import scala.util.Random
@@ -34,7 +33,7 @@ import scala.util.Random
  */
 case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
   override val toString = s"SVMmulti ($algorithm)"
-  val learner = NoLearner()
+  val learner = LASVM()
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val labeledar = labeled.toArray
@@ -48,7 +47,7 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
   }
 
   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
-    val current_model = KNN(5, "eucl", pool).build(labeled)
+    val current_model = LASVM().build(labeled)
     plot.zera()
     for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p), 9)
     for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
