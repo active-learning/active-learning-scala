@@ -39,51 +39,28 @@ import scala.collection.mutable
  */
 trait Database extends Lock {
   override lazy val toString = database
-  var connection: Connection = null
+  lazy val dbOriginal = new File(path + database + ".db")
+  lazy val dbLock = new File(path + "locked/" + database + ".db")
+  lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
   val path: String
   val database: String
   val createOnAbsence: Boolean
   val readOnly: Boolean
-
-  lazy val dbOriginal = new File(path + database + ".db")
-  lazy val dbLock = new File(path + "locked/" + database + ".db")
-  lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
-
-  def isOpen = connection != null
-
-  def createDatabase() = {
-    if (readOnly) {
-      println("Cannot init a readOnly database!")
-      sys.exit(0)
-    }
-    val fw = new FileWriter(dbOriginal)
-    fw.close()
-  }
+  var connection: Connection = null
 
   /**
    * Opens connection to database.
    * @param debug true, if the dataset had to be created (create parameter should be also true)
    */
   def open(debug: Boolean = false) = {
-    if (isOpen) {
-      println(s"Database $dbOriginal already opened as $dbCopy!")
-      sys.exit(0)
-    }
+    if (isOpen) safeQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
     if (dbLock.exists()) {
-      if (dbOriginal.exists()) {
-        println(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
-        sys.exit(0)
-      } else {
-        println(s"$dbOriginal is locked as $dbLock! Cannot open it.")
-        sys.exit(0)
-      }
+      if (dbOriginal.exists()) safeQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
+      else safeQuit(s"$dbOriginal is locked as $dbLock! Cannot open it.")
       //todo: maybe a locked database should be readable
     }
-    if (dbCopy.exists() && !readOnly) {
-      println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
-      sys.exit(0)
-    }
+    if (dbCopy.exists() && !readOnly) safeQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
 
     var created = false
     if (createOnAbsence) {
@@ -92,10 +69,7 @@ trait Database extends Lock {
         created = true
       }
     } else {
-      if (!dbOriginal.exists()) {
-        println(dbOriginal + " não existe!")
-        sys.exit(0)
-      }
+      if (!dbOriginal.exists()) safeQuit(dbOriginal + " não existe!")
     }
 
     //open
@@ -110,8 +84,7 @@ trait Database extends Lock {
     } catch {
       case e: Throwable => e.printStackTrace
         println("\nProblems opening db connection: " + dbCopy + ":")
-        println(e.getMessage)
-        sys.exit(0)
+        safeQuit(e.getMessage)
     }
     if (debug) println("Connection to " + dbCopy + " opened.")
 
@@ -123,19 +96,31 @@ trait Database extends Lock {
         statement.executeUpdate("attach '" + appPath + "app.db' as app")
       } catch {
         case e: Throwable => e.printStackTrace
-          println("\nProblems Attaching " + appPath + ".")
-          sys.exit(0)
+          safeQuit("\nProblems Attaching " + appPath + ".")
       }
       if (debug) println(" Dataset " + appPath + "app.db attached!")
     }
     created
   }
 
+  def createDatabase() = {
+    if (readOnly) safeQuit("Cannot init a readOnly database!")
+    val fw = new FileWriter(dbOriginal)
+    fw.close()
+  }
+
+  /**
+   * rename file to dataset.db.locked.
+   * All this shit is needed because of SQLite relying on NFS locks.
+   */
+  def lockFile() {
+    if (readOnly) safeQuit("readOnly databases don't accept lockFile(), and there is no reason to accept.")
+    if (dbLock.exists()) safeQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
+    dbOriginal.renameTo(dbLock)
+  }
+
   def exec(sql: String) = {
-    if (!isOpen) {
-      println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(0)
-    }
+    if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
 
     try {
       val statement = connection.createStatement()
@@ -165,28 +150,21 @@ trait Database extends Lock {
           if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
         }
       } else {
-        if (readOnly) {
-          println("readOnly databases only accept select SQL command!")
-          sys.exit(0)
-        }
+        if (readOnly) safeQuit("readOnly databases only accept select SQL command!")
 
         statement.execute(sql)
         Left(0)
       }
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
-        sys.exit(0)
+        safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
 
   def batchWrite(results: Array[String]) {
     try {
       val statement = connection.createStatement()
-      if (readOnly) {
-        println("readOnly databases does not accept batchExec!")
-        sys.exit(0)
-      }
+      if (readOnly) safeQuit("readOnly databases does not accept batchExec!")
       acquire()
       statement.execute("begin")
       var i = 0
@@ -200,16 +178,21 @@ trait Database extends Lock {
       release()
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems executing batch SQL query in: " + dbCopy + ".\n" + e.getMessage)
-        sys.exit(0)
+        safeQuit("\nProblems executing batch SQL query in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
 
+  /**
+   * Antecipates copying of file from /tmp to the original (locked)
+   * which does not occur at close().
+   */
+  def save() {
+    if (readOnly) safeQuit("readOnly databases don't accept save(), and there is no reason to accept.")
+    FileUtils.copyFile(dbCopy, dbLock)
+  }
+
   def runStr(sql: String) = {
-    if (!isOpen) {
-      println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(0)
-    }
+    if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
 
     try {
       val statement = connection.createStatement()
@@ -239,10 +222,7 @@ trait Database extends Lock {
           if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
         }
       } else {
-        if (readOnly) {
-          println("readOnly databases only accept select SQL command!")
-          sys.exit(0)
-        }
+        if (readOnly) safeQuit("readOnly databases only accept select SQL command!")
         acquire()
         statement.execute(sql)
         release()
@@ -250,53 +230,11 @@ trait Database extends Lock {
       }
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
-        sys.exit(0)
+        safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
 
-  /**
-   * Antecipates copying of file from /tmp to the original (locked)
-   * which does not occur at close().
-   */
-  def save() {
-    if (readOnly) {
-      println("readOnly databases don't accept save(), and there is no reason to accept.")
-      sys.exit(0)
-    }
-    FileUtils.copyFile(dbCopy, dbLock)
-  }
-
-  /**
-   * rename file to dataset.db.locked.
-   * All this shit is needed because of SQLite relying on NFS locks.
-   */
-  def lockFile() {
-    if (readOnly) {
-      println("readOnly databases don't accept lockFile(), and there is no reason to accept.")
-      sys.exit(0)
-    }
-    if (dbLock.exists()) {
-      println(s"$dbLock should not exist; $dbOriginal needs to take its place.")
-      sys.exit(0)
-    }
-    dbOriginal.renameTo(dbLock)
-  }
-
-  /**
-   * rename dataset.db.locked to original name.
-   */
-  def unlockFile() {
-    if (readOnly) {
-      println("readOnly databases don't accept unlockFile(), and there is no reason to accept.")
-      sys.exit(0)
-    }
-    if (dbOriginal.exists()) {
-      println(s"$dbOriginal should not exist; $dbLock needs to take its place.")
-      sys.exit(0)
-    }
-    dbLock.renameTo(dbOriginal)
-  }
+  def isOpen = connection != null
 
   def close() {
     //    println(" " + dbCopy + " deleted!")
@@ -306,6 +244,15 @@ trait Database extends Lock {
       dbCopy.delete()
       unlockFile()
     }
+  }
+
+  /**
+   * rename dataset.db.locked to original name.
+   */
+  def unlockFile() {
+    if (readOnly) safeQuit("readOnly databases don't accept unlockFile(), and there is no reason to accept.")
+    if (dbOriginal.exists()) safeQuit(s"$dbOriginal should not exist; $dbLock needs to take its place.")
+    dbLock.renameTo(dbOriginal)
   }
 }
 

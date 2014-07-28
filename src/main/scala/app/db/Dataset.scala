@@ -31,13 +31,14 @@ import scala.collection.mutable
  * um arquivo db que é um dataset.
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
-  val runs = 5
-  val folds = 5
-  val database = dataset
   /**
    * Assumes Rnd queries will never be partially recorded.
    */
   lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
+  lazy val rndCompletePerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").left.get
+  val runs = 5
+  val folds = 5
+  val database = dataset
   val sidmap = mutable.Map[String, Int]()
   val lidmap = mutable.Map[String, Int]()
 
@@ -46,21 +47,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * You should add runs*folds*|Y|²*|Y| manually.
    */
   def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").left.get
-
-  lazy val rndCompletePerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").left.get
-
-  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
-
-  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize) = {
-    acquire()
-    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
-      case Right(x) => x
-      case Left(str) => println(s"Problem loading queries for Rnd: $str")
-        sys.exit(0)
-    }
-    release()
-    Datasets.applyFilter(queries, f)
-  }
 
   def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern]) {
     val lid = fetchlid(learner)
@@ -103,25 +89,14 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
   }
 
-  /**
-   * Returns only the recorded number of tuples.
-   * You should add |Y|²*|Y| manually.
-   * @param strategy
-   * @param learner
-   * @param run
-   * @param fold
-   * @return
-   */
-  def countHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
-    exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").left.get
-
-  def completePools(strategy: Strategy) =
-    exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").right.get.length
-
-  def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
-    val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").left.get
-    if (n == 0) 0
-    else exec(s"select max(position) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").right.get.head.head.toInt + 1
+  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize) = {
+    acquire()
+    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
+      case Right(x) => x
+      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
+    }
+    release()
+    Datasets.applyFilter(queries, f)
   }
 
   def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
@@ -141,12 +116,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
-        sys.exit(0)
+        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
     }
     sidmap.getOrElseUpdate(strat.toString, sid)
   }
-
 
   def fetchlid(learner: Learner) = {
     //Fetch LearnerId by name.
@@ -157,10 +130,32 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
-        sys.exit(0)
+        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
     }
     lidmap.getOrElseUpdate(learner.toString, lid)
+  }
+
+  /**
+   * Returns only the recorded number of tuples.
+   * You should add |Y|²*|Y| manually.
+   * @param strategy
+   * @param learner
+   * @param run
+   * @param fold
+   * @return
+   */
+  def countHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
+    exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").left.get
+
+  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
+
+  def completePools(strategy: Strategy) =
+    exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").right.get.length
+
+  def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
+    val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").left.get
+    if (n == 0) 0
+    else exec(s"select max(position) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").right.get.head.head.toInt + 1
   }
 
   /**
@@ -184,12 +179,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def saveQueries(strat: Strategy, run: Int, fold: Int, f: Standardize, seconds: Double, Q: Int = Int.MaxValue) = {
     if (readOnly) {
-      println("Cannot save queries on a readOnly database!")
-      sys.exit(0)
+      safeQuit("Cannot save queries on a readOnly database!")
     }
     if (!isOpen) {
-      println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(0)
+      safeQuit(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
     }
     val stratId = fetchsid(strat)
     val learnerId = fetchlid(strat.learner)
@@ -208,8 +201,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       }
     } catch {
       case e: Throwable => e.printStackTrace
-        println("\nProblems looking for preexistence of queries in: " + dbCopy + ".")
-        sys.exit(0)
+        safeQuit("\nProblems looking for preexistence of queries in: " + dbCopy + ".")
     }
 
     //Get queries from past jobs, if any.
@@ -240,8 +232,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
           println(e.getMessage)
           println("Deleting " + dbCopy + "...")
           dbCopy.delete()
-          println(" " + dbCopy + " deleted!")
-          sys.exit(0)
+          safeQuit(" " + dbCopy + " deleted!")
       }
       println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
       save()

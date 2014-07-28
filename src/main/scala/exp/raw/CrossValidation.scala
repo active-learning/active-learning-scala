@@ -43,10 +43,13 @@ trait CrossValidation extends Lock with ClassName {
   val datasetNames: Seq[String]
   val source: (String) => Either[String, Stream[Pattern]]
   val dest: (String) => Dataset
-  var finished = 0
-  var available = true
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
   val qmap = mutable.Map[(String, String), Int]()
+  val memlimit = 28000
+  var finished = 0
+  var available = true
+  var running = true
+  var dbToWait: Dataset = null
 
   /**
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
@@ -58,8 +61,7 @@ trait CrossValidation extends Lock with ClassName {
       sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
     } yield db.exec(sql) match {
         case Right(queue) => queue.head.head
-        case Left(str) => println(s"Problems calculating Q: $str")
-          sys.exit(0)
+        case Left(str) => safeQuit(s"Problems calculating Q: $str")
       }).sorted.toList(runs * folds / 2).toInt
     acquire()
     val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
@@ -67,27 +69,13 @@ trait CrossValidation extends Lock with ClassName {
     res
   }
 
-  def inc() {
-    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
-    acquire()
-    finished += 1
-    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
-    release()
-  }
-
-  var running = true
-  val memlimit = 28000
-
   def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern], Standardize) => Unit) {
     running = true
     new Thread(new Runnable() {
       override def run() {
         while (running) {
           Thread.sleep(700)
-          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
-            println(s"Limite de $memlimit MB de memoria atingido.")
-            sys.exit(0)
-          }
+          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) safeQuit(s"Limite de $memlimit MB de memoria atingido.", dbToWait)
         }
       }
     }).start()
@@ -104,6 +92,7 @@ trait CrossValidation extends Lock with ClassName {
           //Reopen connection to write queries.
           println("Beginning dataset " + datasetName + " ...")
           val db = dest(datasetName)
+          dbToWait = db
           db.open(debug = true)
           (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
             println("  Beginning run " + run + " for " + datasetName + " ...")
@@ -137,6 +126,14 @@ trait CrossValidation extends Lock with ClassName {
     Thread.sleep(1500)
   }
 
+  def inc() {
+    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
+    acquire()
+    finished += 1
+    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
+    release()
+  }
+
   def checkRndQueriesAndHitsCompleteness(learner: Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
     //checa se as queries desse run/fold existem para Random/NoLearner
     if (db.isOpen && db.rndCompletePools != runs * folds) {
@@ -147,10 +144,8 @@ trait CrossValidation extends Lock with ClassName {
       val nc = pool.head.nclasses
       val n = pool.length * nc * nc
       val nn = nc * nc * nc + db.countHits(RandomSampling(Seq()), learner, run, fold)
-      if (nn > n) {
-        println(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db")
-        sys.exit(0)
-      } else if (nn < n) {
+      if (nn > n) safeQuit(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db", db)
+      else if (nn < n) {
         println(s"Completing Rnd hits (found $nn of $n for run $run and fold $fold) ...")
         db.saveHits(RandomSampling(Seq()), learner, run, fold, nc, f, testSet)
         println(s"Run again to continue this pool (run $run and fold $fold) for other stategies!")
@@ -160,10 +155,8 @@ trait CrossValidation extends Lock with ClassName {
         val queries = db.rndCompletePerformedQueries
         val hits = (db.rndCompleteHits(learner) + folds * runs * nc * nc * nc) / (nc.toDouble * nc)
         if (hits != queries) print(s"This pool is ok (run $run and fold $fold), but ... ")
-        if (hits > queries) {
-          println(s" Expected $queries Rnd tuples in table 'hit' for $db, but excessive $hits found!")
-          sys.exit(0)
-        } else if (hits < queries) {
+        if (hits > queries) safeQuit(s" Expected $queries Rnd tuples in table 'hit' for $db, but excessive $hits found!", db)
+        else if (hits < queries) {
           println(s" All pools have to be 'hit' by Rnd/${learner} to continue. Re-run to complete Rnd Hits.")
           false
         } else true
