@@ -120,6 +120,8 @@ trait Database extends Lock {
     dbOriginal.renameTo(dbLock)
   }
 
+  def isOpen = connection != null
+
   def exec(sql: String) = {
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
 
@@ -189,6 +191,10 @@ trait Database extends Lock {
    */
   def save() {
     if (readOnly) safeQuit("readOnly databases don't accept save(), and there is no reason to accept.")
+
+    //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
+    if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+
     FileUtils.copyFile(dbCopy, dbLock)
   }
 
@@ -234,8 +240,6 @@ trait Database extends Lock {
         safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
-
-  def isOpen = connection != null
 
   def close() {
     //    println(" " + dbCopy + " deleted!")
