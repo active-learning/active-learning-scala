@@ -112,7 +112,7 @@ public class SELF_CONF extends XSvmActiveLearner {
                     this.m_rndm,
                     indexes);
         }
-        System.out.println("Sample size=" + sampleSz);
+//        System.out.println("Sample size=" + sampleSz);
 
         int res = this.instanceToQueryErrorReductionMode(sampledPool);
         if (res != -1) {
@@ -183,7 +183,7 @@ public class SELF_CONF extends XSvmActiveLearner {
                     this.m_rndm,
                     indexes);
         }
-        System.out.println("Sample size=" + sampleSz);
+//        System.out.println("Sample size=" + sampleSz);
 
         // find the instance with lowest confidence
         for (i = 0; i < sampleSz; i++) {
