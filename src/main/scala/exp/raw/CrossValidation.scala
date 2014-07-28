@@ -118,7 +118,11 @@ trait CrossValidation extends Lock with ClassName {
           println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
           println("")
           println("")
-          if (!db.readOnly) db.save()
+          if (!db.readOnly) {
+            db.acquire()
+            db.save()
+            db.release()
+          }
           db.close()
       }
     }
