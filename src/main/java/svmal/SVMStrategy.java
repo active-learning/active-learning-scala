@@ -164,7 +164,7 @@ public class SVMStrategy {
         int ind = learner.instanceToQuery(unlabeled);
         InstanceContainer ins = unlabeled.getInstance(ind);
         unlabeled.deleteInstance(ind);
-        System.out.println("idx " + ind + " class:" + ins.classValue());
+//        System.out.println("idx " + ind + " class:" + ins.classValue());
 //        System.out.println("");
         labeled.addInstance(ins);
         return ins.getIndex();
