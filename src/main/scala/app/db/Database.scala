@@ -41,7 +41,8 @@ trait Database extends Lock {
   override lazy val toString = database
   lazy val dbOriginal = new File(path + database + ".db")
   lazy val dbLock = new File(path + "locked/" + database + ".db")
-  lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
+  //  lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
+  lazy val dbCopy = if (!readOnly) new File("/run/shm/" + database + ".db") else dbOriginal
   val path: String
   val database: String
   val createOnAbsence: Boolean
@@ -183,7 +184,7 @@ trait Database extends Lock {
   }
 
   /**
-   * Antecipates copying of file from /tmp to the original (locked)
+   * Antecipates copying of file from temp to the original (locked)
    * which does not occur at close().
    */
   def save() {
