@@ -222,11 +222,9 @@ public class BALANCED_EE extends KFF {
                                             Math.exp(h_dist)
                             )
                     );
-            System.out.println(" reducing exploration probability to: " +
-                    probabilityForExploration);
+//            System.out.println(" reducing exploration probability to: " +                    probabilityForExploration);
         } else {
-            System.out.println(
-                    " Exploration was successful (no probability reduction)");
+//            System.out.println(                    " Exploration was successful (no probability reduction)");
         }
     }
 
