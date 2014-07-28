@@ -39,12 +39,7 @@ object Queries_visualized extends App {
   //  println(testp.groupBy(_.label).values.map(_.length))
   //  println(trainp.map(_.label))
   //  println(testp.map(_.label))
-
-  def c =
-  //      MLP(20,0)
-  //  CARTBag(0,20)
-  //  C45Bag(0,10)
-    RIPPER()
+  val cc = c //OSELMdyn(compromise(), 0)
 
   //    VFDT()
   //NB()
@@ -64,14 +59,12 @@ object Queries_visualized extends App {
   //    NBBatch()
   //  NB()
   //  RF(0, 5)
-
-  val cc = c //OSELMdyn(compromise(), 0)
-
   val e =
-  //  SVM(train, "SELF_CONF", debug = true)
-  //    SVM(train, "KFF", debug = true)
-  //    SVM(train, "BALANCED_EE", debug = true)
-    SVMmulti(train, "SIMPLE", debug = true)
+    SVMmulti(train, "SELF_CONF", debug = true)
+  val ts = test
+  //      SVMmulti(train, "KFF", debug = true)
+  //    SVMmulti(train, "BALANCED_EE", debug = true)
+  //    SVMmulti(train, "SIMPLE", debug = true)
   //      ClusterBased(train, debug = true) //143 10:178
   //        Margin(c, train, debug = true)
   //            Entropy(c, train, debug = true)
@@ -95,10 +88,15 @@ object Queries_visualized extends App {
   //                 ExpErrorReduction(c, train, "gmeans", 100, debug = true)
   //           ExpModelChange(c, train, debug = true)
   //    RandomSampling(train, debug = true)
-
   var labeled = List[Pattern]()
-  val ts = test
   var model: Model = null
+
+  def c =
+  //      MLP(20,0)
+  //  CARTBag(0,20)
+  //  C45Bag(0,10)
+    RIPPER()
+
   Tempo.start
   for ((q, i) <- e.queries.zipWithIndex) {
     labeled = q :: labeled

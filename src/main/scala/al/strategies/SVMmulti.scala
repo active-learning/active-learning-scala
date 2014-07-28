@@ -22,6 +22,9 @@ import ml.Pattern
 import ml.classifiers.{KNN, NoLearner, Learner}
 import ml.models.Model
 import svmal.{SVMStrategymulti}
+import util.Datasets
+
+import scala.util.Random
 
 /**
  * One SVM per class; queries by round-robin.
@@ -44,6 +47,16 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
     queries_rec(svms, unlabeled, labeled)
   }
 
+  protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
+    val current_model = KNN(5, "eucl", pool).build(labeled)
+    plot.zera()
+    for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p), 9)
+    for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
+    if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
+    plot.mostra()
+    Thread.sleep((delay * 1000).round.toInt)
+  }
+
   private def queries_rec(svm: Seq[SVMStrategymulti], unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
     if (unlabeled.isEmpty) Stream.Empty
     else {
@@ -62,14 +75,13 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
       }
     }
   }
+}
 
-  protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
-    val current_model = KNN(5, "eucl", pool).build(labeled)
-    plot.zera()
-    for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p), 9)
-    for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-    if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
-    plot.mostra()
-    Thread.sleep((delay * 1000).round.toInt)
-  }
+object SVMmultiTest extends App {
+  //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
+  val filter = Datasets.zscoreFilter(patts0)
+  val patts = Datasets.applyFilterChangingOrder(patts0, filter)
+  val s = SVMmulti(patts, "SELF_CONF")
+  s.queries foreach println
 }

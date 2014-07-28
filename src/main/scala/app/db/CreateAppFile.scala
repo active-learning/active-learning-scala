@@ -54,7 +54,11 @@ object CreateAppFile extends App {
     FastPerfectRealisticAccuracy(NoLearner(), Seq(), sampleSizePerfect),
     DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
     ExpErrorReduction(NoLearner(), Seq(), "gmeans", sampleSize),
-    ExpErrorReductionMargin(NoLearner(), Seq(), "entropy", sampleSize)
+    ExpErrorReductionMargin(NoLearner(), Seq(), "entropy", sampleSize),
+    SVMmulti(Seq(), "SELF_CONF"),
+    SVMmulti(Seq(), "KFF"),
+    SVMmulti(Seq(), "BALANCED_EE"),
+    SVMmulti(Seq(), "SIMPLE")
   )
 
   //ensures there is no previous file

@@ -53,7 +53,11 @@ object LightGnosticQueries extends CrossValidation with App {
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
       DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
       MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
+      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
+      SVMmulti(Seq(), "SELF_CONF"),
+      SVMmulti(Seq(), "KFF"),
+      SVMmulti(Seq(), "BALANCED_EE"),
+      SVMmulti(Seq(), "SIMPLE")
     )
     val strats = if (parallelStrats) strats0.par else strats0
     if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
