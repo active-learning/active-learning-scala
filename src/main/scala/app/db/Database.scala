@@ -32,8 +32,9 @@ import scala.collection.mutable
  * um arquivo db, ou seja, um dataset ou o appfile.
  * Uma vez aberta, a conexao aceita consultas simultaneas
  * que sao resolvidas pelo SQLite.
- * Ao fechar a conexão com close() (ou se algum método antecipar) o arquivo é
- * copiado de volta para seu local de origem.
+ * Ao fechar a conexão com close() o arquivo temporário onde
+ * ocorrem as operações é apagado.
+ * Ele é copiado de volta para seu local de origem a cada chamada a save().
  * O programa é interrompido (espera-se) caso mais de
  * uma conexão seja tentada no mesmo arquivo.
  */
@@ -120,8 +121,6 @@ trait Database extends Lock {
     dbOriginal.renameTo(dbLock)
   }
 
-  def isOpen = connection != null
-
   def exec(sql: String) = {
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
 
@@ -164,6 +163,8 @@ trait Database extends Lock {
     }
   }
 
+  def isOpen = connection != null
+
   def batchWrite(results: Array[String]) {
     try {
       val statement = connection.createStatement()
@@ -186,7 +187,7 @@ trait Database extends Lock {
   }
 
   /**
-   * Antecipates copying of file from temp to the original (locked)
+   * Copies file from temp to the original (locked)
    * which does not occur at close().
    */
   def save() {
@@ -246,6 +247,9 @@ trait Database extends Lock {
     connection.close()
     connection = null
     if (!readOnly) {
+      //Checks if something happened to put db in inconsistent state.
+      if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+
       dbCopy.delete()
       unlockFile()
     }
