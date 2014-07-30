@@ -21,6 +21,9 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+/**
+ * SVM convencional (batch training)
+ */
 case class SVM() extends Learner {
   override val toString = "SVM"
   val notes = ""

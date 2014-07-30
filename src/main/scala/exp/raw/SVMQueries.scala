@@ -22,7 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.LASVM
+import ml.classifiers.LASVMI
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -47,8 +47,8 @@ object SVMQueries extends CrossValidation with App {
       SVMmulti(pool, "SIMPLE")
     )
     val strats = if (parallelStrats) strats0.par else strats0
-    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
-      val Q = q(db, LASVM())
+    if (checkRndQueriesAndHitsCompleteness(LASVMI(), db, pool, run, fold, testSet, f)) {
+      val Q = q(db, LASVMI())
       strats foreach { strat =>
         println(s"Strat: $strat")
         db.saveQueries(strat, run, fold, f, 3600, Q)
