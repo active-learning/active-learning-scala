@@ -146,8 +146,8 @@ trait CrossValidation extends Lock with ClassName {
     } else {
       //se tabela de matrizes de confusão estiver incompleta para o pool inteiro para Random/learner, retoma ela
       val nc = pool.head.nclasses
-      val n = pool.length * nc * nc
-      val nn = nc * nc * nc + db.countHits(RandomSampling(Seq()), learner, run, fold)
+      val n = pool.length
+      val nn = (nc * nc * nc + db.countHits(RandomSampling(Seq()), learner, run, fold)) / (nc * nc)
       if (nn > n) safeQuit(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db", db)
       else if (nn < n) {
         println(s"Completing Rnd hits (found $nn of $n for run $run and fold $fold) ...")
