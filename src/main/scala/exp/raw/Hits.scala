@@ -27,8 +27,6 @@ import weka.filters.unsupervised.attribute.Standardize
 
 object Hits extends CrossValidation with App {
   val samplingSize = 500
-  val runs = 5
-  val folds = 5
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded strategies) for the given list of datasets."
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
   val parallelDatasets = args(2).contains("d")

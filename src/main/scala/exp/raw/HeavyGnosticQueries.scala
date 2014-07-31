@@ -26,8 +26,6 @@ import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object HeavyGnosticQueries extends CrossValidation with App {
-  val runs = 5
-  val folds = 5
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
     "strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of 8000s;\n"
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
@@ -52,7 +50,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
     val strats = if (parallelStrats) strats0.par else strats0
     if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
       val Q = q(db, learner(pool.length / 2, run, pool))
-      strats foreach (strat => db.saveQueries(strat, run, fold, f, 3600, Q))
+      strats foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q))
     }
   }
 }

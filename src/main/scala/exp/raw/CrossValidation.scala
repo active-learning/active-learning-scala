@@ -34,9 +34,11 @@ import scala.collection.mutable
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  val timeLimitSeconds = 3 * 3600
+  val runs = 5
+  val folds = 5
+
   //lock is just to increment finished datasets counter
-  val runs: Int
-  val folds: Int
   val parallelDatasets: Boolean
   val parallelRuns: Boolean
   val parallelFolds: Boolean

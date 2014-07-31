@@ -28,8 +28,6 @@ import weka.filters.unsupervised.attribute.Standardize
 
 object SVMQueries extends CrossValidation with App {
   val samplingSize = 500
-  val runs = 5
-  val folds = 5
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
@@ -51,7 +49,7 @@ object SVMQueries extends CrossValidation with App {
       val Q = q(db, LASVM())
       strats foreach { strat =>
         println(s"Strat: $strat")
-        db.saveQueries(strat, run, fold, f, 3600, Q)
+        db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
       }
     }
   }

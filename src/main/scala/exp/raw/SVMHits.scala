@@ -28,8 +28,6 @@ import weka.filters.unsupervised.attribute.Standardize
 
 object SVMHits extends CrossValidation with App {
   val samplingSize = 500
-  val runs = 5
-  val folds = 5
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets."
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
   val parallelDatasets = args(2).contains("d")
