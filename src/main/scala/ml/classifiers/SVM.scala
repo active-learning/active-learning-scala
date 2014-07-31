@@ -36,12 +36,6 @@ case class SVM() extends Learner {
 
   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
-  /**
-   * Every call to build generates a model from scratch
-   * (and reinstanciate all needed internal mutable objects, if any).
-   * @param pool
-   * @return
-   */
   def build(pool: Seq[Pattern]) = {
     svm.buildClassifier(pool.head.dataset())
     ???

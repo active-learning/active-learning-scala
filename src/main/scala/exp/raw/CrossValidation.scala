@@ -66,6 +66,7 @@ trait CrossValidation extends Lock with ClassName {
     acquire()
     val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
     release()
+    println(s"Q=$res")
     res
   }
 

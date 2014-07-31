@@ -22,7 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.LASVMI
+import ml.classifiers.LASVM
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -42,7 +42,7 @@ object SVMHits extends CrossValidation with App {
   run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
     val nc = pool.head.nclasses
 
-    if (checkRndQueriesAndHitsCompleteness(LASVMI(), db, pool, run, fold, testSet, f)) {
+    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
       //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular)
       val strats0 = List(
         SVMmulti(pool, "SELF_CONF"),
@@ -52,7 +52,7 @@ object SVMHits extends CrossValidation with App {
       )
       val strats = if (parallelStrats) strats0.par else strats0
       strats foreach { strat =>
-        db.saveHits(strat, LASVMI(), run, fold, nc, f, testSet)
+        db.saveHits(strat, LASVM(), run, fold, nc, f, testSet)
       }
     }
   }
