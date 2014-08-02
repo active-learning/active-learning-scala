@@ -98,7 +98,7 @@ trait Database extends Lock {
         statement.executeUpdate("attach '" + appPath + "app.db' as app")
       } catch {
         case e: Throwable => e.printStackTrace
-          safeQuit("\nProblems Attaching " + appPath + ".")
+          safeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
       }
       if (debug) println(" Dataset " + appPath + "app.db attached!")
     }
