@@ -139,7 +139,7 @@ trait CrossValidation extends Lock with ClassName {
           false
       }
 
-      if (!db.readOnly) {
+      if (!db.readOnly && db.isOpen) {
         db.acquire()
         db.save()
         if (ended) finished += 1
@@ -148,7 +148,7 @@ trait CrossValidation extends Lock with ClassName {
       if (ended) println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
       println("")
       println("")
-      db.close()
+      if (db.isOpen) db.close()
     }
     running = false
     Thread.sleep(20)
