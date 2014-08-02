@@ -27,17 +27,14 @@ import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object SVMQueries extends CrossValidation with App {
-  val samplingSize = 500
+  val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val parallelDatasets = args(2).contains("d")
-  val parallelRuns = args(2).contains("r")
-  val parallelFolds = args(2).contains("f")
-  val parallelStrats = args(2).contains("s")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+  run(ff)
+
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val strats0 = List(
       SVMmulti(pool, "SELF_CONF"),
       SVMmulti(pool, "KFF"),

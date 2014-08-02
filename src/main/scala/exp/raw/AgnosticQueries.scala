@@ -26,17 +26,16 @@ import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object AgnosticQueries extends CrossValidation with App {
+  val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
     "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +
     "Rnd because it is the baseline to define Q and\n" +
     "Clu because it relies on external implementation.\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val parallelDatasets = args(2).contains("d")
-  val parallelRuns = args(2).contains("r")
-  val parallelFolds = args(2).contains("f")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+  run(ff)
+
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     db.saveQueries(RandomSampling(pool), run, fold, f, Int.MaxValue) //Rnd is fast, and it is interesting to have all queries.
     db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }

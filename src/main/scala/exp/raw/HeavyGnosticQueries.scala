@@ -26,18 +26,15 @@ import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object HeavyGnosticQueries extends CrossValidation with App {
+  val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
     "strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of 8000s;\n"
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val parallelDatasets = args(2).contains("d")
-  val parallelRuns = args(2).contains("r")
-  val parallelFolds = args(2).contains("f")
-  val parallelStrats = args(2).contains("s")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
-  val samplingSize = 500
 
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+  run(ff)
+
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val strats0 = List(
       ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
       ExpErrorReductionMargin(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),

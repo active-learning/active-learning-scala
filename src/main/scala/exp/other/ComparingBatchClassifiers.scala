@@ -29,15 +29,12 @@ import weka.filters.unsupervised.attribute.Standardize
 import scala.util.Random
 
 object ComparingBatchClassifiers extends CrossValidation with App with Lock {
+  val args1 = args
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
   println("sqlite3 -header results.db \"attach 'app.db' as app; select l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, time, d.name from ComparingClassifiers as c, app.learner as l, app.dataset as d where d.rowid=datasetid and l.rowid=learnerid group by learnerid, datasetid order by le, m;\"" + " | sed -r 's/[\\|]+/\t/g'")
   val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val parallelDatasets = args(2).contains("d")
-  val parallelRuns = args(2).contains("r")
-  val parallelFolds = args(2).contains("f")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path, createOnAbsence = false, readOnly = true) _
 
   //warming ELMs up
@@ -52,7 +49,9 @@ object ComparingBatchClassifiers extends CrossValidation with App with Lock {
   if (resultsDb.open(debug = true) || resultsDb.exec(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").left.get == 0)
     resultsDb.exec(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+  run(ff)
+
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val name = db.database
     val did = resultsDb.exec(s"select rowid from app.dataset where name = '$name'").left.get
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
@@ -125,7 +124,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
 
 object interasTest extends App {
   //  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("banana").right.get)
-  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("nursery").right.get).take(2000)
+  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("nursery").right.get.value).take(2000)
   val pool = data.take(1000)
   val ts = data.drop(1000)
   val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),

@@ -26,17 +26,14 @@ import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object RandomHits extends CrossValidation with App {
-  val samplingSize = 500
+  val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val parallelDatasets = args(2).contains("d")
-  val parallelRuns = args(2).contains("r")
-  val parallelFolds = args(2).contains("f")
-  val parallelStrats = args(2).contains("s")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+  run(ff)
+
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
     db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
   }
