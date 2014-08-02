@@ -29,7 +29,7 @@ import scala.util.Random
 object Queries_visualized extends App {
   //  val arff = "/home/davi/unversioned/experimentos/fourclusters.arff"
   //  val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
-  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("banana").value).take(2000)
+  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("banana").right.get.value).take(2000)
   val train = data.take(1000)
   val test = data.drop(1000)
 

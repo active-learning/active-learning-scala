@@ -18,6 +18,7 @@
 
 package exp.raw
 
+import java.lang.{Throwable, Exception}
 import java.util.Calendar
 
 import al.strategies.RandomSampling
@@ -102,32 +103,40 @@ trait CrossValidation extends Lock with ClassName {
       lazy val patts = {
         //Open connection to load patterns.
         println("Loading patterns for dataset " + datasetName + " ...")
-        source(db.dbLock.toString)
-      }
-
-      (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-        Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts.value)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
-          println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
-
-          //z-score
-          lazy val f = Datasets.zscoreFilter(tr0)
-          lazy val pool = {
-            val tr = Datasets.applyFilterChangingOrder(tr0, f)
-            new Random(run * 100 + fold).shuffle(tr)
-          }
-          lazy val testSet = {
-            val ts = Datasets.applyFilterChangingOrder(ts0, f)
-            new Random(run * 100 + fold).shuffle(ts)
-          }
-          println(s"    data standardized for run $run and fold $fold.")
-
-          runCore(db, run, fold, pool, testSet, f)
-
-          println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
+        source(db.dbLock.toString) match {
+          case Right(x) => x.value
+          case Left(str) => throw new Exception(s"Skippin $db because $str")
         }
-        println("  Run " + run + " finished for " + datasetName + " !")
-        println("")
       }
+
+      try {
+        (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+          Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
+            println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
+
+            //z-score
+            lazy val f = Datasets.zscoreFilter(tr0)
+            lazy val pool = {
+              val tr = Datasets.applyFilterChangingOrder(tr0, f)
+              new Random(run * 100 + fold).shuffle(tr)
+            }
+            lazy val testSet = {
+              val ts = Datasets.applyFilterChangingOrder(ts0, f)
+              new Random(run * 100 + fold).shuffle(ts)
+            }
+            println(s"    data standardized for run $run and fold $fold.")
+
+            runCore(db, run, fold, pool, testSet, f)
+
+            println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
+          }
+          println("  Run " + run + " finished for " + datasetName + " !")
+          println("")
+        }
+      } catch {
+        case e: Throwable => println(s"Problema: $e")
+      }
+
       if (!db.readOnly) {
         db.acquire()
         db.save()
