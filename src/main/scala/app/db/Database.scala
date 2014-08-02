@@ -63,20 +63,20 @@ trait Database extends Lock {
       //todo: maybe a locked database should be readable
       true
     } else false
-    if (dbCopy.exists() && !readOnly) safeQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
-
-    var created = false
-    if (createOnAbsence) {
-      if (!dbOriginal.exists()) {
-        createDatabase()
-        created = true
-      }
-    } else {
-      if (!dbOriginal.exists()) safeQuit(dbOriginal + " não existe!")
-    }
-
-    //open
     if (!skip) {
+      if (dbCopy.exists() && !readOnly) safeQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
+
+      var created = false
+      if (createOnAbsence) {
+        if (!dbOriginal.exists()) {
+          createDatabase()
+          created = true
+        }
+      } else {
+        if (!dbOriginal.exists()) safeQuit(dbOriginal + " não existe!")
+      }
+
+      //open
       try {
         if (!readOnly) {
           lockFile()
@@ -125,8 +125,6 @@ trait Database extends Lock {
     if (dbLock.exists()) safeQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
     dbOriginal.renameTo(dbLock)
   }
-
-  def isOpen = connection != null
 
   def exec(sql: String) = {
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
@@ -248,6 +246,8 @@ trait Database extends Lock {
         safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
+
+  def isOpen = connection != null
 
   def close() {
     Thread.sleep(100)
