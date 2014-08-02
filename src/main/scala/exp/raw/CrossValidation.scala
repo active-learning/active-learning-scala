@@ -34,12 +34,12 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  lazy val parallelDatasets = args1(2).contains("d")
+  lazy val parallelRuns = args1(2).contains("r")
+  lazy val parallelFolds = args1(2).contains("f")
+  lazy val parallelStrats = args1(2).contains("s")
+  lazy val source = Datasets.patternsFromSQLiteFullPath _
   val args1: Array[String]
-  val parallelDatasets = args1(2).contains("d")
-  val parallelRuns = args1(2).contains("r")
-  val parallelFolds = args1(2).contains("f")
-  val parallelStrats = args1(2).contains("s")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest: (String) => Dataset
   val samplingSize = 500
 
@@ -92,64 +92,55 @@ trait CrossValidation extends Lock with ClassName {
     }).start()
 
     (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
-      //Open connection to load patterns.
-      println("Loading patterns for dataset " + datasetName + " ...")
-      source(datasetName) match {
-        case Left(error) =>
-          println(datasetName + " is probably in use. Skipping it...")
-          println(error)
-          println(datasetName + " is probably in use. Skipping it...")
-        case Right(patts) =>
-          //Reopen connection to write queries.
-          println("Beginning dataset " + datasetName + " ...")
-          val db = dest(datasetName)
-          dbToWait = db
-          db.open(debug = true)
-          (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-            Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts.value)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
-              println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
 
-              //z-score
-              lazy val f = Datasets.zscoreFilter(tr0)
-              lazy val pool = {
-                val tr = Datasets.applyFilterChangingOrder(tr0, f)
-                new Random(run * 100 + fold).shuffle(tr)
-              }
-              lazy val testSet = {
-                val ts = Datasets.applyFilterChangingOrder(ts0, f)
-                new Random(run * 100 + fold).shuffle(ts)
-              }
-              println(s"    data standardized for run $run and fold $fold.")
+      //Reopen connection to write queries.
+      println("Beginning dataset " + datasetName + " ...")
+      val db = dest(datasetName)
+      dbToWait = db
+      db.open(debug = true)
 
-              runCore(db, run, fold, pool, testSet, f)
-
-              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
-            }
-            println("  Run " + run + " finished for " + datasetName + " !")
-            println("")
-          }
-          inc()
-          println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
-          println("")
-          println("")
-          if (!db.readOnly) {
-            db.acquire()
-            db.save()
-            db.release()
-          }
-          db.close()
+      lazy val patts = {
+        //Open connection to load patterns.
+        println("Loading patterns for dataset " + datasetName + " ...")
+        source(db.dbLock.toString)
       }
+
+      (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+        Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts.value)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
+          println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
+
+          //z-score
+          lazy val f = Datasets.zscoreFilter(tr0)
+          lazy val pool = {
+            val tr = Datasets.applyFilterChangingOrder(tr0, f)
+            new Random(run * 100 + fold).shuffle(tr)
+          }
+          lazy val testSet = {
+            val ts = Datasets.applyFilterChangingOrder(ts0, f)
+            new Random(run * 100 + fold).shuffle(ts)
+          }
+          println(s"    data standardized for run $run and fold $fold.")
+
+          runCore(db, run, fold, pool, testSet, f)
+
+          println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
+        }
+        println("  Run " + run + " finished for " + datasetName + " !")
+        println("")
+      }
+      if (!db.readOnly) {
+        db.acquire()
+        db.save()
+        finished += 1
+        db.release()
+      }
+      println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+      println("")
+      println("")
+      db.close()
     }
     running = false
-    Thread.sleep(100)
-  }
-
-  def inc() {
-    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
-    acquire()
-    finished += 1
-    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
-    release()
+    Thread.sleep(20)
   }
 
   def checkRndQueriesAndHitsCompleteness(learner: Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {

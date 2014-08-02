@@ -124,7 +124,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
 
 object interasTest extends App {
   //  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("banana").right.get)
-  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("nursery").right.get.value).take(2000)
+  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("nursery").value).take(2000)
   val pool = data.take(1000)
   val ts = data.drop(1000)
   val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
