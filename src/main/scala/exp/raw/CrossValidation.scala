@@ -34,12 +34,12 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  lazy val parallelDatasets = args1(2).contains("d")
+  lazy val parallelRuns = args1(2).contains("r")
+  lazy val parallelFolds = args1(2).contains("f")
+  lazy val parallelStrats = args1(2).contains("s")
+  lazy val source = Datasets.patternsFromSQLite(path) _
   val args1: Array[String]
-  val parallelDatasets = args1(2).contains("d")
-  val parallelRuns = args1(2).contains("r")
-  val parallelFolds = args1(2).contains("f")
-  val parallelStrats = args1(2).contains("s")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest: (String) => Dataset
   val samplingSize = 500
 
