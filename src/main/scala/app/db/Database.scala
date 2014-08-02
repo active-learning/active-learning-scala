@@ -78,9 +78,9 @@ trait Database extends Lock {
     try {
       if (!readOnly) {
         lockFile()
-        Thread.sleep(1000)
+        Thread.sleep(200)
         FileUtils.copyFile(dbLock, dbCopy)
-        Thread.sleep(1000)
+        Thread.sleep(400)
       }
       Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
       val url = "jdbc:sqlite:////" + dbCopy
@@ -195,12 +195,12 @@ trait Database extends Lock {
   def save() {
     if (readOnly) safeQuit("readOnly databases don't accept save(), and there is no reason to accept.")
 
-    Thread.sleep(1000)
+    Thread.sleep(100)
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     FileUtils.copyFile(dbCopy, dbLock)
-    Thread.sleep(4000)
+    Thread.sleep(400)
   }
 
   def runStr(sql: String) = {
@@ -247,10 +247,10 @@ trait Database extends Lock {
   }
 
   def close() {
-    Thread.sleep(500)
+    Thread.sleep(100)
     //    println(" " + dbCopy + " deleted!")
     connection.close()
-    Thread.sleep(500)
+    Thread.sleep(100)
     connection = null
     if (!readOnly) {
       //Checks if something happened to put db in inconsistent state.

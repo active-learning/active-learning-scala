@@ -133,7 +133,7 @@ trait CrossValidation extends Lock with ClassName {
       }
     }
     running = false
-    Thread.sleep(400)
+    Thread.sleep(100)
   }
 
   def inc() {
