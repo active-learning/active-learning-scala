@@ -248,7 +248,7 @@ trait Database extends Lock {
     Thread.sleep(1000)
     //    println(" " + dbCopy + " deleted!")
     connection.close()
-    Thread.sleep(1000)
+    Thread.sleep(3000)
     connection = null
     if (!readOnly) {
       //Checks if something happened to put db in inconsistent state.
