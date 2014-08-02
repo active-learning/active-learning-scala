@@ -101,7 +101,6 @@ trait CrossValidation extends Lock with ClassName {
           dbToWait = db
           db.open(debug = true)
           (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-            println("  Beginning run " + run + " for " + datasetName + " ...")
             Datasets.kfoldCV(new Random(run).shuffle(patts), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
               println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
 
@@ -111,7 +110,8 @@ trait CrossValidation extends Lock with ClassName {
               val ts = Datasets.applyFilterChangingOrder(ts0, f)
 
               val pool = new Random(run * 100 + fold).shuffle(tr)
-              lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: this is used only in Predictions and for Perfect-like strategies
+              lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: this is used only in Hits and for Perfect-like strategies
+              println(s"    data standardized for run $run and pool $pool.")
 
               runCore(db, run, fold, pool, testSet, f)
 
