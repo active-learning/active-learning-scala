@@ -73,7 +73,8 @@ object CreateAppFile extends App {
     IELM(1), EIELM(1), CIELM(1), ECIELM(1),
     interaELM(1),
     interaELMNoEM(1), interawELM(15), interawfELM(15),
-    OSELM(math.sqrt(1).toInt)
+    OSELM(math.sqrt(1).toInt),
+    LASVM()
   )
 
   //opens (creates) app.db
