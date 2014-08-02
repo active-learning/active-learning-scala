@@ -140,7 +140,7 @@ trait CrossValidation extends Lock with ClassName {
       db.close()
     }
     running = false
-    Thread.sleep(100)
+    Thread.sleep(20)
   }
 
   def inc() {
