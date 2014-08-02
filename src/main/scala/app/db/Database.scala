@@ -195,12 +195,12 @@ trait Database extends Lock {
   def save() {
     if (readOnly) safeQuit("readOnly databases don't accept save(), and there is no reason to accept.")
 
-    Thread.sleep(50)
+    Thread.sleep(10)
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     FileUtils.copyFile(dbCopy, dbLock)
-    Thread.sleep(300)
+    Thread.sleep(50)
   }
 
   def runStr(sql: String) = {
