@@ -78,7 +78,10 @@ trait CrossValidation extends Lock with ClassName {
       override def run() {
         while (running) {
           Thread.sleep(1500)
-          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) safeQuit(s"Limite de $memlimit MB de memoria atingido.", dbToWait)
+          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
+            Thread.sleep(1000)
+            safeQuit(s"Limite de $memlimit MB de memoria atingido.", dbToWait)
+          }
         }
       }
     }).start()

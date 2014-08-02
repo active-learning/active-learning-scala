@@ -198,7 +198,7 @@ trait Database extends Lock {
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     FileUtils.copyFile(dbCopy, dbLock)
-    Thread.sleep(1000)
+    Thread.sleep(4000)
   }
 
   def runStr(sql: String) = {
@@ -245,10 +245,10 @@ trait Database extends Lock {
   }
 
   def close() {
-    Thread.sleep(1000)
+    Thread.sleep(500)
     //    println(" " + dbCopy + " deleted!")
     connection.close()
-    Thread.sleep(3000)
+    Thread.sleep(500)
     connection = null
     if (!readOnly) {
       //Checks if something happened to put db in inconsistent state.
