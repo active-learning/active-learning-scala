@@ -200,7 +200,7 @@ trait Database extends Lock {
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     FileUtils.copyFile(dbCopy, dbLock)
-    Thread.sleep(50)
+    Thread.sleep(150)
   }
 
   def runStr(sql: String) = {

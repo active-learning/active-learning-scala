@@ -128,27 +128,19 @@ trait CrossValidation extends Lock with ClassName {
         println("  Run " + run + " finished for " + datasetName + " !")
         println("")
       }
-      inc()
-      println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
-      println("")
-      println("")
       if (!db.readOnly) {
         db.acquire()
         db.save()
+        finished += 1
         db.release()
       }
+      println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+      println("")
+      println("")
       db.close()
     }
     running = false
     Thread.sleep(20)
-  }
-
-  def inc() {
-    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
-    acquire()
-    finished += 1
-    Thread.sleep((rndForLock.nextDouble() * 10).toInt)
-    release()
   }
 
   def checkRndQueriesAndHitsCompleteness(learner: Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
