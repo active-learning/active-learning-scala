@@ -78,9 +78,9 @@ trait Database extends Lock {
     try {
       if (!readOnly) {
         lockFile()
-        Thread.sleep(100)
+        Thread.sleep(10)
         FileUtils.copyFile(dbLock, dbCopy)
-        Thread.sleep(300)
+        Thread.sleep(100)
       }
       Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
       val url = "jdbc:sqlite:////" + dbCopy
@@ -200,7 +200,7 @@ trait Database extends Lock {
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     FileUtils.copyFile(dbCopy, dbLock)
-    Thread.sleep(150)
+    Thread.sleep(500)
   }
 
   def runStr(sql: String) = {
