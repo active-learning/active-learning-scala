@@ -77,8 +77,10 @@ trait Database extends Lock {
     //open
     try {
       if (!readOnly) {
-        FileUtils.copyFile(dbOriginal, dbCopy)
         lockFile()
+        Thread.sleep(1000)
+        FileUtils.copyFile(dbLock, dbCopy)
+        Thread.sleep(1000)
       }
       Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
       val url = "jdbc:sqlite:////" + dbCopy
