@@ -27,17 +27,14 @@ import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object SVMHits extends CrossValidation with App {
-  val samplingSize = 500
+  val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets."
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val parallelDatasets = args(2).contains("d")
-  val parallelRuns = args(2).contains("r")
-  val parallelFolds = args(2).contains("f")
-  val parallelStrats = args(2).contains("s")
-  val source = Datasets.patternsFromSQLite(path) _
   val dest = Dataset(path) _
 
-  run { (db: Dataset, run: Int, fold: Int, pool: Seq[Pattern], testSet: Seq[Pattern], f: Standardize) =>
+  run(ff)
+
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
 
     if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {

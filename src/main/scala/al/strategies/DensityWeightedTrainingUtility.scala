@@ -41,15 +41,15 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
 }
 
 object DWTUTest extends App {
-  def learner = NB()
-
-  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
+  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get.value).take(2000)
   val n = (patts.length * 0.5).toInt
   val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
   val l = s.queries.toList
-  var m = learner.build(l.take(11))
   val b = l.drop(11) foreach {
     q => m = learner.update(m)(q)
       println(m.accuracy(patts.drop(n)))
   }
+  var m = learner.build(l.take(11))
+
+  def learner = NB()
 }

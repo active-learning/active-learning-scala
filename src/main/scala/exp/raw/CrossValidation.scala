@@ -24,27 +24,32 @@ import al.strategies.RandomSampling
 import app.db.Dataset
 import ml.Pattern
 import ml.classifiers.Learner
-import util.{Datasets, Lock}
+import util.{Lock, Datasets, Lazy}
 import weka.filters.unsupervised.attribute.Standardize
 
-import scala.util.Random
 import scala.collection.mutable
+import scala.util.Random
 
 /**
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  val args1: Array[String]
+  val parallelDatasets = args1(2).contains("d")
+  val parallelRuns = args1(2).contains("r")
+  val parallelFolds = args1(2).contains("f")
+  val parallelStrats = args1(2).contains("s")
+  val source = Datasets.patternsFromSQLite(path) _
+  val dest: (String) => Dataset
+  val samplingSize = 500
+
   val timeLimitSeconds = 3 * 3600
   val runs = 5
   val folds = 5
 
   //lock is just to increment finished datasets counter
-  val parallelDatasets: Boolean
-  val parallelRuns: Boolean
-  val parallelFolds: Boolean
+  val path: String
   val datasetNames: Seq[String]
-  val source: (String) => Either[String, Stream[Pattern]]
-  val dest: (String) => Dataset
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
   val qmap = mutable.Map[(String, String), Int]()
   val memlimit = 28000
@@ -72,7 +77,7 @@ trait CrossValidation extends Lock with ClassName {
     res
   }
 
-  def run(runCore: (Dataset, Int, Int, Seq[Pattern], Seq[Pattern], Standardize) => Unit) {
+  def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit) {
     running = true
     new Thread(new Runnable() {
       override def run() {
@@ -101,17 +106,20 @@ trait CrossValidation extends Lock with ClassName {
           dbToWait = db
           db.open(debug = true)
           (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-            Datasets.kfoldCV(new Random(run).shuffle(patts), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
+            Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts.value)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
               println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
 
               //z-score
-              val f = Datasets.zscoreFilter(tr0)
-              val tr = Datasets.applyFilterChangingOrder(tr0, f)
-              val ts = Datasets.applyFilterChangingOrder(ts0, f)
-
-              val pool = new Random(run * 100 + fold).shuffle(tr)
-              lazy val testSet = new Random(run * 100 + fold).shuffle(ts) //todo: this is used only in Hits and for Perfect-like strategies
-              println(s"    data standardized for run $run and pool $pool.")
+              lazy val f = Datasets.zscoreFilter(tr0)
+              lazy val pool = {
+                val tr = Datasets.applyFilterChangingOrder(tr0, f)
+                new Random(run * 100 + fold).shuffle(tr)
+              }
+              lazy val testSet = {
+                val ts = Datasets.applyFilterChangingOrder(ts0, f)
+                new Random(run * 100 + fold).shuffle(ts)
+              }
+              println(s"    data standardized for run $run and fold $fold.")
 
               runCore(db, run, fold, pool, testSet, f)
 
@@ -173,4 +181,7 @@ trait CrossValidation extends Lock with ClassName {
       }
     }
   }
+
+  case class Pool()
+
 }
