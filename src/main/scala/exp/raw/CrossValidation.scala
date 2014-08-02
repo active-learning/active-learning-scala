@@ -109,7 +109,7 @@ trait CrossValidation extends Lock with ClassName {
         }
       }
 
-      try {
+      val ended = try {
         (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
           Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
             println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
@@ -133,17 +133,19 @@ trait CrossValidation extends Lock with ClassName {
           println("  Run " + run + " finished for " + datasetName + " !")
           println("")
         }
+        true
       } catch {
         case e: Throwable => println(s"Problema: $e")
+          false
       }
 
       if (!db.readOnly) {
         db.acquire()
         db.save()
-        finished += 1
+        if (ended) finished += 1
         db.release()
       }
-      println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+      if (ended) println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
       println("")
       println("")
       db.close()

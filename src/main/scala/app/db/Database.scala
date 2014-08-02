@@ -57,11 +57,12 @@ trait Database extends Lock {
   def open(debug: Boolean = false) = {
     if (isOpen) safeQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
-    if (dbLock.exists()) {
+    val skip = if (dbLock.exists()) {
       if (dbOriginal.exists()) safeQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
-      else safeQuit(s"$dbOriginal is locked as $dbLock! Cannot open it.")
+      else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Skipping...")
       //todo: maybe a locked database should be readable
-    }
+      true
+    } else false
     if (dbCopy.exists() && !readOnly) safeQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
 
     var created = false
@@ -75,34 +76,36 @@ trait Database extends Lock {
     }
 
     //open
-    try {
-      if (!readOnly) {
-        lockFile()
-        Thread.sleep(10)
-        FileUtils.copyFile(dbLock, dbCopy)
-        Thread.sleep(100)
-      }
-      Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
-      val url = "jdbc:sqlite:////" + dbCopy
-      connection = DriverManager.getConnection(url)
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems opening db connection: " + dbCopy + ":")
-        safeQuit(e.getMessage)
-    }
-    if (debug) println("Connection to " + dbCopy + " opened.")
-
-    if (database != "app") {
-      if (debug) println("Attaching App dataset...")
-      val appPath = ArgParser.appPath
+    if (!skip) {
       try {
-        val statement = connection.createStatement()
-        statement.executeUpdate("attach '" + appPath + "app.db' as app")
+        if (!readOnly) {
+          lockFile()
+          Thread.sleep(10)
+          FileUtils.copyFile(dbLock, dbCopy)
+          Thread.sleep(100)
+        }
+        Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
+        val url = "jdbc:sqlite:////" + dbCopy
+        connection = DriverManager.getConnection(url)
       } catch {
         case e: Throwable => e.printStackTrace
-          safeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+          println("\nProblems opening db connection: " + dbCopy + ":")
+          safeQuit(e.getMessage)
       }
-      if (debug) println(" Dataset " + appPath + "app.db attached!")
+      if (debug) println("Connection to " + dbCopy + " opened.")
+
+      if (database != "app") {
+        if (debug) println("Attaching App dataset...")
+        val appPath = ArgParser.appPath
+        try {
+          val statement = connection.createStatement()
+          statement.executeUpdate("attach '" + appPath + "app.db' as app")
+        } catch {
+          case e: Throwable => e.printStackTrace
+            safeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+        }
+        if (debug) println(" Dataset " + appPath + "app.db attached!")
+      }
     }
     created
   }
@@ -122,6 +125,8 @@ trait Database extends Lock {
     if (dbLock.exists()) safeQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
     dbOriginal.renameTo(dbLock)
   }
+
+  def isOpen = connection != null
 
   def exec(sql: String) = {
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
@@ -164,8 +169,6 @@ trait Database extends Lock {
         safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
-
-  def isOpen = connection != null
 
   def batchWrite(results: Array[String]) {
     try {
