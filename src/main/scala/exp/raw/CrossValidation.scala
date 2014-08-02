@@ -92,15 +92,19 @@ trait CrossValidation extends Lock with ClassName {
     }).start()
 
     (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
-      //Open connection to load patterns.
-      println("Loading patterns for dataset " + datasetName + " ...")
-      lazy val patts = source(datasetName)
 
       //Reopen connection to write queries.
       println("Beginning dataset " + datasetName + " ...")
       val db = dest(datasetName)
       dbToWait = db
       db.open(debug = true)
+
+      lazy val patts = {
+        //Open connection to load patterns.
+        println("Loading patterns for dataset " + datasetName + " ...")
+        source(db.dbLock.toString)
+      }
+
       (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
         Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts.value)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
           println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
