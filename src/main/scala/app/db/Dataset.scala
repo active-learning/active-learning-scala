@@ -107,6 +107,8 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     else exec(sql2).right.get.head.head.toInt + 1
   }
 
+  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
+
   def fetchsid(strat: Strategy) = {
     //Fetch StrategyId by name.
     lazy val sid = try {
@@ -146,8 +148,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def countHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
     exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").left.get
-
-  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
   def completePools(strategy: Strategy) =
     exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").right.get.length
@@ -208,10 +208,13 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val queries = fetchQueries(strat, run, fold, f)
     val nextPosition = queries.size
     if (nextPosition < Q && nextPosition < strat.pool.size) {
+      println(s"Gerando queries para $dataset pool: $run / $fold ...")
       val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds).take(Q).map(_.id).toVector)
       else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds).take(Q - nextPosition).map(_.id).toVector)
       q = nextIds.length
+      println(s" ... queries para $dataset pool: $run / $fold geradas!")
       acquire()
+      println(s"Gravando queries para $dataset pool: $run / $fold ...")
       var str = ""
       try {
         val statement = connection.createStatement()

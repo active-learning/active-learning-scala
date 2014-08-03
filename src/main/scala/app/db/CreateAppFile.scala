@@ -34,7 +34,6 @@ object CreateAppFile extends App {
   val strats = List(
     RandomSampling(Seq()),
     ClusterBased(Seq()),
-
     Uncertainty(NoLearner(), Seq()),
     Entropy(NoLearner(), Seq()),
     Margin(NoLearner(), Seq()),
