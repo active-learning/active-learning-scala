@@ -92,7 +92,7 @@ trait CrossValidation extends Lock with ClassName {
       }
     }).start()
 
-    (if (parallelDatasets) datasetNames.par else datasetNames) foreach { datasetName =>
+    (if (parallelDatasets) datasetNames.par else datasetNames).zipWithIndex foreach { case (datasetName, datasetNr) =>
 
       //Reopen connection to write queries.
       println("Beginning dataset " + datasetName + " ...")
@@ -130,7 +130,7 @@ trait CrossValidation extends Lock with ClassName {
 
               runCore(db, run, fold, pool, testSet, f)
 
-              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
+              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
             }
             println("  Run " + run + " finished for " + datasetName + " !")
             println("")
@@ -147,7 +147,8 @@ trait CrossValidation extends Lock with ClassName {
           if (ended) finished += 1
           db.release()
         }
-        if (ended) println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+        if (ended) println(s"Dataset ($datasetNr)" + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+        else println(s"Dataset ($datasetNr)" + datasetName + " unfinished! (" + finished + "/" + datasetNames.length + ")")
         println("")
         println("")
         if (db.isOpen) db.close()
