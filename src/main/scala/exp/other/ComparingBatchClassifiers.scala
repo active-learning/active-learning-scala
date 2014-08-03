@@ -124,14 +124,51 @@ object TableForComparingBatchClassifiers extends App with ClassName {
 
 object interasTest extends App {
   //  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("banana").right.get)
-  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("nursery").right.get.value).take(2000)
-  val pool = data.take(1000)
-  val ts = data.drop(1000)
-  val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
-    interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)),
-    interawELM(15), interawfELM(15))
-  learners foreach { l =>
-    val m = l.build(pool)
-    println(s"$l : ${m.accuracy(ts)}    L: ${m.asInstanceOf[ELMModel].L}")
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get.value).take(2000)
+  val filter = Datasets.zscoreFilter(patts0)
+  val patts = Datasets.applyFilter(patts0, filter)
+  val pool = patts.take(1000)
+  val ts = patts.drop(1000)
+  val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
+    interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)), interawELM(15), interawfELM(15))
+  //  learners foreach { l =>
+  //    val m = l.build(pool)
+  //    println(s"$l : ${m.accuracy(ts)}    L: ${m.asInstanceOf[ELMModel].L}")
+  //  }
+  val n = 150
+  val a = learners.map(l => l.build(pool.take(n))).toArray
+  pool.drop(n).foreach { x =>
+    val accs = learners.zipWithIndex map { case (l, i) =>
+      a(i) = l.update(a(i))(x)
+      a(i).accuracy(ts)
+    }
+    println(accs.mkString(" "))
   }
+}
+
+object interawfELMTest extends App {
+  //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
+  //  val patts0 = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/banana.arff").right.get.take(200000))
+  //    val patts0 = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/iris.arff").right.get.take(200000))
+  val patts0 = new Random(10).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.take(200000))
+  val filter = Datasets.zscoreFilter(patts0)
+  val patts = Datasets.applyFilter(patts0, filter)
+
+  val n = patts.length / 2
+  val tr = patts.take(n)
+  val ts = patts.drop(n)
+
+  //interaELMNoEM(n)
+  //KNN(5,"eucl",patts)
+  val tt = patts.head.nclasses
+  val l = EMELM(50)
+  Tempo.start
+  var m = l.build(tr.take(99800))
+  println(s"${m.accuracy(ts)}")
+  tr.drop(tt).zipWithIndex foreach { case (x, i) =>
+    //    m = l.update(m)(x)
+    m = OSELM((tt + i + 1) / 2).build(tr.take(tt + i + 1))
+    println(s"${m.accuracy(ts)}")
+  }
+  Tempo.print_stop
 }
