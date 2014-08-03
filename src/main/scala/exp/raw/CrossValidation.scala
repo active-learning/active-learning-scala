@@ -109,47 +109,49 @@ trait CrossValidation extends Lock with ClassName {
         }
       }
 
-      val ended = try {
-        (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-          Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
-            println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
+      if (db.isOpen) {
+        val ended = try {
+          (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+            Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
+              println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
 
-            //z-score
-            lazy val f = Datasets.zscoreFilter(tr0)
-            lazy val pool = {
-              val tr = Datasets.applyFilterChangingOrder(tr0, f)
-              val res = new Random(run * 100 + fold).shuffle(tr)
-              println(s"    data standardized for run $run and fold $fold.")
-              res
+              //z-score
+              lazy val f = Datasets.zscoreFilter(tr0)
+              lazy val pool = {
+                val tr = Datasets.applyFilterChangingOrder(tr0, f)
+                val res = new Random(run * 100 + fold).shuffle(tr)
+                println(s"    data standardized for run $run and fold $fold.")
+                res
+              }
+              lazy val testSet = {
+                val ts = Datasets.applyFilterChangingOrder(ts0, f)
+                new Random(run * 100 + fold).shuffle(ts)
+              }
+
+              runCore(db, run, fold, pool, testSet, f)
+
+              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
             }
-            lazy val testSet = {
-              val ts = Datasets.applyFilterChangingOrder(ts0, f)
-              new Random(run * 100 + fold).shuffle(ts)
-            }
-
-            runCore(db, run, fold, pool, testSet, f)
-
-            println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + " !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
+            println("  Run " + run + " finished for " + datasetName + " !")
+            println("")
           }
-          println("  Run " + run + " finished for " + datasetName + " !")
-          println("")
+          true
+        } catch {
+          case e: Throwable => println(s"Problema: $e")
+            false
         }
-        true
-      } catch {
-        case e: Throwable => println(s"Problema: $e")
-          false
-      }
 
-      if (!db.readOnly && db.isOpen) {
-        db.acquire()
-        db.save()
-        if (ended) finished += 1
-        db.release()
+        if (!db.readOnly && db.isOpen) {
+          db.acquire()
+          db.save()
+          if (ended) finished += 1
+          db.release()
+        }
+        if (ended) println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+        println("")
+        println("")
+        if (db.isOpen) db.close()
       }
-      if (ended) println("Dataset " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
-      println("")
-      println("")
-      if (db.isOpen) db.close()
     }
     running = false
     Thread.sleep(20)
