@@ -81,7 +81,9 @@ trait Database extends Lock {
         if (!readOnly) {
           lockFile()
           Thread.sleep(10)
+          println(s"copiando $dbLock para $dbCopy")
           FileUtils.copyFile(dbLock, dbCopy)
+          println(s"$dbLock para $dbCopy copiado!")
           Thread.sleep(100)
         }
         Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
@@ -125,8 +127,6 @@ trait Database extends Lock {
     if (dbLock.exists()) safeQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
     dbOriginal.renameTo(dbLock)
   }
-
-  def isOpen = connection != null
 
   def exec(sql: String) = {
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
@@ -202,7 +202,9 @@ trait Database extends Lock {
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
+    println(s"copiando $dbCopy para $dbLock")
     FileUtils.copyFile(dbCopy, dbLock)
+    println(s"$dbCopy para $dbLock copiado!")
     Thread.sleep(500)
   }
 
@@ -248,6 +250,8 @@ trait Database extends Lock {
         safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
+
+  def isOpen = connection != null
 
   def close() {
     Thread.sleep(100)
