@@ -81,10 +81,12 @@ trait Database extends Lock {
         if (!readOnly) {
           lockFile()
           Thread.sleep(10)
-          println(s"copiando $dbLock para $dbCopy")
-          FileUtils.copyFile(dbLock, dbCopy)
-          println(s"$dbLock para $dbCopy copiado!")
-          Thread.sleep(100)
+          if (!FileUtils.contentEquals(dbLock, dbCopy)) {
+            println(s"copiando $dbLock para $dbCopy")
+            FileUtils.copyFile(dbLock, dbCopy)
+            println(s"$dbLock para $dbCopy copiado!")
+            Thread.sleep(100)
+          }
         }
         Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
         val url = "jdbc:sqlite:////" + dbCopy
@@ -170,6 +172,8 @@ trait Database extends Lock {
     }
   }
 
+  def isOpen = connection != null
+
   def batchWrite(results: Array[String]) {
     try {
       val statement = connection.createStatement()
@@ -202,10 +206,12 @@ trait Database extends Lock {
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
-    println(s"copiando $dbCopy para $dbLock")
-    FileUtils.copyFile(dbCopy, dbLock)
-    println(s"$dbCopy para $dbLock copiado!")
-    Thread.sleep(500)
+    if (!FileUtils.contentEquals(dbCopy, dbLock)) {
+      println(s"copiando $dbCopy para $dbLock")
+      FileUtils.copyFile(dbCopy, dbLock)
+      println(s"$dbCopy para $dbLock copiado!")
+      Thread.sleep(500)
+    }
   }
 
   def runStr(sql: String) = {
@@ -250,8 +256,6 @@ trait Database extends Lock {
         safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
-
-  def isOpen = connection != null
 
   def close() {
     Thread.sleep(100)
