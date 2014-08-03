@@ -129,13 +129,13 @@ object interasTest extends App {
   val patts = Datasets.applyFilter(patts0, filter)
   val pool = patts.take(1000)
   val ts = patts.drop(1000)
-  val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size),
-    interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)), interawELM(15), interawfELM(15))
+  val learners = Seq(IELM(pool.size), IELMScratch(pool.size), EIELM(pool.size), CIELM(pool.size),
+    interaELM(math.min(100, pool.size / 3)), interawELM(15), interawfELM(15))
   //  learners foreach { l =>
   //    val m = l.build(pool)
   //    println(s"$l : ${m.accuracy(ts)}    L: ${m.asInstanceOf[ELMModel].L}")
   //  }
-  val n = 150
+  val n = 11
   val a = learners.map(l => l.build(pool.take(n))).toArray
   pool.drop(n).foreach { x =>
     val accs = learners.zipWithIndex map { case (l, i) =>
