@@ -92,7 +92,8 @@ trait CrossValidation extends Lock with ClassName {
       }
     }).start()
 
-    (if (parallelDatasets) datasetNames.par else datasetNames).zipWithIndex foreach { case (datasetName, datasetNr) =>
+    (if (parallelDatasets) datasetNames.par else datasetNames).zipWithIndex foreach { case (datasetName, idx) =>
+      val datasetNr = idx + 1
 
       //Reopen connection to write queries.
       println("Beginning dataset " + datasetName + " ...")

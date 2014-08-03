@@ -1,6 +1,6 @@
 name := "als"
 
-version := "1.6unfiMsgs"
+version := "1.7"
 
 scalaVersion := "2.10.4"
 
