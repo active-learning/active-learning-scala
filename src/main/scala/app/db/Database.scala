@@ -82,7 +82,7 @@ trait Database extends Lock {
           lockFile()
           Thread.sleep(10)
           if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-            println(s"copiando $dbLock para $dbCopy")
+            println(s"copiando $dbLock (${dbLock.length()}}) para $dbCopy (${dbCopy.length()}})")
             FileUtils.copyFile(dbLock, dbCopy)
             println(s"$dbLock para $dbCopy copiado!")
             Thread.sleep(100)
@@ -207,7 +207,7 @@ trait Database extends Lock {
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     if (!FileUtils.contentEquals(dbCopy, dbLock)) {
-      println(s"copiando $dbCopy para $dbLock")
+      println(s"copiando $dbCopy (${dbCopy.length()}}) para $dbLock (${dbLock.length()}})")
       FileUtils.copyFile(dbCopy, dbLock)
       println(s"$dbCopy para $dbLock copiado!")
       Thread.sleep(500)

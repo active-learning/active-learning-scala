@@ -129,7 +129,7 @@ object interasTest extends App {
   val patts = Datasets.applyFilter(patts0, filter)
   val pool = patts.take(1000)
   val ts = patts.drop(1000)
-  val learners = Seq(IELM(pool.size), IELMScratch(pool.size), EIELM(pool.size), CIELM(pool.size),
+  val learners = Seq(IELM(pool.size), IELMEnsemble(pool.size), EIELM(pool.size), CIELM(pool.size),
     interaELM(math.min(100, pool.size / 3)), interawELM(15), interawfELM(15))
   //  learners foreach { l =>
   //    val m = l.build(pool)
