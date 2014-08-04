@@ -30,11 +30,11 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
   def createOtherTables() {
     if (readOnly) {
       println("Cannot create tables on a readOnly database!")
-      sys.exit(0)
+      sys.exit(1)
     }
     if (connection == null) {
       println("Impossible to get connection to create other tables. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(0)
+      sys.exit(1)
     }
 
     try {
@@ -53,7 +53,7 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
         println("Deleting " + dbCopy + "...")
         dbCopy.delete()
         println(" " + dbCopy + " deleted!")
-        sys.exit(0)
+        sys.exit(1)
     }
     println("Other tables created in " + dbCopy + ".")
   }
@@ -61,11 +61,11 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
   def createTableOfLearners(learners: Seq[Learner]) {
     if (readOnly) {
       println("Cannot create tables on a readOnly database!")
-      sys.exit(0)
+      sys.exit(1)
     }
     if (connection == null) {
       println("Impossible to get connection to write " + learners.length + " learners. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(0)
+      sys.exit(1)
     }
 
     //Insert all learners' names.
@@ -82,7 +82,7 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
         println("Deleting " + dbCopy + "...")
         dbCopy.delete()
         println(" " + dbCopy + " deleted!")
-        sys.exit(0)
+        sys.exit(1)
     }
     println(learners.length + " learners written to " + dbCopy + ".")
   }
@@ -90,11 +90,11 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
   def createTableOfStrategies(strats: Seq[Strategy]) {
     if (readOnly) {
       println("Cannot create tables on a readOnly database!")
-      sys.exit(0)
+      sys.exit(1)
     }
     if (connection == null) {
       println("Impossible to get connection to write " + strats.length + " strategies. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(0)
+      sys.exit(1)
     }
 
     //Insert all strategies' names.
@@ -113,7 +113,7 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
         println("Deleting " + dbCopy + "...")
         dbCopy.delete()
         println(" " + dbCopy + " deleted!")
-        sys.exit(0)
+        sys.exit(1)
     }
     println(strats.length + " strategies written to " + dbCopy + ".")
   }

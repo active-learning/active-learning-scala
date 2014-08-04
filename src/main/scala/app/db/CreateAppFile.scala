@@ -65,7 +65,7 @@ object CreateAppFile extends App {
   val dbOriginal = new File(alsFileStr)
   if (dbOriginal.exists) {
     println("File " + dbOriginal + " already exists! Delete it first.")
-    sys.exit(0)
+    sys.exit(1)
   }
 
   val learners = Seq(NoLearner(), NB(), C45(), VFDT(), KNN(5, "eucl", Seq()), KNN(5, "manh", Seq()),

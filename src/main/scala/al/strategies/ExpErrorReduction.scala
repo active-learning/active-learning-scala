@@ -137,7 +137,7 @@ object EERTest extends App {
     Tempo.print_stop
     //    }
   }
-  sys.exit(0)
+  sys.exit(1)
   val lr = l.reverse
   val ac2 = lr.drop(patts.head.nclasses) map {
     q => mr = learner.update(mr)(q)

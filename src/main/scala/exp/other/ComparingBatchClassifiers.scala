@@ -41,7 +41,7 @@ object ComparingBatchClassifiers extends CrossValidation with App {
   //warming ELMs up
   val warmingdata = Datasets.arff(bina = true)("banana.arff") match {
     case Right(x) => x
-    case Left(str) => println("Could not load banana dataset from the program path: " + str); sys.exit(0)
+    case Left(str) => println("Could not load banana dataset from the program path: " + str); sys.exit(1)
   }
   CIELM(5).build(warmingdata).accuracy(warmingdata)
 
@@ -110,7 +110,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
     for (seq <- queue) {
       if (seq.last.toInt != 10) {
         println(s"Incomplete results: folds*runs=${seq.last}")
-        sys.exit(0)
+        sys.exit(1)
       }
       if (seq(1) == max) print("+")
       else {

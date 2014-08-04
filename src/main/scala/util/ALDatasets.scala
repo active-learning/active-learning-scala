@@ -39,12 +39,12 @@ object ALDatasets {
     //    val qids = db.exec(s"select q.rowid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
     //      case Right(x) => x.map(_.head.toInt)
     //      case Left(str) => println(s"Problems fetching query ids from $db : $str")
-    //        sys.exit(0)
+    //        sys.exit(1)
     //    }
     val queriedInstanceIds = db.exec(s"select q.instid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position") match {
       case Right(x) => x.map(_.head.toInt)
       case Left(str) => println(s"Problems fetching queries from $db : $str")
-        sys.exit(0)
+        sys.exit(1)
     }
     try {
       val query = new InstanceQuerySQLite()
@@ -71,7 +71,7 @@ object ALDatasets {
    */
   def patterns2svminstances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
     println("Empty sequence of patterns; cannot generate Weka Instances object.")
-    sys.exit(0)
+    sys.exit(1)
   } else {
     //    val new_instances = new SvmLibProblem(patterns.head.dataset, 0, 0)
     //    patterns foreach { patt =>

@@ -59,7 +59,7 @@ object ArgParser {
       if (numArgs == 2) println(className + " base-dir dataset1,dataset2,...,datasetn")
       else println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf\n" +
         "Parallel means 'to parallelize datasets, but serialize runs and folds.")
-      sys.exit(0)
+      sys.exit(1)
     }
     (args(0) + "/", args(1).split(",").toSeq)
   }
@@ -68,7 +68,7 @@ object ArgParser {
     if (args.length != 4) {
       println("____________\n" + text + "\n------------\nUsage:")
       println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf learner")
-      sys.exit(0)
+      sys.exit(1)
     }
     def learner(Lmax: Int, seed: Int, pool: Seq[Pattern]) = args(3) match {
       case "NB" => NB()
@@ -100,7 +100,7 @@ object ArgParser {
     if (args.length < 4) {
       println("____________\n" + text + "\n------------\nUsage:")
       println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf text")
-      sys.exit(0)
+      sys.exit(1)
     }
     (args(0) + "/", args(1).split(",").toSeq, args.drop(3).mkString(" "))
   }
@@ -109,7 +109,7 @@ object ArgParser {
     if (args.length != 3) {
       println("____________\n" + text + "\n------------\nUsage:")
       println(className + " base-dir dataset1,dataset2,...,datasetn collection-name(uci, ...)")
-      sys.exit(0)
+      sys.exit(1)
     }
     (args(0) + "/", args(1).split(",").toSeq, args(2))
   }

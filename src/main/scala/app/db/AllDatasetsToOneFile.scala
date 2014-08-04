@@ -57,7 +57,7 @@ object AllDatasetsToOneFile extends App {
             tempStatem.executeUpdate("end")
           }
         }
-      case Left(rowCount) => println("SQLMulti is intended to execute SELECT over all datasets."); sys.exit(0)
+      case Left(rowCount) => println("SQLMulti is intended to execute SELECT over all datasets."); sys.exit(1)
     }
 
     val tempStatem2 = connection.createStatement()

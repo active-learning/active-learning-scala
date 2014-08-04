@@ -65,7 +65,7 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
       val selected = pool.find(_.id == id) match {
         case Some(p) => p
         case None => println("Queried id not found!")
-          sys.exit(0)
+          sys.exit(1)
       }
       if (stop) Stream(selected)
       else {

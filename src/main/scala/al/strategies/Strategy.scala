@@ -31,7 +31,7 @@ trait Strategy {
   val pool: Seq[Pattern]
   lazy val distinct_pool = if (pool.distinct != pool) {
     println("The pool cannot have repeated instances!")
-    sys.exit(0)
+    sys.exit(1)
   } else pool
   val debug: Boolean
   lazy val nclasses = if (distinct_pool.nonEmpty) distinct_pool.head.nclasses else throw new Error("Lazy val nclasses undiscoverable from an empty patterns!")
@@ -98,7 +98,7 @@ trait Strategy {
       println(s"In dataset '${labeled.head.dataset().relationName()}': queries cannot be resumed, there should be the exact one-instance-per-class subset at the beginning.")
       println("Expected: " + firstof_each_class)
       println("Found:" + labeled.take(nclasses).toList)
-      sys.exit(0)
+      sys.exit(1)
     }
     resume_queries_impl(distinct_pool.diff(labeled), labeled)
   }
@@ -108,7 +108,7 @@ trait Strategy {
       c => patterns find (_.label == c) match {
         case Some(pattern) => pattern
         case _ => println("Dataset should have at least one instance from each class per fold! Label index " + c + " not found in dataset " + patterns.head.dataset().relationName() + " !")
-          sys.exit(0)
+          sys.exit(1)
       }
     }).toList
     (firstof_each_class, patterns.diff(firstof_each_class))

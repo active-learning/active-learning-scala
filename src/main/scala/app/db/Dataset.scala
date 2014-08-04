@@ -197,7 +197,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       if (q > Q || q > strat.pool.size) {
         print("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are greater than Q " + Q + s" or pool size ${strat.pool.size}. ")
         println("This will be assumed as ok.")
-        //        sys.exit(0)
+        //        sys.exit(1)
       }
     } catch {
       case e: Throwable => e.printStackTrace
@@ -260,7 +260,7 @@ object DatasetTest extends App {
   //load queries as patterns
   val qpatts = ALDatasets.queriesFromSQLite(d)(RandomSampling(Seq()), 0, 0) match {
     case Right(x) => x
-    case Left(str) => println(s"Problema: $str"); sys.exit(0)
+    case Left(str) => println(s"Problema: $str"); sys.exit(1)
   }
   d.close()
   qpatts foreach println

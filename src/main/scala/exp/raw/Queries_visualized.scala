@@ -47,7 +47,7 @@ object Queries_visualized extends App {
   //    OSELMdyn(compromise(), 0)
   //    OSELMdyn(esPRESS(0), 0)
   //  c.build(train)
-  //  sys.exit(0)
+  //  sys.exit(1)
 
   //    EnsOSELMdyn(halfway(), 0, 1)
   //  EnsOSELMdyn(compromise(), 0, 1)
@@ -110,7 +110,7 @@ object Queries_visualized extends App {
         //0.82
         Tempo.print_stop
         Thread.sleep(1000)
-        sys.exit(0)
+        sys.exit(1)
       }
       Thread.sleep(100)
     }
