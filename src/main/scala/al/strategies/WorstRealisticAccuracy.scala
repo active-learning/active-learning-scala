@@ -44,7 +44,7 @@ case class WorstRealisticAccuracy(learner: Learner, pool: Seq[Pattern], testSet:
 
 object WRTest extends App {
   //KNN(5, "eucl")
-  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get.value).take(2000)
+  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
   val n = (patts.length * 0.5).toInt
   val s = WorstRealisticAccuracy(learner, patts.take(n), patts.drop(n))
   val b = s.queries.toList

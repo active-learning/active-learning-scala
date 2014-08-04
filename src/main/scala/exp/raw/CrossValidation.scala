@@ -106,7 +106,7 @@ trait CrossValidation extends Lock with ClassName {
         //Open connection to load patterns.
         println("Loading patterns for dataset " + datasetName + " ...")
         source(db.dbLock.toString) match {
-          case Right(x) => x.value
+          case Right(x) => x
           case Left(str) => throw new Exception(s"Skippin $db because $str")
         }
       }
