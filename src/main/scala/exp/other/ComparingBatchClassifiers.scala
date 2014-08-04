@@ -131,7 +131,8 @@ object interasTest extends App {
   val pool = patts.take(1000)
   val ts = patts.drop(1000)
   val learners = Seq(IELM(), IELMEnsemble(5), EIELM(), CIELM(),
-    interaELM(math.min(100, pool.size / 3)), interawELM(10), interawfELM(5), interawAlwaysELM(10), interawfAlwaysELM(1))
+    interaELM(math.min(100, pool.size / 3)), interawELM(10), interawfELM(5),
+    interawAlwaysELM(10), interawfAlwaysELM(1), interaNewSeedELM(math.min(100, pool.size / 3)))
   //  learners foreach { l =>
   //    val m = l.build(pool)
   //    println(s"$l : ${m.accuracy(ts)}    L: ${m.asInstanceOf[ELMModel].L}")
@@ -153,22 +154,22 @@ object interasTest extends App {
   //  }
 
   //Accuracy at each update.
-  //      pool.drop(n).foreach { x =>
-  //        val accs = learners.zipWithIndex.par map { case (l, i) =>
-  //          a(i) = l.update(a(i))(x)
-  //          a(i).accuracy(ts)
-  //        }
-  //        println(accs.mkString(" "))
-  //      }
-
-  //L at each update.
   pool.drop(n).foreach { x =>
-    val accs = learners.zipWithIndex.drop(4).par map { case (l, i) =>
+    val accs = learners.zipWithIndex.drop(9).par map { case (l, i) =>
       a(i) = l.update(a(i))(x)
-      a(i).L
+      a(i).accuracy(ts)
     }
     println(accs.mkString(" "))
   }
+
+  //L at each update.
+  //  pool.drop(n).foreach { x =>
+  //    val accs = learners.zipWithIndex.drop(4).par map { case (l, i) =>
+  //      a(i) = l.update(a(i))(x)
+  //      a(i).L
+  //    }
+  //    println(accs.mkString(" "))
+  //  }
 }
 
 object interawfELMTest extends App {
