@@ -129,6 +129,8 @@ trait Database extends Lock {
     dbOriginal.renameTo(dbLock)
   }
 
+  def isOpen = connection != null
+
   def exec(sql: String) = {
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
 
@@ -170,8 +172,6 @@ trait Database extends Lock {
         safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
-
-  def isOpen = connection != null
 
   def batchWrite(results: Array[String]) {
     try {
@@ -256,16 +256,39 @@ trait Database extends Lock {
     }
   }
 
+  def hardClose() {
+    //close
+    if (connection != null) {
+      Thread.sleep(100)
+      connection.close()
+      Thread.sleep(100)
+      connection = null
+    }
+    if (!readOnly) {
+      //Checks if something happened to put db in inconsistent state.
+      if (new File(dbCopy + "-journal").exists()) {
+        println(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+        sys.exit(1)
+      }
+      if (dbCopy.exists()) dbCopy.delete()
+
+      //unlock
+      if (dbOriginal.exists()) {
+        println(s"$dbOriginal should not exist; $dbLock needs to take its place.")
+        sys.exit(1)
+      }
+      if (dbLock.exists()) dbLock.renameTo(dbOriginal)
+    }
+  }
+
   def close() {
     Thread.sleep(100)
-    //    println(" " + dbCopy + " deleted!")
     connection.close()
     Thread.sleep(100)
     connection = null
     if (!readOnly) {
       //Checks if something happened to put db in inconsistent state.
       if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
-
       dbCopy.delete()
       unlockFile()
     }
