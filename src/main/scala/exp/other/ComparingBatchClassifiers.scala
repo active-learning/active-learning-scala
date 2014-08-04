@@ -155,7 +155,7 @@ object interasTest extends App {
 
   //Accuracy at each update.
   pool.drop(n).foreach { x =>
-    val accs = learners.zipWithIndex.drop(0).par map { case (l, i) =>
+    val accs = learners.zipWithIndex.par map { case (l, i) =>
       a(i) = l.update(a(i))(x)
       a(i).accuracy(ts)
     }
@@ -163,13 +163,13 @@ object interasTest extends App {
   }
 
   //L at each update.
-  //  pool.drop(n).foreach { x =>
-  //    val accs = learners.zipWithIndex.drop(4).par map { case (l, i) =>
-  //      a(i) = l.update(a(i))(x)
-  //      a(i).L
-  //    }
-  //    println(accs.mkString(" "))
-  //  }
+  //      pool.drop(n).foreach { x =>
+  //        val accs = learners.zipWithIndex.par map { case (l, i) =>
+  //          a(i) = l.update(a(i))(x)
+  //          a(i).L
+  //        }
+  //        println(accs.mkString(" "))
+  //      }
 }
 
 object interawfELMTest extends App {
@@ -197,4 +197,32 @@ object interawfELMTest extends App {
     println(s"${m.accuracy(ts)}")
   }
   Tempo.print_stop
+}
+
+object interaTest extends App {
+  //  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("banana").right.get)
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get.value).take(2000)
+  val filter = Datasets.zscoreFilter(patts0)
+  val patts = Datasets.applyFilter(patts0, filter)
+  val pool = patts.take(1000)
+  val ts = patts.drop(1000)
+  val learner = interaELM(math.min(100, pool.size / 3))
+  val n = 11
+  var a = learner.build(pool.take(n))
+
+  //Accuracy and LOO at each update.
+  pool.drop(n).zipWithIndex.foreach { case (x, id0) =>
+    val id = id0 + n
+    a = learner.update(a)(x)
+    println(a.accuracy(ts) + " " + (1 - learner.LOOError(a)))
+  }
+
+  //L at each update.
+  //    pool.drop(n).foreach { x =>
+  //      val accs = learners.zipWithIndex.drop(4).dropRight(5).par map { case (l, i) =>
+  //        a(i) = l.update(a(i))(x)
+  //        a(i).L
+  //      }
+  //      println(accs.mkString(" "))
+  //    }
 }
