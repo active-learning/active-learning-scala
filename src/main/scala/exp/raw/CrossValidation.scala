@@ -41,6 +41,7 @@ trait CrossValidation extends Lock with ClassName {
   lazy val parallelStrats = args1(2).contains("s")
   lazy val source = Datasets.patternsFromSQLiteFullPath _
   val readOnly = true
+  val hardClose = ()
   val args1: Array[String]
   val dest: (String) => Dataset
   val samplingSize = 500
