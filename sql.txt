@@ -1,0 +1,11 @@
+# curva de acc em run 0, fold 0, learner 2, strat 2
+select a/(t+0.0) from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=0 and f=0 and s=2 and l=2;
+
+# primeiro momento em que atinge acc máxima (Q); rfls fixos
+select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=0 and f=0 and s=10 and l=2 order by a/(t+0.0) desc, p asc limit 1
+
+# primeiro momento em que atinge acc máxima (Q). retorna momento e valorAcc. rfls fixos
+select p,max(a/(t+0.0)) from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=4 and f=4 and s=1 and l=4;
+
+# retorna media dos Qs de todos runs e folds; sl fixos
+select avg(p) from (select p,max(a/(t+0.0)) from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and s=10 and l=2 group by r,f);

@@ -130,7 +130,7 @@ object interasTest extends App {
   val patts = Datasets.applyFilter(patts0, filter)
   val pool = patts.take(1000)
   val ts = patts.drop(1000)
-  val learners = Seq(IELM(pool.size), IELMEnsemble(pool.size), EIELM(pool.size), CIELM(pool.size),
+  val learners = Seq(IELM(), IELMEnsemble(5), EIELM(), CIELM(),
     interaELM(math.min(100, pool.size / 3)), interawELM(15), interawfELM(15))
   //  learners foreach { l =>
   //    val m = l.build(pool)
@@ -138,10 +138,34 @@ object interasTest extends App {
   //  }
   val n = 11
   val a = learners.map(l => l.build(pool.take(n))).toArray
+
+  //Time of each update.
+  //  pool.drop(n).foreach { x =>
+  //    val accs = learners.zipWithIndex map { case (l, i) =>
+  //      val t = Tempo.time {
+  //        1 to 50 foreach { _ =>
+  //          a(i) = l.update(a(i))(x)
+  //        }
+  //      }
+  //      print(s"$l: ${"%2.3f".format(t)}\t|\t")
+  //    }
+  //    println("")
+  //  }
+
+  //Accuracy at each update.
+  //    pool.drop(n).foreach { x =>
+  //      val accs = learners.zipWithIndex map { case (l, i) =>
+  //        a(i) = l.update(a(i))(x)
+  //        a(i).accuracy(ts)
+  //      }
+  //      println(accs.mkString(" "))
+  //    }
+
+  //L at each update.
   pool.drop(n).foreach { x =>
     val accs = learners.zipWithIndex map { case (l, i) =>
       a(i) = l.update(a(i))(x)
-      a(i).accuracy(ts)
+      a(i).L
     }
     println(accs.mkString(" "))
   }
