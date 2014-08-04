@@ -28,7 +28,8 @@ import weka.filters.unsupervised.attribute.Standardize
 
 import scala.util.Random
 
-object ComparingBatchClassifiers extends CrossValidation with App with Lock {
+object ComparingBatchClassifiers extends CrossValidation with App {
+  override val readOnly = false
   val args1 = args
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
