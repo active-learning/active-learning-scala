@@ -155,7 +155,7 @@ object interasTest extends App {
 
   //Accuracy at each update.
   pool.drop(n).foreach { x =>
-    val accs = learners.zipWithIndex.drop(9).par map { case (l, i) =>
+    val accs = learners.zipWithIndex.drop(0).par map { case (l, i) =>
       a(i) = l.update(a(i))(x)
       a(i).accuracy(ts)
     }
