@@ -47,7 +47,6 @@ trait Database extends Lock {
   val path: String
   val database: String
   val createOnAbsence: Boolean
-  val readOnly: Boolean
   var connection: Connection = null
 
   /**
