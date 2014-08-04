@@ -135,7 +135,7 @@ trait Database extends Lock {
 
     try {
       val statement = connection.createStatement()
-      if (sql.toLowerCase.startsWith("select ")) {
+      if (sql.toLowerCase.startsWith("select ") || sql.toLowerCase.startsWith("pragma ")) {
         val resultSet = statement.executeQuery(sql)
         val rsmd = resultSet.getMetaData
         val numColumns = rsmd.getColumnCount
@@ -156,7 +156,7 @@ trait Database extends Lock {
           }
           queue.enqueue(seq)
         }
-        if (sql.toLowerCase.startsWith("select count(*) from ")) Left(queue.head.head.toInt)
+        if (sql.toLowerCase.startsWith("select count(*) from ") && !sql.toLowerCase.startsWith("pragma ")) Left(queue.head.head.toInt)
         else {
           if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
         }
