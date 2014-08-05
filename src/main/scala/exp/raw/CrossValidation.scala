@@ -70,20 +70,25 @@ trait CrossValidation extends Lock with ClassName {
   /**
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
    */
-  def q(db: Dataset, learner: Learner) = {
+  def qNotChecked(db: Dataset, learner: Learner) = {
+    //Verifica se todas Rnd queries estão presentes.??
+
     //Pega mediana.
-    lazy val Q = (for {
-      r <- 0 until runs
-      f <- 0 until folds
-      sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
-    } yield {
-      db.exec(sql).get.head.head
-    }).sorted.toList(runs * folds / 2).toInt
+    lazy val Q = {
+      val res = (for {
+        r <- 0 until runs
+        f <- 0 until folds
+        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
+      } yield {
+        db.exec(sql).get.head.head
+      }).sorted.toList(runs * folds / 2).toInt
+      println(s"Q=$res")
+      res
+    }
 
     acquire()
     val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
     release()
-    println(s"Q=$res")
     res
   }
 
@@ -116,8 +121,8 @@ trait CrossValidation extends Lock with ClassName {
           db.open(debug = false)
 
           (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+            println("    Beginning run " + run + " for " + datasetName + " ...")
             Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
-              println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
 
               //z-score
               lazy val f = Datasets.zscoreFilter(tr0)
@@ -134,10 +139,9 @@ trait CrossValidation extends Lock with ClassName {
 
               runCore(db, run, fold, pool, testSet, f)
 
-              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
+              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
             }
             //            println("  Run " + run + " finished for " + datasetName + " !")
-            println("")
           }
 
           if (!db.readOnly) {
@@ -148,24 +152,24 @@ trait CrossValidation extends Lock with ClassName {
           acquire()
           finished += 1
           release()
-          println(s"Dataset ($datasetNr)" + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
-          println("")
+          println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")\n")
           db.close()
         case Left(str) =>
           acquire()
           skiped += 1
           release()
-          println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.")
-          println("")
+          println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.\n")
       }
     }
     running = false
     Thread.sleep(20)
   }
 
-  def completeForQCalculation(dataset: String) = {
+  def completeForQCalculation(dataset: String) = rndQueriesComplete(dataset) && rndNBHitsComplete(dataset)
+
+  def rndQueriesComplete(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = false)
+    db.open(debug = true)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
@@ -176,18 +180,33 @@ trait CrossValidation extends Lock with ClassName {
       false
 
       //checa se todas as queries existem para a base
-    } else if (db.rndPerformedQueries > expectedQueries) safeQuit(s"${db.rndPerformedQueries} queries found for $db , it should be $expectedQueries", db)
-    else if (db.rndPerformedQueries < expectedQueries) {
-      println(s"Random Sampling queries incomplete, " +
-        s"found ${db.rndPerformedQueries}, but $expectedQueries expected. Skipping dataset $db .")
-      false
     } else {
+      if (db.rndPerformedQueries > expectedQueries) safeQuit(s"${db.rndPerformedQueries} queries found for $db , it should be $expectedQueries", db)
+      else {
+        if (db.rndPerformedQueries < expectedQueries) {
+          println(s"Random Sampling queries incomplete, " +
+            s"found ${db.rndPerformedQueries}, but $expectedQueries expected. Skipping dataset $db .")
+          false
+        } else true
+      }
+    }
+    db.close()
+    res
+  }
 
-      //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
-      val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
-      if (hitExs > expectedQueries) safeQuit(s"$hitExs confusion matrices should be lesser than $exs for $db with NB", db)
-      else if (hitExs < exs) {
-        println(s"Rnd hits incomplete for $db with NB (found $hitExs of $exs).")
+  def rndNBHitsComplete(dataset: String) = {
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
+    db.open(debug = true)
+    val exs = db.n
+    val expectedQueries = exs * (folds - 1) * runs
+
+    //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
+    val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
+    println(hitExs + " " + expectedQueries)
+    val res = if (hitExs > expectedQueries) safeQuit(s"$hitExs confusion matrices should be equal to $expectedQueries for $db with NB", db)
+    else {
+      if (hitExs < expectedQueries) {
+        println(s"Rnd hits incomplete for $db with NB (found $hitExs of $expectedQueries).")
         false
       } else true
     }
@@ -195,10 +214,26 @@ trait CrossValidation extends Lock with ClassName {
     res
   }
 
-  def complete(learner: Learner)(dataset: String) = {
+  def hitsComplete(learner: Learner)(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
     db.open(debug = false)
-    val Q = q(db, NB())
+    val Q = qNotChecked(db, NB())
+    val res = strats(-1, Seq()).forall { s =>
+      (0 until runs).forall { run =>
+        (0 until folds).forall { fold =>
+          db.countPerformedConfMatricesForPool(s, learner, run, fold) >= Q
+        }
+      }
+    }
+    db.close()
+    res
+  }
+
+  def queriesComplete(learner: Learner)(dataset: String) = {
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
+    db.open(debug = false)
+    val Q = qNotChecked(db, NB())
+    ???
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>

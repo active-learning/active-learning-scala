@@ -87,9 +87,9 @@ trait Database extends Lock {
           lockFile()
           Thread.sleep(10)
           if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-            println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
+            //            println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
             FileUtils.copyFile(dbLock, dbCopy)
-            println(s"$dbLock para $dbCopy copiado!")
+            //            println(s"$dbLock para $dbCopy copiado!")
             Thread.sleep(100)
           }
         }
@@ -135,8 +135,6 @@ trait Database extends Lock {
     dbOriginal.renameTo(dbLock)
   }
 
-  def isOpen = connection != null
-
   def exec(sql: String) = {
     if (debug) println(s"[$sql]")
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
@@ -176,6 +174,8 @@ trait Database extends Lock {
     }
   }
 
+  def isOpen = connection != null
+
   def batchWrite(results: Array[String]) {
     try {
       val statement = connection.createStatement()
@@ -209,10 +209,10 @@ trait Database extends Lock {
     if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     if (!FileUtils.contentEquals(dbCopy, dbLock)) {
-      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
+      //      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
       FileUtils.copyFile(dbCopy, dbLock)
-      println(s"$dbCopy para $dbLock copiado!")
-      Thread.sleep(500)
+      //      println(s"$dbCopy para $dbLock copiado!")
+      Thread.sleep(200)
     }
   }
 
