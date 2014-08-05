@@ -40,6 +40,7 @@ object SVMQueries extends CrossValidation with App {
   )
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+    ???
     //    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
     //      val Q = q(db, NB())
     //      strats foreach { strat =>

@@ -24,7 +24,7 @@ import java.util.Calendar
 import al.strategies.{Strategy, RandomSampling}
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.Learner
+import ml.classifiers.{NB, Learner}
 import util.{Lock, Datasets, Lazy}
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -161,5 +161,51 @@ trait CrossValidation extends Lock with ClassName {
     }
     running = false
     Thread.sleep(20)
+  }
+
+  def completeForQCalculation(dataset: String) = {
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
+    db.open()
+    val exs = db.n
+
+    //checa se as queries desse run/fold existem para Random/NoLearner
+    val res = if (db.isOpen && db.rndCompletePools != runs * folds) {
+      println(s"Random Sampling query set of sequences incomplete, " +
+        s"found ${db.rndCompletePools}, but ${runs * folds} expected. Skipping dataset $db .")
+      false
+
+      //checa se todas as queries existem para a base
+    } else if (db.rndPerformedQueries > exs) safeQuit(s"${db.rndPerformedQueries} queries found for $db , it should be $exs", db)
+    else if (db.rndPerformedQueries < exs) {
+      println(s"Random Sampling queries incomplete, " +
+        s"found ${db.rndPerformedQueries}, but $exs expected. Skipping dataset $db .")
+      false
+    } else {
+
+      //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
+      val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
+      if (hitExs > exs) safeQuit(s"$hitExs confusion matrices should be lesser than $exs for $db with NB", db)
+      else if (hitExs < exs) {
+        println(s"Rnd hits incomplete for $db with NB (found $hitExs of $exs).")
+        false
+      } else true
+    }
+    db.close()
+    res
+  }
+
+  def complete(learner: Learner)(dataset: String) = {
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
+    db.open()
+    val Q = q(db, NB())
+    val res = strats(-1, Seq()).forall { s =>
+      (0 until runs).forall { run =>
+        (0 until folds).forall { fold =>
+          db.countPerformedConfMatricesForPool(s, learner, run, fold) >= Q
+        }
+      }
+    }
+    db.close()
+    res
   }
 }

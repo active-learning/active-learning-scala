@@ -33,6 +33,7 @@ object RandomHits extends CrossValidation with App {
   run(ff)
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+    ???
     val nc = pool.head.nclasses
     db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
   }
