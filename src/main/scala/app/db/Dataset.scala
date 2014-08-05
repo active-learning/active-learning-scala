@@ -89,13 +89,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
   }
 
-  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-    val sql1 = "select count(*) from hit," + where(strategy, learner) + s" and run=$run and fold=$fold"
-    val sql2 = "select max(position) from hit," + where(strategy, learner) + s" and run=$run and fold=$fold"
-    val n = exec(sql1).get.head.head.toInt
-    if (n == 0) 0
-    else exec(sql2).get.head.head.toInt + 1
-  }
+  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = handleZero(" from hit," + where(strategy, learner) + s" and run=$run and fold=$fold")
 
   /**
    * Returns the recorded number of tuples plus the implicity ones.
@@ -106,8 +100,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * @return
    */
   def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-    val c = exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble + nclasses
-    val m = exec(s"select max(position)+1 as m from hit,${where(strategy, learner)} and run=$run and fold=$fold)").get.head.head.toInt
+    val c0 = exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
+    val c = if (c0 == 0) 0 else c0 + nclasses
+    val m = handleZero(s" from hit,${where(strategy, learner)} and run=$run and fold=$fold")
     if (c != m) safeQuit(s"Inconsistency: max position $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
     c
   }
@@ -116,8 +111,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Returns the recorded number of tuples plus the implicity ones.
    */
   def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
-    val c = exec(s"select count(*) from hit,${where(strategy, learner)}").get.head.head / (nclasses * nclasses) + nclasses * runs * folds
-    val m = exec(s"select sum(m) from (select max(position)+1 as m from hit,${where(strategy, learner)} group by run,fold)").get.head.head.toInt
+    val c0 = exec(s"select count(*) from hit,${where(strategy, learner)}").get.head.head / (nclasses * nclasses)
+    val c = if (c0 == 0) 0 else c0 + nclasses * runs * folds
+    val m = exec(s"select max(position) as m from hit,${where(strategy, learner)} group by run,fold").get.map(_.head).map(_ + 1).sum
     if (c != m) safeQuit(s"Inconsistency: sum of max positions $m for $dataset differs from total number of conf. matrices $c .")
     c
   }
@@ -125,12 +121,14 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def completePools(strategy: Strategy) =
     exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").get.length
 
+  def performedQueries(strategy: Strategy, run: Int, fold: Int) = handleZero(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold")
+
   def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
-  def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
-    val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").get.head.head.toInt
+  def handleZero(s: String) = {
+    val n = exec("select count(*) " + s).get.head.head.toInt
     if (n == 0) 0
-    else exec(s"select max(position)+1 from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").get.head.head.toInt
+    else exec("select max(position)+1 " + s).get.head.head.toInt
   }
 
   /**
@@ -170,8 +168,8 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       resultSet.next()
       q = resultSet.getInt("q")
       if (q > Q || q > strat.pool.size) {
-        print("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are greater than Q " + Q + s" or pool size ${strat.pool.size}. ")
-        println("This will be assumed as ok.")
+        //        print("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are greater than Q " + Q + s" or pool size ${strat.pool.size}. ")
+        //        println("This will be assumed as ok.")
         //        sys.exit(1)
       }
     } catch {

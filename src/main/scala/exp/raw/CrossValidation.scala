@@ -165,7 +165,7 @@ trait CrossValidation extends Lock with ClassName {
 
   def completeForQCalculation(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = true)
+    db.open(debug = false)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
