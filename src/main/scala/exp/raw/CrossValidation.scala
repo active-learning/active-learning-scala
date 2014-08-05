@@ -167,24 +167,25 @@ trait CrossValidation extends Lock with ClassName {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
     db.open()
     val exs = db.n
+    val expectedQueries = exs * (folds - 1) * runs
 
     //checa se as queries desse run/fold existem para Random/NoLearner
-    val res = if (db.isOpen && db.rndCompletePools != runs * folds) {
+    val res = if (db.isOpen && db.rndInAllPools != runs * folds) {
       println(s"Random Sampling query set of sequences incomplete, " +
-        s"found ${db.rndCompletePools}, but ${runs * folds} expected. Skipping dataset $db .")
+        s"found ${db.rndInAllPools}, but ${runs * folds} expected. Skipping dataset $db .")
       false
 
       //checa se todas as queries existem para a base
-    } else if (db.rndPerformedQueries > exs) safeQuit(s"${db.rndPerformedQueries} queries found for $db , it should be $exs", db)
-    else if (db.rndPerformedQueries < exs) {
+    } else if (db.rndPerformedQueries > expectedQueries) safeQuit(s"${db.rndPerformedQueries} queries found for $db , it should be $expectedQueries", db)
+    else if (db.rndPerformedQueries < expectedQueries) {
       println(s"Random Sampling queries incomplete, " +
-        s"found ${db.rndPerformedQueries}, but $exs expected. Skipping dataset $db .")
+        s"found ${db.rndPerformedQueries}, but $expectedQueries expected. Skipping dataset $db .")
       false
     } else {
 
       //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
       val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
-      if (hitExs > exs) safeQuit(s"$hitExs confusion matrices should be lesser than $exs for $db with NB", db)
+      if (hitExs > expectedQueries) safeQuit(s"$hitExs confusion matrices should be lesser than $exs for $db with NB", db)
       else if (hitExs < exs) {
         println(s"Rnd hits incomplete for $db with NB (found $hitExs of $exs).")
         false

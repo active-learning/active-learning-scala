@@ -34,10 +34,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   lazy val nclasses = exec(s"select max(Class) from inst").get.head.head.toInt
   lazy val n = exec(s"select count(*) from inst").get.head.head.toInt
 
-  /**
-   * Assumes Rnd queries will never be partially recorded.
-   */
-  lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").get.length
+  lazy val rndInAllPools = exec(s"select * from query where strategyid=1 group by run,fold").get.length
   lazy val rndPerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").get.head.head.toInt
   val runs = 5
   val folds = 5
@@ -119,7 +116,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Returns the recorded number of tuples plus the implicity ones.
    */
   def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
-    val c = exec(s"select count(*) from hit,${where(strategy, learner)}").get.head.head.toInt / (nclasses * nclasses).toDouble + nclasses * 25
+    val c = exec(s"select count(*) from hit,${where(strategy, learner)}").get.head.head.toInt / (nclasses * nclasses).toDouble + nclasses * runs * folds
     val m = exec(s"select sum(m) from (select max(position) as m from hit,${where(strategy, learner)} group by run,fold)").get.head.head.toInt
     if (c != m) safeQuit(s"Inconsistency: sum of max positions $m for $dataset differs from total number of conf. matrices $c .")
     c
@@ -128,13 +125,13 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def completePools(strategy: Strategy) =
     exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").get.length
 
+  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
+
   def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
     val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").get.head.head.toInt
     if (n == 0) 0
     else exec(s"select max(position) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").get.head.head.toInt + 1
   }
-
-  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
