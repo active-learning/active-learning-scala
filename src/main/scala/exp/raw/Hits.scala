@@ -29,39 +29,38 @@ object Hits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded strategies) for the given list of datasets."
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val dest = Dataset(path) _
-
   run(ff)
 
+  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
+  def strats0(run: Int, pool: Seq[Pattern]) = List(
+    ClusterBased(pool),
+    Uncertainty(learner(pool.length / 2, run, pool), pool),
+    Entropy(learner(pool.length / 2, run, pool), pool),
+    Margin(learner(pool.length / 2, run, pool), pool),
+    new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
+    new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
+    new SGmultiJS(learner(pool.length / 2, run, pool), pool),
+    DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
+    MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
+    MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
+    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
+    ExpErrorReductionMargin(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
+    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
+    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
+  )
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
 
-    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
-      //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular)
-      val strats0 = List(
-        ClusterBased(pool),
-        Uncertainty(learner(pool.length / 2, run, pool), pool),
-        Entropy(learner(pool.length / 2, run, pool), pool),
-        Margin(learner(pool.length / 2, run, pool), pool),
-        new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
-        new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
-        new SGmultiJS(learner(pool.length / 2, run, pool), pool),
-        DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
-        DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
-        DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
-        DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
-        DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
-        MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-        MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1),
-        ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
-        ExpErrorReductionMargin(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
-        ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
-        ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
-      )
-      val strats = if (parallelStrats) strats0.par else strats0
-      strats foreach { strat =>
-        db.saveHits(strat, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
-      }
-    }
+    ???
+    //    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
+    //      val strats = if (parallelStrats) strats0.par else strats0
+    //      strats foreach { strat =>
+    //        db.saveHits(strat, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
+    //      }
+    //    }
   }
 }

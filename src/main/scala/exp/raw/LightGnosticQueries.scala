@@ -22,6 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
+import ml.classifiers.NB
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -30,34 +31,33 @@ object LightGnosticQueries extends CrossValidation with App {
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded light GNOSTIC " +
     "strategies (i.e. not Rnd, Clu and not EER) mostly due to the fact that they are fast and don't need to be stopped earlier;\n"
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val dest = Dataset(path) _
-
   run(ff)
+
+  def strats0(run: Int, pool: Seq[Pattern]) = List(
+    Uncertainty(learner(pool.length / 2, run, pool), pool),
+    Entropy(learner(pool.length / 2, run, pool), pool),
+    Margin(learner(pool.length / 2, run, pool), pool),
+    new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
+    new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
+    new SGmultiJS(learner(pool.length / 2, run, pool), pool),
+    DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
+    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
+    MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
+    MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
+  )
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
 
-    val strats0 = List(
-      Uncertainty(learner(pool.length / 2, run, pool), pool),
-      Entropy(learner(pool.length / 2, run, pool), pool),
-      Margin(learner(pool.length / 2, run, pool), pool),
-      new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
-      new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
-      new SGmultiJS(learner(pool.length / 2, run, pool), pool),
-      DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
-      DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
-      MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-      MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
-    )
-    val strats = if (parallelStrats) strats0.par else strats0
-    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
-      val Q = q(db, learner(pool.length / 2, run, pool))
-      strats foreach { strat =>
-        println(s"Strat: $strat")
-        db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
-      }
-    }
+    ???
+    //    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
+    //      val Q = q(db, NB())
+    //      strats foreach { strat =>
+    //        println(s"Strat: $strat")
+    //        db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
+    //      }
+    //    }
   }
 }

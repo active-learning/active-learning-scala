@@ -21,7 +21,7 @@ package exp.raw
 import java.lang.{Throwable, Exception}
 import java.util.Calendar
 
-import al.strategies.RandomSampling
+import al.strategies.{Strategy, RandomSampling}
 import app.db.Dataset
 import ml.Pattern
 import ml.classifiers.Learner
@@ -39,40 +39,47 @@ trait CrossValidation extends Lock with ClassName {
   lazy val parallelRuns = args1(2).contains("r")
   lazy val parallelFolds = args1(2).contains("f")
   lazy val parallelStrats = args1(2).contains("s")
-  lazy val source = Datasets.patternsFromSQLiteFullPath _
+  val path: String
+  lazy val source = Datasets.patternsFromSQLite(path) _
+
+  def dest = Dataset(path) _
+
   val readOnly = true
   val hardClose = ()
   val args1: Array[String]
-  val dest: (String) => Dataset
-  val samplingSize = 500
 
+  def strats0(run: Int, pool: Seq[Pattern]): Seq[Strategy]
+
+  val samplingSize = 500
   val timeLimitSeconds = 3 * 3600
   val runs = 5
   val folds = 5
-
   //lock is just to increment finished datasets counter
-  val path: String
   val datasetNames: Seq[String]
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
   val qmap = mutable.Map[(String, String), Int]()
   val memlimit = 28000
   var finished = 0
+  var skiped = 0
   var available = true
   var running = true
   var dbToWait: Dataset = null
+
+  def strats(run: Int, pool: Seq[Pattern]) = if (parallelStrats) strats0(run, pool).par else strats0(run, pool)
 
   /**
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
    */
   def q(db: Dataset, learner: Learner) = {
+    //Pega mediana.
     lazy val Q = (for {
       r <- 0 until runs
       f <- 0 until folds
       sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
-    } yield db.exec(sql) match {
-        case Right(queue) => queue.head.head
-        case Left(str) => safeQuit(s"Problems calculating Q: $str")
-      }).sorted.toList(runs * folds / 2).toInt
+    } yield {
+      db.exec(sql).get.head.head
+    }).sorted.toList(runs * folds / 2).toInt
+
     acquire()
     val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
     release()
@@ -97,25 +104,19 @@ trait CrossValidation extends Lock with ClassName {
     (if (parallelDatasets) datasetNames.par else datasetNames).zipWithIndex foreach { case (datasetName, idx) =>
       val datasetNr = idx + 1
 
-      //Reopen connection to write queries.
-      println("Beginning dataset " + datasetName + " ...")
-      val db = dest(datasetName)
-      dbToWait = db
-      db.open(debug = true)
+      //Open connection to load patterns via weka SQL importer.
+      //      println("Loading patterns for dataset " + datasetName + " ...")
+      source(datasetName) match {
+        case Right(patts) =>
 
-      lazy val patts = {
-        //Open connection to load patterns.
-        println("Loading patterns for dataset " + datasetName + " ...")
-        source(db.dbLock.toString) match {
-          case Right(x) => x
-          case Left(str) => throw new Exception(s"Skippin $db because $str")
-        }
-      }
+          //Reopen connection to write queries.
+          println("Beginning dataset " + datasetName + " ...")
+          val db = dest(datasetName)
+          dbToWait = db
+          db.open(debug = true)
 
-      if (db.isOpen) {
-        val ended = try {
           (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-            Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) =>
+            Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
               println("    Beginning pool " + fold + " of run " + run + " for " + datasetName + " ...")
 
               //z-score
@@ -123,7 +124,7 @@ trait CrossValidation extends Lock with ClassName {
               lazy val pool = {
                 val tr = Datasets.applyFilterChangingOrder(tr0, f)
                 val res = new Random(run * 100 + fold).shuffle(tr)
-                println(s"    data standardized for run $run and fold $fold.")
+                //                println(s"    data standardized for run $run and fold $fold.")
                 res
               }
               lazy val testSet = {
@@ -135,62 +136,30 @@ trait CrossValidation extends Lock with ClassName {
 
               println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !\n Total of " + finished + s"/${datasetNames.length} datasets finished!")
             }
-            println("  Run " + run + " finished for " + datasetName + " !")
+            //            println("  Run " + run + " finished for " + datasetName + " !")
             println("")
           }
-          true
-        } catch {
-          case e: Throwable => println(s"Problema: $e")
-            false
-        }
 
-        if (!db.readOnly && db.isOpen) {
-          db.acquire()
-          db.save()
-          if (ended) finished += 1
-          db.release()
-        }
-        if (ended) println(s"Dataset ($datasetNr)" + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
-        else println(s"Dataset ($datasetNr)" + datasetName + " unfinished! (" + finished + "/" + datasetNames.length + ")")
-        println("")
-        println("")
-        if (db.isOpen) db.close()
+          if (!db.readOnly) {
+            db.acquire()
+            db.save()
+            db.release()
+          }
+          acquire()
+          finished += 1
+          release()
+          println(s"Dataset ($datasetNr)" + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")")
+          println("")
+          db.close()
+        case Left(str) =>
+          acquire()
+          skiped += 1
+          release()
+          println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.")
+          println("")
       }
     }
     running = false
     Thread.sleep(20)
   }
-
-  def checkRndQueriesAndHitsCompleteness(learner: Learner, db: Dataset, pool: Seq[Pattern], run: Int, fold: Int, testSet: Seq[Pattern], f: Standardize) = {
-    //checa se as queries desse run/fold existem para Random/NoLearner
-    if (db.isOpen && db.rndCompletePools != runs * folds) {
-      println(s"Random Sampling query set of sequences incomplete, found ${db.rndCompletePools}, but ${runs * folds} expected. Skipping dataset $db for fold $fold of run $run (and all other pools).")
-      false
-    } else {
-      //se tabela de matrizes de confusão estiver incompleta para o pool inteiro para Random/learner, retoma ela
-      val nc = pool.head.nclasses
-      val n = pool.length
-      val nn = (nc * nc * nc + db.countHits(RandomSampling(Seq()), learner, run, fold)) / (nc * nc)
-      if (nn > n) safeQuit(s"$nn confusion matrices should be lesser than $n for run $run fold $fold for $db", db)
-      else if (nn < n) {
-        println(s"Completing Rnd hits (found $nn of $n for run $run and fold $fold) ...")
-        db.saveHits(RandomSampling(Seq()), learner, run, fold, nc, f, testSet)
-        println(s"Run again to continue this pool (run $run and fold $fold) for other stategies!")
-        false
-      } else {
-        //queries and hits complete for Rnd for current pool, testing hits for all pools...
-        val queries = db.rndCompletePerformedQueries
-        val hits = (db.rndCompleteHits(learner) + folds * runs * nc * nc * nc) / (nc.toDouble * nc)
-        if (hits != queries) print(s"This pool is ok (run $run and fold $fold), but ... ")
-        if (hits > queries) safeQuit(s" Expected $queries Rnd tuples in table 'hit' for $db, but excessive $hits found!", db)
-        else if (hits < queries) {
-          println(s" All pools have to be 'hit' by Rnd/${learner} to continue. Re-run to complete Rnd Hits.")
-          false
-        } else true
-      }
-    }
-  }
-
-  case class Pool()
-
 }

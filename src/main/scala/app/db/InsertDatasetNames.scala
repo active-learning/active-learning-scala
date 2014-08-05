@@ -32,7 +32,7 @@ object InsertDatasetNames extends App {
   af.open()
   af.exec(s"begin")
   af.exec(s"insert into path values ('$pathName', '$path')")
-  val pid = af.exec(s"select rowid from path where name='$pathName'").left.get
+  val pid = af.exec(s"select rowid from path where name='$pathName'").get.head.head.toInt
   datasetNames foreach { datasetName =>
     af.exec(s"insert into dataset values ('$datasetName', $pid)")
   }

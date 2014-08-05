@@ -32,11 +32,12 @@ object AgnosticQueries extends CrossValidation with App {
     "Rnd because it is the baseline to define Q and\n" +
     "Clu because it relies on external implementation.\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val dest = Dataset(path) _
   run(ff)
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     db.saveQueries(RandomSampling(pool), run, fold, f, 3600) //it is interesting to have all queries, but we have to save sometimes.
     db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }
+
+  def strats0(run: Int, pool: Seq[Pattern]) = ???
 }

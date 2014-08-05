@@ -131,6 +131,10 @@ trait Database extends Lock {
 
   def isOpen = connection != null
 
+  /**
+   * @param sql
+   * @return Some: resulting table.
+   */
   def exec(sql: String) = {
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
 
@@ -157,15 +161,11 @@ trait Database extends Lock {
           }
           queue.enqueue(seq)
         }
-        if (sql.toLowerCase.startsWith("select count(*) from ") && !sql.toLowerCase.startsWith("pragma ")) Left(queue.head.head.toInt)
-        else {
-          if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
-        }
+        Some(queue)
       } else {
-        if (readOnly) safeQuit("readOnly databases only accept select SQL command!")
-
+        if (readOnly) safeQuit("readOnly databases only accept select and pragma SQL commands!")
         statement.execute(sql)
-        Left(0)
+        None
       }
     } catch {
       case e: Throwable => e.printStackTrace
@@ -239,16 +239,13 @@ trait Database extends Lock {
           }
           queue.enqueue(seq)
         }
-        if (sql.toLowerCase.startsWith("select count(*) from ")) Left(queue.head.head.toInt)
-        else {
-          if (sql.toLowerCase.startsWith("select rowid from ")) Left(queue.head.head.toInt) else Right(queue)
-        }
+        Some(queue)
       } else {
         if (readOnly) safeQuit("readOnly databases only accept select SQL command!")
         acquire()
         statement.execute(sql)
         release()
-        Left(0)
+        None
       }
     } catch {
       case e: Throwable => e.printStackTrace

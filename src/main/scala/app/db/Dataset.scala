@@ -31,11 +31,14 @@ import scala.collection.mutable
  * um arquivo db que é um dataset.
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
+  lazy val nclasses = exec(s"select max(Class) from inst").get.head.head.toInt
+  lazy val n = exec(s"select count(*) from inst").get.head.head.toInt
+
   /**
    * Assumes Rnd queries will never be partially recorded.
    */
-  lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").right.get.length
-  lazy val rndCompletePerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").left.get
+  lazy val rndCompletePools = exec(s"select * from query where strategyid=1 group by run,fold").get.length
+  lazy val rndPerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").get.head.head.toInt
   val runs = 5
   val folds = 5
   val database = dataset
@@ -46,7 +49,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Returns only the recorded number of tuples.
    * You should add runs*folds*|Y|²*|Y| manually.
    */
-  def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").left.get
+  def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
   def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern]) {
     val lid = fetchlid(learner)
@@ -89,74 +92,49 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
   }
 
-  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize) = {
-    acquire()
-    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
-      case Right(x) => x
-      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
-    }
-    release()
-    Datasets.applyFilter(queries, f)
-  }
-
   def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
     val sql1 = "select count(*) from hit," + where(strategy, learner) + s" and run=$run and fold=$fold"
     val sql2 = "select max(position) from hit," + where(strategy, learner) + s" and run=$run and fold=$fold"
-    val n = exec(sql1).left.get
+    val n = exec(sql1).get.head.head.toInt
     if (n == 0) 0
-    else exec(sql2).right.get.head.head.toInt + 1
-  }
-
-  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
-
-  def fetchsid(strat: Strategy) = {
-    //Fetch StrategyId by name.
-    lazy val sid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
-    }
-    sidmap.getOrElseUpdate(strat.toString, sid)
-  }
-
-  def fetchlid(learner: Learner) = {
-    //Fetch LearnerId by name.
-    lazy val lid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
-    }
-    lidmap.getOrElseUpdate(learner.toString, lid)
+    else exec(sql2).get.head.head.toInt + 1
   }
 
   /**
-   * Returns only the recorded number of tuples.
-   * You should add |Y|²*|Y| manually.
+   * Returns the recorded number of tuples plus the implicity ones.
    * @param strategy
    * @param learner
    * @param run
    * @param fold
    * @return
    */
-  def countHits(strategy: Strategy, learner: Learner, run: Int, fold: Int) =
-    exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").left.get
+  def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
+    val c = exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble + nclasses
+    val m = exec(s"select max(position) as m from hit,${where(strategy, learner)} and run=$run and fold=$fold)").get.head.head.toInt
+    if (c != m) safeQuit(s"Inconsistency: max position $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
+    c
+  }
+
+  /**
+   * Returns the recorded number of tuples plus the implicity ones.
+   */
+  def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
+    val c = exec(s"select count(*) from hit,${where(strategy, learner)}").get.head.head.toInt / (nclasses * nclasses).toDouble + nclasses * 25
+    val m = exec(s"select sum(m) from (select max(position) as m from hit,${where(strategy, learner)} group by run,fold)").get.head.head.toInt
+    if (c != m) safeQuit(s"Inconsistency: sum of max positions $m for $dataset differs from total number of conf. matrices $c .")
+    c
+  }
 
   def completePools(strategy: Strategy) =
-    exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").right.get.length
+    exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").get.length
 
   def performedQueries(strategy: Strategy, run: Int, fold: Int) = {
-    val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").left.get
+    val n = exec(s"select count(*) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").get.head.head.toInt
     if (n == 0) 0
-    else exec(s"select max(position) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").right.get.head.head.toInt + 1
+    else exec(s"select max(position) from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").get.head.head.toInt + 1
   }
+
+  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
@@ -242,6 +220,44 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       release()
       nextPosition + q
     } else nextPosition
+  }
+
+  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize) = {
+    acquire()
+    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
+      case Right(x) => x
+      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
+    }
+    release()
+    Datasets.applyFilter(queries, f)
+  }
+
+  def fetchsid(strat: Strategy) = {
+    //Fetch StrategyId by name.
+    lazy val sid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
+    }
+    sidmap.getOrElseUpdate(strat.toString, sid)
+  }
+
+  def fetchlid(learner: Learner) = {
+    //Fetch LearnerId by name.
+    lazy val lid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
+    }
+    lidmap.getOrElseUpdate(learner.toString, lid)
   }
 }
 

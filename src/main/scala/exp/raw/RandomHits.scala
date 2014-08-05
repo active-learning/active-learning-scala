@@ -29,7 +29,6 @@ object RandomHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val dest = Dataset(path) _
 
   run(ff)
 
@@ -37,4 +36,6 @@ object RandomHits extends CrossValidation with App {
     val nc = pool.head.nclasses
     db.saveHits(RandomSampling(Seq()), learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
   }
+
+  def strats0(run: Int, pool: Seq[Pattern]) = ???
 }

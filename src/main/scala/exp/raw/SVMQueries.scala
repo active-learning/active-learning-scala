@@ -22,7 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.LASVM
+import ml.classifiers.{NB, LASVM}
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -30,24 +30,22 @@ object SVMQueries extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val dest = Dataset(path) _
-
   run(ff)
 
+  def strats0(run: Int, pool: Seq[Pattern]) = List(
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
+  )
+
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
-    val strats0 = List(
-      SVMmulti(pool, "SELF_CONF"),
-      SVMmulti(pool, "KFF"),
-      SVMmulti(pool, "BALANCED_EE"),
-      SVMmulti(pool, "SIMPLE")
-    )
-    val strats = if (parallelStrats) strats0.par else strats0
-    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
-      val Q = q(db, LASVM())
-      strats foreach { strat =>
-        println(s"Strat: $strat")
-        db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
-      }
-    }
+    //    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
+    //      val Q = q(db, NB())
+    //      strats foreach { strat =>
+    //        println(s"Strat: $strat")
+    //        db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
+    //      }
+    //    }
   }
 }

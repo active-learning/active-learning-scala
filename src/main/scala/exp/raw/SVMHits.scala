@@ -30,25 +30,25 @@ object SVMHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets."
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val dest = Dataset(path) _
-
   run(ff)
+
+  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular)
+  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
+  def strats0(run: Int, pool: Seq[Pattern]) = List(
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
+  )
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
-
-    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
-      //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular)
-      val strats0 = List(
-        SVMmulti(pool, "SELF_CONF"),
-        SVMmulti(pool, "KFF"),
-        SVMmulti(pool, "BALANCED_EE"),
-        SVMmulti(pool, "SIMPLE")
-      )
-      val strats = if (parallelStrats) strats0.par else strats0
-      strats foreach { strat =>
-        db.saveHits(strat, LASVM(), run, fold, nc, f, testSet)
-      }
-    }
+    ???
+    //    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
+    //      val strats = if (parallelStrats) strats0.par else strats0
+    //      strats foreach { strat =>
+    //        db.saveHits(strat, LASVM(), run, fold, nc, f, testSet)
+    //      }
+    //    }
   }
 }

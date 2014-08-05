@@ -42,29 +42,29 @@ object AllDatasetsToOneFile extends App {
   ??? //todo: terminar
   //todo: esse programa depende da existencia da tabela dataset na base app para consulta de ids
 
-  (if (parallel) datasetNames.par else datasetNames) foreach { datasetName =>
-    val db = dest(datasetName)
-    db.open()
-
-    db.exec(sql) match {
-      case Right(queue) =>
-        queue.foreach { seq =>
-          seq.zipWithIndex.foreach { case (v, i) =>
-            val tempStatem = connection.createStatement()
-            tempStatem.executeUpdate("begin")
-            val str = "insert into out values ('" + datasetName + "','a" + i + "'," + v + ")"
-            tempStatem.executeUpdate(str)
-            tempStatem.executeUpdate("end")
-          }
-        }
-      case Left(rowCount) => println("SQLMulti is intended to execute SELECT over all datasets."); sys.exit(1)
-    }
-
-    val tempStatem2 = connection.createStatement()
-    val rs = tempStatem2.execute(sql2)
-    println(rs)
-    ???
-    db.save()
-    db.close()
-  }
+  //  (if (parallel) datasetNames.par else datasetNames) foreach { datasetName =>
+  //    val db = dest(datasetName)
+  //    db.open()
+  //
+  //    db.exec(sql) match {
+  //      case Right(queue) =>
+  //        queue.foreach { seq =>
+  //          seq.zipWithIndex.foreach { case (v, i) =>
+  //            val tempStatem = connection.createStatement()
+  //            tempStatem.executeUpdate("begin")
+  //            val str = "insert into out values ('" + datasetName + "','a" + i + "'," + v + ")"
+  //            tempStatem.executeUpdate(str)
+  //            tempStatem.executeUpdate("end")
+  //          }
+  //        }
+  //      case Left(rowCount) => println("SQLMulti is intended to execute SELECT over all datasets."); sys.exit(1)
+  //    }
+  //
+  //    val tempStatem2 = connection.createStatement()
+  //    val rs = tempStatem2.execute(sql2)
+  //    println(rs)
+  //    ???
+  //    db.save()
+  //    db.close()
+  //  }
 }

@@ -36,25 +36,24 @@ object ComparingBatchClassifiers extends CrossValidation with App {
   println("sqlite3 -header results.db \"attach 'app.db' as app; select l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, time, d.name from ComparingClassifiers as c, app.learner as l, app.dataset as d where d.rowid=datasetid and l.rowid=learnerid group by learnerid, datasetid order by le, m;\"" + " | sed -r 's/[\\|]+/\t/g'")
   val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
-  val dest = Dataset(path, createOnAbsence = false, readOnly = true) _
-
   //warming ELMs up
   val warmingdata = Datasets.arff(bina = true)("banana.arff") match {
     case Right(x) => x
     case Left(str) => println("Could not load banana dataset from the program path: " + str); sys.exit(1)
   }
+  val resultsDb = Results("/home/davi/wcs/ucipp/uci", createOnAbsence = true)
   CIELM(5).build(warmingdata).accuracy(warmingdata)
 
+  override def dest = Dataset(path, createOnAbsence = false, readOnly = true) _
 
-  val resultsDb = Results("/home/davi/wcs/ucipp/uci", createOnAbsence = true)
-  if (resultsDb.open(debug = true) || resultsDb.exec(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").left.get == 0)
+  if (resultsDb.open(debug = true) || resultsDb.exec(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").get.head.head == 0)
     resultsDb.exec(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()
   run(ff)
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val name = db.database
-    val did = resultsDb.exec(s"select rowid from app.dataset where name = '$name'").left.get
+    val did = resultsDb.exec(s"select rowid from app.dataset where name = '$name'").get.head.head
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
       interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)),
       interawELM(15), interawfELM(15),
@@ -63,8 +62,8 @@ object ComparingBatchClassifiers extends CrossValidation with App {
 
     //Heavy processing.
     val results = learners map { learner =>
-      val lid = resultsDb.exec(s"select rowid from app.learner where name = '$learner'").left.get
-      val previous = resultsDb.exec(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").left.get
+      val lid = resultsDb.exec(s"select rowid from app.learner where name = '$learner'").get.head.head
+      val previous = resultsDb.exec(s"select count(*) from $className where datasetid=$did and learnerid=$lid and run=$run and fold=$fold").get.head.head
       if (previous > 0) {
         println(s"Results already done previously for $name , skipping it.")
         None
@@ -90,6 +89,8 @@ object ComparingBatchClassifiers extends CrossValidation with App {
 
   resultsDb.save()
   resultsDb.close()
+
+  def strats0(run: Int, pool: Seq[Pattern]) = ???
 }
 
 object TableForComparingBatchClassifiers extends App with ClassName {
@@ -100,7 +101,7 @@ object TableForComparingBatchClassifiers extends App with ClassName {
   val sources = s"${className.drop(8)} as c, app.learner as l, app.dataset as d"
   val conditions = "d.rowid=datasetid and l.rowid=learnerid"
   val aggregators = "group by learnerid, datasetid order by le, m;\""
-  val q = resultsDb.runStr(s"select $fields from $sources where $conditions $aggregators").right.get
+  val q = resultsDb.runStr(s"select $fields from $sources where $conditions $aggregators").get
   val g = q.groupBy(seq => seq.dropRight(1).last)
   for ((dataset, queue) <- g) {
     println(dataset)
