@@ -113,7 +113,7 @@ trait CrossValidation extends Lock with ClassName {
           println("Beginning dataset " + datasetName + " ...")
           val db = dest(datasetName)
           dbToWait = db
-          db.open(debug = true)
+          db.open(debug = false)
 
           (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
             Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
