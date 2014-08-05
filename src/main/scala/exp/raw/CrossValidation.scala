@@ -197,7 +197,7 @@ trait CrossValidation extends Lock with ClassName {
 
   def complete(learner: Learner)(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = true)
+    db.open(debug = false)
     val Q = q(db, NB())
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
