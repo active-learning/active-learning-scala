@@ -48,12 +48,18 @@ trait Database extends Lock {
   val database: String
   val createOnAbsence: Boolean
   var connection: Connection = null
+  /**
+   * @param sql
+   * @return Some: resulting table.
+   */
+  var debug = false
 
   /**
    * Opens connection to database.
    * @param debug true, if the dataset had to be created (create parameter should be also true)
    */
   def open(debug: Boolean = false) = {
+    this.debug = debug
     if (isOpen) safeQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
     val skip = if (dbLock.exists()) {
@@ -131,11 +137,8 @@ trait Database extends Lock {
 
   def isOpen = connection != null
 
-  /**
-   * @param sql
-   * @return Some: resulting table.
-   */
   def exec(sql: String) = {
+    if (debug) println(s"[$sql]")
     if (!isOpen) safeQuit("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
 
     try {
