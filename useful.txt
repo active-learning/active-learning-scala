@@ -27,3 +27,6 @@ balloons-adult-stretch,balloons-adult+stretch,balloons-yellow-small,trains,shutt
 
 # ordenado por Qvfdt
 fertility-diagnosis,planning-relax,seismic-bumps,shuttle-landing-control,balloons-adult-stretch,blogger,thyroid-allhyper,thyroid-allrep,thyroid-dis,trains,acute-inflammations-nephritis,annealing,soybean-small,lung-cancer,balloons-adult+stretch,balloons-yellow-small,robot-failure-lp3,dbworld-subjects-stemmed,led7digit,lenses,post-operative-patient,statlog-german-credit,colon32,autoUniv-au6-1000,hepatitis,iris,dresses-sales,movement-libras-9,statlog-german-credit-numeric,glioma16,qualitative-bankruptcy,robot-failure-lp2,leukemia-haslinger,appendicitis,qsar-biodegradation,teaching-assistant-evaluation,thyroid-newthyroid,wine-quality-red,statlog-vehicle-silhouettes,wdbc,zoo,heart-disease-processed-switzerland,hayes-roth,breast-tissue-4class,cmc,molecular-promotor-gene,breast-tissue-6class,acute-inflammations-urinary,yeast,autoUniv-au1-1000,flags,car-evaluation,steel-plates-faults,dermatology,horse-colic-surgical,credit-approval,autoUniv-au7-300-drift-au7-cpd1-800,tic-tac-toe,yeast-4class,volcanoes-a1,madelon,volcanoes-a2,statlog-image-segmentation
+
+# todos parados
+localization-for-person-activity,arabic-digit,walking-activity,har,magic,bank-marketing-full,skin-segmentation,nomao,amazon,poker-9class,tamilnadu-electricity

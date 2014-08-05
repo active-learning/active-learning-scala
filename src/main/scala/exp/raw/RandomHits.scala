@@ -22,6 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
+import ml.classifiers.NB
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -29,13 +30,23 @@ object RandomHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val datasetNames = datasetNames0.filter(rndQueriesComplete).filterNot(hitsComplete(learner(-1, -1, Seq())))
+  val datasetNames = datasetNames0.filter(rndQueriesComplete).filter(d => !rndNBHitsComplete(d) || !hitsComplete(learner(-1, -1, Seq()))(d))
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(RandomSampling(Seq()))
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
-    strats(run, pool).foreach(s => db.saveHits(s, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet))
+
+    //Completa hits do Rnd
+    strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 2 * 3600))
+
+    //Verifica se passo anterior antingiu |Pool|.
+    if (rndNBHitsComplete(db.toString)) {
+      val Q = q_notCheckedIfHasAllRndQueries(db)
+
+      //Retoma Rnd Hits para o dado learner como arg na linha de comando, limitando por tempo e Q.
+      strats(run, pool).foreach(s => db.saveHits(s, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
+    } else println(s"Rnd NB hits still incomplete! Skipping ${learner(-1, -1, Seq())} hits.")
   }
 }

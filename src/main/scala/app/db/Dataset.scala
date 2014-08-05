@@ -33,9 +33,8 @@ import scala.collection.mutable
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   lazy val nclasses = exec(s"select max(Class)+1 from inst").get.head.head.toInt
   lazy val n = exec(s"select count(*) from inst").get.head.head.toInt
-
-  lazy val rndInAllPools = exec(s"select * from query where strategyid=1 group by run,fold").get.length
-  lazy val rndPerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").get.head.head.toInt
+  lazy val countRndStartedPools = exec(s"select * from query where strategyid=1 group by run,fold").get.length
+  lazy val countRndPerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").get.head.head.toInt
   val runs = 5
   val folds = 5
   val database = dataset
@@ -48,7 +47,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
-  def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern]) {
+  def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern], seconds: Double, Q: Int = Int.MaxValue) {
     val lid = fetchlid(learner)
     val sid = fetchsid(strat)
 
@@ -65,31 +64,70 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       var model = learner.build(initial)
 
       //train
-      val results = rest.zipWithIndex map { case (trainingPattern, idx) =>
-        model = learner.update(model, fast_mutable = true)(trainingPattern)
-        val confusion = model.confusion(testSet)
-        val position = timeStep + idx
-        var i = 0
-        var j = 0
-        val sqls = mutable.Queue[String]()
-        while (i < nc) {
-          j = 0
-          while (j < nc) {
-            val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)})"
-            sqls.enqueue(sql)
-            j += 1
+      val ti = System.currentTimeMillis()
+      val results = mutable.Queue[String]()
+      rest.zipWithIndex.take(Q - timeStep).toStream.takeWhile(_ => (System.currentTimeMillis() - ti) / 1000.0 < seconds).foreach {
+        case (trainingPattern, idx) =>
+          model = learner.update(model, fast_mutable = true)(trainingPattern)
+          val confusion = model.confusion(testSet)
+          val position = timeStep + idx
+          var i = 0
+          var j = 0
+          while (i < nc) {
+            j = 0
+            while (j < nc) {
+              val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)})"
+              results.enqueue(sql)
+              j += 1
+            }
+            i += 1
           }
-          i += 1
-        }
-        sqls
       }
 
       //save
-      batchWrite(results.toArray.flatten)
+      batchWrite(results.toArray)
     }
   }
 
   def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = handleZero(" from hit," + where(strategy, learner) + s" and run=$run and fold=$fold")
+
+  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
+    acquire()
+    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
+      case Right(x) => x
+      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
+    }
+    release()
+    if (f != null) Datasets.applyFilter(queries, f) else queries
+  }
+
+  def fetchsid(strat: Strategy) = {
+    //Fetch StrategyId by name.
+    lazy val sid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
+    }
+    sidmap.getOrElseUpdate(strat.toString, sid)
+  }
+
+  def fetchlid(learner: Learner) = {
+    //Fetch LearnerId by name.
+    lazy val lid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
+    }
+    lidmap.getOrElseUpdate(learner.toString, lid)
+  }
 
   /**
    * Returns the recorded number of tuples plus the implicity ones.
@@ -107,6 +145,12 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     c
   }
 
+  def handleZero(s: String) = {
+    val n = exec("select count(*) " + s).get.head.head.toInt
+    if (n == 0) 0
+    else exec("select max(position)+1 " + s).get.head.head.toInt
+  }
+
   /**
    * Returns the recorded number of tuples plus the implicity ones.
    */
@@ -118,18 +162,20 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     c
   }
 
-  def completePools(strategy: Strategy) =
+  /**
+   * Number of started pools for the given strat and its learner.
+   * Not necessarily complete ones.
+   * @param strategy
+   * @return
+   */
+  def startedPools(strategy: Strategy) =
     exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").get.length
-
-  def performedQueries(strategy: Strategy, run: Int, fold: Int) = handleZero(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold")
 
   def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
 
-  def handleZero(s: String) = {
-    val n = exec("select count(*) " + s).get.head.head.toInt
-    if (n == 0) 0
-    else exec("select max(position)+1 " + s).get.head.head.toInt
-  }
+  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = handleZero(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold")
+
+  def countPerformedQueries(strategy: Strategy) = handleZero(s"from query,${where(strategy, strategy.learner)}")
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
@@ -215,44 +261,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       release()
       nextPosition + q
     } else nextPosition
-  }
-
-  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize) = {
-    acquire()
-    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
-      case Right(x) => x
-      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
-    }
-    release()
-    Datasets.applyFilter(queries, f)
-  }
-
-  def fetchsid(strat: Strategy) = {
-    //Fetch StrategyId by name.
-    lazy val sid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
-    }
-    sidmap.getOrElseUpdate(strat.toString, sid)
-  }
-
-  def fetchlid(learner: Learner) = {
-    //Fetch LearnerId by name.
-    lazy val lid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
-    }
-    lidmap.getOrElseUpdate(learner.toString, lid)
   }
 }
 

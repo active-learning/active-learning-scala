@@ -18,6 +18,7 @@
 
 package exp.raw
 
+import java.io.File
 import java.lang.{Throwable, Exception}
 import java.util.Calendar
 
@@ -64,15 +65,16 @@ trait CrossValidation extends Lock with ClassName {
   var available = true
   var running = true
   var dbToWait: Dataset = null
+  val fileToStopProgram = "/tmp/safeQuit.davi"
 
   def strats(run: Int, pool: Seq[Pattern]) = if (parallelStrats) strats0(run, pool).par else strats0(run, pool)
 
   /**
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
+   * Verifique antes se todas Rnd queries estão presentes.
+   * learner should be always NB()
    */
-  def qNotChecked(db: Dataset, learner: Learner) = {
-    //Verifica se todas Rnd queries estão presentes.??
-
+  def q_notCheckedIfHasAllRndQueries(db: Dataset, learner: Learner = NB()) = {
     //Pega mediana.
     lazy val Q = {
       val res = (for {
@@ -93,13 +95,17 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit) {
+
+    //stops according to time limit or presence of quit-file
     running = true
     new Thread(new Runnable() {
       override def run() {
         while (running) {
-          Thread.sleep(1500)
-          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
-            Thread.sleep(1000)
+          Thread.sleep(5000)
+          val tmpFile = new File(fileToStopProgram)
+          if (tmpFile.exists() || Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
+            tmpFile.delete()
+            Thread.sleep(100)
             safeQuit(s"Limite de $memlimit MB de memoria atingido.", dbToWait)
           }
         }
@@ -174,18 +180,18 @@ trait CrossValidation extends Lock with ClassName {
     val expectedQueries = exs * (folds - 1) * runs
 
     //checa se as queries desse run/fold existem para Random/NoLearner
-    val res = if (db.isOpen && db.rndInAllPools != runs * folds) {
+    val res = if (db.isOpen && db.countRndStartedPools != runs * folds) {
       println(s"Random Sampling query set of sequences incomplete, " +
-        s"found ${db.rndInAllPools}, but ${runs * folds} expected. Skipping dataset $db .")
+        s"found ${db.countRndStartedPools}, but ${runs * folds} expected. Skipping dataset $db .")
       false
 
       //checa se todas as queries existem para a base
     } else {
-      if (db.rndPerformedQueries > expectedQueries) safeQuit(s"${db.rndPerformedQueries} queries found for $db , it should be $expectedQueries", db)
+      if (db.countRndPerformedQueries > expectedQueries) safeQuit(s"${db.countRndPerformedQueries} queries found for $db , it should be $expectedQueries", db)
       else {
-        if (db.rndPerformedQueries < expectedQueries) {
+        if (db.countRndPerformedQueries < expectedQueries) {
           println(s"Random Sampling queries incomplete, " +
-            s"found ${db.rndPerformedQueries}, but $expectedQueries expected. Skipping dataset $db .")
+            s"found ${db.countRndPerformedQueries}, but $expectedQueries expected. Skipping dataset $db .")
           false
         } else true
       }
@@ -217,7 +223,7 @@ trait CrossValidation extends Lock with ClassName {
   def hitsComplete(learner: Learner)(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
     db.open(debug = false)
-    val Q = qNotChecked(db, NB())
+    val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
@@ -229,15 +235,14 @@ trait CrossValidation extends Lock with ClassName {
     res
   }
 
-  def queriesComplete(learner: Learner)(dataset: String) = {
+  def nonRndQueriesComplete(learner: Learner)(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
     db.open(debug = false)
-    val Q = qNotChecked(db, NB())
-    ???
+    val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
-          db.countPerformedConfMatricesForPool(s, learner, run, fold) >= Q
+          db.countPerformedQueriesForPool(s, run, fold) >= Q
         }
       }
     }

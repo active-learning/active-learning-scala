@@ -22,6 +22,7 @@ import al.strategies.{ClusterBased, RandomSampling}
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
+import ml.classifiers.NoLearner
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -32,13 +33,13 @@ object AgnosticQueries extends CrossValidation with App {
     "Rnd because it is the baseline to define Q and\n" +
     "Clu because it relies on external implementation.\n"
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
-  val datasetNames = datasetNames0.filter(rndQueriesComplete).filterNot(hitsComplete(learner(-1, -1, Seq())))
+  val datasetNames = datasetNames0.filter(d => !rndQueriesComplete(d) || !nonRndQueriesComplete(NoLearner())(d))
   run(ff)
 
+  def strats0(run: Int, pool: Seq[Pattern]) = List(ClusterBased(pool))
+
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
-    db.saveQueries(RandomSampling(pool), run, fold, f, 3600) //it is interesting to have all queries, but we have to save sometimes.
+    db.saveQueries(RandomSampling(pool), run, fold, f, timeLimitSeconds) //it is interesting to have all queries, but we have to save (by exiting) sometimes if the dataset is big.
     db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }
-
-  def strats0(run: Int, pool: Seq[Pattern]) = ???
 }
