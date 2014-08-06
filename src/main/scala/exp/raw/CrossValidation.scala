@@ -175,7 +175,7 @@ trait CrossValidation extends Lock with ClassName {
     Thread.sleep(20)
   }
 
-  def completeForQCalculation(db: Dataset) = rndQueriesComplete(dataset, db: Dataset) && rndNBHitsComplete(dataset, db: Dataset)
+  def completeForQCalculation(db: Dataset) = rndQueriesComplete(db) && rndNBHitsComplete(db)
 
   def rndQueriesComplete(db: Dataset) = {
     if (!db.isOpen) db.open(debug = false)
@@ -219,7 +219,7 @@ trait CrossValidation extends Lock with ClassName {
     res
   }
 
-  def hitsComplete(learner: Learner, db: Dataset)(dataset: String) = {
+  def hitsComplete(learner: Learner)(db: Dataset) = {
     if (!db.isOpen) db.open(debug = false)
     val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
@@ -232,7 +232,7 @@ trait CrossValidation extends Lock with ClassName {
     res
   }
 
-  def nonRndQueriesComplete(learner: Learner, db: Dataset)(dataset: String) = {
+  def nonRndQueriesComplete(learner: Learner)(db: Dataset) = {
     if (!db.isOpen) db.open(debug = false)
     val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
