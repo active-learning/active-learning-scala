@@ -108,7 +108,6 @@ trait CrossValidation extends Lock with ClassName {
             Thread.sleep(100)
             safeQuit(s"$tmpFile found, safe-quiting.", dbToWait)
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
-            tmpFile.delete()
             Thread.sleep(100)
             safeQuit(s"Limite de $memlimit MB de memoria atingido.", dbToWait)
           }
