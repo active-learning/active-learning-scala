@@ -56,12 +56,12 @@ trait Strategy {
    * Logo, a atual é desperdiçada.
    * @param seconds
    */
-  def timeLimitedQueries(seconds: Double) = {
+  def timeLimitedQueries(seconds: Double, exiting: () => Boolean = () => false) = {
     val ti = System.currentTimeMillis()
     var t = 0d
     val withinTimeLimit = queries.takeWhile { _ =>
       t = (System.currentTimeMillis() - ti) / 1000d
-      t <= seconds
+      t <= seconds && !exiting()
     }.toSeq
     withinTimeLimit
   }
@@ -73,12 +73,12 @@ trait Strategy {
    * Logo, a atual é desperdiçada.
    * @param seconds
    */
-  def timeLimitedResumeQueries(labeled: Seq[Pattern], seconds: Double) = {
+  def timeLimitedResumeQueries(labeled: Seq[Pattern], seconds: Double, exiting: () => Boolean = () => false) = {
     val ti = System.currentTimeMillis()
     var t = 0d
     val withinTimeLimit = resume_queries(labeled).takeWhile { _ =>
       t = (System.currentTimeMillis() - ti) / 1000d
-      t <= seconds
+      t <= seconds && !exiting()
     }.toSeq
     withinTimeLimit
   }

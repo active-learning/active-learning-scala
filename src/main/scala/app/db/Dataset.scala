@@ -49,6 +49,18 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit ${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
+  /**
+   * Including first |Y| imaginary matrices.
+   * Also checks consistency position-count for the pool.
+   */
+  def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
+    val c0 = exec(s"select count(*) from hit ${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
+    val c = if (c0 == 0) 0 else c0 + nclasses
+    val m = countEvenWhenEmpty(s" from hit ${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
+    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: max position +1 $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
+    c
+  }
+
   def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
 
   def fetchsid(strat: Strategy) = {
@@ -79,88 +91,18 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     lidmap.getOrElseUpdate(learner.toString, lid)
   }
 
-  def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern], seconds: Double, Q: Int = Int.MaxValue) {
-    if (readOnly) {
-      safeQuit("Cannot save queries on a readOnly database!")
-    }
-    if (!isOpen) {
-      println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
-      sys.exit(1)
-    }
-    if (!fileLocked) {
-      println(s"This thread has is not in charge of locking $database . Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}.")
-      sys.exit(1)
-    }
-
-    val lid = fetchlid(learner)
-    val sid = fetchsid(strat)
-
-    //descobre em que ponto das queries retomar os hits
-    val nextPos = nextHitPosition(strat, learner, run, fold)
-    val timeStep = math.max(nc, nextPos)
-    //    if (timeStep==3) println(s"next=3: $strat $learner $run $fold")
-    val queries = fetchQueries(strat, run, fold, f)
-
-    //retoma hits
-    val initial = queries.take(timeStep)
-    val rest = queries.drop(timeStep)
-    if (rest.nonEmpty) {
-      var model = learner.build(initial)
-
-      //train
-      val ti = System.currentTimeMillis()
-      val results = mutable.Queue[String]()
-      rest.zipWithIndex.take(Q - timeStep).toStream.takeWhile(_ => (System.currentTimeMillis() - ti) / 1000.0 < seconds).foreach {
-        case (trainingPattern, idx) =>
-          model = learner.update(model, fast_mutable = true)(trainingPattern)
-          val confusion = model.confusion(testSet)
-          val position = timeStep + idx
-          var i = 0
-          var j = 0
-          while (i < nc) {
-            j = 0
-            while (j < nc) {
-              val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)})"
-              results.enqueue(sql)
-              j += 1
-            }
-            i += 1
-          }
-      }
-
-      //save
-      batchWrite(results.toArray)
-      println(s"${results.size} hits inserted into $database!")
-    }
-  }
-
-  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = countEvenWhenEmpty(" from hit " + where(strategy, learner) + s" and run=$run and fold=$fold").head.head.toInt
-
-  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
-    acquire()
-    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
-      case Right(x) => x
-      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
-    }
-    release()
-    if (f != null) Datasets.applyFilter(queries, f) else queries
-  }
-
   /**
-   * Including first |Y| imaginary matrices.
-   * Also checks consistency position-count for the pool.
+   * Only for specific pool and fold (with where clause or sumarizing with group by).
+   * @param s
+   * @param offset
+   * @return
    */
-  def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-    val c0 = exec(s"select count(*) from hit ${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
-    val c = if (c0 == 0) 0 else c0 + nclasses
-    val m = countEvenWhenEmpty(s" from hit ${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
-    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: max position +1 $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
-    c
+  def countEvenWhenEmpty(s: String, offset: Int = 0) = {
+    //    println(s"select (max(position)+1+$offset) " + s)
+    val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
+    if (n == 0) mutable.Queue(Seq.fill(5)(0d))
+    else exec(s"select (max(position)+1+$offset) " + s).get
   }
-
-  //  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = countEvenWhenEmpty(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").head.head.toInt
-  //
-  //  def countPerformedQueries(strategy: Strategy) = exec(s"select count(*) from query,${where(strategy, strategy.learner)}").head.head.toInt
 
   /**
    * Including first |Y| imaginary matrices.
@@ -183,6 +125,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def startedPools(strategy: Strategy) =
     exec(s"select * from query ${where(strategy, strategy.learner)} group by run,fold").get.length
+
+  //  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = countEvenWhenEmpty(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").head.head.toInt
+  //
+  //  def countPerformedQueries(strategy: Strategy) = exec(s"select count(*) from query,${where(strategy, strategy.learner)}").head.head.toInt
 
   /**
    * Also checks consistency position-count for the pool.
@@ -217,23 +163,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   }
 
   /**
-   * Only for specific pool and fold (with where clause or sumarizing with group by).
-   * @param s
-   * @param offset
-   * @return
-   */
-  def countEvenWhenEmpty(s: String, offset: Int = 0) = {
-    //    println(s"select (max(position)+1+$offset) " + s)
-    val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
-    if (n == 0) mutable.Queue(Seq.fill(5)(0d))
-    else exec(s"select (max(position)+1+$offset) " + s).get
-  }
-
-  /**
    * Inserts query-tuples (run, fold, position, instid) into database.
-   * All queries for a given pair run-fold should be written at once.
+   * All queries for a given pair run-fold should be written at once or with the limits below.
    * The original file is updated at the end.
-   * If the given pair run/fold already exists, queries are resumed from that point.
+   * If the given pair run/fold already exists, queries are resumed from the last one recorded.
    *
    * Generates queries until Q from the provided strategy,
    * unless Q is not given (in this case all possible queries (the entire pool) will be generated)
@@ -248,7 +181,81 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * @param Q
    * @return the total number of queries generated by the strategy along all jobs in this pool
    */
-  def saveQueries(strat: Strategy, run: Int, fold: Int, f: Standardize, seconds: Double, Q: Int = Int.MaxValue) = {
+  def saveQueries(strat: Strategy, run: Int, fold: Int, f: Standardize, seconds: Double, Q: Int = Int.MaxValue) =
+    if (exiting()) None //se estava saindo, nem começa novo lote
+    else {
+      if (readOnly) {
+        safeQuit("Cannot save queries on a readOnly database!")
+      }
+      if (!isOpen) {
+        println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
+        sys.exit(1)
+      }
+      if (!fileLocked) {
+        println(s"This thread has is not in charge of locking $database . Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}.")
+        sys.exit(1)
+      }
+      val stratId = fetchsid(strat)
+      val learnerId = fetchlid(strat.learner)
+
+      //Check if there are more queries than the size of the pool (or greater than Q).
+      var q = -1
+      try {
+        val statement = connection.createStatement()
+        val resultSet = statement.executeQuery(s"select count(rowid) as q from query where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold")
+        resultSet.next()
+        q = resultSet.getInt("q")
+        if (q > Q || q > strat.pool.size) {
+          //        print("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are greater than Q " + Q + s" or pool size ${strat.pool.size}. ")
+          //        println("This will be assumed as ok.")
+          //        sys.exit(1)
+        }
+      } catch {
+        case e: Throwable => e.printStackTrace
+          safeQuit("\nProblems looking for preexistence of queries in: " + dbCopy + ".")
+      }
+
+      //Get queries from past jobs, if any.
+      val queries = fetchQueries(strat, run, fold, f)
+      val nextPosition = queries.size
+      val r = if (nextPosition < Q && nextPosition < strat.pool.size) {
+        println(s"Gerando queries para $dataset pool: $run / $fold ...")
+        val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
+        else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
+        q = nextIds.length
+        acquire()
+        println(s"Gravando queries para $dataset pool: $run / $fold ...")
+        var str = ""
+        try {
+          val statement = connection.createStatement()
+          statement.executeUpdate("begin")
+          nextIds.zipWithIndex.foreach { case (pattId, idx) =>
+            val position = nextPosition + idx
+            str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
+            statement.executeUpdate(str)
+          }
+          str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
+          statement.executeUpdate(str)
+          str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
+          statement.executeUpdate(str)
+          statement.executeUpdate("end")
+        } catch {
+          case e: Throwable => e.printStackTrace
+            println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
+            println(e.getMessage)
+            safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
+        }
+        println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
+        save()
+        release()
+        if (exiting()) releaseOp() //libera eventual fechamento somente após save()
+        nextPosition + q
+      } else nextPosition
+      Some(r)
+    }
+
+  def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern], seconds: Double, Q: Int = Int.MaxValue) {
+    if (exiting()) return //se estava saindo, nem começa novo lote
     if (readOnly) {
       safeQuit("Cannot save queries on a readOnly database!")
     }
@@ -260,61 +267,60 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       println(s"This thread has is not in charge of locking $database . Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}.")
       sys.exit(1)
     }
-    val stratId = fetchsid(strat)
-    val learnerId = fetchlid(strat.learner)
 
-    //Check if there are more queries than the size of the pool (or greater than Q).
-    var q = -1
-    try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery(s"select count(rowid) as q from query where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold")
-      resultSet.next()
-      q = resultSet.getInt("q")
-      if (q > Q || q > strat.pool.size) {
-        //        print("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are greater than Q " + Q + s" or pool size ${strat.pool.size}. ")
-        //        println("This will be assumed as ok.")
-        //        sys.exit(1)
-      }
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems looking for preexistence of queries in: " + dbCopy + ".")
-    }
+    val lid = fetchlid(learner)
+    val sid = fetchsid(strat)
 
-    //Get queries from past jobs, if any.
+    //descobre em que ponto das queries retomar os hits
+    val nextPos = nextHitPosition(strat, learner, run, fold)
+    val timeStep = math.max(nc, nextPos)
+    //    if (timeStep==3) println(s"next=3: $strat $learner $run $fold")
     val queries = fetchQueries(strat, run, fold, f)
-    val nextPosition = queries.size
-    if (nextPosition < Q && nextPosition < strat.pool.size) {
-      println(s"Gerando queries para $dataset pool: $run / $fold ...")
-      val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds).take(Q).map(_.id).toVector)
-      else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds).take(Q - nextPosition).map(_.id).toVector)
-      q = nextIds.length
-      acquire()
-      println(s"Gravando queries para $dataset pool: $run / $fold ...")
-      var str = ""
-      try {
-        val statement = connection.createStatement()
-        statement.executeUpdate("begin")
-        nextIds.zipWithIndex.foreach { case (pattId, idx) =>
-          val position = nextPosition + idx
-          str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
-          statement.executeUpdate(str)
-        }
-        str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
-        statement.executeUpdate(str)
-        str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
-        statement.executeUpdate(str)
-        statement.executeUpdate("end")
-      } catch {
-        case e: Throwable => e.printStackTrace
-          println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
-          println(e.getMessage)
-          safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
+
+    //retoma hits
+    val initial = queries.take(timeStep)
+    val rest = queries.drop(timeStep)
+    if (rest.nonEmpty) {
+      var model = learner.build(initial)
+
+      //train
+      val ti = System.currentTimeMillis()
+      val results = mutable.Queue[String]()
+      rest.zipWithIndex.take(Q - timeStep).toStream.takeWhile(_ => (System.currentTimeMillis() - ti) / 1000.0 < seconds && !exiting()).foreach {
+        case (trainingPattern, idx) =>
+          model = learner.update(model, fast_mutable = true)(trainingPattern)
+          val confusion = model.confusion(testSet)
+          val position = timeStep + idx
+          var i = 0
+          var j = 0
+          while (i < nc) {
+            j = 0
+            while (j < nc) {
+              val sql = s"insert into hit values ($sid, $lid, $run, $fold, $position, $i, $j, ${confusion(i)(j)})"
+              results.enqueue(sql)
+              j += 1
+            }
+            i += 1
+          }
       }
-      println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
-      save()
-      release()
-      nextPosition + q
-    } else nextPosition
+
+      //save
+      batchWrite(results.toArray)
+      println(s"${results.size} hits inserted into $database!")
+      if (exiting()) releaseOp() //libera eventual fechamento somente após batchWrite
+    }
+  }
+
+  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = countEvenWhenEmpty(" from hit " + where(strategy, learner) + s" and run=$run and fold=$fold").head.head.toInt
+
+  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
+    acquire()
+    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
+      case Right(x) => x
+      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
+    }
+    release()
+    if (f != null) Datasets.applyFilter(queries, f) else queries
   }
 }
 
