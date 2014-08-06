@@ -143,9 +143,10 @@ trait CrossValidation extends Lock with ClassName {
                 new Random(run * 100 + fold).shuffle(ts)
               }
 
+              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
               runCore(db, run, fold, pool, testSet, f)
-
               println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
+
             }
             //            println("  Run " + run + " finished for " + datasetName + " !")
           }
@@ -175,7 +176,7 @@ trait CrossValidation extends Lock with ClassName {
 
   def rndQueriesComplete(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = true)
+    db.open(debug = false)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
@@ -202,13 +203,12 @@ trait CrossValidation extends Lock with ClassName {
 
   def rndNBHitsComplete(dataset: String) = {
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = true)
+    db.open(debug = false)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
     //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
     val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
-    println(hitExs + " " + expectedQueries)
     val res = if (hitExs > expectedQueries) safeQuit(s"$hitExs confusion matrices should be equal to $expectedQueries for $db with NB", db)
     else {
       if (hitExs < expectedQueries) {

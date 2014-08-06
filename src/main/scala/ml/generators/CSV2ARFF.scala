@@ -22,9 +22,10 @@ import java.io.{File, FileWriter}
 
 import app.ArgParser
 import ml.classifiers.{interaELM, OSELM}
-import util.{Tempo, Datasets}
+import util.{Stat, Tempo, Datasets}
 import weka.core.Instances
 
+import scala.collection.mutable
 import scala.io.Source
 import scala.util.Random
 
@@ -51,27 +52,41 @@ object CSV2ARFFTest extends App {
   val tr = patts.take(2 * n / 3).grouped(100).toList
   val ts = patts.drop(2 * n / 3)
 
-  val l = OSELM(12)
-  Tempo.timev(l.build(patts.take(2 * n / 3)))
-  val (firstm, t) = Tempo.timev(l.build(patts.take(2 * n / 3)))
-  //  val (firstm, t) = Tempo.timev(l.build(tr.head))
-  println(firstm.accuracy(ts) + " " + t * 1000)
+  val ii = 7
+  val l = interaELM(300, 0.0)
+  Tempo.timev(l.build(tr.take(2).flatten))
+  val (firstm0, t) = Tempo.timev(l.build(tr.take(ii).flatten))
+  println(firstm0.accuracy(ts) + " " + t * 1000 + " L" + firstm0.L)
+  Thread.sleep(2000)
+  //  println("")
+  //  val m = tr.drop(ii).foldLeft(firstm) { (model, chunk) =>
+  //    val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => l.update(model)(ex)))
+  //    //    println(r.accuracy(ts) + " " + t * 1000) //+ " " + r.L)
+  //    r
+  //  }
   println("")
-  val m = tr.drop(1).foldLeft(firstm) { (model, chunk) =>
-    val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => l.update(model)(ex)))
-    println(r.accuracy(ts) + " " + t * 1000) //+ " " + r.L)
-    r
-  }
-  println("")
-
-  val a = {
-    val l = OSELM(12)
-    val (firstm, t) = Tempo.timev(l.build(tr.head))
-    println(firstm.accuracy(ts) + " " + t * 1000)
-    val m = tr.drop(1).foldLeft(firstm) { (model, chunk) =>
+  //  1 to 200 by 5 foreach { L =>
+  //    val l = OSELM(L)
+  //    val (firstm, t) = Tempo.timev(l.build(tr.take(ii).flatten))
+  //    println(L +": " + (firstm.accuracy(ts), t))
+  //  }
+  //  println("")
+  val cv = Datasets.kfoldCV(patts, 10, true) { case (tr0, ts0, fold, minSize) =>
+    val tr = new Random(fold).shuffle(tr0).grouped(100).toList
+    val ts = ts0
+    val l = OSELM(firstm0.L)
+    val (firstm, t) = Tempo.timev(l.build(tr.take(ii).flatten))
+    val q = mutable.Queue((firstm.accuracy(ts), t))
+    val m = tr.drop(ii).foldLeft(firstm) { (model, chunk) =>
       val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => l.update(model)(ex)))
-      println(r.accuracy(ts) + " " + t * 1000) //+ " " + r.L)
+      q.enqueue((r.accuracy(ts), t))
       r
     }
+    q
+  }.transpose
+  cv.foreach { x =>
+    val (m, d, i) = Stat.media_std_intervalo_confianca99(x.map(_._1).toVector)
+    println(s"$m $d $i ${x.map(_._2).sum}")
   }
+
 }
