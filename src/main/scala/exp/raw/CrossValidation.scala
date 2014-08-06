@@ -36,6 +36,7 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  var fileLocked = false
   lazy val parallelDatasets = args1(2).contains("d")
   lazy val parallelRuns = args1(2).contains("r")
   lazy val parallelFolds = args1(2).contains("f")
@@ -102,11 +103,11 @@ trait CrossValidation extends Lock with ClassName {
       override def run() {
         while (running) {
           Thread.sleep(5000)
-          val tmpFile = new File(fileToStopProgram)
-          if (tmpFile.exists()) {
-            tmpFile.delete()
+          val tmpLockingFile = new File(fileToStopProgram)
+          if (tmpLockingFile.exists()) {
+            tmpLockingFile.delete()
             Thread.sleep(100)
-            safeQuit(s"$tmpFile found, safe-quiting.", dbToWait)
+            safeQuit(s"$tmpLockingFile found, safe-quiting.", dbToWait)
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
             Thread.sleep(100)
             safeQuit(s"Limite de $memlimit MB de memoria atingido.", dbToWait)
@@ -178,7 +179,6 @@ trait CrossValidation extends Lock with ClassName {
   def completeForQCalculation(db: Dataset) = rndQueriesComplete(db) && rndNBHitsComplete(db)
 
   def rndQueriesComplete(db: Dataset) = {
-    if (!db.isOpen) db.open(debug = false)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
@@ -203,7 +203,6 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def rndNBHitsComplete(db: Dataset) = {
-    if (!db.isOpen) db.open(debug = false)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
@@ -220,7 +219,6 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def hitsComplete(learner: Learner)(db: Dataset) = {
-    if (!db.isOpen) db.open(debug = false)
     val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
@@ -233,7 +231,6 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def nonRndQueriesComplete(learner: Learner)(db: Dataset) = {
-    if (!db.isOpen) db.open(debug = false)
     val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>

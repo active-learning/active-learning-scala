@@ -32,6 +32,7 @@ object RandomHits extends CrossValidation with App {
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
   val datasetNames = datasetNames0.filter { d =>
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
+    db.open()
     val res = rndQueriesComplete(db) && (!rndNBHitsComplete(db) || !hitsComplete(learner(-1, -1, Seq()))(db))
     db.close()
     res

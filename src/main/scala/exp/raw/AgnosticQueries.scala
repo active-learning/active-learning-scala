@@ -35,6 +35,7 @@ object AgnosticQueries extends CrossValidation with App {
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
   val datasetNames = datasetNames0.filter { d =>
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
+    db.open()
     val res = !rndQueriesComplete(db) || !nonRndQueriesComplete(NoLearner())(db)
     db.close()
     res

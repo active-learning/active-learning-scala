@@ -47,7 +47,23 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
+  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
+
   def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern], seconds: Double, Q: Int = Int.MaxValue) {
+    if (readOnly) {
+      safeQuit("Cannot save queries on a readOnly database!")
+    }
+    if (!isOpen) {
+      println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
+      acquire()
+      sys.exit(1)
+    }
+    if (!fileLocked) {
+      println(s"This thread has is not in charge of locking $database . Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}.")
+      acquire()
+      sys.exit(1)
+    }
+
     val lid = fetchlid(learner)
     val sid = fetchsid(strat)
 
@@ -145,12 +161,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     c
   }
 
-  def handleZero(s: String) = {
-    val n = exec("select count(*) " + s).get.head.head.toInt
-    if (n == 0) 0
-    else exec("select max(position)+1 " + s).get.head.head.toInt
-  }
-
   /**
    * Returns the recorded number of tuples plus the implicity ones.
    */
@@ -171,9 +181,13 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def startedPools(strategy: Strategy) =
     exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").get.length
 
-  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
-
   def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = handleZero(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold")
+
+  def handleZero(s: String) = {
+    val n = exec("select count(*) " + s).get.head.head.toInt
+    if (n == 0) 0
+    else exec("select max(position)+1 " + s).get.head.head.toInt
+  }
 
   def countPerformedQueries(strategy: Strategy) = handleZero(s"from query,${where(strategy, strategy.learner)}")
 
@@ -201,7 +215,14 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       safeQuit("Cannot save queries on a readOnly database!")
     }
     if (!isOpen) {
-      safeQuit(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
+      println(s"Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}. Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
+      acquire()
+      sys.exit(1)
+    }
+    if (!fileLocked) {
+      println(s"This thread has is not in charge of locking $database . Impossible to get connection to write queries at the run $run and fold $fold for strategy $strat and learner ${strat.learner}.")
+      acquire()
+      sys.exit(1)
     }
     val stratId = fetchsid(strat)
     val learnerId = fetchlid(strat.learner)
@@ -252,9 +273,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         case e: Throwable => e.printStackTrace
           println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
           println(e.getMessage)
-          println("Deleting " + dbCopy + "...")
-          dbCopy.delete()
-          safeQuit(" " + dbCopy + " deleted!")
+          safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
       }
       println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
       save()
