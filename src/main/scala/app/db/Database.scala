@@ -54,7 +54,6 @@ trait Database extends Lock {
    * @return Some: resulting table.
    */
   var debug = false
-  var running = true
 
   /**
    * Opens connection to database.
@@ -160,6 +159,8 @@ trait Database extends Lock {
     dbOriginal.renameTo(dbLock)
   }
 
+  def isOpen = connection != null
+
   def exec(sql: String) = {
     if (debug) println(s"[$sql]")
     if (!isOpen) {
@@ -204,8 +205,6 @@ trait Database extends Lock {
     }
   }
 
-  def isOpen = connection != null
-
   def batchWrite(results: Array[String]) {
     try {
       val statement = connection.createStatement()
@@ -234,9 +233,9 @@ trait Database extends Lock {
   def save() {
     if (readOnly) safeQuit("readOnly databases don't accept save(), and there is no reason to accept.")
 
-    Thread.sleep(10)
+    Thread.sleep(1000)
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
-    if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+    if (new File(dbCopy + "-journal").exists()) safeQuit(s"save: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     if (!FileUtils.contentEquals(dbCopy, dbLock)) {
       //      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
@@ -301,7 +300,7 @@ trait Database extends Lock {
     if (!readOnly) {
       //Checks if something happened to put db in inconsistent state.
       if (new File(dbCopy + "-journal").exists()) {
-        println(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+        println(s"hardclose: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
         sys.exit(1)
       }
       if (dbCopy.exists()) dbCopy.delete()
@@ -326,7 +325,7 @@ trait Database extends Lock {
     connection = null
     if (!readOnly) {
       //Checks if something happened to put db in inconsistent state.
-      if (new File(dbCopy + "-journal").exists()) safeQuit(s"$dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+      if (new File(dbCopy + "-journal").exists()) safeQuit(s"close: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
       if (fileLocked) dbCopy.delete()
       unlockFile()
     }

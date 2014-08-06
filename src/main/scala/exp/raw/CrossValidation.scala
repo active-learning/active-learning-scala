@@ -64,7 +64,6 @@ trait CrossValidation extends Lock with ClassName {
   var finished = 0
   var skiped = 0
   var available = true
-  var running = true
   var dbToWait: Dataset = null
   val fileToStopProgram = "/tmp/safeQuit.davi"
 
@@ -111,8 +110,8 @@ trait CrossValidation extends Lock with ClassName {
 
     //stops according to time limit or presence of quit-file
     running = true
-    val t = new Thread(new Runnable() {
-      override def run() {
+    new Thread(new Runnable() {
+      def run() {
         var reason = "nenhum"
         while (running) {
           1 to 50 takeWhile { _ =>
@@ -133,8 +132,7 @@ trait CrossValidation extends Lock with ClassName {
         }
         safeQuit(reason, dbToWait)
       }
-    })
-    t.start()
+    }).start()
 
     try {
       (if (parallelDatasets) datasetNames else datasetNames).zipWithIndex foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
