@@ -63,8 +63,7 @@ trait Database extends Lock {
     this.debug = debug
     if (isOpen) {
       println(s"Database $dbOriginal already opened as $dbCopy!")
-      //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-      acquire()
+      //saida completa quando não se trata de problema de concorrência externa: acquire, conn, apaga copy, unlock, exit
       sys.exit(1)
     }
     //check file existence and if it is in use
@@ -72,7 +71,6 @@ trait Database extends Lock {
       if (dbOriginal.exists()) {
         println(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
         //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-        acquire()
         sys.exit(1)
       } else {
         println(s"$dbOriginal is locked as $dbLock! Cannot open it. Skipping...")
@@ -85,7 +83,6 @@ trait Database extends Lock {
       if (dbCopy.exists() && !readOnly) {
         println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
         //saida completa quando não se trata de problema de concorrência externa: acquire, conn, apaga copy, unlock, exit
-        acquire()
         sys.exit(1)
       }
 
@@ -98,7 +95,6 @@ trait Database extends Lock {
         if (!dbOriginal.exists()) {
           println(dbOriginal + " não existe!")
           //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-          acquire()
           sys.exit(1)
         }
       }
@@ -124,7 +120,6 @@ trait Database extends Lock {
           println(e.getMessage)
           println("\nProblems opening db connection: " + dbCopy + " .")
           //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-          acquire()
           sys.exit(1)
       }
       if (debug) println("Connection to " + dbCopy + " opened.")
@@ -160,7 +155,6 @@ trait Database extends Lock {
     if (fileLocked || dbLock.exists()) {
       println(s"$dbLock should not exist; $dbOriginal needs to take its place.")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-      acquire()
       sys.exit(1)
     }
     fileLocked = true
@@ -172,7 +166,6 @@ trait Database extends Lock {
     if (!isOpen) {
       println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou após uma tentativa skipada de open() ou na falta de uma chamada a open().")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-      acquire()
       sys.exit(1)
     }
 
@@ -255,7 +248,6 @@ trait Database extends Lock {
     if (!isOpen) {
       println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-      acquire()
       sys.exit(1)
     }
 
@@ -346,13 +338,11 @@ trait Database extends Lock {
     if (dbOriginal.exists()) {
       println(s"$dbOriginal should not exist; $dbLock needs to take its place.")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-      acquire()
       sys.exit(1)
     }
     if (!fileLocked) {
       println(s"Trying to unlock $dbLock, but this connection is not responsible for that lock.")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-      acquire()
       sys.exit(1)
     } else {
       dbLock.renameTo(dbOriginal)
