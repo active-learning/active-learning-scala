@@ -69,7 +69,7 @@ trait CrossValidation extends Lock with ClassName {
 
   def ee(db: Dataset): Boolean
 
-  lazy val datasetNames = datasetNames0.filter { d =>
+  lazy val datasetNames = datasetNames0.par.filter { d =>
     val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
     if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
     db.open()
