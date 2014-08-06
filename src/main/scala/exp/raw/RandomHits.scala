@@ -22,7 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.NB
+import ml.classifiers.{NoLearner, NB}
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -30,7 +30,12 @@ object RandomHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val datasetNames = datasetNames0.filter(rndQueriesComplete).filter(d => !rndNBHitsComplete(d) || !hitsComplete(learner(-1, -1, Seq()))(d))
+  val datasetNames = datasetNames0.filter { d =>
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
+    val res = rndQueriesComplete(db) && (!rndNBHitsComplete(db) || !hitsComplete(learner(-1, -1, Seq()), db)(d))
+    db.close()
+    res
+  }
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(RandomSampling(Seq()))
@@ -42,7 +47,7 @@ object RandomHits extends CrossValidation with App {
     strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 2 * 3600))
 
     //Verifica se passo anterior antingiu |Pool|.
-    if (rndNBHitsComplete(db.toString)) {
+    if (rndNBHitsComplete(db)) {
       val Q = q_notCheckedIfHasAllRndQueries(db)
 
       //Retoma Rnd Hits para o dado learner como arg na linha de comando, limitando por tempo e Q.

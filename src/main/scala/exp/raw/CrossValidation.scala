@@ -175,11 +175,10 @@ trait CrossValidation extends Lock with ClassName {
     Thread.sleep(20)
   }
 
-  def completeForQCalculation(dataset: String) = rndQueriesComplete(dataset) && rndNBHitsComplete(dataset)
+  def completeForQCalculation(db: Dataset) = rndQueriesComplete(dataset, db: Dataset) && rndNBHitsComplete(dataset, db: Dataset)
 
-  def rndQueriesComplete(dataset: String) = {
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = false)
+  def rndQueriesComplete(db: Dataset) = {
+    if (!db.isOpen) db.open(debug = false)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
@@ -200,13 +199,11 @@ trait CrossValidation extends Lock with ClassName {
         } else true
       }
     }
-    db.close()
     res
   }
 
-  def rndNBHitsComplete(dataset: String) = {
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = false)
+  def rndNBHitsComplete(db: Dataset) = {
+    if (!db.isOpen) db.open(debug = false)
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
@@ -219,13 +216,11 @@ trait CrossValidation extends Lock with ClassName {
         false
       } else true
     }
-    db.close()
     res
   }
 
-  def hitsComplete(learner: Learner)(dataset: String) = {
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = false)
+  def hitsComplete(learner: Learner, db: Dataset)(dataset: String) = {
+    if (!db.isOpen) db.open(debug = false)
     val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
@@ -234,13 +229,11 @@ trait CrossValidation extends Lock with ClassName {
         }
       }
     }
-    db.close()
     res
   }
 
-  def nonRndQueriesComplete(learner: Learner)(dataset: String) = {
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
-    db.open(debug = false)
+  def nonRndQueriesComplete(learner: Learner, db: Dataset)(dataset: String) = {
+    if (!db.isOpen) db.open(debug = false)
     val Q = q_notCheckedIfHasAllRndQueries(db)
     val res = strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
@@ -249,7 +242,6 @@ trait CrossValidation extends Lock with ClassName {
         }
       }
     }
-    db.close()
     res
   }
 }

@@ -31,7 +31,12 @@ object HeavyGnosticQueries extends CrossValidation with App {
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
     "strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of 8000s;\n"
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val datasetNames = datasetNames0.filter(completeForQCalculation).filterNot(hitsComplete(learner(-1, -1, Seq())))
+  val datasetNames = datasetNames0.filter { d =>
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
+    val res = completeForQCalculation(db) && !hitsComplete(learner(-1, -1, Seq()), db)
+    db.close()
+    res
+  }
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(

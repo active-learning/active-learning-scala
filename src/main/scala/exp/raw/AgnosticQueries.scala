@@ -33,7 +33,12 @@ object AgnosticQueries extends CrossValidation with App {
     "Rnd because it is the baseline to define Q and\n" +
     "Clu because it relies on external implementation.\n"
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
-  val datasetNames = datasetNames0.filter(d => !rndQueriesComplete(d) || !nonRndQueriesComplete(NoLearner())(d))
+  val datasetNames = datasetNames0.filter { d =>
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
+    val res = !rndQueriesComplete(db) || !nonRndQueriesComplete(NoLearner(), db)(d)
+    db.close()
+    res
+  }
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(ClusterBased(pool))
