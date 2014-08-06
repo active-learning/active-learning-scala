@@ -47,8 +47,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
-  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
-
   def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern], seconds: Double, Q: Int = Int.MaxValue) {
     if (readOnly) {
       safeQuit("Cannot save queries on a readOnly database!")
@@ -105,7 +103,15 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
   }
 
-  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = handleZero(" from hit," + where(strategy, learner) + s" and run=$run and fold=$fold")
+  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = countEvenWhenEmpty(" from hit," + where(strategy, learner) + s" and run=$run and fold=$fold").head.head.toInt
+
+  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
+
+  def countEvenWhenEmpty(s: String, offset: Int = 0) = {
+    val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
+    if (n == 0) mutable.Queue(Seq(0d))
+    else exec(s"select (max(position)+1+$offset) " + s).get
+  }
 
   def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
     acquire()
@@ -156,7 +162,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
     val c0 = exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
     val c = if (c0 == 0) 0 else c0 + nclasses
-    val m = handleZero(s" from hit,${where(strategy, learner)} and run=$run and fold=$fold")
+    val m = countEvenWhenEmpty(s" from hit,${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
     if (c != m) safeQuit(s"Inconsistency: max position $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
     c
   }
@@ -165,9 +171,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Returns the recorded number of tuples plus the implicity ones.
    */
   def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
-    val c0 = exec(s"select count(*) from hit,${where(strategy, learner)}").get.head.head / (nclasses * nclasses)
-    val c = if (c0 == 0) 0 else c0 + nclasses * runs * folds
-    val m = exec(s"select max(position) as m from hit,${where(strategy, learner)} group by run,fold").get.map(_.head).map(_ + 1).sum
+    val c = countEvenWhenEmpty(s", count(*)/${nclasses * nclasses}*1.0 from hit,${where(strategy, learner)} group by run,fold").map(_.tail.head + nclasses).sum //soma offset apenas onde ha resultados
+    val m = countEvenWhenEmpty(s" / ($nclasses * $nclasses)*1.0 from hit,${where(strategy, learner)} group by run,fold").map(_.head).sum //position already has nclasses added by nature!
+
     if (c != m) safeQuit(s"Inconsistency: sum of max positions $m for $dataset differs from total number of conf. matrices $c .")
     c
   }
@@ -181,15 +187,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def startedPools(strategy: Strategy) =
     exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").get.length
 
-  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = handleZero(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold")
+  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = countEvenWhenEmpty(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").head.head.toInt
 
-  def handleZero(s: String) = {
-    val n = exec("select count(*) " + s).get.head.head.toInt
-    if (n == 0) 0
-    else exec("select max(position)+1 " + s).get.head.head.toInt
-  }
-
-  def countPerformedQueries(strategy: Strategy) = handleZero(s"from query,${where(strategy, strategy.learner)}")
+  def countPerformedQueries(strategy: Strategy) = countEvenWhenEmpty(s"from query,${where(strategy, strategy.learner)}").head.head.toInt
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
