@@ -273,11 +273,13 @@ trait Database extends Lock {
       if (dbCopy.exists()) dbCopy.delete()
 
       //unlock
-      if (dbOriginal.exists()) {
-        println(s"$dbOriginal should not exist; $dbLock needs to take its place.")
-        sys.exit(1)
+      if (dbLock.exists()) {
+        if (dbOriginal.exists()) {
+          println(s"$dbOriginal should not exist; $dbLock needs to take its place.")
+          sys.exit(1)
+        }
+        dbLock.renameTo(dbOriginal)
       }
-      if (dbLock.exists()) dbLock.renameTo(dbOriginal)
     }
   }
 
