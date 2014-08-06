@@ -102,7 +102,7 @@ trait CrossValidation extends Lock with ClassName {
     new Thread(new Runnable() {
       override def run() {
         while (running) {
-          Thread.sleep(5000)
+          Thread.sleep(3000)
           val tmpLockingFile = new File(fileToStopProgram)
           if (tmpLockingFile.exists()) {
             tmpLockingFile.delete()
