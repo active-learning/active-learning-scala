@@ -22,10 +22,10 @@ import java.io.File
 import java.lang.{Throwable, Exception}
 import java.util.Calendar
 
-import al.strategies.{Strategy, RandomSampling}
+import al.strategies.{ClusterBased, Strategy, RandomSampling}
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.{NB, Learner}
+import ml.classifiers.{NoLearner, NB, Learner}
 import util.{Lock, Datasets, Lazy}
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -57,7 +57,7 @@ trait CrossValidation extends Lock with ClassName {
   val runs = 5
   val folds = 5
   //lock is just to increment finished datasets counter
-  val datasetNames: Seq[String]
+  val datasetNames0: Seq[String]
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
   val qmap = mutable.Map[(String, String), Int]()
   val memlimit = 28000
@@ -67,6 +67,17 @@ trait CrossValidation extends Lock with ClassName {
   var running = true
   var dbToWait: Dataset = null
   val fileToStopProgram = "/tmp/safeQuit.davi"
+
+  def ee(db: Dataset): Boolean
+
+  lazy val datasetNames = datasetNames0.filter { d =>
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
+    if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
+    db.open()
+    val r = ee(db)
+    db.close()
+    r
+  }
 
   def strats(run: Int, pool: Seq[Pattern]) = if (parallelStrats) strats0(run, pool).par else strats0(run, pool)
 
@@ -83,6 +94,7 @@ trait CrossValidation extends Lock with ClassName {
         f <- 0 until folds
         sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
       } yield {
+        //        println(sql)
         db.exec(sql).get.head.head
       }).sorted.toList(runs * folds / 2).toInt
       println(s"Q=$res")
@@ -99,146 +111,178 @@ trait CrossValidation extends Lock with ClassName {
 
     //stops according to time limit or presence of quit-file
     running = true
-    new Thread(new Runnable() {
+    val t = new Thread(new Runnable() {
       override def run() {
+        var reason = "nenhum"
         while (running) {
-          Thread.sleep(3000)
+          1 to 50 takeWhile { _ =>
+            Thread.sleep(100)
+            running
+          }
           val tmpLockingFile = new File(fileToStopProgram)
           if (tmpLockingFile.exists()) {
+            running = false
             tmpLockingFile.delete()
             Thread.sleep(100)
-            safeQuit(s"$tmpLockingFile found, safe-quiting.", dbToWait)
+            reason = s"$fileToStopProgram found, safe-quiting."
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
+            running = false
             Thread.sleep(100)
-            safeQuit(s"Limite de $memlimit MB de memoria atingido.", dbToWait)
+            reason = s"Limite de $memlimit MB de memoria atingido."
           }
         }
+        safeQuit(reason, dbToWait)
       }
-    }).start()
+    })
+    t.start()
 
-    (if (parallelDatasets) datasetNames.par else datasetNames).zipWithIndex foreach { case (datasetName, idx) =>
-      val datasetNr = idx + 1
+    try {
+      (if (parallelDatasets) datasetNames else datasetNames).zipWithIndex foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
+        val datasetNr = idx + 1
 
-      //Open connection to load patterns via weka SQL importer.
-      //      println("Loading patterns for dataset " + datasetName + " ...")
-      source(datasetName) match {
-        case Right(patts) =>
+        //Open connection to load patterns via weka SQL importer.
+        //      println("Loading patterns for dataset " + datasetName + " ...")
+        source(datasetName) match {
+          case Right(patts) =>
 
-          //Reopen connection to write queries.
-          println("Beginning dataset " + datasetName + " ...")
-          val db = dest(datasetName)
-          dbToWait = db
-          db.open(debug = false)
+            //Reopen connection to write queries.
+            println("Beginning dataset " + datasetName + " ...")
+            val db = dest(datasetName)
+            dbToWait = db
+            db.open(debug = false)
 
-          (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-            println("    Beginning run " + run + " for " + datasetName + " ...")
-            Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
+            (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+              println("    Beginning run " + run + " for " + datasetName + " ...")
+              Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
 
-              //z-score
-              lazy val f = Datasets.zscoreFilter(tr0)
-              lazy val pool = {
-                val tr = Datasets.applyFilterChangingOrder(tr0, f)
-                val res = new Random(run * 100 + fold).shuffle(tr)
-                //                println(s"    data standardized for run $run and fold $fold.")
-                res
+                //z-score
+                lazy val f = Datasets.zscoreFilter(tr0)
+                lazy val pool = {
+                  val tr = Datasets.applyFilterChangingOrder(tr0, f)
+                  val res = new Random(run * 100 + fold).shuffle(tr)
+                  //                println(s"    data standardized for run $run and fold $fold.")
+                  res
+                }
+                lazy val testSet = {
+                  val ts = Datasets.applyFilterChangingOrder(ts0, f)
+                  new Random(run * 100 + fold).shuffle(ts)
+                }
+
+                println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
+                runCore(db, run, fold, pool, testSet, f)
+                println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
+
               }
-              lazy val testSet = {
-                val ts = Datasets.applyFilterChangingOrder(ts0, f)
-                new Random(run * 100 + fold).shuffle(ts)
-              }
-
-              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
-              runCore(db, run, fold, pool, testSet, f)
-              println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
-
+              //            println("  Run " + run + " finished for " + datasetName + " !")
             }
-            //            println("  Run " + run + " finished for " + datasetName + " !")
-          }
 
-          if (!db.readOnly) {
-            db.acquire()
-            db.save()
-            db.release()
-          }
-          acquire()
-          finished += 1
-          release()
-          println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")\n")
-          db.close()
-        case Left(str) =>
-          acquire()
-          skiped += 1
-          release()
-          println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.\n")
+            if (!db.readOnly) {
+              db.acquire()
+              db.save()
+              db.release()
+            }
+            acquire()
+            finished += 1
+            release()
+            println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")\n")
+            db.close()
+          case Left(str) =>
+            acquire()
+            skiped += 1
+            release()
+            println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.\n")
+        }
       }
+    } catch {
+      case e: Throwable =>
+        running = false
+        println(s"Exceção inesperada:")
+        e.printStackTrace()
+        println(s"Exceção inesperada (just exiting to avoid zombie threads...):\n${e.getClass.getName}")
+        dbToWait.acquire()
+        dbToWait.hardClose()
     }
+
     running = false
-    Thread.sleep(20)
+    println("bye!")
   }
 
-  def completeForQCalculation(db: Dataset) = rndQueriesComplete(db) && rndNBHitsComplete(db)
+  def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
+    println("Rnd queries incomplete.")
+    false
+  } else if (!rndNBHitsComplete(db)) {
+    println("Rnd NB hits incomplete.")
+    false
+  } else true
 
   def rndQueriesComplete(db: Dataset) = {
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
 
     //checa se as queries desse run/fold existem para Random/NoLearner
-    val res = if (db.isOpen && db.countRndStartedPools != runs * folds) {
-      println(s"Random Sampling query set of sequences incomplete, " +
-        s"found ${db.countRndStartedPools}, but ${runs * folds} expected. Skipping dataset $db .")
+    if (db.isOpen && db.countRndStartedPools != runs * folds) {
       false
 
       //checa se todas as queries existem para a base
     } else {
       if (db.countRndPerformedQueries > expectedQueries) safeQuit(s"${db.countRndPerformedQueries} queries found for $db , it should be $expectedQueries", db)
-      else {
-        if (db.countRndPerformedQueries < expectedQueries) {
-          println(s"Random Sampling queries incomplete, " +
-            s"found ${db.countRndPerformedQueries}, but $expectedQueries expected. Skipping dataset $db .")
-          false
-        } else true
-      }
+      else db.countRndPerformedQueries == expectedQueries
     }
-    res
   }
 
   def rndNBHitsComplete(db: Dataset) = {
     val exs = db.n
-    val expectedQueries = exs * (folds - 1) * runs
+    val expectedHits = exs * (folds - 1) * runs
 
     //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
     val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
-    val res = if (hitExs > expectedQueries) safeQuit(s"$hitExs confusion matrices should be equal to $expectedQueries for $db with NB", db)
-    else {
-      if (hitExs < expectedQueries) {
-        println(s"Rnd hits incomplete for $db with NB (found $hitExs of $expectedQueries).")
-        false
-      } else true
-    }
-    res
+    if (hitExs > expectedHits) safeQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB", db)
+    else hitExs == expectedHits
+  }
+
+  /**
+   * Assumes Rnd queries are complete.
+   * @param db
+   * @param run
+   * @param fold
+   * @return
+   */
+  def rndNBHitsCompleteForPool(db: Dataset, run: Int, fold: Int) = {
+    val expectedHits = db.countPerformedQueriesForPool(RandomSampling(Seq()), run, fold)
+
+    //checa se tabela de matrizes de confusão está completa para este pool inteiro para Random/NB (NB é a referência para Q)
+    val hitExs = db.countPerformedConfMatricesForPool(RandomSampling(Seq()), NB(), run, fold)
+    if (hitExs > expectedHits) safeQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB for pool $run/$fold", db)
+    else hitExs == expectedHits
   }
 
   def hitsComplete(learner: Learner)(db: Dataset) = {
     val Q = q_notCheckedIfHasAllRndQueries(db)
-    val res = strats(-1, Seq()).forall { s =>
+    strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
           db.countPerformedConfMatricesForPool(s, learner, run, fold) >= Q
         }
       }
     }
-    res
   }
 
-  def nonRndQueriesComplete(learner: Learner)(db: Dataset) = {
-    val Q = q_notCheckedIfHasAllRndQueries(db)
-    val res = strats(-1, Seq()).forall { s =>
-      (0 until runs).forall { run =>
-        (0 until folds).forall { fold =>
-          db.countPerformedQueriesForPool(s, run, fold) >= Q
+  def nonRndQueriesComplete(db: Dataset) = {
+    val exs = db.n
+    val expectedQueriesForClusterBased = exs * (folds - 1) * runs
+
+    strats(-1, Seq()).forall {
+      case s: ClusterBased => db.countPerformedQueries(s) == expectedQueriesForClusterBased
+      case _: RandomSampling =>
+        println("Improper use of nonRndQueriesComplete with Rnd.")
+        sys.exit(1)
+      case s =>
+        val Q = q_notCheckedIfHasAllRndQueries(db)
+        (0 until runs).forall { run =>
+          (0 until folds).forall { fold =>
+            db.countPerformedQueriesForPool(s, run, fold) >= Q
+          }
         }
-      }
     }
-    res
   }
 }

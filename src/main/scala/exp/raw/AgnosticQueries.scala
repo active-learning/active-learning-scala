@@ -33,16 +33,19 @@ object AgnosticQueries extends CrossValidation with App {
     "Rnd because it is the baseline to define Q and\n" +
     "Clu because it relies on external implementation.\n"
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
-  val datasetNames = datasetNames0.filter { d =>
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
-    db.open()
-    val res = !rndQueriesComplete(db) || !nonRndQueriesComplete(NoLearner())(db)
-    db.close()
-    res
-  }
+
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(ClusterBased(pool))
+
+  def ee(db: Dataset) = {
+    lazy val RndQ = rndQueriesComplete(db)
+    lazy val nonRndQ = nonRndQueriesComplete(db)
+    val fazer = !db.isLocked && (!RndQ || !nonRndQ)
+    if (!fazer) println(s"Agnostic queries are complete for $db. Skipping...")
+    else println(s"rndq:$RndQ nonrndq:$nonRndQ")
+    fazer
+  }
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     db.saveQueries(RandomSampling(pool), run, fold, f, timeLimitSeconds) //it is interesting to have all queries, but we have to save (by exiting) sometimes if the dataset is big.

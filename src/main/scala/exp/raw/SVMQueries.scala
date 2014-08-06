@@ -29,7 +29,8 @@ import weka.filters.unsupervised.attribute.Standardize
 object SVMQueries extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
-  val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
+  val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
+
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
@@ -39,14 +40,20 @@ object SVMQueries extends CrossValidation with App {
     SVMmulti(pool, "SIMPLE")
   )
 
+  def ee(db: Dataset) = {
+    val fazer = !db.isLocked && (if (!completeForQCalculation(db)) {
+      println(s"$db is not Rnd queries/hits complete to calculate Q. Skipping...")
+      false
+    } else if (!nonRndQueriesComplete(db)) true
+    else {
+      println(s"SVM queries are complete for $db with ${LASVM()}. Skipping...")
+      false
+    })
+    fazer
+  }
+
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
-    ???
-    //    if (checkRndQueriesAndHitsCompleteness(LASVM(), db, pool, run, fold, testSet, f)) {
-    //      val Q = q(db, NB())
-    //      strats foreach { strat =>
-    //        println(s"Strat: $strat")
-    //        db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
-    //      }
-    //    }
+    val Q = q_notCheckedIfHasAllRndQueries(db)
+    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q))
   }
 }

@@ -18,6 +18,8 @@
 
 package app.db
 
+import java.util.Calendar
+
 import al.strategies.{RandomSampling, Strategy}
 import ml.Pattern
 import ml.classifiers.{NoLearner, Learner}
@@ -34,7 +36,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   lazy val nclasses = exec(s"select max(Class)+1 from inst").get.head.head.toInt
   lazy val n = exec(s"select count(*) from inst").get.head.head.toInt
   lazy val countRndStartedPools = exec(s"select * from query where strategyid=1 group by run,fold").get.length
-  lazy val countRndPerformedQueries = exec(s"select count(*) from query,${where(RandomSampling(Seq()), NoLearner())}").get.head.head.toInt
+  lazy val countRndPerformedQueries = exec(s"select count(*) from query ${where(RandomSampling(Seq()), NoLearner())}").get.head.head.toInt
   val runs = 5
   val folds = 5
   val database = dataset
@@ -45,7 +47,37 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Returns only the recorded number of tuples.
    * You should add runs*folds*|Y|²*|Y| manually.
    */
-  def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit,${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
+  def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit ${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
+
+  def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
+
+  def fetchsid(strat: Strategy) = {
+    //Fetch StrategyId by name.
+    lazy val sid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
+    }
+    sidmap.getOrElseUpdate(strat.toString, sid)
+  }
+
+  def fetchlid(learner: Learner) = {
+    //Fetch LearnerId by name.
+    lazy val lid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
+    }
+    lidmap.getOrElseUpdate(learner.toString, lid)
+  }
 
   def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern], seconds: Double, Q: Int = Int.MaxValue) {
     if (readOnly) {
@@ -98,44 +130,49 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
       //save
       batchWrite(results.toArray)
+      println(s"${results.size} hits inserted into $database!")
     }
   }
 
-  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = countEvenWhenEmpty(" from hit," + where(strategy, learner) + s" and run=$run and fold=$fold").head.head.toInt
+  def nextHitPosition(strategy: Strategy, learner: Learner, run: Int, fold: Int) = countEvenWhenEmpty(" from hit " + where(strategy, learner) + s" and run=$run and fold=$fold").head.head.toInt
+
+  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
+    acquire()
+    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
+      case Right(x) => x
+      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
+    }
+    release()
+    if (f != null) Datasets.applyFilter(queries, f) else queries
+  }
 
   /**
-   * Returns the recorded number of tuples plus the implicity ones.
-   * @param strategy
-   * @param learner
-   * @param run
-   * @param fold
-   * @return
+   * Including first |Y| imaginary matrices.
+   * Also checks consistency position-count for the pool.
    */
   def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-    val c0 = exec(s"select count(*) from hit,${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
+    val c0 = exec(s"select count(*) from hit ${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
     val c = if (c0 == 0) 0 else c0 + nclasses
-    val m = countEvenWhenEmpty(s" from hit,${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
-    if (c != m) safeQuit(s"Inconsistency: max position $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
+    val m = countEvenWhenEmpty(s" from hit ${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
+    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: max position +1 $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
     c
   }
+
+  //  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = countEvenWhenEmpty(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").head.head.toInt
+  //
+  //  def countPerformedQueries(strategy: Strategy) = exec(s"select count(*) from query,${where(strategy, strategy.learner)}").head.head.toInt
 
   /**
-   * Returns the recorded number of tuples plus the implicity ones.
+   * Including first |Y| imaginary matrices.
+   * Also checks consistency position-count of each pool.
    */
   def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
-    val c = countEvenWhenEmpty(s", count(*)/${nclasses * nclasses}*1.0 from hit,${where(strategy, learner)} group by run,fold").map(_.tail.head + nclasses).sum //soma offset apenas onde ha resultados
-    val m = countEvenWhenEmpty(s" / ($nclasses * $nclasses)*1.0 from hit,${where(strategy, learner)} group by run,fold").map(_.head).sum //position already has nclasses added by nature!
+    val mx_cn = countEvenWhenEmpty(s", count(*)/${nclasses * nclasses}*1.0+$nclasses from hit ${where(strategy, learner)} group by run,fold")
+    val m = mx_cn.map(_.head)
+    val c = mx_cn.map(_.tail.head)
 
-    if (c != m) safeQuit(s"Inconsistency: sum of max positions $m for $dataset differs from total number of conf. matrices $c .")
-    c
-  }
-
-  def where(strategy: Strategy, learner: Learner) = s" app.strategy as s, app.learner as l where strategyid=s.rowid and s.name='$strategy' and learnerid=l.rowid and l.name='$learner'"
-
-  def countEvenWhenEmpty(s: String, offset: Int = 0) = {
-    val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
-    if (n == 0) mutable.Queue(Seq(0d))
-    else exec(s"select (max(position)+1+$offset) " + s).get
+    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: sum of max positions +1 \n$m\n for $dataset differs from total number of conf. matrices \n$c\n .")
+    c.sum.toInt
   }
 
   /**
@@ -145,11 +182,52 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * @return
    */
   def startedPools(strategy: Strategy) =
-    exec(s"select * from query,${where(strategy, strategy.learner)} group by run,fold").get.length
+    exec(s"select * from query ${where(strategy, strategy.learner)} group by run,fold").get.length
 
-  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = countEvenWhenEmpty(s"from query,${where(strategy, strategy.learner)} and run=$run and fold=$fold").head.head.toInt
+  /**
+   * Also checks consistency position-count for the pool.
+   * @param strategy
+   * @param learner
+   * @param run
+   * @param fold
+   * @return
+   */
+  def countPerformedQueriesForPool(strategy: Strategy, run: Int, fold: Int) = {
+    val learner = strategy.learner
+    val c = exec(s"select count(*) from query ${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt
+    val m = countEvenWhenEmpty(s" from query ${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
+    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: max position +1 $m at run $run and fold $fold for $dataset differs from number of queries $c .")
+    c
+  }
 
-  def countPerformedQueries(strategy: Strategy) = countEvenWhenEmpty(s"from query,${where(strategy, strategy.learner)}").head.head.toInt
+  /**
+   * Also checks consistency position-count of each pool.
+   * @param strategy
+   * @param learner
+   * @return
+   */
+  def countPerformedQueries(strategy: Strategy) = {
+    val learner = strategy.learner
+    val mx_cn = countEvenWhenEmpty(s", count(*) from query ${where(strategy, learner)} group by run,fold")
+    val m = mx_cn.map(_.head)
+    val c = mx_cn.map(_.tail.head)
+
+    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: seq of max positions +1 \n$m\n for $dataset differs from seq of number of queries \n$c\n .")
+    c.sum.toInt
+  }
+
+  /**
+   * Only for specific pool and fold (with where clause or sumarizing with group by).
+   * @param s
+   * @param offset
+   * @return
+   */
+  def countEvenWhenEmpty(s: String, offset: Int = 0) = {
+    //    println(s"select (max(position)+1+$offset) " + s)
+    val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
+    if (n == 0) mutable.Queue(Seq.fill(5)(0d))
+    else exec(s"select (max(position)+1+$offset) " + s).get
+  }
 
   /**
    * Inserts query-tuples (run, fold, position, instid) into database.
@@ -237,44 +315,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       release()
       nextPosition + q
     } else nextPosition
-  }
-
-  def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
-    acquire()
-    val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
-      case Right(x) => x
-      case Left(str) => safeQuit(s"Problem loading queries for Rnd: $str")
-    }
-    release()
-    if (f != null) Datasets.applyFilter(queries, f) else queries
-  }
-
-  def fetchsid(strat: Strategy) = {
-    //Fetch StrategyId by name.
-    lazy val sid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
-    }
-    sidmap.getOrElseUpdate(strat.toString, sid)
-  }
-
-  def fetchlid(learner: Learner) = {
-    //Fetch LearnerId by name.
-    lazy val lid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
-    }
-    lidmap.getOrElseUpdate(learner.toString, lid)
   }
 }
 

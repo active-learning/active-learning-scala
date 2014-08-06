@@ -31,13 +31,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
     "strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of 8000s;\n"
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val datasetNames = datasetNames0.filter { d =>
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
-    db.open()
-    val res = completeForQCalculation(db) && !hitsComplete(learner(-1, -1, Seq()))(db)
-    db.close()
-    res
-  }
+
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
@@ -46,6 +40,18 @@ object HeavyGnosticQueries extends CrossValidation with App {
     ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
     ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
   )
+
+  def ee(db: Dataset) = {
+    val fazer = !db.isLocked && (if (!completeForQCalculation(db)) {
+      println(s"$db is not Rnd queries/hits complete to calculate Q. Skipping...")
+      false
+    } else if (!nonRndQueriesComplete(db)) true
+    else {
+      println(s"Heavy queries are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+      false
+    })
+    fazer
+  }
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val Q = q_notCheckedIfHasAllRndQueries(db)

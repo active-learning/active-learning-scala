@@ -28,7 +28,8 @@ import weka.filters.unsupervised.attribute.Standardize
 object Hits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded strategies) for the given list of datasets."
-  val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
+  val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
+
   run(ff)
 
   //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
@@ -52,15 +53,24 @@ object Hits extends CrossValidation with App {
     ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
     ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
   )
+
+  def ee(db: Dataset) = {
+    val fazer = !db.isLocked && (if (!rndNBHitsComplete(db)) {
+      println(s"Rnd NB hits are incomplete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+      false
+    } else {
+      if (!hitsComplete(learner(-1, -1, Seq()))(db)) true
+      else {
+        println(s"Hits are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+        false
+      }
+    })
+    fazer
+  }
+
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
-
-    ???
-    //    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
-    //      val strats = if (parallelStrats) strats0.par else strats0
-    //      strats foreach { strat =>
-    //        db.saveHits(strat, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet)
-    //      }
-    //    }
+    val Q = q_notCheckedIfHasAllRndQueries(db)
+    strats(run, pool).foreach(s => db.saveHits(s, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
   }
 }

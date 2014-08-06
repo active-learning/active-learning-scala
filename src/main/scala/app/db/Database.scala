@@ -54,6 +54,7 @@ trait Database extends Lock {
    * @return Some: resulting table.
    */
   var debug = false
+  var running = true
 
   /**
    * Opens connection to database.
@@ -67,75 +68,73 @@ trait Database extends Lock {
       sys.exit(1)
     }
     //check file existence and if it is in use
-    val skip = if (dbLock.exists()) {
+    if (isLocked) {
       if (dbOriginal.exists()) {
         println(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
         //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
         sys.exit(1)
       } else {
-        println(s"$dbOriginal is locked as $dbLock! Cannot open it. Skipping...")
-      }
-      //todo: maybe a locked database should be readable
-      true
-    } else false
-    var created = false
-    if (!skip) {
-      if (dbCopy.exists() && !readOnly) {
-        println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
-        //saida completa quando não se trata de problema de concorrência externa: acquire, conn, apaga copy, unlock, exit
+        println(s"$dbOriginal is locked as $dbLock! Cannot open it. Exiting...")
         sys.exit(1)
       }
+      //todo: maybe a locked database should be readable
+    }
+    var created = false
+    if (dbCopy.exists() && !readOnly) {
+      println(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
+      //saida completa quando não se trata de problema de concorrência externa: acquire, conn, apaga copy, unlock, exit
+      sys.exit(1)
+    }
 
-      if (createOnAbsence) {
-        if (!dbOriginal.exists()) {
-          createDatabase()
-          created = true
-        }
-      } else {
-        if (!dbOriginal.exists()) {
-          println(dbOriginal + " não existe!")
-          //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-          sys.exit(1)
+    if (createOnAbsence) {
+      if (!dbOriginal.exists()) {
+        createDatabase()
+        created = true
+      }
+    } else {
+      if (!dbOriginal.exists()) {
+        println(dbOriginal + " não existe!")
+        //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
+        sys.exit(1)
+      }
+    }
+
+    //open
+    try {
+      if (!readOnly) {
+        lockFile()
+        Thread.sleep(10)
+        if (!FileUtils.contentEquals(dbLock, dbCopy)) {
+          //            println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
+          FileUtils.copyFile(dbLock, dbCopy)
+          //            println(s"$dbLock para $dbCopy copiado!")
+          Thread.sleep(100)
         }
       }
+      Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
+      val url = "jdbc:sqlite:////" + dbCopy
+      connection = DriverManager.getConnection(url)
+    } catch {
+      case e: Throwable => e.printStackTrace
+        println("\nProblems opening db connection: " + dbCopy + " :")
+        println(e.getMessage)
+        println("\nProblems opening db connection: " + dbCopy + " .")
+        //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
+        sys.exit(1)
+    }
+    if (debug) println("Connection to " + dbCopy + " opened.")
 
-      //open
+    if (database != "app") {
+      if (debug) println("Attaching App dataset...")
+      val appPath = ArgParser.appPath
       try {
-        if (!readOnly) {
-          lockFile()
-          Thread.sleep(10)
-          if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-            //            println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
-            FileUtils.copyFile(dbLock, dbCopy)
-            //            println(s"$dbLock para $dbCopy copiado!")
-            Thread.sleep(100)
-          }
-        }
-        Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
-        val url = "jdbc:sqlite:////" + dbCopy
-        connection = DriverManager.getConnection(url)
+        val statement = connection.createStatement()
+        statement.executeUpdate("attach '" + appPath + "app.db' as app")
       } catch {
         case e: Throwable => e.printStackTrace
-          println("\nProblems opening db connection: " + dbCopy + " :")
-          println(e.getMessage)
-          println("\nProblems opening db connection: " + dbCopy + " .")
-          //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-          sys.exit(1)
+          safeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
       }
-      if (debug) println("Connection to " + dbCopy + " opened.")
-
-      if (database != "app") {
-        if (debug) println("Attaching App dataset...")
-        val appPath = ArgParser.appPath
-        try {
-          val statement = connection.createStatement()
-          statement.executeUpdate("attach '" + appPath + "app.db' as app")
-        } catch {
-          case e: Throwable => e.printStackTrace
-            safeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
-        }
-        if (debug) println(" Dataset " + appPath + "app.db attached!")
-      }
+      if (debug) println(" Dataset " + appPath + "app.db attached!")
     }
     created
   }
@@ -152,7 +151,7 @@ trait Database extends Lock {
    */
   def lockFile() {
     if (readOnly) safeQuit("readOnly databases don't accept lockFile(), and there is no reason to accept.")
-    if (fileLocked || dbLock.exists()) {
+    if (fileLocked || isLocked) {
       println(s"$dbLock should not exist; $dbOriginal needs to take its place.")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
       sys.exit(1)
@@ -164,7 +163,7 @@ trait Database extends Lock {
   def exec(sql: String) = {
     if (debug) println(s"[$sql]")
     if (!isOpen) {
-      println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou após uma tentativa skipada de open() ou na falta de uma chamada a open().")
+      println("Not applying sql query " + sql + ". Database is closed.")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
       sys.exit(1)
     }
@@ -192,6 +191,7 @@ trait Database extends Lock {
           }
           queue.enqueue(seq)
         }
+        //        println(s"queue: $queue   sql: $sql")
         Some(queue)
       } else {
         if (readOnly) safeQuit("readOnly databases only accept select and pragma SQL commands!")
@@ -203,6 +203,8 @@ trait Database extends Lock {
         safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
+
+  def isOpen = connection != null
 
   def batchWrite(results: Array[String]) {
     try {
@@ -246,7 +248,7 @@ trait Database extends Lock {
 
   def runStr(sql: String) = {
     if (!isOpen) {
-      println("Impossible to get connection to apply sql query " + sql + ". Isso acontece após uma chamada a close() ou na falta de uma chamada a open().")
+      println("Not applying sql query " + sql + ". Database is closed.")
       //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
       sys.exit(1)
     }
@@ -288,8 +290,6 @@ trait Database extends Lock {
     }
   }
 
-  def isOpen = connection != null
-
   def hardClose() {
     //close
     if (connection != null) {
@@ -307,7 +307,7 @@ trait Database extends Lock {
       if (dbCopy.exists()) dbCopy.delete()
 
       //unlock
-      if (dbLock.exists()) {
+      if (isLocked) {
         if (dbOriginal.exists()) {
           println(s"$dbOriginal should not exist; $dbLock needs to take its place.")
           sys.exit(1)
@@ -316,6 +316,8 @@ trait Database extends Lock {
       }
     }
   }
+
+  def isLocked = dbLock.exists()
 
   def close() {
     Thread.sleep(100)

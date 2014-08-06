@@ -30,7 +30,8 @@ object LightGnosticQueries extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded light GNOSTIC " +
     "strategies (i.e. not Rnd, Clu and not EER) mostly due to the fact that they are fast and don't need to be stopped earlier;\n"
-  val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
+  val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
+
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
@@ -49,15 +50,20 @@ object LightGnosticQueries extends CrossValidation with App {
     MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
   )
 
-  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+  def ee(db: Dataset) = {
+    val fazer = !db.isLocked && (if (!completeForQCalculation(db)) {
+      println(s"$db is not Rnd queries/hits complete to calculate Q. Skipping...")
+      false
+    } else if (!nonRndQueriesComplete(db)) true
+    else {
+      println(s"Light queries are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+      false
+    })
+    fazer
+  }
 
-    ???
-    //    if (checkRndQueriesAndHitsCompleteness(learner(pool.length / 2, run, pool), db, pool, run, fold, testSet, f)) {
-    //      val Q = q(db, NB())
-    //      strats foreach { strat =>
-    //        println(s"Strat: $strat")
-    //        db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
-    //      }
-    //    }
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+    val Q = q_notCheckedIfHasAllRndQueries(db)
+    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q))
   }
 }

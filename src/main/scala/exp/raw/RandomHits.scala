@@ -30,25 +30,38 @@ object RandomHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  val datasetNames = datasetNames0.filter { d =>
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
-    db.open()
-    val res = rndQueriesComplete(db) && (!rndNBHitsComplete(db) || !hitsComplete(learner(-1, -1, Seq()))(db))
-    db.close()
-    res
-  }
+
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(RandomSampling(Seq()))
 
+  def ee(db: Dataset) = {
+    val fazer = !db.isLocked && (if (!rndQueriesComplete(db)) {
+      println(s"Rnd queries are incomplete for $db. Skipping...")
+      false
+    } else {
+      if (!rndNBHitsComplete(db)) {
+        println(s"Rnd NB hits are incomplete for $db. Skipping...")
+        false
+      } else {
+        if (!hitsComplete(learner(-1, -1, Seq()))(db)) true
+        else {
+          println(s"Rnd hits are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+          false
+        }
+      }
+    })
+    fazer
+  }
+
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
 
-    //Completa hits do Rnd
+    //Completa NB hits do Rnd
     strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 2 * 3600))
 
-    //Verifica se passo anterior antingiu |Pool|.
-    if (rndNBHitsComplete(db)) {
+    //Verifica se passo anterior atingiu |Pool|.
+    if (rndNBHitsCompleteForPool(db, run, fold)) {
       val Q = q_notCheckedIfHasAllRndQueries(db)
 
       //Retoma Rnd Hits para o dado learner como arg na linha de comando, limitando por tempo e Q.

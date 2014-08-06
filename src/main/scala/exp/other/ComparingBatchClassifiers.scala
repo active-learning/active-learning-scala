@@ -31,21 +31,25 @@ import scala.util.Random
 object ComparingBatchClassifiers extends CrossValidation with App {
   override val readOnly = false
   val args1 = args
+  val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
   println("First experiment:")
   println("teaching-assistant-evaluation,wine,statlog-heart,flare,molecular-promotor-gene,leukemia-haslinger,balance-scale,pima-indians-diabetes,car-evaluation,breast-cancer-wisconsin,wine-quality-red,connectionist-mines-vs-rocks,cmc,connectionist-vowel,monks1,breast-tissue-6class,ionosphere,dbworld-subjects-stemmed,statlog-australian-credit,thyroid-newthyroid,colon32,hayes-roth,dbworld-bodies-stemmed,statlog-vehicle-silhouettes,acute-inflammations-urinary,iris,yeast-4class,tic-tac-toe")
   println("sqlite3 -header results.db \"attach 'app.db' as app; select l.name as le, learnerid, round(avg(accuracy), 3) as m, datasetid, time, d.name from ComparingClassifiers as c, app.learner as l, app.dataset as d where d.rowid=datasetid and l.rowid=learnerid group by learnerid, datasetid order by le, m;\"" + " | sed -r 's/[\\|]+/\t/g'")
-  val desc = "Version " + ArgParser.version + " \n 5-fold CV for C4.5 VFDT 5-NN NB interaELM ELM-sqrt\n"
-  val (path, datasetNames) = ArgParser.testArgs(className, args, 3, desc)
+  val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
   //warming ELMs up
   val warmingdata = Datasets.arff(bina = true)("banana.arff") match {
     case Right(x) => x
     case Left(str) => println("Could not load banana dataset from the program path: " + str); sys.exit(1)
   }
   val resultsDb = Results("/home/davi/wcs/ucipp/uci", createOnAbsence = true)
+
+  def ee(db: Dataset) = true
+
   CIELM(5).build(warmingdata).accuracy(warmingdata)
 
   override def dest = Dataset(path, createOnAbsence = false, readOnly = true) _
 
+  ??? //todo: open() will not return 'created' anymore!
   if (resultsDb.open(debug = true) || resultsDb.exec(s"select count(*) from sqlite_master WHERE type='table' AND name='$className'").get.head.head == 0)
     resultsDb.exec(s"create table $className (datasetid INT, learnerid INT, run INT, fold INT, accuracy FLOAT, time FLOAT, unique(datasetid, learnerid, run, fold) on conflict rollback)")
   resultsDb.save()

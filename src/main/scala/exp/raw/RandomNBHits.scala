@@ -22,32 +22,27 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.LASVM
+import ml.classifiers.{NoLearner, NB}
+import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
-object SVMHits extends CrossValidation with App {
+object RandomNBHits extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets."
-  val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
+  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
+  val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
 
   run(ff)
 
-  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
-  def strats0(run: Int, pool: Seq[Pattern]) = List(
-    SVMmulti(pool, "SELF_CONF"),
-    SVMmulti(pool, "KFF"),
-    SVMmulti(pool, "BALANCED_EE"),
-    SVMmulti(pool, "SIMPLE")
-  )
+  def strats0(run: Int, pool: Seq[Pattern]) = List(RandomSampling(Seq()))
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!rndNBHitsComplete(db)) {
-      println(s"Rnd NB hits are incomplete for $db with ${LASVM()}. Skipping...")
+    val fazer = !db.isLocked && (if (!rndQueriesComplete(db)) {
+      println(s"Rnd queries are incomplete for $db. Skipping...")
       false
     } else {
-      if (!hitsComplete(LASVM())(db)) true
+      if (!rndNBHitsComplete(db)) true
       else {
-        println(s"SVM hits are complete for $db with ${LASVM()}. Skipping...")
+        println(s"Rnd NB hits are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
         false
       }
     })
@@ -56,7 +51,8 @@ object SVMHits extends CrossValidation with App {
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
-    val Q = q_notCheckedIfHasAllRndQueries(db)
-    strats(run, pool).foreach(s => db.saveHits(s, LASVM(), run, fold, nc, f, testSet, timeLimitSeconds, Q))
+
+    //Completa NB hits do Rnd
+    strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 2 * 3600))
   }
 }
