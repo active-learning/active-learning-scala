@@ -49,36 +49,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit ${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
-  def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
-
-  def fetchlid(learner: Learner) = {
-    //Fetch LearnerId by name.
-    lazy val lid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
-    }
-    lidmap.getOrElseUpdate(learner.toString, lid)
-  }
-
-  def fetchsid(strat: Strategy) = {
-    //Fetch StrategyId by name.
-    lazy val sid = try {
-      val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
-      resultSet.next()
-      resultSet.getInt("rowid")
-    } catch {
-      case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
-    }
-    sidmap.getOrElseUpdate(strat.toString, sid)
-  }
-
   def saveHits(strat: Strategy, learner: Learner, run: Int, fold: Int, nc: Int, f: Standardize, testSet: Seq[Pattern], seconds: Double, Q: Int = Int.MaxValue) {
     if (exiting()) return //se estava saindo, nem começa novo lote
     if (readOnly) {
@@ -160,6 +130,49 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     c
   }
 
+  def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
+
+  def fetchlid(learner: Learner) = {
+    //Fetch LearnerId by name.
+    lazy val lid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
+    }
+    lidmap.getOrElseUpdate(learner.toString, lid)
+  }
+
+  def fetchsid(strat: Strategy) = {
+    //Fetch StrategyId by name.
+    lazy val sid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
+    }
+    sidmap.getOrElseUpdate(strat.toString, sid)
+  }
+
+  /**
+   * Only for specific pool and fold (with where clause or sumarizing with group by).
+   * @param s
+   * @param offset
+   * @return
+   */
+  def countEvenWhenEmpty(s: String, offset: Int = 0) = {
+    //    println(s"select (max(position)+1+$offset) " + s)
+    val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
+    if (n == 0) mutable.Queue(Seq.fill(5)(0d))
+    else exec(s"select (max(position)+1+$offset) " + s).get
+  }
+
   /**
    * Including first |Y| imaginary matrices.
    * Also checks consistency position-count of each pool.
@@ -212,19 +225,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
     if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: seq of max positions +1 \n$m\n for $dataset differs from seq of number of queries \n$c\n .")
     c.sum.toInt
-  }
-
-  /**
-   * Only for specific pool and fold (with where clause or sumarizing with group by).
-   * @param s
-   * @param offset
-   * @return
-   */
-  def countEvenWhenEmpty(s: String, offset: Int = 0) = {
-    //    println(s"select (max(position)+1+$offset) " + s)
-    val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
-    if (n == 0) mutable.Queue(Seq.fill(5)(0d))
-    else exec(s"select (max(position)+1+$offset) " + s).get
   }
 
   /**
