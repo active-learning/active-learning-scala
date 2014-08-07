@@ -130,6 +130,19 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     c
   }
 
+  /**
+   * Including first |Y| imaginary matrices.
+   * Also checks consistency position-count of each pool.
+   */
+  def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
+    val mx_cn = countEvenWhenEmpty(s", count(*)/${nclasses * nclasses}*1.0+$nclasses from hit ${where(strategy, learner)} group by run,fold")
+    val m = mx_cn.map(_.head)
+    val c = mx_cn.map(_.tail.head)
+
+    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: sum of max positions +1 \n$m\n for $dataset differs from total number of conf. matrices \n$c\n .")
+    c.sum.toInt
+  }
+
   def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
 
   def fetchlid(learner: Learner) = {
@@ -171,19 +184,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
     if (n == 0) mutable.Queue(Seq.fill(5)(0d))
     else exec(s"select (max(position)+1+$offset) " + s).get
-  }
-
-  /**
-   * Including first |Y| imaginary matrices.
-   * Also checks consistency position-count of each pool.
-   */
-  def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
-    val mx_cn = countEvenWhenEmpty(s", count(*)/${nclasses * nclasses}*1.0+$nclasses from hit ${where(strategy, learner)} group by run,fold")
-    val m = mx_cn.map(_.head)
-    val c = mx_cn.map(_.tail.head)
-
-    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: sum of max positions +1 \n$m\n for $dataset differs from total number of conf. matrices \n$c\n .")
-    c.sum.toInt
   }
 
   /**
