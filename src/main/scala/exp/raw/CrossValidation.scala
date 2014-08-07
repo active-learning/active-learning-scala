@@ -139,12 +139,12 @@ trait CrossValidation extends Lock with ClassName {
         val datasetNr = idx + 1
 
         //Open connection to load patterns via weka SQL importer.
-        //      println("Loading patterns for dataset " + datasetName + " ...")
+        println("Loading patterns for dataset " + datasetName + " ...")
         source(datasetName) match {
           case Right(patts) =>
 
             //Reopen connection to write queries.
-            println("Beginning dataset " + datasetName + " ...")
+            //            println("Beginning dataset " + datasetName + " ...")
             val db = dest(datasetName)
             dbToWait = db
             db.open(debug = false)
@@ -214,9 +214,10 @@ trait CrossValidation extends Lock with ClassName {
   } else true
 
   def rndQueriesComplete(db: Dataset) = {
+    println("sdfsda")
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
-
+    println("kjhsgdsdg")
     //checa se as queries desse run/fold existem para Random/NoLearner
     if (db.isOpen && db.countRndStartedPools != runs * folds) {
       false
