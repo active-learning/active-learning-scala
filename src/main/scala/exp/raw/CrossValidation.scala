@@ -132,7 +132,7 @@ trait CrossValidation extends Lock with ClassName {
             reason = s"Limite de $memlimit MB de memoria atingido."
           }
         }
-        safeQuit(reason, dbToWait)
+        if (dbToWait != null) dbToWait.safeQuit(reason)
       }
     }).start()
 

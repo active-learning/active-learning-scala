@@ -36,17 +36,17 @@ object LightGnosticQueries extends CrossValidation with App {
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
     Uncertainty(learner(pool.length / 2, run, pool), pool),
-    Entropy(learner(pool.length / 2, run, pool), pool),
-    Margin(learner(pool.length / 2, run, pool), pool),
-    new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
+    //    Entropy(learner(pool.length / 2, run, pool), pool),
+    //    Margin(learner(pool.length / 2, run, pool), pool),
+    //    new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
     new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
-    new SGmultiJS(learner(pool.length / 2, run, pool), pool),
-    DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
-    MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
+    //    new SGmultiJS(learner(pool.length / 2, run, pool), pool),
+    //    DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
+    //    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
+    //    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
+    //    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
+    //    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
+    //    MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
     MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
   )
 
