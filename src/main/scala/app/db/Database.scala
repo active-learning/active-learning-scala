@@ -267,7 +267,6 @@ trait Database extends Lock {
   def close() {
     Thread.sleep(100)
     connection.close()
-    Thread.sleep(100)
     connection = null
     if (!readOnly) {
 

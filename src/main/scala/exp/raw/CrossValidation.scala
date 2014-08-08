@@ -38,12 +38,19 @@ import scala.util.Random
 trait CrossValidation extends Lock with ClassName {
   def close() = Unit
 
+  def isOpen() = false
+
   var fileLocked = false
-  lazy val parallelDatasets = args1(2).contains("d")
-  lazy val parallelRuns = args1(2).contains("r")
-  lazy val parallelFolds = args1(2).contains("f")
-  lazy val parallelStrats = args1(2).contains("s")
-  val path: String
+
+  def parallelDatasets = args1(2).contains("d")
+
+  def parallelRuns = args1(2).contains("r")
+
+  def parallelFolds = args1(2).contains("f")
+
+  def parallelStrats = args1(2).contains("s")
+
+  def path: String
   lazy val source = Datasets.patternsFromSQLite(path) _
 
   def dest = Dataset(path) _
@@ -89,22 +96,21 @@ trait CrossValidation extends Lock with ClassName {
    */
   def q_notCheckedIfHasAllRndQueries(db: Dataset, learner: Learner = NB()) = {
     //Pega mediana.
-    lazy val Q = {
+    def Q = {
       val res = (for {
         r <- 0 until runs
         f <- 0 until folds
         sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
       } yield {
-        //        println(sql)
         db.exec(sql).get.head.head
       }).sorted.toList(runs * folds / 2).toInt
-      println(s"Q=$res")
+      //      println(s"Q=$res")
       res
     }
 
-    acquire()
-    val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
-    release()
+    val res = qmap.synchronized {
+      qmap.getOrElseUpdate((db.toString, learner.toString), Q)
+    }
     res
   }
 
@@ -122,17 +128,16 @@ trait CrossValidation extends Lock with ClassName {
           }
           val tmpLockingFile = new File(fileToStopProgram)
           if (tmpLockingFile.exists()) {
+            reason = s"$fileToStopProgram found, safe-quiting."
+            if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason)
             running = false
             tmpLockingFile.delete()
-            Thread.sleep(100)
-            reason = s"$fileToStopProgram found, safe-quiting."
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
-            running = false
-            Thread.sleep(100)
             reason = s"Limite de $memlimit MB de memoria atingido."
+            if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason)
+            running = false
           }
         }
-        if (dbToWait != null) dbToWait.safeQuit(reason)
       }
     }).start()
 
@@ -170,7 +175,7 @@ trait CrossValidation extends Lock with ClassName {
 
                 println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
                 runCore(db, run, fold, pool, testSet, f)
-                println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
+                println(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
 
               }
               //            println("  Run " + run + " finished for " + datasetName + " !")
@@ -185,7 +190,8 @@ trait CrossValidation extends Lock with ClassName {
             finished += 1
             release()
             println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")\n")
-            db.close()
+            Thread.sleep(10)
+            if (db.isOpen) db.close()
           case Left(str) =>
             acquire()
             skiped += 1
