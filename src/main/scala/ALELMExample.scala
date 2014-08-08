@@ -1,3 +1,4 @@
+import al.strategies.{DensityWeightedTrainingUtility, ClusterBased}
 import ml.classifiers._
 import util.Datasets
 
@@ -29,7 +30,12 @@ object ALELMExample extends App {
 
   val n = patts.length / 2
   val initialN = patts.head.nclasses
-  val tr = patts.take(n)
+  // ClusterBased(patts.take(n))
+  val tri = DensityWeightedTrainingUtility(IELM(), patts.take(n), 1, 1, "eucl").queries
+  val tris = DensityWeightedTrainingUtility(IELMScratch(), patts.take(n), 1, 1, "eucl").queries
+  val trei = DensityWeightedTrainingUtility(EIELM(), patts.take(n), 1, 1, "eucl").queries
+  val trie = DensityWeightedTrainingUtility(IELMEnsemble(10), patts.take(n), 1, 1, "eucl").queries
+  val trci = DensityWeightedTrainingUtility(CIELM(), patts.take(n), 1, 1, "eucl").queries
   val ts = patts.drop(n)
 
   val li = IELM()
@@ -37,17 +43,18 @@ object ALELMExample extends App {
   val lei = EIELM()
   val lie = IELMEnsemble(10)
   val lci = CIELM()
-  var mi = li.build(tr.take(initialN))
-  var mis = lis.build(tr.take(initialN))
-  var mei = lei.build(tr.take(initialN))
-  var mie = lie.build(tr.take(initialN))
-  var mci = lci.build(tr.take(initialN))
-  tr.drop(initialN).foreach { x =>
-    mi = li.update(mi)(x)
-    mis = lis.update(mis)(x)
-    mei = lei.update(mei)(x)
-    mie = lie.update(mie)(x)
-    mci = lci.update(mci)(x)
-    println(s"${mi.accuracy(ts)} ${mis.accuracy(ts)} ${mei.accuracy(ts)} ${mie.accuracy(ts)} ${mci.accuracy(ts)}")
+  val res = tri.zip(tris).zip(trei).zip(trie).zip(trci).drop(initialN).map { case ((((xi, xei), xis), xie), xci) =>
+    Stream(//mi = li.update(mi)(xi),
+      mis = lis.update(mis)(xis) //,
+      //mei = lei.(mie)(xie),
+      //      mci = lci.update(mci)(xci)
+    ).par.toList
+    (mi.accuracy(ts), mis.accuracy(ts), mei.accuracy(ts), mie.accuracy(ts), mci.accuracy(ts))
   }
+  var mi = li.build(tri.take(initialN))
+  var mis = lis.build(tris.take(initialN))
+  var mei = lei.build(trei.take(initialN))
+  var mie = lie.build(trie.take(initialN))
+  var mci = lci.build(trci.take(initialN))
+  res foreach (x => println(s"${x._1} ${x._2} ${x._3} ${x._4} ${x._5}"))
 }
