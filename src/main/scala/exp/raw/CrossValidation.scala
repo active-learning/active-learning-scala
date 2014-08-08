@@ -51,6 +51,7 @@ trait CrossValidation extends Lock with ClassName {
   def parallelStrats = args1(2).contains("s")
 
   def path: String
+
   lazy val source = Datasets.patternsFromSQLite(path) _
 
   def dest = Dataset(path) _
@@ -129,9 +130,9 @@ trait CrossValidation extends Lock with ClassName {
           val tmpLockingFile = new File(fileToStopProgram)
           if (tmpLockingFile.exists()) {
             reason = s"$fileToStopProgram found, safe-quiting."
+            tmpLockingFile.delete()
             if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason)
             running = false
-            tmpLockingFile.delete()
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
             reason = s"Limite de $memlimit MB de memoria atingido."
             if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason)
@@ -264,6 +265,7 @@ trait CrossValidation extends Lock with ClassName {
     strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
+          //          println(s"$s / $learner $run.$fold ${db.countPerformedConfMatricesForPool(s, learner, run, fold)} >= $Q")
           db.countPerformedConfMatricesForPool(s, learner, run, fold) >= Q
         }
       }
@@ -273,17 +275,22 @@ trait CrossValidation extends Lock with ClassName {
   def nonRndQueriesComplete(db: Dataset) = {
     val exs = db.n
     val expectedQueriesForClusterBased = exs * (folds - 1) * runs
-
-    strats(-1, Seq()).forall {
+    var strat = ""
+    var learner = ""
+    val r = strats(-1, Seq()).forall {
       case s: ClusterBased => db.countPerformedQueries(s) == expectedQueriesForClusterBased
       case _: RandomSampling => justQuit("Improper use of nonRndQueriesComplete with Rnd.")
       case s =>
         val Q = q_notCheckedIfHasAllRndQueries(db)
         (0 until runs).forall { run =>
           (0 until folds).forall { fold =>
+            strat = s.toString
+            learner = s.learner.toString
             db.countPerformedQueriesForPool(s, run, fold) >= Q
           }
         }
     }
+    if (!r) println(s"$strat / $learner queries incomplete")
+    r
   }
 }

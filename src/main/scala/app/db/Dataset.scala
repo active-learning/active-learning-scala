@@ -125,7 +125,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
       //save
       batchWrite(results.toArray)
-      println(s"${results.size} hits inserted into $database!")
+      println(s"${results.size} hits inserted into $database for $strat / $learner!")
     }
   }
 
@@ -149,9 +149,11 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Also checks consistency position-count for the pool.
    */
   def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
+    val q = countPerformedQueriesForPool(strategy, run, fold)
     val c0 = exec(s"select count(*) from hit ${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
     val c = if (c0 == 0) 0 else c0 + nclasses
     val m = countEvenWhenEmpty(s" from hit ${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
+    if (c > q) safeQuit(s"Inconsistency at $strategy / $learner: number of queries \n$q\n at run $run and fold $fold for $dataset is lesser than number of conf. matrices \n$c\n .")
     if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: max position +1 $m at run $run and fold $fold for $dataset differs from number of conf. matrices $c .")
     c
   }
@@ -165,10 +167,11 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Also checks consistency position-count of each pool.
    */
   def countPerformedConfMatrices(strategy: Strategy, learner: Learner) = {
-    val mx_cn = countEvenWhenEmpty(s", count(*)/${nclasses * nclasses}*1.0+$nclasses from hit ${where(strategy, learner)} group by run,fold")
+    val q = countPerformedQueriesList(strategy)
+    val mx_cn = countEvenWhenEmpty(s", count(*)/(${nclasses * nclasses}*1.0)+$nclasses from hit ${where(strategy, learner)} group by run,fold")
     val m = mx_cn.map(_.head)
     val c = mx_cn.map(_.tail.head)
-
+    if (c.size > q.size || c.zip(q).exists { case (a, b) => a > b}) safeQuit(s"Inconsistency at $strategy / $learner: number of queries \n$q\n\n for $dataset is lesser than total number of conf. matrices \n$c\n .")
     if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: sum of max positions +1 \n$m\n for $dataset differs from total number of conf. matrices \n$c\n .")
     c.sum.toInt
   }
@@ -202,14 +205,17 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * @param strategy
    * @return
    */
-  def countPerformedQueries(strategy: Strategy) = {
+  def countPerformedQueries(strategy: Strategy) = countPerformedQueriesList(strategy).sum.toInt
+
+
+  def countPerformedQueriesList(strategy: Strategy) = {
     val learner = strategy.learner
     val mx_cn = countEvenWhenEmpty(s", count(*) from query ${where(strategy, learner)} group by run,fold")
     val m = mx_cn.map(_.head)
     val c = mx_cn.map(_.tail.head)
 
     if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: seq of max positions +1 \n$m\n for $dataset differs from seq of number of queries \n$c\n .")
-    c.sum.toInt
+    c
   }
 
   /**
@@ -257,7 +263,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val queries = fetchQueries(strat, run, fold, f)
       val nextPosition = queries.size
       val r = if (nextPosition < Q && nextPosition < strat.pool.size) {
-        println(s"Gerando queries para $dataset pool: $run.$fold ...")
+        println(s"Gerando queries na posição $nextPosition de um total de $Q queries para $dataset pool: $run.$fold ...")
         val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
         else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
         q = nextIds.length
@@ -284,7 +290,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
             println(e.getMessage)
             safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
         }
-        println(s"$q $strat queries written to " + dbCopy + ". Backing up tmpFile...")
+        println(s"$q $strat queries written to " + dbCopy + s" at $run.$fold. Backing up tmpFile...")
         save()
         releaseOp()
         nextPosition + q

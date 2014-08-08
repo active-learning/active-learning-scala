@@ -262,9 +262,9 @@ trait Database extends Lock {
     }
   }
 
-  def isOpen = connection != null
+  def isOpen() = connection != null
 
-  def close() {
+  def close() = if (isOpen()) {
     Thread.sleep(100)
     connection.close()
     connection = null
