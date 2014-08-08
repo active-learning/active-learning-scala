@@ -24,7 +24,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 object ALELMExample extends App {
   //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
   //  val patts0 = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/iris.arff").right.get.take(200000))
-  val patts0 = new Random(650).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/abalone-3class.arff").right.get.take(2000))
+  val patts0 = new Random(650).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.take(2000))
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilterChangingOrder(patts0, filter)
 
@@ -36,6 +36,7 @@ object ALELMExample extends App {
   val trei = DensityWeightedTrainingUtility(EIELM(), patts.take(n), 1, 1, "eucl").queries
   val trie = DensityWeightedTrainingUtility(IELMEnsemble(10), patts.take(n), 1, 1, "eucl").queries
   val trci = DensityWeightedTrainingUtility(CIELM(), patts.take(n), 1, 1, "eucl").queries
+  val treci = DensityWeightedTrainingUtility(ECIELM(), patts.take(n), 1, 1, "eucl").queries
   val ts = patts.drop(n)
 
   val li = IELM()
@@ -43,18 +44,21 @@ object ALELMExample extends App {
   val lei = EIELM()
   val lie = IELMEnsemble(10)
   val lci = CIELM()
-  val res = tri.zip(tris).zip(trei).zip(trie).zip(trci).drop(initialN).map { case ((((xi, xei), xis), xie), xci) =>
-    Stream(//mi = li.update(mi)(xi),
-      mis = lis.update(mis)(xis) //,
-      //mei = lei.(mie)(xie),
-      //      mci = lci.update(mci)(xci)
-    ).par.toList
-    (mi.accuracy(ts), mis.accuracy(ts), mei.accuracy(ts), mie.accuracy(ts), mci.accuracy(ts))
+  val leci = ECIELM()
+  val res = tri.zip(tris).zip(trei).zip(trie).zip(trci).zip(treci).drop(initialN).map { case (((((xi, xei), xis), xie), xci), xeci) =>
+    mi = li.update(mi)(xi)
+    mis = lis.update(mis)(xis)
+    mei = lei.update(mei)(xie)
+    mie = lie.update(mie)(xie)
+    mci = lci.update(mci)(xci)
+    meci = leci.update(meci)(xeci)
+    (mi.accuracy(ts), mis.accuracy(ts), mei.accuracy(ts), mie.accuracy(ts), mci.accuracy(ts), meci.accuracy(ts))
   }
   var mi = li.build(tri.take(initialN))
   var mis = lis.build(tris.take(initialN))
   var mei = lei.build(trei.take(initialN))
   var mie = lie.build(trie.take(initialN))
   var mci = lci.build(trci.take(initialN))
-  res foreach (x => println(s"${x._1} ${x._2} ${x._3} ${x._4} ${x._5}"))
+  var meci = leci.build(treci.take(initialN))
+  res foreach (x => println(s"${x._1} ${x._2} ${x._3} ${x._4} ${x._5} ${x._6}"))
 }
