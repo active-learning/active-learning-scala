@@ -45,6 +45,14 @@ object ALELMExample extends App {
   val lie = IELMEnsemble(10)
   val lci = CIELM()
   val leci = ECIELM()
+
+  var mi = li.build(tri.take(initialN))
+  var mis = lis.build(tris.take(initialN))
+  var mei = lei.build(trei.take(initialN))
+  var mie = lie.build(trie.take(initialN))
+  var mci = lci.build(trci.take(initialN))
+  var meci = leci.build(treci.take(initialN))
+
   val res = tri.zip(tris).zip(trei).zip(trie).zip(trci).zip(treci).drop(initialN).map { case (((((xi, xei), xis), xie), xci), xeci) =>
     mi = li.update(mi)(xi)
     mis = lis.update(mis)(xis)
@@ -54,11 +62,5 @@ object ALELMExample extends App {
     meci = leci.update(meci)(xeci)
     (mi.accuracy(ts), mis.accuracy(ts), mei.accuracy(ts), mie.accuracy(ts), mci.accuracy(ts), meci.accuracy(ts))
   }
-  var mi = li.build(tri.take(initialN))
-  var mis = lis.build(tris.take(initialN))
-  var mei = lei.build(trei.take(initialN))
-  var mie = lie.build(trie.take(initialN))
-  var mci = lci.build(trci.take(initialN))
-  var meci = leci.build(treci.take(initialN))
   res foreach (x => println(s"${x._1} ${x._2} ${x._3} ${x._4} ${x._5} ${x._6}"))
 }
