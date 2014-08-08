@@ -39,11 +39,8 @@ object AgnosticQueries extends CrossValidation with App {
   def strats0(run: Int, pool: Seq[Pattern]) = List(ClusterBased(pool))
 
   def ee(db: Dataset) = {
-    lazy val RndQ = rndQueriesComplete(db)
-    lazy val nonRndQ = nonRndQueriesComplete(db)
-    val fazer = !db.isLocked && (!RndQ || !nonRndQ)
+    val fazer = !db.isLocked && (!rndQueriesComplete(db) || !nonRndQueriesComplete(db))
     if (!fazer) println(s"Agnostic queries are complete for $db. Skipping...")
-    else println(s"rndq:$RndQ nonrndq:$nonRndQ")
     fazer
   }
 
