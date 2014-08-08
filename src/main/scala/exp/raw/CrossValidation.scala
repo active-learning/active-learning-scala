@@ -36,6 +36,8 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  def close() = Unit
+
   var fileLocked = false
   lazy val parallelDatasets = args1(2).contains("d")
   lazy val parallelRuns = args1(2).contains("r")
@@ -175,9 +177,9 @@ trait CrossValidation extends Lock with ClassName {
             }
 
             if (!db.readOnly) {
-              db.acquire()
-              db.save()
-              db.release()
+              db.acquireOp()
+              db.save() //não tem problema se der safequit aqui, pois não há mais threads para aguardar
+              db.releaseOp()
             }
             acquire()
             finished += 1
@@ -196,9 +198,7 @@ trait CrossValidation extends Lock with ClassName {
         running = false
         println(s"Exceção inesperada:")
         e.printStackTrace()
-        println(s"Exceção inesperada (just exiting to avoid zombie threads...):\n${e.getClass.getName}")
-        dbToWait.acquire()
-        dbToWait.hardClose()
+        justQuit(s"Exceção inesperada:")
     }
 
     running = false
@@ -214,17 +214,15 @@ trait CrossValidation extends Lock with ClassName {
   } else true
 
   def rndQueriesComplete(db: Dataset) = {
-    println("sdfsda")
     val exs = db.n
     val expectedQueries = exs * (folds - 1) * runs
-    println("kjhsgdsdg")
     //checa se as queries desse run/fold existem para Random/NoLearner
     if (db.isOpen && db.countRndStartedPools != runs * folds) {
       false
 
       //checa se todas as queries existem para a base
     } else {
-      if (db.countRndPerformedQueries > expectedQueries) safeQuit(s"${db.countRndPerformedQueries} queries found for $db , it should be $expectedQueries", db)
+      if (db.countRndPerformedQueries > expectedQueries) justQuit(s"${db.countRndPerformedQueries} queries found for $db , it should be $expectedQueries")
       else db.countRndPerformedQueries == expectedQueries
     }
   }
@@ -235,7 +233,7 @@ trait CrossValidation extends Lock with ClassName {
 
     //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
     val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
-    if (hitExs > expectedHits) safeQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB", db)
+    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB")
     else hitExs == expectedHits
   }
 
@@ -251,7 +249,7 @@ trait CrossValidation extends Lock with ClassName {
 
     //checa se tabela de matrizes de confusão está completa para este pool inteiro para Random/NB (NB é a referência para Q)
     val hitExs = db.countPerformedConfMatricesForPool(RandomSampling(Seq()), NB(), run, fold)
-    if (hitExs > expectedHits) safeQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB for pool $run/$fold", db)
+    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB for pool $run/$fold")
     else hitExs == expectedHits
   }
 
@@ -272,9 +270,7 @@ trait CrossValidation extends Lock with ClassName {
 
     strats(-1, Seq()).forall {
       case s: ClusterBased => db.countPerformedQueries(s) == expectedQueriesForClusterBased
-      case _: RandomSampling =>
-        println("Improper use of nonRndQueriesComplete with Rnd.")
-        sys.exit(1)
+      case _: RandomSampling => justQuit("Improper use of nonRndQueriesComplete with Rnd.")
       case s =>
         val Q = q_notCheckedIfHasAllRndQueries(db)
         (0 until runs).forall { run =>
