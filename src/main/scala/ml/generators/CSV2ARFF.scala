@@ -32,7 +32,8 @@ import scala.util.Random
 
 object CSV2ARFF extends App {
   val linhas = Source.fromFile("/home/davi/wcs/marcos/data.csv").getLines().toList.drop(1)
-  val tuplas = linhas.map(x => (x.split(",").drop(42) :+ x.split(",")(1)).map(_.toDouble).toList)
+  val tuplas = linhas.map(x => (x.split(",").drop(2).take(40) :+ x.split(",")(1)).map(_.toDouble).toList)
+  //val tuplas = linhas.map(x => (x.split(",").drop(42) :+ x.split(",")(1)).map(_.toDouble).toList)
   tuplas.take(1) foreach println
   val labels = tuplas.map(_.last).distinct.sorted
   println(labels)
@@ -41,40 +42,22 @@ object CSV2ARFF extends App {
   val pronto = header ++ data
   pronto.take(380) foreach println
 
-  val fw = new FileWriter("/home/davi/wcs/marcos/data.arff")
+  val fw = new FileWriter("/home/davi/wcs/marcos/data-only40superAtts.arff")
   pronto foreach (x => fw.write(s"$x\n"))
   fw.close()
 }
 
-object CSV2ARFFTest extends App {
-  val patts0 = new Random(1230).shuffle(Datasets.arff(true)("/home/davi/wcs/marcos/data.arff").right.get)
-  val filter = Datasets.zscoreFilter(patts0)
-  val patts = Datasets.applyFilter(patts0, filter)
-  val n = patts0.size
-  val tr = patts.take(2 * n / 3).grouped(100).toList
-  val ts = patts.drop(2 * n / 3)
-
-  700 to 2800 by 700 foreach { N =>
-    val l = interaELM(250, 0.0)
-    var m: ELMModel = null
-    val t = Tempo.time {
-      m = l.batchBuild(patts.take(N)).asInstanceOf[ELMModel]
-      m = l.modelSelection(m)
-    }
-    println(N + s" ($t): " + m.L)
-  }
-}
-
 object CSV2ARFFCVTest extends App {
-  val patts0 = new Random(1230).shuffle(Datasets.arff(true)("/home/davi/wcs/marcos/data.arff").right.get)
+  //val patts0 = new Random(1230).shuffle(Datasets.arff(true)("/home/davi/wcs/marcos/data.arff").right.get)
+  val patts0 = new Random(1230).shuffle(Datasets.arff(true)("/home/davi/wcs/marcos/data-only40superAtts.arff").right.get)
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilter(patts0, filter)
   val n = patts0.size
   val tr = patts.take(2 * n / 3).grouped(100).toList
   val ts = patts.drop(2 * n / 3)
 
-  2 to 7 by 1 foreach { N =>
-    val l = interaELM(250, 0.0)
+  7 to 28 by 7 foreach { N =>
+    val l = interaELM(150, 0.0)
     var mi = l.batchBuild(tr.take(N).flatten).asInstanceOf[ELMModel]
     mi = l.modelSelection(mi)
 
