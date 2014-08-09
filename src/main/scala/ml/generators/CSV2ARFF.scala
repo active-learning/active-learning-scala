@@ -61,7 +61,7 @@ object CSV2ARFFTest extends App {
       m = l.batchBuild(patts.take(N)).asInstanceOf[ELMModel]
       m = l.modelSelection(m)
     }
-    println(" <- " + N + s" ($t)")
+    println(N + s" ($t): " + m.L)
   }
 
   /*
