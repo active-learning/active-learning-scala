@@ -22,6 +22,7 @@ import java.io.{File, FileWriter}
 
 import app.ArgParser
 import ml.classifiers.{interaELM, OSELM}
+import ml.models.{ELMModel, Model}
 import util.{Stat, Tempo, Datasets}
 import weka.core.Instances
 
@@ -30,12 +31,13 @@ import scala.io.Source
 import scala.util.Random
 
 object CSV2ARFF extends App {
-  val csv = Source.fromFile("/home/davi/wcs/marcos/data.csv").getLines().toList.drop(1)
-  val tuplas = csv.map(_.split(",").drop(1).map(_.toDouble))
-  val labelcerto = tuplas.map(_.reverse)
-  val labels = labelcerto.map(_.last).distinct.sorted
-  val data = labelcerto.map(_.mkString(","))
-  val header = List("@relation data") ++ labelcerto.head.indices.drop(1).map(i => s"@attribute a$i numeric") ++ List("@attribute class {" + labels.mkString(",") + "}", "@data")
+  val linhas = Source.fromFile("/home/davi/wcs/marcos/data.csv").getLines().toList.drop(1)
+  val tuplas = linhas.map(x => (x.split(",").drop(42) :+ x.split(",")(1)).map(_.toDouble).toList)
+  tuplas.take(1) foreach println
+  val labels = tuplas.map(_.last).distinct.sorted
+  println(labels)
+  val data = tuplas.map(_.mkString(","))
+  val header = List("@relation data") ++ tuplas.head.indices.drop(1).map(i => s"@attribute a$i numeric") ++ List("@attribute class {" + labels.mkString(",") + "}", "@data")
   val pronto = header ++ data
   pronto.take(380) foreach println
 
@@ -52,9 +54,17 @@ object CSV2ARFFTest extends App {
   val tr = patts.take(2 * n / 3).grouped(100).toList
   val ts = patts.drop(2 * n / 3)
 
-  val ii = 7
-  val l = interaELM(300, 0.0)
-  Tempo.timev(l.build(tr.take(2).flatten))
+  700 to 2800 by 700 foreach { N =>
+    val l = interaELM(250, 0.0)
+    var m: ELMModel = null
+    val t = Tempo.time {
+      m = l.batchBuild(patts.take(N)).asInstanceOf[ELMModel]
+      m = l.modelSelection(m)
+    }
+    println(" <- " + N + s" ($t)")
+  }
+
+  /*
   val (firstm0, t) = Tempo.timev(l.build(tr.take(ii).flatten))
   println(firstm0.accuracy(ts) + " " + t * 1000 + " L" + firstm0.L)
   Thread.sleep(2000)
@@ -88,5 +98,5 @@ object CSV2ARFFTest extends App {
     val (m, d, i) = Stat.media_std_intervalo_confianca99(x.map(_._1).toVector)
     println(s"$m $d $i ${x.map(_._2).sum}")
   }
-
+*/
 }
