@@ -63,40 +63,39 @@ object CSV2ARFFTest extends App {
     }
     println(N + s" ($t): " + m.L)
   }
+}
 
-  /*
-  val (firstm0, t) = Tempo.timev(l.build(tr.take(ii).flatten))
-  println(firstm0.accuracy(ts) + " " + t * 1000 + " L" + firstm0.L)
-  Thread.sleep(2000)
-  //  println("")
-  //  val m = tr.drop(ii).foldLeft(firstm) { (model, chunk) =>
-  //    val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => l.update(model)(ex)))
-  //    //    println(r.accuracy(ts) + " " + t * 1000) //+ " " + r.L)
-  //    r
-  //  }
-  println("")
-  //  1 to 200 by 5 foreach { L =>
-  //    val l = OSELM(L)
-  //    val (firstm, t) = Tempo.timev(l.build(tr.take(ii).flatten))
-  //    println(L +": " + (firstm.accuracy(ts), t))
-  //  }
-  //  println("")
-  val cv = Datasets.kfoldCV(patts, 10, true) { case (tr0, ts0, fold, minSize) =>
-    val tr = new Random(fold).shuffle(tr0).grouped(100).toList
-    val ts = ts0
-    val l = OSELM(firstm0.L)
-    val (firstm, t) = Tempo.timev(l.build(tr.take(ii).flatten))
-    val q = mutable.Queue((firstm.accuracy(ts), t))
-    val m = tr.drop(ii).foldLeft(firstm) { (model, chunk) =>
-      val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => l.update(model)(ex)))
-      q.enqueue((r.accuracy(ts), t))
-      r
+object CSV2ARFFCVTest extends App {
+  val patts0 = new Random(1230).shuffle(Datasets.arff(true)("/home/davi/wcs/marcos/data.arff").right.get)
+  val filter = Datasets.zscoreFilter(patts0)
+  val patts = Datasets.applyFilter(patts0, filter)
+  val n = patts0.size
+  val tr = patts.take(2 * n / 3).grouped(100).toList
+  val ts = patts.drop(2 * n / 3)
+
+  2 to 7 by 1 foreach { N =>
+    val l = interaELM(250, 0.0)
+    var mi = l.batchBuild(tr.take(N).flatten).asInstanceOf[ELMModel]
+    mi = l.modelSelection(mi)
+
+    println(s"N $N (L ${mi.L})")
+    val cv = Datasets.kfoldCV(patts, 10, false) { case (tr0, ts0, fold, minSize) =>
+      val tr = new Random(fold).shuffle(tr0).grouped(100).toList
+      val ts = ts0
+      val os = OSELM(mi.L, fold + 1)
+      val (firstm, t) = Tempo.timev(os.build(tr.take(N).flatten))
+      val q = mutable.Queue((firstm.accuracy(ts), t))
+      tr.drop(N).foldLeft(firstm) { (model, chunk) =>
+        val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => os.update(model)(ex)))
+        q.enqueue((r.accuracy(ts), t))
+        r
+      }
+      q
+    }.transpose
+    cv.foreach { x =>
+      val (m, d, i) = Stat.media_std_intervalo_confianca99(x.map(_._1).toVector)
+      println(s"$m $d $i ${x.map(_._2).sum}")
     }
-    q
-  }.transpose
-  cv.foreach { x =>
-    val (m, d, i) = Stat.media_std_intervalo_confianca99(x.map(_._1).toVector)
-    println(s"$m $d $i ${x.map(_._2).sum}")
+    println("")
   }
-*/
 }
