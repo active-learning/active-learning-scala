@@ -99,12 +99,14 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     //retoma hits
     val initial = queries.take(timeStep)
     val rest = queries.drop(timeStep)
-    if (rest.nonEmpty) {
+    if (timeStep > Q) println(s"Warning: there are more confusion mat. ($timeStep) than desired ($Q).")
+    if (rest.nonEmpty && timeStep < Q) {
       var model = learner.build(initial)
 
       //train
       val ti = System.currentTimeMillis()
       val results = mutable.Queue[String]()
+      println(s"A processar ${rest.toList.size}; mas apenas para totalizar $Q e desde tempo $timeStep, ${(Q - timeStep) * nclasses} hits (exiting:${exiting()})...")
       rest.zipWithIndex.take(Q - timeStep).toStream.takeWhile(_ => (System.currentTimeMillis() - ti) / 1000.0 < seconds && !exiting()).foreach {
         case (trainingPattern, idx) =>
           model = learner.update(model, fast_mutable = true)(trainingPattern)
@@ -263,7 +265,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val queries = fetchQueries(strat, run, fold, f)
       val nextPosition = queries.size
       val r = if (nextPosition < Q && nextPosition < strat.pool.size) {
-        println(s"Gerando queries na posição $nextPosition de um total de $Q queries para $dataset pool: $run.$fold ...")
+        println(s"Gerando queries na posição ${if (Q == Int.MaxValue) strat.pool.size else nextPosition} de um total de $Q queries para $dataset pool: $run.$fold ...")
         val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
         else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
         q = nextIds.length
@@ -278,10 +280,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
             str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
             statement.executeUpdate(str)
           }
-          str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
-          statement.executeUpdate(str)
-          str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
-          statement.executeUpdate(str)
+          //str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
+          //statement.executeUpdate(str)
+          //str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
+          //statement.executeUpdate(str)
           statement.executeUpdate("end")
         } catch {
           case e: Throwable => e.printStackTrace
