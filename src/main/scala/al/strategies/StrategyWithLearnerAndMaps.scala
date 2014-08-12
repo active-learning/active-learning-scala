@@ -28,7 +28,12 @@ trait StrategyWithLearnerAndMaps extends Strategy with DistanceMeasure {
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val initial_mapU = unlabeled.map(x => x -> unlabeled.diff(Seq(x)).map(u => 1d / (1 + d(x, u))).sum).toMap
     val initial_mapL = unlabeled.map(x => x -> labeled.map(l => 1d / (1 + d(x, l))).sum).toMap
+
     val current_model = learner.build(labeled)
+
+    //    var current_model = learner.build(labeled.take(3))
+    //    labeled.drop(3) foreach (x => current_model = learner.update(current_model)(x))
+
     queries_rec(initial_mapU, initial_mapL, current_model, unlabeled, labeled)
   }
 

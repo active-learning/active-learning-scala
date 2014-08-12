@@ -19,8 +19,11 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.Learner
+import ml.classifiers._
 import ml.models.Model
+import util.Datasets
+
+import scala.util.Random
 
 case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debug: Boolean = false)
   extends StrategySGmulti {
@@ -63,4 +66,38 @@ case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debu
     Thread.sleep((delay * 1000).round.toInt)
   }
 
+}
+
+object SGTest extends App {
+  lazy val source = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
+  source("iris") match {
+    case Right(patts) =>
+      0 until 5 foreach { run =>
+        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, false) { case (tr0, ts0, fold, minSize) =>
+
+          //z-score
+          lazy val f = Datasets.zscoreFilter(tr0)
+          lazy val pool = {
+            val tr = Datasets.applyFilterChangingOrder(tr0, f)
+            val res = new Random(run * 100 + fold).shuffle(tr)
+            res
+          }
+          lazy val testSet = {
+            val ts = Datasets.applyFilterChangingOrder(ts0, f)
+            new Random(run * 100 + fold).shuffle(ts)
+          }
+
+          if (run == 4 && fold == 4) {
+            val n = 14
+            val s = DensityWeightedTrainingUtility(interaELM(50, 0), pool, 1, 1, "eucl") //accuracy",100)//, "majority")
+            println(s.queries.take(n + 5).toList.map(_.id))
+            println("")
+
+            val s2 = DensityWeightedTrainingUtility(interaELM(50, 0), pool, 1, 1, "eucl") //,"accuracy",100)//SGmulti(interaELM(50,0), pool, "majority")
+            val qs = s2.queries.take(n).toList
+            println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
+          }
+        }
+      }
+  }
 }

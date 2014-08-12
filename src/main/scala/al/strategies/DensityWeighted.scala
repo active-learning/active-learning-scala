@@ -62,25 +62,12 @@ object DWTest extends App {
           if (run == 4 && fold == 4) {
             val n = 10
             val s = DensityWeighted(KNN(5, "eucl", pool), pool, 1, "eucl")
-            s.queries.take(n + 1).toList
-            //                        println((s.queries.take(n) ++ s.resume_queries(s.queries.take(n))).map(_.id).toList)
+            println(s.queries.take(n + 1).toList)
             println("")
 
             val s2 = DensityWeighted(KNN(5, "eucl", pool), pool, 1, "eucl")
             val qs = s2.queries.take(n).toList
-            s.resume_queries(qs).take(1).toList
-
-            //                        println(s2.queries.map(_.id).toList)
-
-            //            val s = DensityWeighted(KNN(5, "eucl", pool), pool, 1, "eucl")
-            //            val qs = s.queries.take(14)
-            //            println(qs.map(_.id).toList)
-            //            println(s.resume_queries(qs).map(_.id).toList)
-            //
-            //            val s2 = DensityWeighted(KNN(5, "eucl", pool), pool, 1, "eucl")
-            //            val qs2 = s2.queries.take(15)
-            //            println(qs2.map(_.id).toList)
-            //            println(s2.resume_queries(qs2).map(_.id).toList)
+            println(s.resume_queries(qs).take(1).toList)
           }
         }
       }
