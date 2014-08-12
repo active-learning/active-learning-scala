@@ -23,44 +23,42 @@ import ml.classifiers.Learner
 import ml.models.Model
 
 trait StrategyWithLearnerAndMaps extends Strategy with DistanceMeasure {
-   val learner: Learner
+  val learner: Learner
 
-   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-      val initial_mapU = unlabeled.map(x => x -> unlabeled.diff(Seq(x)).map(u => 1d / (1 + d(x, u))).sum).toMap
-      val initial_mapL = unlabeled.map(x => x -> labeled.map(l => 1d / (1 + d(x, l))).sum).toMap
-      val current_model = learner.build(labeled)
-      queries_rec(initial_mapU, initial_mapL, current_model, unlabeled, labeled)
-   }
+  protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+    val initial_mapU = unlabeled.map(x => x -> unlabeled.diff(Seq(x)).map(u => 1d / (1 + d(x, u))).sum).toMap
+    val initial_mapL = unlabeled.map(x => x -> labeled.map(l => 1d / (1 + d(x, l))).sum).toMap
+    val current_model = learner.build(labeled)
+    queries_rec(initial_mapU, initial_mapL, current_model, unlabeled, labeled)
+  }
 
-   private def queries_rec(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
-      if (unlabeled.isEmpty) Stream.Empty
-      else {
-         if (debug) visual_test(null, unlabeled, labeled)
-         val selected = next(mapU, mapL, current_model, unlabeled, labeled)
-         lazy val newU = (mapU - selected) transform {case (pa, si) => si - 1d / (1 + d(selected, pa))}
-         lazy val newL = (mapL - selected) transform {case (pa, si) => si + 1d / (1 + d(selected, pa))}
+  private def queries_rec(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
+    if (unlabeled.isEmpty) Stream.Empty
+    else {
+      if (debug) visual_test(null, unlabeled, labeled)
+      val selected = next(mapU, mapL, current_model, unlabeled, labeled)
 
-         val new_model = learner.update(current_model,fast_mutable = true)(selected)
-         if (debug) visual_test(selected, unlabeled, labeled)
-         selected #:: queries_rec(newU, newL, new_model, unlabeled.diff(Seq(selected)), labeled :+ selected)
-      }
-   }
+      lazy val newU = (mapU - selected) transform { case (pa, si) => si - 1d / (1 + d(selected, pa))}
+      lazy val newL = (mapL - selected) transform { case (pa, si) => si + 1d / (1 + d(selected, pa))}
 
-   protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern
+      val new_model = learner.update(current_model, fast_mutable = true)(selected)
+      if (debug) visual_test(selected, unlabeled, labeled)
+      selected #:: queries_rec(newU, newL, new_model, unlabeled.diff(Seq(selected)), labeled :+ selected)
+    }
+  }
 
-   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
-      val current_model = learner.build(labeled)
-      plot.zera()
-      for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p), 9)
-      for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-      if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
-      plot.mostra()
-      Thread.sleep((delay * 1000).round.toInt)
-   }
+  protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern
+
+  protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
+    val current_model = learner.build(labeled)
+    plot.zera()
+    for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p), 9)
+    for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
+    if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
+    plot.mostra()
+    Thread.sleep((delay * 1000).round.toInt)
+  }
 }
-
-
-
 
 
 ////

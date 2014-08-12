@@ -24,6 +24,7 @@ import ml.neural.elm
 import ml.neural.old.Neural
 import no.uib.cipr.matrix.{MatrixSingularException, DenseMatrix, DenseVector}
 import org.math.array.StatisticSample
+import util.Datasets
 import weka.core._
 
 trait DistanceMeasure {
@@ -31,7 +32,9 @@ trait DistanceMeasure {
   val pool: Seq[Pattern]
   val distance_name: String
   val debug: Boolean
-  lazy val dataset = pool.head.dataset
+  //acho que eu havia colocado .head.dataset aqui para acelerar o carregamento da estratégia, mas parece que o cálculo de dist do weka fica zoado e irreprodutível.
+  lazy val dataset = Datasets.patterns2instances(pool)
+  //.head.dataset
   lazy val natts = dataset.numAttributes() - 1
   lazy val size = dataset.numInstances()
   lazy val d = distance_to(distance_name)
