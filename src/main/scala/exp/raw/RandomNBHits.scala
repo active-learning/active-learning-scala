@@ -30,7 +30,7 @@ object RandomNBHits extends CrossValidation with App {
   val parArgIndex = 2
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
-  val (path, datasetNames0, learner) = ArgParser.testArgs(className, args, 3, desc)
+  val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
 
