@@ -80,15 +80,6 @@ trait CrossValidation extends Lock with ClassName {
 
   def ee(db: Dataset): Boolean
 
-  lazy val datasetNames = datasetNames0.par.filter { d =>
-    val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
-    if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
-    db.open()
-    val r = ee(db)
-    db.close()
-    r
-  }.toList
-
   def strats(run: Int, pool: Seq[Pattern]) = if (parallelStrats) strats0(run, pool).par else strats0(run, pool)
 
   /**
@@ -117,6 +108,14 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit) {
+    val datasetNames = datasetNames0.par.filter { d =>
+      val db = Dataset(path, createOnAbsence = false, readOnly = true)(d)
+      if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
+      db.open()
+      val r = ee(db)
+      db.close()
+      r
+    }.toList
 
     //stops according to time limit or presence of quit-file
     running = true

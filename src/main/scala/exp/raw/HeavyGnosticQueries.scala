@@ -29,7 +29,7 @@ import weka.filters.unsupervised.attribute.Standardize
 object HeavyGnosticQueries extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
-    "strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of 8000s;\n"
+    s"strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of $timeLimitSeconds s;\n"
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
 
   run(ff)
