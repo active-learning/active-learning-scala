@@ -63,7 +63,7 @@ trait CrossValidation extends Lock with ClassName {
   def strats0(run: Int, pool: Seq[Pattern]): Seq[Strategy]
 
   val samplingSize = 500
-  val timeLimitSeconds = 3 * 3600
+  val timeLimitSeconds = 5 * 3600
   val runs = 5
   val folds = 5
   //lock is just to increment finished datasets counter
