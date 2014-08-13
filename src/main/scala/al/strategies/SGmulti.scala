@@ -87,16 +87,22 @@ object SGTest extends App {
             new Random(run * 100 + fold).shuffle(ts)
           }
 
-          if (run == 4 && fold == 4) {
-            val n = 14
-            val s = DensityWeightedTrainingUtility(interaELM(50, 0), pool, 1, 1, "eucl") //accuracy",100)//, "majority")
-            println(s.queries.take(n + 5).toList.map(_.id))
-            println("")
+          //          if (run == 4 && fold == 4) {
+          val n = 14
+          val s = SGmulti(interaELM(50, 0), pool, "majority")
+          println(s.queries.take(n + 5).toList.map(_.id))
 
-            val s2 = DensityWeightedTrainingUtility(interaELM(50, 0), pool, 1, 1, "eucl") //,"accuracy",100)//SGmulti(interaELM(50,0), pool, "majority")
-            val qs = s2.queries.take(n).toList
-            println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
-          }
+          val s2 = SGmulti(interaELM(50, 0), pool, "majority")
+          val qs = s2.queries.take(n).toList
+          println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
+
+          //                      val m = interaELM(5, 0).batchBuild(pool)
+          //                      println(m.accuracy(testSet))
+          //
+          //                      var m2 = interaELM(5, 0).batchBuild(pool.take(3))
+          //                      pool.drop(3).foreach(x => m2 = interaELM(50, 0).update(m2)(x))
+          //                      println(m2.accuracy(testSet))
+          ////          }
         }
       }
   }

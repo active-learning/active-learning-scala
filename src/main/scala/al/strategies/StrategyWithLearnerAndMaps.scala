@@ -31,8 +31,8 @@ trait StrategyWithLearnerAndMaps extends Strategy with DistanceMeasure {
 
     val current_model = learner.build(labeled)
 
-    //    var current_model = learner.build(labeled.take(3))
-    //    labeled.drop(3) foreach (x => current_model = learner.update(current_model)(x))
+    //        var current_model = learner.build(labeled.take(3))
+    //        labeled.drop(3) foreach (x => current_model = learner.update(current_model)(x))
 
     queries_rec(initial_mapU, initial_mapL, current_model, unlabeled, labeled)
   }
