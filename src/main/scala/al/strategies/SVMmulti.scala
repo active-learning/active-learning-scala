@@ -60,18 +60,21 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
     if (unlabeled.isEmpty) Stream.Empty
     else {
       val n = labeled.size
+      val chosen = n % nclasses
+
       if (debug) visual_test(null, unlabeled, labeled)
-      val id = svm(n % nclasses).nextQuery()
+
+      val id = svm(chosen).nextQuery()
+      val ind = svm(chosen).lastQueriedInd
+      svm.zipWithIndex.filter { case (_, i) => i != chosen}.foreach { case (s, _) => s.markAsQueried(ind)}
       val selected = pool.find(_.id == id) match {
         case Some(p) => p
         case None => println("Queried id not found!")
           sys.exit(1)
       }
-      if (stop) Stream(selected)
-      else {
-        if (debug) visual_test(selected, unlabeled, labeled)
-        selected #:: queries_rec(svm, unlabeled.diff(Seq(selected)), labeled :+ selected)
-      }
+
+      if (debug) visual_test(selected, unlabeled, labeled)
+      selected #:: queries_rec(svm, unlabeled.diff(Seq(selected)), labeled :+ selected)
     }
   }
 }
@@ -97,10 +100,16 @@ object SVMmultiTest extends App {
 
           //          if (run == 4 && fold == 4) {
           val n = 14
-          val s = SVMmulti(pool, "SIMPLE")
+          val s = SVMmulti(pool, "SELF_CONF")
+          //          val s = SVMmulti(pool, "SIMPLE")
+          //          val s = SVMmulti(pool, "SIMPLE")
+          //          val s = SVMmulti(pool, "SIMPLE")
           println(s.queries.take(n + 5).toList.map(_.id))
 
-          val s2 = SVMmulti(pool, "SIMPLE")
+          val s2 = SVMmulti(pool, "SELF_CONF")
+          //          val s2 = SVMmulti(pool, "SIMPLE")
+          //          val s2 = SVMmulti(pool, "SIMPLE")
+          //          val s2 = SVMmulti(pool, "SIMPLE")
           val qs = s2.queries.take(n).toList
           println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
 

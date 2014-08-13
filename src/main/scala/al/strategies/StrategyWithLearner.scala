@@ -35,12 +35,9 @@ trait StrategyWithLearner extends Strategy {
     else {
       if (debug) visual_test(null, unlabeled, labeled)
       val selected = next(current_model, unlabeled, labeled)
-      if (stop) Stream(selected)
-      else {
-        val new_model = learner.update(current_model, fast_mutable = true)(selected)
-        if (debug) visual_test(selected, unlabeled, labeled)
-        selected #:: queries_rec(new_model, unlabeled.diff(Seq(selected)), labeled :+ selected)
-      }
+      val new_model = learner.update(current_model, fast_mutable = true)(selected)
+      if (debug) visual_test(selected, unlabeled, labeled)
+      selected #:: queries_rec(new_model, unlabeled.diff(Seq(selected)), labeled :+ selected)
     }
   }
 

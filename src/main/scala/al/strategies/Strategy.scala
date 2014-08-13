@@ -27,7 +27,6 @@ import util.Graphics.Plot
  */
 trait Strategy {
   val learner: Learner
-  var stop = false
   val pool: Seq[Pattern]
   lazy val distinct_pool = if (pool.distinct != pool) {
     println("The pool cannot have repeated instances!")

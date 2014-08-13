@@ -159,14 +159,29 @@ public class SVMStrategy {
         }
     }
 
+    public int lastQueriedInd = -1;
+
     public int nextQuery() throws Exception {
         learner.buildClassifier(labeled);
         int ind = learner.instanceToQuery(unlabeled);
+        lastQueriedInd = ind;
         InstanceContainer ins = unlabeled.getInstance(ind);
+        labeled.addInstance(ins);
         unlabeled.deleteInstance(ind);
 //        System.out.println("idx " + ind + " class:" + ins.classValue());
 //        System.out.println("");
-        labeled.addInstance(ins);
         return ins.getIndex();
+    }
+
+    /**
+     * To syncronize with other SVMs (in the multiclass case).
+     *
+     * @param ind
+     * @throws Exception
+     */
+    public void markAsQueried(int ind) throws Exception {
+        InstanceContainer ins = unlabeled.getInstance(ind);
+        labeled.addInstance(ins);
+        unlabeled.deleteInstance(ind);
     }
 }

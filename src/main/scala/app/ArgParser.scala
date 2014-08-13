@@ -20,6 +20,7 @@ package app
 
 import java.io.File
 
+import al.strategies.SVMmulti
 import ml.Pattern
 import ml.classifiers._
 import util.Datasets
@@ -79,6 +80,8 @@ object ArgParser {
       case "EI" => EIELM(seed)
 
       case "intera" => interaELM(10, 0.1, seed)
+
+      case "LASVM" => LASVM()
 
       case "C45" => C45()
       case "VFDT" => VFDT()
