@@ -86,7 +86,7 @@ trait CrossValidation extends Lock with ClassName {
     val r = ee(db)
     db.close()
     r
-  }
+  }.toList
 
   def strats(run: Int, pool: Seq[Pattern]) = if (parallelStrats) strats0(run, pool).par else strats0(run, pool)
 
