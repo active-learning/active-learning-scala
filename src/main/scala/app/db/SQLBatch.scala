@@ -36,8 +36,10 @@ object SQLBatch extends App {
     val db = dest(datasetName)
     if (db.dbOriginal.exists()) {
       db.open()
-      val queue = (if (args(2).contains("str")) db.runStr(sql) else db.exec(sql)).get
-      println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n") + " " + datasetName)
+      (if (args(2).contains("str")) db.runStr(sql) else db.exec(sql)) match {
+        case Some(queue) => println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n") + " " + datasetName)
+        case None => println(s"$datasetName ok.")
+      }
       if (!readOnly) db.save()
       db.close()
     }
