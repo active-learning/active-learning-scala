@@ -59,8 +59,7 @@ object ComparingBatchClassifiers extends CrossValidation with App {
     val name = db.database
     val did = resultsDb.exec(s"select rowid from app.dataset where name = '$name'").get.head.head
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
-      interaELM(math.min(100, pool.size / 3)), interaELMNoEM(math.min(100, pool.size / 3)),
-      interawELM(15), interawfELM(15),
+      interaELM(10, 0.1, pool.size),
       OSELM(math.sqrt(pool.size).toInt),
       VFDT(), NB(), KNN(5, "eucl", pool), C45())
 
@@ -136,8 +135,7 @@ object interasTest extends App {
   val pool = patts.take(1000)
   val ts = patts.drop(1000)
   val learners = Seq(IELM(), IELMEnsemble(5), EIELM(), CIELM(),
-    interaELM(math.min(100, pool.size / 3), 0.333), interawELM(10), interawfELM(5),
-    interawAlwaysELM(10), interawfAlwaysELM(1), interaNewSeedELM(math.min(100, pool.size / 3)))
+    interaELM(10, 0.1, math.min(100, pool.size / 3)))
   //  learners foreach { l =>
   //    val m = l.build(pool)
   //    println(s"$l : ${m.accuracy(ts)}    L: ${m.asInstanceOf[ELMModel].L}")
@@ -211,7 +209,7 @@ object interaTest extends App {
   val patts = Datasets.applyFilter(patts0, filter)
   val pool = patts.take(1000)
   val ts = patts.drop(1000)
-  val learner = interaELM(math.min(100, pool.size / 3), 0.1)
+  val learner = interaELM(10, 0.1, math.min(100, pool.size / 3))
   val n = 11
   var a = learner.build(pool.take(n))
 

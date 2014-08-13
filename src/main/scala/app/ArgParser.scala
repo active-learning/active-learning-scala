@@ -78,8 +78,7 @@ object ArgParser {
       case "I" => IELM(seed)
       case "EI" => EIELM(seed)
 
-      case "intera" => interaELM(Lmax / 3, seed)
-      //      case "interaw" => interawELM(Lmax / 3, seed)
+      case "intera" => interaELM(10, 0.1, seed)
 
       case "C45" => C45()
       case "VFDT" => VFDT()

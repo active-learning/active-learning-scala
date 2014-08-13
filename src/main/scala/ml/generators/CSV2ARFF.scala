@@ -18,13 +18,11 @@
 
 package ml.generators
 
-import java.io.{File, FileWriter}
+import java.io.FileWriter
 
-import app.ArgParser
-import ml.classifiers.{interaELM, OSELM}
-import ml.models.{ELMModel, Model}
-import util.{Stat, Tempo, Datasets}
-import weka.core.Instances
+import ml.classifiers.{OSELM, interaELM}
+import ml.models.ELMModel
+import util.{Datasets, Stat, Tempo}
 
 import scala.collection.mutable
 import scala.io.Source
@@ -57,7 +55,7 @@ object CSV2ARFFCVTest extends App {
   val ts = patts.drop(2 * n / 3)
 
   7 to 28 by 7 foreach { N =>
-    val l = interaELM(150, 0.0)
+    val l = interaELM()
     var mi = l.batchBuild(tr.take(N).flatten).asInstanceOf[ELMModel]
     mi = l.modelSelection(mi)
 
