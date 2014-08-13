@@ -39,7 +39,7 @@ object Hits extends CrossValidation with App {
     //    Entropy(learner(pool.length / 2, run, pool), pool),
     //    Margin(learner(pool.length / 2, run, pool), pool),
     //    new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
-    new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
+    new SGmulti(learner(run, pool), pool, "majority"),
     //    new SGmultiJS(learner(pool.length / 2, run, pool), pool),
     //    DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
     //    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
@@ -47,7 +47,7 @@ object Hits extends CrossValidation with App {
     //    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
     //    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
     //    MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-    MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1) //,
+    MahalaWeightedTrainingUtility(learner(run, pool), pool, 1, 1) //,
     //    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
     //    ExpErrorReductionMargin(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
     //    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
@@ -56,15 +56,15 @@ object Hits extends CrossValidation with App {
 
   def ee(db: Dataset) = {
     val fazer = !db.isLocked && (if (!rndNBHitsComplete(db)) {
-      println(s"Rnd NB hits are incomplete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+      println(s"Rnd NB hits are incomplete for $db with ${learner(-1, Seq())}. Skipping...")
       false
     } else {
-      if (!hitsComplete(learner(-1, -1, Seq()))(db)) {
+      if (!hitsComplete(learner(-1, Seq()))(db)) {
         if (nonRndQueriesComplete(db)) true
         else println(s"Queries are incomplete for $db for some of the given strategies. Skipping...")
         false
       } else {
-        println(s"Hits are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+        println(s"Hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
         false
       }
     })
@@ -74,6 +74,6 @@ object Hits extends CrossValidation with App {
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
     val Q = q_notCheckedIfHasAllRndQueries(db)
-    strats(run, pool).foreach(s => db.saveHits(s, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
+    strats(run, pool).foreach(s => db.saveHits(s, learner(run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
   }
 }

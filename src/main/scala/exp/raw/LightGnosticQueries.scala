@@ -35,19 +35,19 @@ object LightGnosticQueries extends CrossValidation with App {
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    Uncertainty(learner(pool.length / 2, run, pool), pool),
-    Entropy(learner(pool.length / 2, run, pool), pool),
-    Margin(learner(pool.length / 2, run, pool), pool),
-    new SGmulti(learner(pool.length / 2, run, pool), pool, "consensus"),
-    new SGmulti(learner(pool.length / 2, run, pool), pool, "majority"),
-    new SGmultiJS(learner(pool.length / 2, run, pool), pool),
-    DensityWeighted(learner(pool.length / 2, run, pool), pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "maha"),
-    DensityWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1, "manh"),
-    MahalaWeighted(learner(pool.length / 2, run, pool), pool, 1),
-    MahalaWeightedTrainingUtility(learner(pool.length / 2, run, pool), pool, 1, 1)
+    Uncertainty(learner(run, pool), pool),
+    Entropy(learner(run, pool), pool),
+    Margin(learner(run, pool), pool),
+    new SGmulti(learner(run, pool), pool, "consensus"),
+    new SGmulti(learner(run, pool), pool, "majority"),
+    new SGmultiJS(learner(run, pool), pool),
+    DensityWeighted(learner(run, pool), pool, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "maha"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "manh"),
+    MahalaWeighted(learner(run, pool), pool, 1),
+    MahalaWeightedTrainingUtility(learner(run, pool), pool, 1, 1)
   )
 
   def ee(db: Dataset) = {
@@ -56,7 +56,7 @@ object LightGnosticQueries extends CrossValidation with App {
       false
     } else if (!nonRndQueriesComplete(db)) true
     else {
-      println(s"Light queries are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+      println(s"Light queries are complete for $db with ${learner(-1, Seq())}. Skipping...")
       false
     })
     fazer

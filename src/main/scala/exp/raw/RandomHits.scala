@@ -44,9 +44,9 @@ object RandomHits extends CrossValidation with App {
         println(s"Rnd NB hits are incomplete for $db. Skipping...")
         false
       } else {
-        if (!hitsComplete(learner(-1, -1, Seq()))(db)) true
+        if (!hitsComplete(learner(-1, Seq()))(db)) true
         else {
-          println(s"Rnd hits are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+          println(s"Rnd hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
           false
         }
       }
@@ -65,7 +65,7 @@ object RandomHits extends CrossValidation with App {
       val Q = q_notCheckedIfHasAllRndQueries(db)
 
       //Retoma Rnd Hits para o dado learner como arg na linha de comando, limitando por tempo e Q.
-      strats(run, pool).foreach(s => db.saveHits(s, learner(pool.length / 2, run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
-    } else println(s"Rnd NB hits still incomplete! Skipping ${learner(-1, -1, Seq())} hits.")
+      strats(run, pool).foreach(s => db.saveHits(s, learner(run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
+    } else println(s"Rnd NB hits still incomplete! Skipping ${learner(-1, Seq())} hits.")
   }
 }

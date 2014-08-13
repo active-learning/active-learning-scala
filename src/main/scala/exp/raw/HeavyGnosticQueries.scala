@@ -35,10 +35,10 @@ object HeavyGnosticQueries extends CrossValidation with App {
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
-    ExpErrorReductionMargin(learner(pool.length / 2, run, pool), pool, "entropy", samplingSize),
-    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "accuracy", samplingSize),
-    ExpErrorReduction(learner(pool.length / 2, run, pool), pool, "gmeans", samplingSize)
+    ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
+    ExpErrorReductionMargin(learner(run, pool), pool, "entropy", samplingSize),
+    ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
+    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize)
   )
 
   def ee(db: Dataset) = {
@@ -47,7 +47,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
       false
     } else if (!nonRndQueriesComplete(db)) true
     else {
-      println(s"Heavy queries are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+      println(s"Heavy queries are complete for $db with ${learner(-1, Seq())}. Skipping...")
       false
     })
     fazer

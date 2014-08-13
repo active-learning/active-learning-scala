@@ -65,13 +65,13 @@ object ArgParser {
     (args(0) + "/", args(1).split(",").toSeq)
   }
 
-  def testArgsWithLearner(className: String, args: Array[String], text: String): (String, Seq[String], (Int, Int, Seq[Pattern]) => Learner) = {
+  def testArgsWithLearner(className: String, args: Array[String], text: String): (String, Seq[String], (Int, Seq[Pattern]) => Learner) = {
     if (args.length != 4) {
       println("____________\n" + text + "\n------------\nUsage:")
       println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf learner")
       sys.exit(1)
     }
-    def learner(Lmax: Int, seed: Int, pool: Seq[Pattern]) = args(3) match {
+    def learner(seed: Int, pool: Seq[Pattern]) = args(3) match {
       case "NB" => NB()
 
       case "CI" => CIELM(seed)

@@ -42,7 +42,7 @@ object RandomNBHits extends CrossValidation with App {
     } else {
       if (!rndNBHitsComplete(db)) true
       else {
-        println(s"Rnd NB hits are complete for $db with ${learner(-1, -1, Seq())}. Skipping...")
+        println(s"Rnd NB hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
         false
       }
     })
