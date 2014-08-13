@@ -135,7 +135,7 @@ trait CrossValidation extends Lock with ClassName {
             running = false
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
             reason = s"Limite de $memlimit MB de memoria atingido."
-            if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason)
+            if (dbToWait != null && dbToWait.isOpen) dbToWait.unsafeQuit(reason)
             running = false
           }
         }
