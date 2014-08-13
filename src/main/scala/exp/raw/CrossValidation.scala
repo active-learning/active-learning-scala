@@ -297,7 +297,7 @@ trait CrossValidation extends Lock with ClassName {
           }
         }
     }
-    if (!r) println(s"$strat / $learner queries incomplete")
+    if (!r) println(s"$strat / $learner queries incomplete for $db")
     r
   }
 }
