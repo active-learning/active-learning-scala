@@ -198,7 +198,7 @@ trait CrossValidation extends Lock with ClassName {
               acquire()
               finished += 1
               release()
-              println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames.length + ")\n")
+              println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames0.length + ")\n")
               Thread.sleep(10)
               if (db.isOpen) db.close()
             case Left(str) =>
