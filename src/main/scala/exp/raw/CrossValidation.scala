@@ -76,6 +76,7 @@ trait CrossValidation extends Lock with ClassName {
   var available = true
   var dbToWait: Dataset = null
   val fileToStopProgram = "/tmp/safeQuit.davi"
+  val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
 
   def ee(db: Dataset): Boolean
 
@@ -128,7 +129,13 @@ trait CrossValidation extends Lock with ClassName {
             running
           }
           val tmpLockingFile = new File(fileToStopProgram)
-          if (tmpLockingFile.exists()) {
+          val tmpLockingFileUnsafe = new File(fileToStopProgramUnsafe)
+          if (tmpLockingFileUnsafe.exists()) {
+            reason = s"$fileToStopProgramUnsafe found, unsafe-quiting."
+            tmpLockingFileUnsafe.delete()
+            if (dbToWait != null && dbToWait.isOpen) dbToWait.unsafeQuit(reason) else justQuit(s"Db was closed: $reason")
+            running = false
+          } else if (tmpLockingFile.exists()) {
             reason = s"$fileToStopProgram found, safe-quiting."
             tmpLockingFile.delete()
             if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason) else justQuit(s"Db was closed: $reason")
