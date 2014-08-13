@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.LASVM
+import ml.classifiers.{interaELM, LASVM}
 import svmal.SVMStrategymulti
 import util.Datasets
 
@@ -77,10 +77,41 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
 }
 
 object SVMmultiTest extends App {
-  //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
-  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
-  val filter = Datasets.zscoreFilter(patts0)
-  val patts = Datasets.applyFilterChangingOrder(patts0, filter)
-  val s = SVMmulti(patts, "SELF_CONF")
-  s.queries foreach println
+  lazy val source = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
+  source("banana") match {
+    case Right(patts) =>
+      0 until 5 foreach { run =>
+        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, false) { case (tr0, ts0, fold, minSize) =>
+
+          //z-score
+          lazy val f = Datasets.zscoreFilter(tr0)
+          lazy val pool = {
+            val tr = Datasets.applyFilterChangingOrder(tr0, f)
+            val res = new Random(run * 100 + fold).shuffle(tr)
+            res
+          }
+          lazy val testSet = {
+            val ts = Datasets.applyFilterChangingOrder(ts0, f)
+            new Random(run * 100 + fold).shuffle(ts)
+          }
+
+          //          if (run == 4 && fold == 4) {
+          val n = 14
+          val s = SVMmulti(pool, "SIMPLE")
+          println(s.queries.take(n + 5).toList.map(_.id))
+
+          val s2 = SVMmulti(pool, "SIMPLE")
+          val qs = s2.queries.take(n).toList
+          println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
+
+          //                      val m = interaELM(5, 0).batchBuild(pool)
+          //                      println(m.accuracy(testSet))
+          //
+          //                      var m2 = interaELM(5, 0).batchBuild(pool.take(3))
+          //                      pool.drop(3).foreach(x => m2 = interaELM(50, 0).update(m2)(x))
+          //                      println(m2.accuracy(testSet))
+          ////          }
+        }
+      }
+  }
 }
