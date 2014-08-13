@@ -131,11 +131,11 @@ trait CrossValidation extends Lock with ClassName {
           if (tmpLockingFile.exists()) {
             reason = s"$fileToStopProgram found, safe-quiting."
             tmpLockingFile.delete()
-            if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason)
+            if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason) else justQuit(s"Db was closed: $reason")
             running = false
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
             reason = s"Limite de $memlimit MB de memoria atingido."
-            if (dbToWait != null && dbToWait.isOpen) dbToWait.unsafeQuit(reason)
+            if (dbToWait != null && dbToWait.isOpen) dbToWait.unsafeQuit(reason) else justQuit(s"Db was closed: $reason")
             running = false
           }
         }
