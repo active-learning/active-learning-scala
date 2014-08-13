@@ -9,10 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 import ml.Pattern;
-import svmal.ml.active.BALANCED_EE;
-import svmal.ml.active.KFF;
-import svmal.ml.active.SELF_CONF;
-import svmal.ml.active.SIMPLE;
+import svmal.ml.active.*;
 import svmal.weka.active.ActiveLearner;
 import svmal.libsvm.SvmLib;
 import svmal.weka.core.DataContainer;
@@ -21,7 +18,8 @@ import svmal.weka.core.InstanceContainer;
 import weka.core.*;
 
 public class SVMStrategy {
-    ActiveLearner learner;
+    //    ActiveLearner learner;
+    XSvmActiveLearner learner;
     DataContainer labeled = null;
     DataContainer unlabeled = null;
     private SvmLib svm = new SvmLib();
@@ -49,6 +47,8 @@ public class SVMStrategy {
                  * This implementation is an SVM-based variant of SELF-CONF.
                  * For SVM, probabilistic estimates are obtained in a standard way, using logistic regression.
                  * The code uses random subsampling: On each trial we estimate the `self estimated expected log-loss' for only a random subset of U.
+
+                 * Deixei fixo em 100, diferente disso:
                  * The subsample in the first active session trial contains 100 points; on each subsequent trial we decrement the subsample size by one point
                  * until we reach a minimum of 10 points, which we keep for the remaining trials.
 
@@ -68,7 +68,7 @@ public class SVMStrategy {
                  */
                 learner = new SELF_CONF();
                 break;
-            case "KFF":
+            case "KFFmut":
                 /*
                     A simple active-learning heuristic based on “farthest-first” traversal sequences
                     in kernel space. Farthest-first (FF) sequences have been previously used for computing provably
@@ -93,7 +93,7 @@ public class SVMStrategy {
                     */
                 learner = new KFF();
                 break;
-            case "BALANCED_EE":
+            case "BALANCED_EEmut":
                 /*
                  * Parece que é o sucessor do MAB3.
                  * The idea is similar to COMB (by Luz et. al.). We use two learners:

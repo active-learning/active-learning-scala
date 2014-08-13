@@ -19,7 +19,7 @@ import weka.core.Instances;
  */
 abstract public class XSvmActiveLearner extends XActiveLearner {
 
-    private SvmLib svm;
+    public SvmLib svm;
 
     public XSvmActiveLearner() {
         svm = new SvmLib();

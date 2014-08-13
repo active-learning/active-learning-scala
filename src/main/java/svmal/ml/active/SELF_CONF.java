@@ -47,7 +47,6 @@ public class SELF_CONF extends XSvmActiveLearner {
     private static final int DEC_DEFAULT = 1;
     private int m_dec = DEC_DEFAULT;
     private int m_currSampleSize;
-    private long randomSeed = 1234567890;
     private Random m_rndm;
 
 

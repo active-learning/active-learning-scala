@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{Learner, NB}
+import ml.classifiers.{VFDT, Learner, NB}
 import ml.models.Model
 import util.Datasets
 
@@ -41,15 +41,34 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
 }
 
 object DWTUTest extends App {
-  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
-  val n = (patts.length * 0.5).toInt
-  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
-  val l = s.queries.toList
-  val b = l.drop(11) foreach {
-    q => m = learner.update(m)(q)
-      println(m.accuracy(patts.drop(n)))
-  }
-  var m = learner.build(l.take(11))
+  lazy val source = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
+  source("banana") match {
+    case Right(patts) =>
+      0 until 5 foreach { run =>
+        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, false) { case (tr0, ts0, fold, minSize) =>
 
-  def learner = NB()
+          //z-score
+          lazy val f = Datasets.zscoreFilter(tr0)
+          lazy val pool = {
+            val tr = Datasets.applyFilterChangingOrder(tr0, f)
+            val res = new Random(run * 100 + fold).shuffle(tr)
+            res
+          }
+          lazy val testSet = {
+            val ts = Datasets.applyFilterChangingOrder(ts0, f)
+            new Random(run * 100 + fold).shuffle(ts)
+          }
+
+          //          if (run == 4 && fold == 4) {
+          val n = 14
+          val s = DensityWeightedTrainingUtility(VFDT(), pool, 1, 1, "eucl")
+          println(s.queries.take(n + 5).toList.map(_.id))
+
+          val s2 = DensityWeightedTrainingUtility(VFDT(), pool, 1, 1, "eucl")
+          val qs = s2.queries.take(n).toList
+          println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
+          ////          }
+        }
+      }
+  }
 }

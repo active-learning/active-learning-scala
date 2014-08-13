@@ -100,16 +100,16 @@ object SVMmultiTest extends App {
 
           //          if (run == 4 && fold == 4) {
           val n = 14
-          //          val s = SVMmulti(pool, "SIMPLE")
-          //                    val s = SVMmulti(pool, "BALANCED_EE")
-          //          val s = SVMmulti(pool, "KFF")
-          val s = SVMmulti(pool, "SELF_CONF")
+          val s = SVMmulti(pool, "SIMPLE")
+          //                              val s = SVMmulti(pool, "BALANCED_EE")
+          //                    val s = SVMmulti(pool, "KFF")
+          //          val s = SVMmulti(pool, "SELF_CONF")
           println(s.queries.take(n + 5).toList.map(_.id))
 
-          //          val s2 = SVMmulti(pool, "SIMPLE")
-          //                    val s2 = SVMmulti(pool, "BALANCED_EE")
-          //                    val s2 = SVMmulti(pool, "KFF")
-          val s2 = SVMmulti(pool, "SELF_CONF")
+          val s2 = SVMmulti(pool, "SIMPLE")
+          //                              val s2 = SVMmulti(pool, "BALANCED_EE")
+          //                              val s2 = SVMmulti(pool, "KFF")
+          //          val s2 = SVMmulti(pool, "SELF_CONF")
           val qs = s2.queries.take(n).toList
           println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
 
