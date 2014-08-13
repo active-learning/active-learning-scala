@@ -61,7 +61,7 @@ object ComparingBatchClassifiers extends CrossValidation with App {
     val learners = Seq(IELM(pool.size), EIELM(pool.size), CIELM(pool.size), ECIELM(pool.size),
       interaELM(10, 0.1, pool.size),
       OSELM(math.sqrt(pool.size).toInt),
-      VFDT(), NB(), KNN(5, "eucl", pool), C45())
+      VFDT(), NB(), KNNBatch(5, "eucl", pool), C45())
 
     //Heavy processing.
     val results = learners map { learner =>

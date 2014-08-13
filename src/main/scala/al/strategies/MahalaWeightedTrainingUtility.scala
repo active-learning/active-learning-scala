@@ -18,34 +18,32 @@
 
 package al.strategies
 
-import ml.classifiers.{KNN, VFDT, Learner}
 import ml.Pattern
-import ml.Pattern
-import org.math.array.{StatisticSample, LinearAlgebra}
-import no.uib.cipr.matrix.{MatrixSingularException, DenseMatrix}
+import ml.classifiers.{KNNBatch, Learner}
 import ml.models.Model
+import no.uib.cipr.matrix.MatrixSingularException
 import util.Datasets
 
 import scala.util.Random
 
 case class MahalaWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], alpha: Double, beta: Double, debug: Boolean = false)
-   extends StrategyWithMahala with MarginMeasure {
-   override val toString = "Mahala Weighted TU a" + alpha + " b" + beta
+  extends StrategyWithMahala with MarginMeasure {
+  override val toString = "Mahala Weighted TU a" + alpha + " b" + beta
 
-   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
-      try {
-         val ud = maha_at_pool_for_mean(unlabeled)
-         val ld = maha_at_pool_for_mean(labeled)
-         unlabeled maxBy {
-            x =>
-               val similarityU = 1d / (1 + ud(x)) //mean includes x, but no problem since the pool is big
-               val similarityL = 1d / (1 + ld(x))
-               (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
-         }
-      } catch {
-         case ex: MatrixSingularException => println(" MahalaWTU: singular matrix! Defaulting to Random Sampling..."); unlabeled.head
+  protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
+    try {
+      val ud = maha_at_pool_for_mean(unlabeled)
+      val ld = maha_at_pool_for_mean(labeled)
+      unlabeled maxBy {
+        x =>
+          val similarityU = 1d / (1 + ud(x)) //mean includes x, but no problem since the pool is big
+        val similarityL = 1d / (1 + ld(x))
+          (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
       }
-   }
+    } catch {
+      case ex: MatrixSingularException => println(" MahalaWTU: singular matrix! Defaulting to Random Sampling..."); unlabeled.head
+    }
+  }
 }
 
 object MWTUTest extends App {
@@ -67,15 +65,16 @@ object MWTUTest extends App {
             new Random(run * 100 + fold).shuffle(ts)
           }
 
-          if (run == 4 && fold == 4) {
-            val n = 14
-            val s = MahalaWeightedTrainingUtility(KNN(5, "eucl", pool), pool, 1, 1)
-            println(s.queries.take(n + 5).toList.map(_.id))
+          val n = 11
+          val s = MahalaWeightedTrainingUtility(KNNBatch(5, "eucl", pool), pool, 1, 1)
+          println(s.queries.take(n + 5).toList.map(_.id))
 
-            val s2 = MahalaWeightedTrainingUtility(KNN(5, "eucl", pool), pool, 1, 1)
-            val qs = s2.queries.take(n).toList
-            println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
-          }
+          val s2 = MahalaWeightedTrainingUtility(KNNBatch(5, "eucl", pool), pool, 1, 1)
+          val qs = s2.queries.take(n).toList
+          println((qs ++ s2.resume_queries(qs).take(5).toList).map(_.id))
+
+          if (s.queries.take(n + 7).toList.map(_.id) != (qs ++ s2.resume_queries(qs).take(7).toList).map(_.id)) println("problems")
+          println("")
         }
       }
   }

@@ -18,7 +18,7 @@
 
 package al.strategies
 
-import ml.classifiers.{KNN, VFDT, Learner}
+import ml.classifiers._
 import ml.Pattern
 import ml.Pattern
 import org.math.array.{StatisticSample, LinearAlgebra}
@@ -65,15 +65,18 @@ object MWTest extends App {
             new Random(run * 100 + fold).shuffle(ts)
           }
 
-          if (run == 4 && fold == 4) {
-            val n = 10
-            val s = MahalaWeighted(KNN(5, "eucl", pool), pool, 1)
-            println(s.queries.take(n + 7).toList.map(_.id))
+          //          if (run == 4 && fold == 4) {
+          def l = interaELM() //NB() //VFDT() //C45() // KNN(5, "eucl", pool)
+        val n = 11
+          val s = MahalaWeighted(l, pool, 1)
+          println(s.queries.take(n + 7).toList.map(_.id))
 
-            val s2 = MahalaWeighted(KNN(5, "eucl", pool), pool, 1)
-            val qs = s2.queries.take(n).toList
-            println((qs ++ s.resume_queries(qs).take(7).toList).map(_.id))
-          }
+          val s2 = MahalaWeighted(l, pool, 1)
+          val qs = s2.queries.take(n).toList
+          println(qs.map(_.id) + " " + s2.resume_queries(qs).take(7).toList.map(_.id))
+
+          if (s.queries.take(n + 7).toList.map(_.id) != (qs ++ s2.resume_queries(qs).take(7).toList).map(_.id)) println("problems")
+          //          }
         }
       }
   }

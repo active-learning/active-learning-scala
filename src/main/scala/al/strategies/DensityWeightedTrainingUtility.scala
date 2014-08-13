@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{VFDT, Learner, NB}
+import ml.classifiers.{KNNBatch, Learner}
 import ml.models.Model
 import util.Datasets
 
@@ -42,7 +42,7 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
 
 object DWTUTest extends App {
   lazy val source = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
-  source("banana") match {
+  source("iris") match {
     case Right(patts) =>
       0 until 5 foreach { run =>
         Datasets.kfoldCV(new Random(run).shuffle(patts), 5, false) { case (tr0, ts0, fold, minSize) =>
@@ -59,15 +59,16 @@ object DWTUTest extends App {
             new Random(run * 100 + fold).shuffle(ts)
           }
 
-          //          if (run == 4 && fold == 4) {
-          val n = 14
-          val s = DensityWeightedTrainingUtility(VFDT(), pool, 1, 1, "eucl")
+          val n = 11
+          val s = DensityWeightedTrainingUtility(KNNBatch(5, "eucl", pool), pool, 1, 1, "eucl")
           println(s.queries.take(n + 5).toList.map(_.id))
 
-          val s2 = DensityWeightedTrainingUtility(VFDT(), pool, 1, 1, "eucl")
+          val s2 = DensityWeightedTrainingUtility(KNNBatch(5, "eucl", pool), pool, 1, 1, "eucl")
           val qs = s2.queries.take(n).toList
-          println((qs ++ s.resume_queries(qs).take(5).toList).map(_.id))
-          ////          }
+          println((qs ++ s2.resume_queries(qs).take(5).toList).map(_.id))
+
+          if (s.queries.take(n + 7).toList.map(_.id) != (qs ++ s2.resume_queries(qs).take(7).toList).map(_.id)) println("problems")
+          println("")
         }
       }
   }
