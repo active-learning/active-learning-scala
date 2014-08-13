@@ -44,7 +44,6 @@ public class SELF_CONF extends XSvmActiveLearner {
     private static final int MIN_SAMPLE_SIZE_DEFAULT = 10;
     private int m_minSampleSize = MIN_SAMPLE_SIZE_DEFAULT;
     private static final int MAX_SAMPLE_SIZE_DEFAULT = 100;
-    private int m_maxSampleSize = MAX_SAMPLE_SIZE_DEFAULT;
     private static final int DEC_DEFAULT = 1;
     private int m_dec = DEC_DEFAULT;
     private int m_currSampleSize;
@@ -56,8 +55,8 @@ public class SELF_CONF extends XSvmActiveLearner {
 
     public SELF_CONF() {
         svmData = null;
+        int m_maxSampleSize = MAX_SAMPLE_SIZE_DEFAULT;
         m_currSampleSize = m_maxSampleSize;
-        m_rndm = new Random(randomSeed);
     }
 
 
@@ -90,6 +89,7 @@ public class SELF_CONF extends XSvmActiveLearner {
         int i, sampleSz, poolSz = pool.size();
         DataContainer sampledPool;
         int[] indexes;
+        m_currSampleSize = Math.min(100, pool.size());
 
         if (m_currSampleSize <= m_minSampleSize) {
             sampleSz = m_minSampleSize;
@@ -106,6 +106,7 @@ public class SELF_CONF extends XSvmActiveLearner {
                 indexes[i] = i;
             }
         } else {
+            m_rndm = new Random(poolSz);
             indexes = new int[sampleSz];
             sampledPool = this.sampleFromPool(pool,
                     sampleSz,
