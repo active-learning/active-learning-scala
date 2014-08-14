@@ -76,7 +76,6 @@ trait CrossValidation extends Lock with ClassName {
   var available = true
   var dbToWait: Dataset = null
   val fileToStopProgram = "/tmp/safeQuit.davi"
-  val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
 
   def ee(db: Dataset): Boolean
 
