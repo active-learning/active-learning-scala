@@ -96,13 +96,15 @@ trait CrossValidation extends Lock with ClassName {
       } yield {
         db.exec(sql).get.head.head
       }).sorted.toList(runs * folds / 2).toInt
-      //      println(s"Q=$res")
+      println(s"Q=$res")
       res
     }
 
+    println("Locking for Qmap")
     val res = qmap.synchronized {
       qmap.getOrElseUpdate((db.toString, learner.toString), Q)
     }
+    println("After Qmap")
     res
   }
 
