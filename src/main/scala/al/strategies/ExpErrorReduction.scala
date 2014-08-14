@@ -121,7 +121,10 @@ object EERTest extends App {
   //25:7s 100:15s 200:45s 400:300s 1000:2000s
   //  val m = learner.build(patts.take(n))
   //  println(m.accuracy(patts.drop(n)))
-  val l = s.queries
+  Tempo.start
+  val l = s.queries.take(3)
+  Tempo.print_stop
+  sys.exit(0)
   //          val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 25) //25:7s 250:260s
   //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
   //  val s = ClusterBased(patts.take(n))
@@ -146,8 +149,7 @@ object EERTest extends App {
   var m = learner.build(l.take(patts.head.nclasses))
   var mr = learner.build(lr.take(patts.head.nclasses))
 
-  //todo: update de interaXXX não funfa
-  def learner = VFDT() //5, "eucl", patts) //interaELMNoEM(20)
+  def learner = NB() //5, "eucl", patts) //interaELMNoEM(20)
   ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
   //  ac1.zip(ac2).foreach { case (a, b) => println(a)}
 }
