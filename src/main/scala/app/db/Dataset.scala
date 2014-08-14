@@ -141,7 +141,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * @return
    */
   def countEvenWhenEmpty(s: String, offset: Int = 0) = {
-    //    println(s"select (max(position)+1+$offset) " + s)
+    println(s"select (max(position)+1+$offset) " + s)
     val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
     if (n == 0) mutable.Queue(Seq.fill(5)(0d))
     else exec(s"select (max(position)+1+$offset) " + s).get
@@ -175,7 +175,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val m = mx_cn.map(_.head)
     val c = mx_cn.map(_.tail.head)
     if (c.size > q.size || c.zip(q).exists { case (a, b) => a > b}) safeQuit(s"Inconsistency at $strategy / $learner: number of queries \n$q\n\n for $dataset is lesser than total number of conf. matrices \n$c\n .")
-    if (c != m) safeQuit(s"Inconsistency at $strategy / $learner: sum of max positions +1 \n$m\n for $dataset differs from total number of conf. matrices \n$c\n .")
+    if (c != m) safeQuit(s"countPerformedConfMatrices: Inconsistency at $strategy / $learner: max positions +1 \n$m\n for $dataset differs from total number of conf. matrices \n$c\n .")
     c.sum.toInt
   }
 
