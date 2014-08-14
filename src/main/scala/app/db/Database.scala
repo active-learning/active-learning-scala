@@ -250,6 +250,7 @@ trait Database extends Lock {
         Some(queue)
       } else {
         if (readOnly) justQuit("readOnly databases only accept select SQL command!")
+        incCounter()
         acquireOp()
         statement.execute(sql)
         releaseOp()

@@ -107,6 +107,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val ti = System.currentTimeMillis()
       val results = mutable.Queue[String]()
       println(s"A processar ${rest.toList.size}; mas apenas para totalizar $Q e desde tempo $timeStep, ${(Q - timeStep) * nclasses} hits (exiting:${exiting()})...")
+      incCounter()
       rest.zipWithIndex.take(Q - timeStep).toStream.takeWhile(_ => (System.currentTimeMillis() - ti) / 1000.0 < seconds && !exiting()).foreach {
         case (trainingPattern, idx) =>
           model = learner.update(model, fast_mutable = true)(trainingPattern)
@@ -266,6 +267,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val nextPosition = queries.size
       val r = if (nextPosition < Q && nextPosition < strat.pool.size) {
         println(s"Gerando queries na posição ${if (Q == Int.MaxValue) strat.pool.size else nextPosition} de um total de $Q queries para $dataset pool: $run.$fold ...")
+        incCounter()
         val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
         else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
         q = nextIds.length
@@ -301,6 +303,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
 
   def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
+    incCounter()
     acquireOp()
     val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
       case Right(x) => x
@@ -308,6 +311,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         releaseOp()
         safeQuit(s"Problem loading queries for Rnd: $str")
     }
+    incCounter()
     releaseOp()
     if (f != null) Datasets.applyFilter(queries, f) else queries
   }
