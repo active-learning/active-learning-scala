@@ -175,7 +175,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val m = mx_cn.map(_.head)
     val c = mx_cn.map(_.tail.head)
     if (c.size > q.size) safeQuit(s"countPerformedConfMatrices: Inconsistency at $strategy / $learner: number of query pools \n${q.size}\n\n for $dataset is lesser than number of conf. matrices pools \n${c.size}\n .")
-    if (c.zip(q).exists { case (a, b) => a > b}) safeQuit(s"countPerformedConfMatrices: Inconsistency at $strategy / $learner: number of queries \n$q\n\n for $dataset is lesser than total number of conf. matrices \n$c\n in some pool.")
+    if (c.size == q.size && c.zip(q).exists { case (a, b) => a > b}) safeQuit(s"countPerformedConfMatrices: Inconsistency at $strategy / $learner: number of queries \n$q\n\n for $dataset is lesser than total number of conf. matrices \n$c\n in some pool.")
     if (c != m) safeQuit(s"countPerformedConfMatrices: Inconsistency at $strategy / $learner: max positions +1 \n$m\n for $dataset differs from total number of conf. matrices \n$c\n .")
     c.sum.toInt
   }
