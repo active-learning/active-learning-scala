@@ -141,7 +141,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * @return
    */
   def countEvenWhenEmpty(s: String, offset: Int = 0) = {
-    println(s"select (max(position)+1+$offset) " + s)
+    //    println(s"select (max(position)+1+$offset) " + s)
     val n = exec("select count(*) " + s).get.map(_.head.toInt).sum
     if (n == 0) mutable.Queue(Seq.fill(5)(0d))
     else exec(s"select (max(position)+1+$offset) " + s).get
