@@ -100,11 +100,11 @@ trait CrossValidation extends Lock with ClassName {
       res
     }
 
-    println("Locking for Qmap")
-    val res = qmap.synchronized {
-      qmap.getOrElseUpdate((db.toString, learner.toString), Q)
-    }
-    println("After Qmap")
+    //    println("Locking for Qmap")
+    acquire()
+    val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
+    release()
+    //    println("After Qmap")
     res
   }
 
