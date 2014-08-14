@@ -276,7 +276,7 @@ trait CrossValidation extends Lock with ClassName {
     strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
-          //          println(s"$s / $learner $run.$fold ${db.countPerformedConfMatricesForPool(s, learner, run, fold)} >= $Q")
+          //                    println(s"$s / $learner $run.$fold ${db.countPerformedConfMatricesForPool(s, learner, run, fold)} >= $Q")
           db.countPerformedConfMatricesForPool(s, learner, run, fold) >= Q
         }
       }
