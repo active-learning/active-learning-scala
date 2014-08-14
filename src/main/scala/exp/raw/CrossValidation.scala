@@ -100,11 +100,7 @@ trait CrossValidation extends Lock with ClassName {
       res
     }
 
-    println("Locking for Qmap")
-    acquire()
     val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
-    release()
-    println("After Qmap")
     res
   }
 
@@ -151,7 +147,7 @@ trait CrossValidation extends Lock with ClassName {
         else {
           db.open()
           incomplete = ee(db)
-          if (incomplete) q_notCheckedIfHasAllRndQueries(db) //warm start for Q
+          if (incomplete) q_notCheckedIfHasAllRndQueries(db) //warm start for Q. there is no concurrency here
           db.close()
         }
 
