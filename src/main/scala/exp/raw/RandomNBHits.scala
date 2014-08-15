@@ -21,13 +21,13 @@ package exp.raw
 import al.strategies._
 import app.ArgParser
 import app.db.Dataset
+import exp.raw.LightHits._
 import ml.Pattern
-import ml.classifiers.{NoLearner, NB}
+import ml.classifiers.{KNNBatch, NoLearner, NB}
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object RandomNBHits extends CrossValidation with App {
-  val parArgIndex = 2
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
@@ -41,9 +41,9 @@ object RandomNBHits extends CrossValidation with App {
       println(s"Rnd queries are incomplete for $db. Skipping...")
       false
     } else {
-      if (!rndNBHitsComplete(db)) true
+      if (!rndHitsComplete(db, NB()) || !rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) true
       else {
-        println(s"Rnd NB hits are complete for $db. Skipping...")
+        println(s"Rnd NB or 5NN hits are complete for $db. Skipping...")
         false
       }
     })

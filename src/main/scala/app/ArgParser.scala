@@ -89,10 +89,10 @@ object ArgParser {
       case "1NNe" => KNNBatch(1, "eucl", pool)
       case "1NNm" => KNNBatch(1, "manh", pool)
       case "3NNc" => KNNBatch(3, "cheb", pool)
-      case "3NNe" => KNNBatch(3, "eucl", pool)
+      case "3NNe" => KNNBatch(3, "eucl", pool, "", weighted = true)
       case "3NNm" => KNNBatch(3, "manh", pool)
       case "5NNc" => KNNBatch(5, "cheb", pool)
-      case "5NNe" => KNNBatch(5, "eucl", pool)
+      case "5NNe" => KNNBatch(5, "eucl", pool, "", weighted = true)
       case "5NNm" => KNNBatch(5, "manh", pool)
     }
     (args(0) + "/", args(1).split(",").toSeq, learner)

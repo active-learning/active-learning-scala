@@ -25,7 +25,7 @@ import java.util.Calendar
 import al.strategies.{ClusterBased, Strategy, RandomSampling}
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.{NoLearner, NB, Learner}
+import ml.classifiers.{KNNBatch, NoLearner, NB, Learner}
 import util.{Lock, Datasets, Lazy}
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -69,7 +69,7 @@ trait CrossValidation extends Lock with ClassName {
   //lock is just to increment finished datasets counter
   val datasetNames0: Seq[String]
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
-  val qmap = mutable.Map[(String, String), Int]()
+  val qmap = mutable.Map[String, Int]()
   val memlimit = 28000
   var finished = 0
   var skiped = 0
@@ -83,26 +83,9 @@ trait CrossValidation extends Lock with ClassName {
 
   /**
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
-   * Verifique antes se todas Rnd queries estão presentes.
-   * learner should be always NB()
+   * learner should be NB() and 5NN()
    */
-  def q_notCheckedIfHasAllRndQueries(db: Dataset, learner: Learner = NB()) = {
-    //Pega mediana.
-    def Q = {
-      val res = (for {
-        r <- 0 until runs
-        f <- 0 until folds
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=${db.fetchlid(learner)} order by a/(t+0.0) desc, p asc limit 1;"
-      } yield {
-        db.exec(sql).get.head.head
-      }).sorted.toList(runs * folds / 2).toInt
-      println(s"Q=$res")
-      res
-    }
-
-    val res = qmap.getOrElseUpdate((db.toString, learner.toString), Q)
-    res
-  }
+  def q(db: Dataset) = qmap.getOrElseUpdate(db.toString, db.Q)
 
   def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit) {
     //stops according to time limit or presence of quit-file
@@ -147,7 +130,7 @@ trait CrossValidation extends Lock with ClassName {
         else {
           db.open()
           incomplete = ee(db)
-          if (incomplete) q_notCheckedIfHasAllRndQueries(db) //warm start for Q. there is no concurrency here
+          if (incomplete) q(db) //warm start for Q. there is no concurrency here
           db.close()
         }
 
@@ -226,8 +209,8 @@ trait CrossValidation extends Lock with ClassName {
   def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
     println("Rnd queries incomplete.")
     false
-  } else if (!rndNBHitsComplete(db)) {
-    println("Rnd NB hits incomplete.")
+  } else if (!rndHitsComplete(db, NB()) || !rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
+    println("Rnd NB or 5NN hits incomplete.")
     false
   } else true
 
@@ -245,13 +228,13 @@ trait CrossValidation extends Lock with ClassName {
     }
   }
 
-  def rndNBHitsComplete(db: Dataset) = {
+  def rndHitsComplete(db: Dataset, learner: Learner) = {
     val exs = db.n
     val expectedHits = exs * (folds - 1) * runs
 
-    //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/NB (NB é a referência para Q)
-    val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), NB())
-    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB")
+    //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/learner (NB ou 1NN poderiam ser as referências para Q)
+    val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), learner)
+    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with $learner")
     else hitExs == expectedHits
   }
 
@@ -262,17 +245,17 @@ trait CrossValidation extends Lock with ClassName {
    * @param fold
    * @return
    */
-  def rndNBHitsCompleteForPool(db: Dataset, run: Int, fold: Int) = {
+  def rndHitsCompleteForPool(db: Dataset, run: Int, fold: Int, learner: Learner) = {
     val expectedHits = db.countPerformedQueriesForPool(RandomSampling(Seq()), run, fold)
 
-    //checa se tabela de matrizes de confusão está completa para este pool inteiro para Random/NB (NB é a referência para Q)
-    val hitExs = db.countPerformedConfMatricesForPool(RandomSampling(Seq()), NB(), run, fold)
-    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with NB for pool $run/$fold")
+    //checa se tabela de matrizes de confusão está completa para este pool inteiro para Random/learner (NB ou 1NN poderiam ser as referências para Q)
+    val hitExs = db.countPerformedConfMatricesForPool(RandomSampling(Seq()), learner, run, fold)
+    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with $learner for pool $run/$fold")
     else hitExs == expectedHits
   }
 
   def hitsComplete(learner: Learner)(db: Dataset) = {
-    val Q = q_notCheckedIfHasAllRndQueries(db)
+    val Q = q(db)
     strats(-1, Seq()).forall { s =>
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
@@ -292,7 +275,7 @@ trait CrossValidation extends Lock with ClassName {
       case s: ClusterBased => db.countPerformedQueries(s) == expectedQueriesForClusterBased
       case _: RandomSampling => justQuit("Improper use of nonRndQueriesComplete with Rnd.")
       case s =>
-        val Q = q_notCheckedIfHasAllRndQueries(db)
+        val Q = q(db)
         (0 until runs).forall { run =>
           (0 until folds).forall { fold =>
             strat = s.toString

@@ -21,16 +21,14 @@ package exp.raw
 import al.strategies._
 import app.ArgParser
 import app.db.Dataset
-import exp.raw.LightHits._
 import ml.Pattern
-import ml.classifiers.{KNNBatch, NoLearner, NB}
-import util.Datasets
+import ml.classifiers.KNNBatch
 import weka.filters.unsupervised.attribute.Standardize
 
-object RandomHits extends CrossValidation with App {
+object Random5NNHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
-  val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
+  val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
 
@@ -41,15 +39,10 @@ object RandomHits extends CrossValidation with App {
       println(s"Rnd queries are incomplete for $db. Skipping...")
       false
     } else {
-      if (!rndHitsComplete(db, NB()) || !rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
-        println(s"Rnd NB or 5NN hits are incomplete for $db. Skipping...")
+      if (!rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) true
+      else {
+        println(s"Rnd 5NN hits are complete for $db. Skipping...")
         false
-      } else {
-        if (!hitsComplete(learner(-1, Seq()))(db)) true
-        else {
-          println(s"Rnd hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
-          false
-        }
       }
     })
     fazer
@@ -58,12 +51,7 @@ object RandomHits extends CrossValidation with App {
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
 
-    //Verifica (recheca em detalhes desta vez) se pool está completo |Pool|.
-    if (rndHitsCompleteForPool(db, run, fold, NB()) && rndHitsCompleteForPool(db, run, fold, KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
-      val Q = q(db)
-
-      //Retoma Rnd Hits para o dado learner como arg na linha de comando, limitando por tempo e Q.
-      strats(run, pool).foreach(s => db.saveHits(s, learner(run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
-    } else println(s"Rnd NB or 5NN hits incomplete! Skipping ${learner(-1, Seq())} hits.")
+    //Completa 5NN hits do Rnd
+    strats(run, pool).foreach(s => db.saveHits(s, KNNBatch(5, "eucl", pool), run, fold, nc, f, testSet, 2 * 3600))
   }
 }

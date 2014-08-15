@@ -21,8 +21,9 @@ package exp.raw
 import al.strategies._
 import app.ArgParser
 import app.db.Dataset
+import exp.raw.LightHits._
 import ml.Pattern
-import ml.classifiers.LASVM
+import ml.classifiers.{KNNBatch, NB, LASVM}
 import weka.filters.unsupervised.attribute.Standardize
 
 object SVMHits extends CrossValidation with App {
@@ -41,8 +42,8 @@ object SVMHits extends CrossValidation with App {
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!rndNBHitsComplete(db)) {
-      println(s"Rnd NB hits are incomplete for $db with ${LASVM()}. Skipping...")
+    val fazer = !db.isLocked && (if (!rndHitsComplete(db, NB()) || !rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
+      println(s"Rnd NB or 5NN hits are incomplete for $db with ${LASVM()}. Skipping...")
       false
     } else {
       if (!hitsComplete(LASVM())(db)) true
@@ -56,7 +57,7 @@ object SVMHits extends CrossValidation with App {
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
-    val Q = q_notCheckedIfHasAllRndQueries(db)
+    val Q = q(db)
     strats(run, pool).foreach(s => db.saveHits(s, LASVM(), run, fold, nc, f, testSet, timeLimitSeconds, Q))
   }
 }

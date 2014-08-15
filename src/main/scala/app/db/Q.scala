@@ -36,13 +36,7 @@ object Q extends App {
     if (db.dbOriginal.exists()) {
       db.open()
       //Pega mediana.
-      val Q = (for {
-        r <- (0 until runs).par
-        f <- (0 until folds).par
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=2 order by a/(t+0.0) desc, p asc limit 1;"
-      } yield {
-        db.exec(sql).get.head.head
-      }).toList.sorted.toList(runs * folds / 2).toInt
+      val Q = db.Q
       println(s"$Q $datasetName ${db.n}")
       db.close()
       (Q, datasetName)
