@@ -58,30 +58,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     Qmax
   }
 
-  lazy val Qslow = {
-    //Pega maior das medianas.
-    val QNB_Q5NN = List(
-      (for {
-        r <- (0 until runs).par
-        f <- (0 until folds).par
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, position, run, fold) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, position, run, fold) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=2 order by a/(t+0.0) desc, p asc limit 1;"
-      } yield {
-        exec(sql).get.head.head
-      }).toList.sorted.toList(runs * folds / 2).toInt
-      ,
-      (for {
-        r <- (0 until runs).par
-        f <- (0 until folds).par
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, position, run, fold) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, position, run, fold) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=5 order by a/(t+0.0) desc, p asc limit 1;"
-      } yield {
-        exec(sql).get.head.head
-      }).toList.sorted.toList(runs * folds / 2).toInt
-    ).par
-    val Qmax = QNB_Q5NN.max
-    println(s"Q=$Qmax")
-    Qmax
-  }
-
   /**
    * checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/learner (NB ou 5NN poderiam ser as referências para Q)
    */
