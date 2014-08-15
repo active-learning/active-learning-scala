@@ -34,28 +34,30 @@ import scala.collection.mutable
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   lazy val Q = {
-    if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) justQuit(s"Impossible to calculate Q properly, rnd '$this' hits for NB or 5NN are incomplete!")
-    //Pega maior das medianas.
-    val QNB_Q5NN = List(
-      (for {
-        r <- (0 until runs).par
-        f <- (0 until folds).par
-        sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=2 and pred=expe group by position order by sum(value) desc, position asc limit 1"
-      } yield {
-        exec(sql).get.head.head
-      }).toList.sorted.toList(runs * folds / 2).toInt
-      ,
-      (for {
-        r <- (0 until runs).par
-        f <- (0 until folds).par
-        sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=5 and pred=expe group by position order by sum(value) desc, position asc limit 1"
-      } yield {
-        exec(sql).get.head.head
-      }).toList.sorted.toList(runs * folds / 2).toInt
-    ).par
-    val Qmax = QNB_Q5NN.max
-    println(s"Q=$Qmax")
-    Qmax
+    if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) -1 //it is just warming
+    else {
+      //Pega maior das medianas.
+      val QNB_Q5NN = List(
+        (for {
+          r <- (0 until runs).par
+          f <- (0 until folds).par
+          sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=2 and pred=expe group by position order by sum(value) desc, position asc limit 1"
+        } yield {
+          exec(sql).get.head.head
+        }).toList.sorted.toList(runs * folds / 2).toInt
+        ,
+        (for {
+          r <- (0 until runs).par
+          f <- (0 until folds).par
+          sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=5 and pred=expe group by position order by sum(value) desc, position asc limit 1"
+        } yield {
+          exec(sql).get.head.head
+        }).toList.sorted.toList(runs * folds / 2).toInt
+      ).par
+      val Qmax = QNB_Q5NN.max
+      println(s"Q=$Qmax")
+      Qmax
+    }
   }
 
   /**

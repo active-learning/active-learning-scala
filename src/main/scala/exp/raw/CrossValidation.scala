@@ -85,7 +85,11 @@ trait CrossValidation extends Lock with ClassName {
    * calcula Q (média de queries necessárias para Rnd atingir acurácia máxima)
    * learner should be NB() and 5NN()
    */
-  def q(db: Dataset) = qmap.getOrElseUpdate(db.toString, db.Q)
+  def q(db: Dataset, justWarming: Boolean = false) = {
+    val Q = qmap.getOrElseUpdate(db.toString, db.Q)
+    if (Q == -1 && !justWarming) justQuit(s"Impossible to calculate Q properly, rnd '$this' hits for NB or 5NN are incomplete!")
+    else Q
+  }
 
   def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit) {
     //stops according to time limit or presence of quit-file
@@ -130,7 +134,7 @@ trait CrossValidation extends Lock with ClassName {
         else {
           db.open()
           incomplete = ee(db)
-          if (incomplete) q(db) //warm start for Q. there is no concurrency here
+          if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
           db.close()
         }
 
