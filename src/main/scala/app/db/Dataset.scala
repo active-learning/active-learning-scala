@@ -22,7 +22,7 @@ import java.util.Calendar
 
 import al.strategies.{RandomSampling, Strategy}
 import ml.Pattern
-import ml.classifiers.{NoLearner, Learner}
+import ml.classifiers.{KNNBatch, NB, NoLearner, Learner}
 import util.{ALDatasets, Datasets, Tempo}
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -34,6 +34,7 @@ import scala.collection.mutable
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   lazy val Q = {
+    if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) justQuit(s"Impossible to calculate Q properly, rnd '$this' hits for NB or 5NN are incomplete!")
     //Pega maior das medianas.
     val QNB_Q5NN = List(
       (for {
@@ -56,6 +57,39 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     Qmax
   }
 
+  lazy val slowQ = {
+    //Pega maior das medianas.
+    val QNB_Q5NN = List(
+      (for {
+        r <- (0 until runs).par
+        f <- (0 until folds).par
+        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=2 order by a/(t+0.0) desc, p asc limit 1;"
+      } yield {
+        if (rndHitsComplete(NB()) && rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) exec(sql).get.head.head
+        else justQuit(s"Impossible to calculate Q properly, rnd '$this' hits for NB or 5NN are incomplete!")
+      }).toList.sorted.toList(runs * folds / 2).toInt,
+      (for {
+        r <- (0 until runs).par
+        f <- (0 until folds).par
+        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=5 order by a/(t+0.0) desc, p asc limit 1;"
+      } yield {
+        exec(sql).get.head.head
+      }).toList.sorted.toList(runs * folds / 2).toInt
+    ).par
+    val Qmax = QNB_Q5NN.max
+    println(s"Q=$Qmax")
+    Qmax
+  }
+
+  /**
+   * checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/learner (NB ou 5NN poderiam ser as referências para Q)
+   */
+  def rndHitsComplete(learner: Learner) = {
+    val expectedHits = n * (folds - 1) * runs
+    val hitExs = countPerformedConfMatrices(RandomSampling(Seq()), learner)
+    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $this with $learner")
+    else hitExs == expectedHits
+  }
 
   lazy val nclasses = exec(s"select max(Class+1) from inst").get.head.head.toInt
   lazy val n = exec(s"select count(*) from inst").get.head.head.toInt

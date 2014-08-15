@@ -209,7 +209,7 @@ trait CrossValidation extends Lock with ClassName {
   def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
     println("Rnd queries incomplete.")
     false
-  } else if (!rndHitsComplete(db, NB()) || !rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
+  } else if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
     println("Rnd NB or 5NN hits incomplete.")
     false
   } else true
@@ -228,16 +228,6 @@ trait CrossValidation extends Lock with ClassName {
     }
   }
 
-  def rndHitsComplete(db: Dataset, learner: Learner) = {
-    val exs = db.n
-    val expectedHits = exs * (folds - 1) * runs
-
-    //checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/learner (NB ou 1NN poderiam ser as referências para Q)
-    val hitExs = db.countPerformedConfMatrices(RandomSampling(Seq()), learner)
-    if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with $learner")
-    else hitExs == expectedHits
-  }
-
   /**
    * Assumes Rnd queries are complete.
    * @param db
@@ -248,7 +238,7 @@ trait CrossValidation extends Lock with ClassName {
   def rndHitsCompleteForPool(db: Dataset, run: Int, fold: Int, learner: Learner) = {
     val expectedHits = db.countPerformedQueriesForPool(RandomSampling(Seq()), run, fold)
 
-    //checa se tabela de matrizes de confusão está completa para este pool inteiro para Random/learner (NB ou 1NN poderiam ser as referências para Q)
+    //checa se tabela de matrizes de confusão está completa para este pool inteiro para Random/learner (NB ou 5NN poderiam ser as referências para Q)
     val hitExs = db.countPerformedConfMatricesForPool(RandomSampling(Seq()), learner, run, fold)
     if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $db with $learner for pool $run/$fold")
     else hitExs == expectedHits

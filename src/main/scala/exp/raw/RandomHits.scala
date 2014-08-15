@@ -41,7 +41,7 @@ object RandomHits extends CrossValidation with App {
       println(s"Rnd queries are incomplete for $db. Skipping...")
       false
     } else {
-      if (!rndHitsComplete(db, NB()) || !rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
+      if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
         println(s"Rnd NB or 5NN hits are incomplete for $db. Skipping...")
         false
       } else {

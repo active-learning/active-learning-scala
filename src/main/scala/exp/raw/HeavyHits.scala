@@ -41,7 +41,7 @@ object HeavyHits extends CrossValidation with App {
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!rndHitsComplete(db, NB()) || !rndHitsComplete(db, KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
+    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
       println(s"Rnd NB or 5NN hits are incomplete for $db with ${learner(-1, Seq())}. Skipping...")
       false
     } else {
