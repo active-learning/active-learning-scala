@@ -26,9 +26,9 @@ import app.ArgParser
 object SQLBatch extends App {
   val desc = s"Version ${ArgParser.version} \n Apply SQL queries to all provided databases independently." +
     "This program is needed because SQLite has a limit of only 20 simultaneous attached datasets. Parallel(str):y|n"
-  val (path, datasetNames, sql) = ArgParser.testArgsWithText(getClass.getSimpleName.dropRight(1), args, desc)
+  val (path, datasetNames, sqls) = ArgParser.testArgsWithText(getClass.getSimpleName.dropRight(1), args, desc)
   val parallel = args(2) == "y"
-  val readOnly = sql.toLowerCase.startsWith("select ") || sql.toLowerCase.startsWith("pragma ")
+  val readOnly = sqls.toLowerCase.startsWith("select ") || sql.toLowerCase.startsWith("pragma ")
   //|| sql.toLowerCase.startsWith("")
   val dest = Dataset(path, createOnAbsence = false, readOnly) _
 
@@ -36,9 +36,11 @@ object SQLBatch extends App {
     val db = dest(datasetName)
     if (db.dbOriginal.exists()) {
       db.open()
-      (if (args(2).contains("str")) db.runStr(sql) else db.exec(sql)) match {
-        case Some(queue) => println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n") + " " + datasetName)
-        case None => println(s"$datasetName ok.")
+      sqls.split(";").foreach { sql =>
+        (if (args(2).contains("str")) db.runStr(sql) else db.exec(sql)) match {
+          case Some(queue) => println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n") + " " + datasetName)
+          case None => println(s"$datasetName ok.")
+        }
       }
       if (!readOnly) db.save()
       db.close()
