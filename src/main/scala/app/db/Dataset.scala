@@ -89,15 +89,16 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
 
   def fetchlid(learner: Learner) = {
+    val sql = "select rowid from app.learner where name='" + learner + "'"
     //Fetch LearnerId by name.
     lazy val lid = try {
       val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("select rowid from app.learner where name='" + learner + "'")
+      val resultSet = statement.executeQuery(sql)
       resultSet.next()
       resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + ".")
+        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + s" with query '$sql'.")
     }
     lidmap.getOrElseUpdate(learner.toString, lid)
   }
