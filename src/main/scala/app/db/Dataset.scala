@@ -40,14 +40,15 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       (for {
         r <- (0 until runs).par
         f <- (0 until folds).par
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=2 order by a/(t+0.0) desc, p asc limit 1;"
+        sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=2 and pred=expe group by position order by sum(value) desc, position asc limit 1"
       } yield {
         exec(sql).get.head.head
-      }).toList.sorted.toList(runs * folds / 2).toInt,
+      }).toList.sorted.toList(runs * folds / 2).toInt
+      ,
       (for {
         r <- (0 until runs).par
         f <- (0 until folds).par
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=5 order by a/(t+0.0) desc, p asc limit 1;"
+        sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=5 and pred=expe group by position order by sum(value) desc, position asc limit 1"
       } yield {
         exec(sql).get.head.head
       }).toList.sorted.toList(runs * folds / 2).toInt
@@ -57,21 +58,21 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     Qmax
   }
 
-  lazy val slowQ = {
+  lazy val Qslow = {
     //Pega maior das medianas.
     val QNB_Q5NN = List(
       (for {
         r <- (0 until runs).par
         f <- (0 until folds).par
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=2 order by a/(t+0.0) desc, p asc limit 1;"
+        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, position, run, fold) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, position, run, fold) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=2 order by a/(t+0.0) desc, p asc limit 1;"
       } yield {
-        if (rndHitsComplete(NB()) && rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) exec(sql).get.head.head
-        else justQuit(s"Impossible to calculate Q properly, rnd '$this' hits for NB or 5NN are incomplete!")
-      }).toList.sorted.toList(runs * folds / 2).toInt,
+        exec(sql).get.head.head
+      }).toList.sorted.toList(runs * folds / 2).toInt
+      ,
       (for {
         r <- (0 until runs).par
         f <- (0 until folds).par
-        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, run, fold, position) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, run, fold, position) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=5 order by a/(t+0.0) desc, p asc limit 1;"
+        sql = s"select p from (select run as r,fold as f,learnerid as l,strategyid as s,position as p,sum(value) as t from hit group by strategyid, learnerid, position, run, fold) inner join (select *,sum(value) as a from hit where expe=pred group by strategyid, learnerid, position, run, fold) on r=run and f=fold and s=strategyid and p=position and l=learnerid and r=$r and f=$f and s=1 and l=5 order by a/(t+0.0) desc, p asc limit 1;"
       } yield {
         exec(sql).get.head.head
       }).toList.sorted.toList(runs * folds / 2).toInt
