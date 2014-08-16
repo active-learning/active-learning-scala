@@ -147,7 +147,6 @@ trait CrossValidation extends Lock with ClassName {
           source(datasetName) match {
             case Right(patts) =>
 
-              //Reopen connection to write queries.
               //            println("Beginning dataset " + datasetName + " ...")
               val db = dest(datasetName)
               dbToWait = db

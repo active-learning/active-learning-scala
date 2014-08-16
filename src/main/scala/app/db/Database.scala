@@ -66,57 +66,58 @@ trait Database extends Lock {
     //check file existence and if it is in use
     if (isLocked) {
       if (dbOriginal.exists()) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
-      else justQuit(s"$dbOriginal is locked as $dbLock! Cannot open it. Exiting...")
+      else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
       //todo: maybe a locked database should be readable
-    }
-    var created = false
-    if (dbCopy.exists() && !readOnly) justQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
-
-    if (createOnAbsence) {
-      if (!dbOriginal.exists()) {
-        createDatabase()
-        created = true
-      }
     } else {
-      if (!dbOriginal.exists()) justQuit(dbOriginal + " não existe!")
-    }
+      var created = false
+      if (dbCopy.exists() && !readOnly) justQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
 
-    //open
-    try {
-      if (!readOnly) {
-        lockFile()
-        Thread.sleep(10)
-        if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-          //            println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
-          FileUtils.copyFile(dbLock, dbCopy)
-          //            println(s"$dbLock para $dbCopy copiado!")
-          Thread.sleep(100)
+      if (createOnAbsence) {
+        if (!dbOriginal.exists()) {
+          createDatabase()
+          created = true
         }
+      } else {
+        if (!dbOriginal.exists()) justQuit(dbOriginal + " não existe!")
       }
-      Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
-      val url = "jdbc:sqlite:////" + dbCopy
-      connection = DriverManager.getConnection(url)
-    } catch {
-      case e: Throwable => e.printStackTrace
-        println("\nProblems opening db connection: " + dbCopy + " :")
-        println(e.getMessage)
-        unsafeQuit("\nProblems opening db connection: " + dbCopy + " .")
-    }
-    if (debug) println("Connection to " + dbCopy + " opened.")
 
-    if (database != "app") {
-      if (debug) println("Attaching App dataset...")
-      val appPath = ArgParser.appPath
+      //open
       try {
-        val statement = connection.createStatement()
-        statement.executeUpdate("attach '" + appPath + "app.db' as app")
+        if (!readOnly) {
+          lockFile()
+          Thread.sleep(10)
+          if (!FileUtils.contentEquals(dbLock, dbCopy)) {
+            //            println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
+            FileUtils.copyFile(dbLock, dbCopy)
+            //            println(s"$dbLock para $dbCopy copiado!")
+            Thread.sleep(100)
+          }
+        }
+        Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
+        val url = "jdbc:sqlite:////" + dbCopy
+        connection = DriverManager.getConnection(url)
       } catch {
         case e: Throwable => e.printStackTrace
-          unsafeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+          println("\nProblems opening db connection: " + dbCopy + " :")
+          println(e.getMessage)
+          unsafeQuit("\nProblems opening db connection: " + dbCopy + " .")
       }
-      if (debug) println(" Dataset " + appPath + "app.db attached!")
+      if (debug) println("Connection to " + dbCopy + " opened.")
+
+      if (database != "app") {
+        if (debug) println("Attaching App dataset...")
+        val appPath = ArgParser.appPath
+        try {
+          val statement = connection.createStatement()
+          statement.executeUpdate("attach '" + appPath + "app.db' as app")
+        } catch {
+          case e: Throwable => e.printStackTrace
+            unsafeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+        }
+        if (debug) println(" Dataset " + appPath + "app.db attached!")
+      }
+      created
     }
-    created
   }
 
   def createDatabase() = {
