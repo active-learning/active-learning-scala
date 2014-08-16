@@ -41,12 +41,14 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
     case "entropy" => Ventropy
     case "accuracy" => Vaccuracy
     case "gmeans" => Vgmeans
+    case "gmeans+residual" => VgmeansResidual
   }
   override val toString = "Expected Error Reduction s" + sample + " (" + criterion + ")"
   //Strategy with empty pool exists only to provide its name.
   val Ventropy = 0
   val Vaccuracy = 1
   val Vgmeans = 2
+  val VgmeansResidual = 3
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val res = if (labeled.last.missed) {
@@ -66,6 +68,7 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
           criterionInt match {
             case Ventropy => (pattern, c, criterion_entropy(art_model, unlabeledSamp))
             case Vgmeans => (pattern, c, 1 - criterion_gmeans(art_model, optimistic_patterns))
+            case VgmeansResidual => (pattern, c, 1 - criterion_gmeansResidual(art_model, optimistic_patterns))
             case Vaccuracy => (pattern, c, 1 - criterion_accuracy(art_model, optimistic_patterns))
           }
         }).minBy(_._3)
@@ -85,7 +88,18 @@ case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: St
         val hits = only_this_class count m.hit
         hits.toDouble / only_this_class.length
     }
-    math.sqrt(pseudo_accuracies_per_class.product)
+    //    math.sqrt(pseudo_accuracies_per_class.product)
+    pseudo_accuracies_per_class.product //faster
+  }
+
+  private def criterion_gmeansResidual(m: Model, label_estimated_patterns: Vector[Pattern]) = {
+    val pseudo_accuracies_per_class = (0 until nclasses) map {
+      c =>
+        val only_this_class = label_estimated_patterns.filter(_.label == c)
+        val hits = only_this_class count m.hit
+        hits.toDouble / only_this_class.length
+    }
+    pseudo_accuracies_per_class.map(_ + 0.00001).product
   }
 
   /**

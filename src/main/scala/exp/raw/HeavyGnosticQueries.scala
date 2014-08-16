@@ -38,7 +38,8 @@ object HeavyGnosticQueries extends CrossValidation with App {
     ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
     ExpErrorReductionMargin(learner(run, pool), pool, "entropy", samplingSize),
     ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
-    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize)
+    //    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize),
+    ExpErrorReduction(learner(run, pool), pool, "gmeans+residual", samplingSize)
   )
 
   def ee(db: Dataset) = {
