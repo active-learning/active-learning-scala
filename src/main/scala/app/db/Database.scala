@@ -67,6 +67,7 @@ trait Database extends Lock {
     if (isLocked) {
       if (dbOriginal.exists()) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
       else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
+      false
       //todo: maybe a locked database should be readable
     } else {
       var created = false
