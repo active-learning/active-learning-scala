@@ -36,27 +36,19 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   lazy val Q = {
     if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) -1 //it is just warming
     else {
-      //Pega maior das medianas.
-      val QNB_Q5NN = List(
-        (for {
-          r <- (0 until runs).par
-          f <- (0 until folds).par
-          sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=2 and pred=expe group by position order by sum(value) desc, position asc limit 1"
-        } yield {
-          exec(sql).get.head.head
-        }).toList.sorted.toList(runs * folds / 2).toInt
-        ,
-        (for {
-          r <- (0 until runs).par
-          f <- (0 until folds).par
-          sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid=5 and pred=expe group by position order by sum(value) desc, position asc limit 1"
-        } yield {
-          exec(sql).get.head.head
-        }).toList.sorted.toList(runs * folds / 2).toInt
-      ).par
-      val Qmax = QNB_Q5NN.max
-      println(s"Q=$Qmax")
-      Qmax
+      //Faz lista com 25 pools pra cada classificador dos menores Q de acc max.
+      val QNB_Q5NN_QC45 = (for {
+        r <- (0 until runs).par
+        f <- (0 until folds).par
+        sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (2,3,5) and pred=expe group by position order by sum(value) desc, position, learner asc limit 1"
+      } yield {
+        exec(sql).get.head.head
+      }).toList
+
+      //Pega mediana.
+      val QAccMax = QNB_Q5NN_QC45.sorted.toList(runs * folds / 2).toInt
+      println(s"Q=$QAccMax")
+      QAccMax
     }
   }
 
