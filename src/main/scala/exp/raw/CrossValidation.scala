@@ -92,7 +92,7 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit) {
-    //stops according to time limit or presence of quit-file
+    //stops according to memory limit or presence of quit-file
     running = true
     new Thread(new Runnable() {
       def run() {
