@@ -22,6 +22,7 @@ import java.io.File
 
 import al.strategies._
 import app.ArgParser
+import exp.raw.HeavyGnosticQueries._
 import ml.classifiers._
 
 object CreateAppFile extends App {
@@ -57,7 +58,8 @@ object CreateAppFile extends App {
     SVMmulti(Seq(), "SELF_CONF"),
     SVMmulti(Seq(), "KFF"),
     SVMmulti(Seq(), "BALANCED_EE"),
-    SVMmulti(Seq(), "SIMPLE")
+    SVMmulti(Seq(), "SIMPLE"),
+    ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual", samplingSize)
   )
 
   //ensures there is no previous file
