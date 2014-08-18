@@ -23,7 +23,7 @@ import app.ArgParser
 import app.db.Dataset
 import exp.raw.LightHits._
 import ml.Pattern
-import ml.classifiers.{KNNBatch, NB, LASVM}
+import ml.classifiers.{C45, KNNBatch, NB, LASVM}
 import weka.filters.unsupervised.attribute.Standardize
 
 object SVMHits extends CrossValidation with App {
@@ -42,8 +42,8 @@ object SVMHits extends CrossValidation with App {
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
-      println(s"Rnd NB or 5NN hits are incomplete for $db with ${LASVM()}. Skipping...")
+    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+      println(s"Rnd NB or 5NN or C45 hits are incomplete for $db with ${LASVM()}. Skipping...")
       false
     } else {
       if (!hitsComplete(LASVM())(db)) true

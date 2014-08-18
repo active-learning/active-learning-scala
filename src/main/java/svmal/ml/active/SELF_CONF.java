@@ -88,7 +88,7 @@ public class SELF_CONF extends XSvmActiveLearner {
         int i, sampleSz, poolSz = pool.size();
         DataContainer sampledPool;
         int[] indexes;
-        m_currSampleSize = Math.min(100, pool.size());
+//        m_currSampleSize = Math.min(100, pool.size()); //uncomment here to make SELF_CONF immutable/resumable/reproducible
 
         if (m_currSampleSize <= m_minSampleSize) {
             sampleSz = m_minSampleSize;

@@ -22,7 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.{NB, KNNBatch}
+import ml.classifiers.{C45, NB, KNNBatch}
 import weka.filters.unsupervised.attribute.Standardize
 
 object HeavyHits extends CrossValidation with App {
@@ -41,8 +41,8 @@ object HeavyHits extends CrossValidation with App {
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
-      println(s"Rnd NB or 5NN hits are incomplete for $db with ${learner(-1, Seq())}. Skipping...")
+    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+      println(s"Rnd NB, 5NN or C45 hits are incomplete for $db with ${learner(-1, Seq())}. Skipping...")
       false
     } else {
       if (!hitsComplete(learner(-1, Seq()))(db)) {

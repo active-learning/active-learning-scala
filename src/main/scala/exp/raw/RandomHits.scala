@@ -23,7 +23,7 @@ import app.ArgParser
 import app.db.Dataset
 import exp.raw.LightHits._
 import ml.Pattern
-import ml.classifiers.{KNNBatch, NoLearner, NB}
+import ml.classifiers.{C45, KNNBatch, NoLearner, NB}
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -41,8 +41,8 @@ object RandomHits extends CrossValidation with App {
       println(s"Rnd queries are incomplete for $db. Skipping...")
       false
     } else {
-      if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
-        println(s"Rnd NB or 5NN hits are incomplete for $db. Skipping...")
+      if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+        println(s"Rnd NB, 5NN or C45 hits are incomplete for $db. Skipping...")
         false
       } else {
         if (!hitsComplete(learner(-1, Seq()))(db)) true

@@ -38,6 +38,7 @@ public class SVMStrategy {
         switch (strategy) {
             case "SIMPLE":
                 /*
+                    Only strat immutable here.
                     Tong
                  */
                 learner = new SIMPLE();
@@ -48,7 +49,7 @@ public class SVMStrategy {
                  * For SVM, probabilistic estimates are obtained in a standard way, using logistic regression.
                  * The code uses random subsampling: On each trial we estimate the `self estimated expected log-loss' for only a random subset of U.
 
-                 * Deixei fixo em 100, diferente disso:
+                 * Eu poderia deixar fixo em 100 para ficar imutavel, diferente disso:
                  * The subsample in the first active session trial contains 100 points; on each subsequent trial we decrement the subsample size by one point
                  * until we reach a minimum of 10 points, which we keep for the remaining trials.
 
@@ -68,7 +69,7 @@ public class SVMStrategy {
                  */
                 learner = new SELF_CONF();
                 break;
-            case "KFFmut":
+            case "KFF":
                 /*
                     A simple active-learning heuristic based on “farthest-first” traversal sequences
                     in kernel space. Farthest-first (FF) sequences have been previously used for computing provably
@@ -93,7 +94,7 @@ public class SVMStrategy {
                     */
                 learner = new KFF();
                 break;
-            case "BALANCED_EEmut":
+            case "BALANCED_EE":
                 /*
                  * Parece que é o sucessor do MAB3.
                  * The idea is similar to COMB (by Luz et. al.). We use two learners:

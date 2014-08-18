@@ -22,7 +22,7 @@ import ml.models.Model
 import svmal.libsvm.SvmLib
 
 /**
- * SVM convencional (batch training)
+ * SVM conventional (batch training)
  * Usa LibSVM wrapper for Weka.
  */
 case class SVM() extends Learner {

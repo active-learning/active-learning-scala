@@ -25,7 +25,7 @@ import java.util.Calendar
 import al.strategies.{ClusterBased, Strategy, RandomSampling}
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.{KNNBatch, NoLearner, NB, Learner}
+import ml.classifiers._
 import util.{Lock, Datasets, Lazy}
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -212,8 +212,8 @@ trait CrossValidation extends Lock with ClassName {
   def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
     println("Rnd queries incomplete.")
     false
-  } else if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) {
-    println("Rnd NB or 5NN hits incomplete.")
+  } else if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+    println("Rnd NB, 5NN or C45 hits incomplete.")
     false
   } else true
 
