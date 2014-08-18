@@ -82,6 +82,7 @@ object ArgParser {
       case "intera" => interaELM(10, 0.1, seed)
 
       case "LASVM" => LASVM()
+      case "SVM" => SVM(seed)
 
       case "C45" => C45()
       case "VFDT" => VFDT()

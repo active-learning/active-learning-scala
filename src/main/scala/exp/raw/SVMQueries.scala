@@ -22,7 +22,7 @@ import al.strategies._
 import app.ArgParser
 import app.db.Dataset
 import ml.Pattern
-import ml.classifiers.{NB, LASVM}
+import ml.classifiers.{SVM, NB, LASVM}
 import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -46,7 +46,7 @@ object SVMQueries extends CrossValidation with App {
       false
     } else if (!nonRndQueriesComplete(db)) true
     else {
-      println(s"SVM queries are complete for $db with ${LASVM()}. Skipping...")
+      println(s"SVM queries are complete for $db with ${SVM()}. Skipping...")
       false
     })
     fazer
