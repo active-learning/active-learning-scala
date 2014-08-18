@@ -125,9 +125,10 @@ trait CrossValidation extends Lock with ClassName {
 
     try {
       (if (parallelDatasets) datasetNames0 else datasetNames0).zipWithIndex foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
+        val datasetNr = idx + 1
 
         //test previous progress
-        println(s"Testing dataset $datasetName")
+        println(s"Testing dataset $datasetName ($datasetNr)")
         val db = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
         var incomplete = false
         if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
@@ -140,7 +141,6 @@ trait CrossValidation extends Lock with ClassName {
 
         //process dataset
         if (incomplete) {
-          val datasetNr = idx + 1
 
           //Open connection to load patterns via weka SQL importer.
           println("Loading patterns for dataset " + datasetName + " ...")
