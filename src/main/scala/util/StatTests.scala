@@ -28,14 +28,14 @@ object StatTests {
    * 2: 0.95 confidence on win
    * @param measures
    */
-  def friedmanNemenyi(measures: ListMap[String, Array[Double]], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.values.toArray, true)).map(x => x._1 -> x._2.toVector)
+  def friedmanNemenyi(measures: List[(String, Array[Double])], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.map(_._2).toArray, true)).map(x => x._1 -> x._2.toVector)
 
   /**
    * prints a Latex table with all data,
    * rows: datasets
    * columns: strategies
    */
-  def extensiveTable(measures: ListMap[String, Array[Double]], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
+  def extensiveTable(measures: List[(String, Array[Double])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l), i) =>
       val vals = l.map(x => if (x == l.max) s"\\textbf{$x}" else x).mkString(" & ")
@@ -88,11 +88,11 @@ object StatTests {
     println( """\begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}
-\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n & " + (1 to pairs.size).mkString(" & ") + """\\""")
+\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t& " + (1 to pairs.size).mkString(" & ") + """ \\""")
 
     pairs.zipWithIndex.foreach { case ((s, l), i) =>
       val nr = i + 1
-      print(s"$nr - $s & " + l.map(x => if (x == 2) "*" else " ").mkString(" & ") + """ \\""")
+      print(s"$nr - $s\t& " + l.map(x => if (x == 2) "*" else " ").mkString(" & ") + """ \\""")
       if (i % seps == seps - 1) println( """ \hline""") else println("")
     }
 
@@ -104,16 +104,36 @@ object StatTests {
 }
 
 object FriedmanNemenyiTest extends App {
-  val m = ListMap(
-    "d1" -> Array(0.91, 0.02, 0.11, 0.99),
-    "d2" -> Array(0.49, 0.019, 0.11, 0.12),
-    "d3" -> Array(0.48, 0.002, 0.01, 0.13),
-    "d4" -> Array(0.45, 0.002, 0.02, 0.13),
-    "d5" -> Array(0.46, 0.003, 0.09, 0.13),
-    "d6" -> Array(0.43, 0.002, 0.09, 0.13),
-    "d7" -> Array(0.43, 0.001, 0.08, 0.13),
-    "d8" -> Array(0.44, 0.002, 0.08, 0.13),
-    "d9" -> Array(0.48, 0.004, 0.05, 0.13),
+  val m = List(
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d1" -> Array(0.91, 0.02, 0.11, 0.3),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d1" -> Array(0.91, 0.02, 0.11, 0.3),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d0" -> Array(0.91, 0.02, 0.11, 0.2),
+    "d1" -> Array(0.91, 0.02, 0.11, 0.3),
+    "d2" -> Array(0.49, 0.01, 0.11, 0.12),
+    "d3" -> Array(0.48, 0.0, 0.01, 0.13),
+    "d4" -> Array(0.45, 0.0, 0.02, 0.13),
+    "d5" -> Array(0.46, 0.0, 0.09, 0.13),
+    "d6" -> Array(0.43, 0.0, 0.09, 0.13),
+    "d7" -> Array(0.43, 0.0, 0.08, 0.13),
+    "d8" -> Array(0.44, 0.0, 0.08, 0.13),
+    "d9" -> Array(0.48, 0.0, 0.05, 0.13),
     "d10" -> Array(0.47, 0.002, 0.16, 0.192),
     "d11" -> Array(0.417, 0.0012, 0.116, 0.117),
     "d12" -> Array(0.427, 0.0022, 0.126, 0.127),
@@ -127,5 +147,5 @@ object FriedmanNemenyiTest extends App {
     "d20" -> Array(0.447, 0.0040, 0.146, 0.149)
   )
   StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4")), "teste", "ALC")
-  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
+  //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
 }

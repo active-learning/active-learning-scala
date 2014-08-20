@@ -124,9 +124,9 @@ public class FriedmanTest {
             /**
              * algoritmo da coluna j melhor que da linha i com x% de confianca
              */
-            for (int i = 0; i < nc; ++i) {
+            for (int i = 0; i < nc; i++) {
                 statsResults.append("\n,").append(i + 1).append(",");
-                for (int j = 0; j < nc; ++j) {
+                for (int j = 0; j < nc; j++) {
                     double diff = medRank[i] - medRank[j];
                     if (diff >= (qAlpha10pct[nc - 2] * critDiff) && diff < (qAlpha5pct[nc - 2] * critDiff)) {
                         table[j][i] = 1;
@@ -142,6 +142,7 @@ public class FriedmanTest {
 
         }
 
+//        System.out.println(statsResults);
 
         return table;
     }
