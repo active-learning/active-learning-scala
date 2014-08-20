@@ -43,10 +43,12 @@ case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criteri
   val Ventropy = 0
   val Vaccuracy = 1
   val Vgmeans = 2
+  val VgmeansResidual = 3
   lazy val criterionInt = criterion match {
     case "entropy" => Ventropy
     case "accuracy" => Vaccuracy
     case "gmeans" => Vgmeans
+    case "gmeans+residual" => VgmeansResidual
   }
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
@@ -67,6 +69,7 @@ case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criteri
           criterionInt match {
             case Ventropy => (pattern, c, criterion_entropy(art_model, unlabeledSamp))
             case Vgmeans => (pattern, c, 1 - criterion_gmeans(art_model, optimistic_patterns))
+            case VgmeansResidual => (pattern, c, 1 - criterion_gmeansResidual(art_model, optimistic_patterns))
             case Vaccuracy => (pattern, c, 1 - criterion_accuracy(art_model, optimistic_patterns))
           }
         }).minBy(_._3)
@@ -87,6 +90,16 @@ case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criteri
         hits.toDouble / only_this_class.length
     }
     math.sqrt(pseudo_accuracies_per_class.product)
+  }
+
+  private def criterion_gmeansResidual(m: Model, label_estimated_patterns: Vector[Pattern]) = {
+    val pseudo_accuracies_per_class = (0 until nclasses) map {
+      c =>
+        val only_this_class = label_estimated_patterns.filter(_.label == c)
+        val hits = only_this_class count m.hit
+        hits.toDouble / only_this_class.length
+    }
+    pseudo_accuracies_per_class.map(_ + 0.00001).product
   }
 
   /**
