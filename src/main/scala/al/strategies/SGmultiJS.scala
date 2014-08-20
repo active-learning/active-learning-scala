@@ -35,7 +35,7 @@ case class SGmultiJS(learner: Learner, pool: Seq[Pattern], debug: Boolean = fals
     if (selected != null) {
       for ((plot, i) <- plots.zipWithIndex) {
         plot.zera()
-        for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p), 9)
+        for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p).toInt, 9)
         for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
         plot.bola(selected.x, selected.y, -1, 15)
         plot.mostra()

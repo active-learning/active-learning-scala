@@ -46,7 +46,7 @@ trait StrategyWithLearner extends Strategy {
   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
     val current_model = learner.build(labeled)
     plot.zera()
-    for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p), 9)
+    for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p).toInt, 9)
     for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
     if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
     plot.mostra()

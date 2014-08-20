@@ -64,12 +64,15 @@ case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criteri
 
       val (selected, label_estimate, _) = (
         for (pattern <- unlabeledSamp; c <- 0 until nclasses) yield {
-          lazy val artificially_labeled_pattern = pattern.relabeled_reweighted(c, 1, new_missed = false)
-          lazy val art_model = learner.update(current_model)(artificially_labeled_pattern)
+          val artificially_labeled_pattern = pattern.relabeled_reweighted(c, 1, new_missed = false)
+          val art_model = learner.update(current_model)(artificially_labeled_pattern)
+          //          val art_model = current_model //learner.update(current_model)(artificially_labeled_pattern) //o maior tempo é gasto no cálculo do critério e não na instanciação de modelos
+          //          val art_model = learner.build(artificially_labeled_pattern +: labeled) //idem (deu 10% de ganho para NB, mas poderia prejudicar ELM
           criterionInt match {
             case Ventropy => (pattern, c, criterion_entropy(art_model, unlabeledSamp))
             case Vgmeans => (pattern, c, 1 - criterion_gmeans(art_model, optimistic_patterns))
             case VgmeansResidual => (pattern, c, 1 - criterion_gmeansResidual(art_model, optimistic_patterns))
+            //            case VgmeansResidual => (pattern, c, 1 - 0d)
             case Vaccuracy => (pattern, c, 1 - criterion_accuracy(art_model, optimistic_patterns))
           }
         }).minBy(_._3)
@@ -116,3 +119,56 @@ case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criteri
 }
 
 
+object EERMargTest extends App {
+
+  //    val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get).take(4000)
+  //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
+  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(200))
+  //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
+  val filter = Datasets.zscoreFilter(patts0)
+  val patts = Datasets.applyFilterChangingOrder(patts0, filter)
+  val n = (patts.length * 0.5).toInt
+
+  def learner =
+  //    KNNBatch(5, "eucl", patts)
+    interaELM()
+
+  //  NB()
+  // ECIELM()
+
+  println(patts.length + " " + patts.head.nclasses)
+  //  val s = ExpErrorReduction(learner, patts.take(n), "entropy", 25) //25:7s 400:280s
+  //  val s = SGmulti(learner, patts.take(n), "consensus")
+  //1000:1s
+  //    val s = MahalaWeightedTrainingUtility(learner, patts.take(n), 1, 1)//13s
+  //    val s = MahalaWeightedRefreshedTrainingUtility(learner, patts.take(n), 1, 1, 25)//25:90000s
+  val s = ExpErrorReductionMargin(learner, patts.take(n), "gmeans+residual", 100)
+  //25:7s 100:15s 200:45s 400:300s 1000:2000s
+  //  val m = learner.build(patts.take(n))
+  //  println(m.accuracy(patts.drop(n)))
+  val (l, t) = Tempo.timev {
+    s.queries.take(8).toList
+  }
+  println(s"$t")
+  sys.exit(0)
+  //          val s = ExpErrorReduction(learner, patts.take(n), "accuracy", 25) //25:7s 250:260s
+  //  val s = DensityWeightedTrainingUtility(learner, patts.take(n), 1, 1, "eucl")
+  //  val s = ClusterBased(patts.take(n))
+  var m = learner.build(l.take(patts.head.nclasses))
+  val ac1 = l.drop(patts.head.nclasses) map {
+    q => m = learner.update(m)(q)
+      println(m.accuracy(patts.drop(n)))
+  }
+  sys.exit(1)
+
+  val lr = l.reverse
+  val ac2 = lr.drop(patts.head.nclasses) map {
+    q => mr = learner.update(mr)(q)
+      mr.accuracy(patts.drop(n))
+  }
+  m = learner.build(l.take(patts.head.nclasses))
+  var mr = learner.build(lr.take(patts.head.nclasses))
+
+  ac1.zip(ac2).foreach { case (a, b) => println(a + " " + b)}
+  //  ac1.zip(ac2).foreach { case (a, b) => println(a)}
+}

@@ -25,40 +25,40 @@ import ml.models.Model
 import util.Graphics
 
 case class SGmultiMargin(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
-   extends StrategySGmulti with EntropyMeasure with MarginMeasure {
-   override val toString = "SGmultiMargin"
+  extends StrategySGmulti with EntropyMeasure with MarginMeasure {
+  override val toString = "SGmultiMargin"
 
-   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
-      unlabeled minBy {
-         x => val combined_distribution = current_models.map(m => m.distribution(x)).transpose.map(_.sum)
-            margin0(combined_distribution)
+  def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
+    unlabeled minBy {
+      x => val combined_distribution = current_models.map(m => m.distribution(x)).transpose.map(_.sum)
+        margin0(combined_distribution)
+    }
+
+  def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
+
+    if (selected != null) {
+      for ((plot, i) <- plots.zipWithIndex) {
+        plot.zera()
+        for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p).toInt, 9)
+        for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
+        plot.bola(selected.x, selected.y, -1, 15)
+        plot.mostra()
       }
-
-   def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
-
-      if (selected != null) {
-         for ((plot, i) <- plots.zipWithIndex) {
-            plot.zera()
-            for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p), 9)
-            for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-            plot.bola(selected.x, selected.y, -1, 15)
-            plot.mostra()
-         }
-         plot.bola(selected.x, selected.y, -1, 15)
-         plot.mostra()
-      } else {
-         plot.zera()
-         if (models_to_visualize.head != null) for (p <- distinct_pool) {
-            val combined_distribution = models_to_visualize.map(m => m.distribution(p)).transpose.map(_.sum)
-            val js0 = margin0(combined_distribution).toFloat
-            val cor = if (js0 > 0.7) {
-               Graphics.n2cor(models_to_visualize.head.predict(p))
-            } else new Color(js0, js0, js0)
-            plot.bola_color(p.x, p.y, cor, 9)
-         }
-         for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-         plot.mostra()
+      plot.bola(selected.x, selected.y, -1, 15)
+      plot.mostra()
+    } else {
+      plot.zera()
+      if (models_to_visualize.head != null) for (p <- distinct_pool) {
+        val combined_distribution = models_to_visualize.map(m => m.distribution(p)).transpose.map(_.sum)
+        val js0 = margin0(combined_distribution).toFloat
+        val cor = if (js0 > 0.7) {
+          Graphics.n2cor(models_to_visualize.head.predict(p).toInt)
+        } else new Color(js0, js0, js0)
+        plot.bola_color(p.x, p.y, cor, 9)
       }
-      Thread.sleep((delay * 1000).round.toInt)
-   }
+      for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
+      plot.mostra()
+    }
+    Thread.sleep((delay * 1000).round.toInt)
+  }
 }

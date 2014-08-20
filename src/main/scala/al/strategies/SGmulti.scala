@@ -41,7 +41,7 @@ case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debu
       }
       case "majority" => unlabeled minBy {
         pa =>
-          val preds = current_models.map(mo => mo.predict(pa))
+          val preds = current_models.map(mo => mo.predict(pa).toInt)
           most_votes(preds)
       }
     }
@@ -50,7 +50,7 @@ case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debu
     if (selected != null) {
       for ((plot, i) <- plots.zipWithIndex) {
         plot.zera()
-        for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p), 9)
+        for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p).toInt, 9)
         for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
         plot.bola(selected.x, selected.y, -1, 15)
         plot.mostra()
@@ -59,7 +59,7 @@ case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debu
       plot.mostra()
     } else {
       plot.zera()
-      if (models_to_visualize.head != null) for (p <- distinct_pool) plot.bola(p.x, p.y, if (models_to_visualize.map(mo => mo.predict(p)).exists(_ != models_to_visualize(0).predict(p))) 15 else models_to_visualize(0).predict(p), 9)
+      if (models_to_visualize.head != null) for (p <- distinct_pool) plot.bola(p.x, p.y, if (models_to_visualize.map(mo => mo.predict(p).toInt).exists(_ != models_to_visualize(0).predict(p).toInt)) 15 else models_to_visualize(0).predict(p).toInt, 9)
       for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
       plot.mostra()
     }
