@@ -53,13 +53,13 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   }
 
   /**
-   * checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/learner (NB ou 5NN poderiam ser as referências para Q)
+   * checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/learner
    */
   def rndHitsComplete(learner: Learner) = {
     val expectedHits = n * (folds - 1) * runs
     val hitExs = countPerformedConfMatrices(RandomSampling(Seq()), learner)
     if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $this with $learner")
-    else hitExs == expectedHits
+    else hitExs == expectedHits || hitExs >= 10000
   }
 
   lazy val nclasses = exec(s"select max(Class+1) from inst").get.head.head.toInt
