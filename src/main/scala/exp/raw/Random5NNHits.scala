@@ -52,6 +52,7 @@ object Random5NNHits extends CrossValidation with App {
     val nc = pool.head.nclasses
 
     //Completa 5NN hits do Rnd
-    strats(run, pool).foreach(s => db.saveHits(s, KNNBatch(5, "eucl", pool, "", weighted = true), run, fold, nc, f, testSet, 8 * 3600))
+    val Q = 10000
+    strats(run, pool).foreach(s => db.saveHits(s, KNNBatch(5, "eucl", pool, "", weighted = true), run, fold, nc, f, testSet, 8 * 3600, Q))
   }
 }
