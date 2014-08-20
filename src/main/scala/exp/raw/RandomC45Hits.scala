@@ -52,6 +52,6 @@ object RandomC45Hits extends CrossValidation with App {
     val nc = pool.head.nclasses
 
     //Completa C45() hits do Rnd
-    strats(run, pool).foreach(s => db.saveHits(s, C45(), run, fold, nc, f, testSet, 2 * 3600))
+    strats(run, pool).foreach(s => db.saveHits(s, C45(), run, fold, nc, f, testSet, 8 * 3600))
   }
 }

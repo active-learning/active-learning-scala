@@ -54,6 +54,6 @@ object RandomNBHits extends CrossValidation with App {
     val nc = pool.head.nclasses
 
     //Completa NB hits do Rnd
-    strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 2 * 3600))
+    strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 8 * 3600))
   }
 }
