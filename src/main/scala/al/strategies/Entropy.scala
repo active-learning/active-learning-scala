@@ -23,13 +23,14 @@ import ml.classifiers.Learner
 import ml.models.Model
 
 case class Entropy(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
-   extends StrategyWithLearner with EntropyMeasure {
-   override val toString = "Entropy"
+  extends StrategyWithLearner with EntropyMeasure {
+  override val toString = "Entropy"
+  val abr = "Ent"
 
-   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-      val selected = unlabeled maxBy {
-         pa => entropy(current_model.distribution(pa))
-      }
-      selected
-   }
+  protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+    val selected = unlabeled maxBy {
+      pa => entropy(current_model.distribution(pa))
+    }
+    selected
+  }
 }

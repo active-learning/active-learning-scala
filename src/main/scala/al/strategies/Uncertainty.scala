@@ -28,6 +28,7 @@ import scala.util.Random
 case class Uncertainty(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyWithLearner {
   override val toString = "Uncertainty"
+  val abr = "Unc"
 
   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val selected = unlabeled minBy (pa => current_model.distribution(pa).max)

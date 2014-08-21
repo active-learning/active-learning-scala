@@ -25,6 +25,7 @@ import ml.models.Model
 case class ExpModelChange(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyWithLearner {
   override val toString = "Expected Model Change"
+  val abr = "EMC"
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     learner.EMC(current_model)(unlabeled)

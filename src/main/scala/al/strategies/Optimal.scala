@@ -21,42 +21,54 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers.{Learner, NB}
 import ml.models.Model
-import util.Datasets
+import util.{Datasets, Tempo}
 
 import scala.util.Random
 
-case class WorstAccuracy(learner: Learner, pool: Seq[Pattern], testSet: Seq[Pattern], debug: Boolean = false)
+/**
+ * Escolhe sempre a melhor query no momento,
+ * i.e. aquela que vai aumentar a acurácia em todo o pool (acc medida roubando).
+ * @param learner
+ * @param pool
+ * @param sampleSize
+ * @param debug
+ * @param testSet
+ */
+case class Optimal(learner: Learner, pool: Seq[Pattern], sampleSize: Int, debug: Boolean = false, testSet: Array[Pattern] = null)
   extends StrategyWithLearner {
-  override val toString = "Worst (accuracy)"
-  lazy val passiveAccuracy = {
-    val m = learner.build(pool)
-    m.accuracy(testSet)
-  }
-  var i = 0
+  override val toString = "Optimal (accuracy) s" + sampleSize
+  val abr = "Opt"
+  lazy val rnd = new Random(0)
+  var unlabeledSize = if (pool.length > 0) rest.length else -1 //Strategy with empty pool exists only to provide its name.
 
   def next(currentModel: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    ???
-    i += 1
-    val (acc, selected) = (new Random(i).shuffle(unlabeled).take(100) map { pa =>
+    val (unlabeledSamp, unlabeledSampSize) = if (unlabeledSize > sampleSize) (rnd.shuffle(unlabeled).take(sampleSize), sampleSize) else (unlabeled, unlabeledSize)
+    val (acc, p, m) = (unlabeledSamp map { pa =>
       val newModel = learner.update(currentModel)(pa)
-      (newModel.accuracy(testSet), pa)
-    }).minBy(_._1)
-    println(acc)
-    //    if (acc >= passiveAccuracy) stop = true
-    selected
+      (newModel.accuracy(unlabeledSamp, unlabeledSampSize), pa, newModel)
+    }).maxBy(_._1)
+    if (testSet != null) println(m.accuracy(testSet))
+    unlabeledSize -= 1
+    p
   }
 }
 
-object WTest extends App {
-  val learner = NB()
+object FPRTest extends App {
+  def learner = NB()
+
   //KNN(5, "eucl")
   //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
   val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
   val n = (patts.length * 0.5).toInt
-  val s = WorstAccuracy(learner, patts.take(n), patts.drop(n).take(100))
-  //  val m = learner.build(patts.take(n))
-  //  println(m.accuracy(patts.drop(n)))
+  val s = Optimal(learner, patts.take(n), 500, debug = false, patts.drop(n).toArray)
+  Tempo.start
   val b = s.queries.toList
+  Tempo.print_stop
+  //  val m = NB().build(b)
+  //  println("---------------")
+  //  println(m.accuracy(patts.drop(n)))
+  //  println(m.accuracy(patts.take(n)))
+
   //  println(b.map(_.id))
   //  println(NB().build(b).accuracy(patts.drop(n)))
 }

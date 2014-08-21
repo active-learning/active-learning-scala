@@ -37,10 +37,11 @@ import scala.util.Random
  */
 case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: String, sample: Int, debug: Boolean = false)
   extends StrategyWithLearner with Sample with EntropyMeasure {
+  val abr = "EER" + criterion.take(3)
   lazy val criterionInt = criterion match {
     case "entropy" => Ventropy
     case "accuracy" => Vaccuracy
-    case "gmeans" => Vgmeans
+    //    case "gmeans" => Vgmeans
     case "gmeans+residual" => VgmeansResidual
   }
   override val toString = "Expected Error Reduction s" + sample + " (" + criterion + ")"

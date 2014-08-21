@@ -25,6 +25,7 @@ import ml.models.Model
 case class Margin(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyWithLearner with MarginMeasure {
   override val toString = "Margin"
+  val abr = "Mar"
 
   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     unlabeled minBy margin(current_model)

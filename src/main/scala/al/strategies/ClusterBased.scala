@@ -36,6 +36,7 @@ import scala.util.Random
 case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyAgnostic {
   override val toString = "Hierarchical Sampling"
+  val abr = "Clu"
   //  println(
   //    """
   //      |The executable file used for Cluster-based strategy is part of HS.

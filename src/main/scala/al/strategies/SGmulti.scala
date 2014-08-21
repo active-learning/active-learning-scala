@@ -28,6 +28,7 @@ import scala.util.Random
 case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debug: Boolean = false)
   extends StrategySGmulti {
   override val toString = "SGmulti (" + agreement + ")"
+  val abr = "SG" + agreement.take(3)
 
   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
     agreement match {

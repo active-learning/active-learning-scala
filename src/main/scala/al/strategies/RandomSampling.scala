@@ -33,6 +33,7 @@ case class RandomSampling(pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyAgnostic {
   override val toString = "Random Sampling"
   val learner = NoLearner()
+  val abr = "Rnd"
 
   protected def next(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     unlabeled.head

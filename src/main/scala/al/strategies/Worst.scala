@@ -21,23 +21,23 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers.{Learner, NB}
 import ml.models.Model
-import util.{Datasets, Tempo}
+import util.Datasets
 
 import scala.util.Random
 
 /**
- * Das estratégias otimas/pessimas,
- * esta está mais perto de definitiva.
- * As outras requerem que se avalie o codigo antes.
+ * Escolhe sempre a pior query no momento,
+ * i.e. aquela que vai diminuir a acurácia em todo o pool (acc medida roubando).
  * @param learner
  * @param pool
  * @param sampleSize
  * @param debug
  * @param testSet
  */
-case class FastPerfectRealisticAccuracy(learner: Learner, pool: Seq[Pattern], sampleSize: Int, debug: Boolean = false, testSet: Array[Pattern] = null)
+case class Worst(learner: Learner, pool: Seq[Pattern], sampleSize: Int, testSet: Seq[Pattern] = null, debug: Boolean = false)
   extends StrategyWithLearner {
-  override val toString = "Perfect (accuracy) s" + sampleSize
+  override val toString = "Worst (accuracy)"
+  val abr = "Wst"
   lazy val rnd = new Random(0)
   var unlabeledSize = if (pool.length > 0) rest.length else -1 //Strategy with empty pool exists only to provide its name.
 
@@ -46,25 +46,22 @@ case class FastPerfectRealisticAccuracy(learner: Learner, pool: Seq[Pattern], sa
     val (acc, p, m) = (unlabeledSamp map { pa =>
       val newModel = learner.update(currentModel)(pa)
       (newModel.accuracy(unlabeledSamp, unlabeledSampSize), pa, newModel)
-    }).maxBy(_._1)
+    }).minBy(_._1)
     if (testSet != null) println(m.accuracy(testSet))
-    //    if (acc >= passiveAccuracy) stop = true
     unlabeledSize -= 1
     p
   }
 }
 
-object FPRTest extends App {
+object WRTest extends App {
+  //KNN(5, "eucl")
+  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
+  val n = (patts.length * 0.5).toInt
+  val s = Worst(learner, patts.take(n), 500)
+  val b = s.queries.toList
+
   def learner = NB()
 
-  //KNN(5, "eucl")
-  //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
-  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
-  val n = (patts.length * 0.5).toInt
-  val s = FastPerfectRealisticAccuracy(learner, patts.take(n), 500, debug = false, patts.drop(n).toArray)
-  Tempo.start
-  val b = s.queries.toList
-  Tempo.print_stop
   //  val m = NB().build(b)
   //  println("---------------")
   //  println(m.accuracy(patts.drop(n)))

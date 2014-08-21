@@ -27,6 +27,7 @@ import util.Graphics
 case class SGmultiMargin(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
   extends StrategySGmulti with EntropyMeasure with MarginMeasure {
   override val toString = "SGmultiMargin"
+  val abr = "SGmar"
 
   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
     unlabeled minBy {

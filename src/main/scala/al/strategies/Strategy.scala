@@ -26,6 +26,7 @@ import util.Graphics.Plot
  * Only distinct patterns are accepted into the pool.
  */
 trait Strategy {
+  val abr: String
   val learner: Learner
   val pool: Seq[Pattern]
   lazy val distinct_pool = if (pool.distinct != pool) {

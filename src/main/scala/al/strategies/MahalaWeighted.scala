@@ -31,6 +31,7 @@ import scala.util.Random
 case class MahalaWeighted(learner: Learner, pool: Seq[Pattern], beta: Double, debug: Boolean = false)
   extends StrategyWithLearner with StrategyWithMahala with MarginMeasure {
   override val toString = "Mahala Weighted b" + beta
+  val abr = "DWM"
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
     try {

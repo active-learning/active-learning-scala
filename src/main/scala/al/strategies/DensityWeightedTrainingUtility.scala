@@ -28,6 +28,7 @@ import scala.util.Random
 case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], alpha: Double, beta: Double, distance_name: String, debug: Boolean = false)
   extends StrategyWithLearnerAndMaps with MarginMeasure {
   override val toString = "Density Weighted TU a" + alpha + " b" + beta + " (" + distance_name + ")"
+  val abr = "DWTU" + distance_name.take(3)
 
   protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val selected = unlabeled maxBy {

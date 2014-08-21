@@ -38,6 +38,7 @@ import scala.util.Random
 case class DensityWeightedTrainingUtilityStateful(learner: Learner, pool: Seq[Pattern], alpha: Double, beta: Double, distance_name: String, debug: Boolean = false)
   extends StrategyWithLearnerAndMaps with MarginMeasure {
   override val toString = "Density Weighted TU Stateful a" + alpha + " b" + beta + " (" + distance_name + ")"
+  val abr = "DWTUmut" + distance_name.take(3)
 
   protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     ???

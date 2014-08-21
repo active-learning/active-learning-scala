@@ -37,7 +37,7 @@ import scala.util.Random
 case class MahalaWeightedRefreshed(learner: Learner, pool: Seq[Pattern], beta: Double, sample: Int, debug: Boolean = false)
   extends StrategyWithMahala with MarginMeasure with Sample {
   override val toString = "Mahala Weighted Refreshed b" + beta + " s" + sample
-  //Strategy with empty pool exists only to provide its name.
+  val abr = "DWMR"
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
     val unlabeledSize = unlabeled.size
