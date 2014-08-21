@@ -19,6 +19,7 @@
 package app.db
 
 import app.ArgParser
+import app.db.entities.Dataset
 
 /**
  * Created by davi on 09/06/14.

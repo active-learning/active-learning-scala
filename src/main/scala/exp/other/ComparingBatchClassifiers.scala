@@ -18,8 +18,9 @@
 package exp.other
 
 import app.ArgParser
-import app.db.{Dataset, Results}
-import exp.raw.{ClassName, CrossValidation}
+import app.db.entities.{Results, Dataset}
+import app.db.ClassName
+import exp.CrossValidation
 import ml.Pattern
 import ml.classifiers._
 import ml.models.ELMModel

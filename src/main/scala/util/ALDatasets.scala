@@ -19,7 +19,7 @@
 package util
 
 import al.strategies.Strategy
-import app.db.Dataset
+import app.db.entities.Dataset
 import ml.{Pattern, PatternParent}
 import svmal.libsvm.SvmLibProblem
 import weka.core.Instance

@@ -16,36 +16,44 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.query
 
-import al.strategies.{ClusterBased, RandomSampling}
+import al.strategies._
 import app.ArgParser
-import app.db.Dataset
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.NoLearner
-import util.Datasets
+import ml.classifiers.SVM
 import weka.filters.unsupervised.attribute.Standardize
 
-object AgnosticQueries extends CrossValidation with App {
+object SVMQueries extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + " \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
-    "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +
-    "Rnd because it is the baseline to define Q and\n" +
-    "Clu because it relies on external implementation.\n"
+  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
 
-  def strats0(run: Int, pool: Seq[Pattern]) = List(ClusterBased(Seq()))
+  def strats0(run: Int, pool: Seq[Pattern]) = List(
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
+  )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (!rndQueriesComplete(db) || !nonRndQueriesComplete(db))
-    if (!fazer) println(s"Agnostic queries are complete for $db. Skipping...")
+    val fazer = !db.isLocked && (if (!completeForQCalculation(db)) {
+      println(s"$db is not Rnd queries/hits complete to calculate Q. Skipping...")
+      false
+    } else if (!nonRndQueriesComplete(db)) true
+    else {
+      println(s"SVM queries are complete for $db with ${SVM()}. Skipping...")
+      false
+    })
     fazer
   }
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
-    db.saveQueries(RandomSampling(pool), run, fold, f, timeLimitSeconds) //it is interesting to have all queries, but we have to save (by exiting) sometimes if the dataset is big.
-    db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
+    val Q = q(db)
+    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q, allWin = true))
   }
 }

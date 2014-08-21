@@ -16,10 +16,11 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package app.db
+package app.db.entities
 
 import al.strategies.Strategy
 import app.ArgParser
+import app.db.entities.Database
 import ml.classifiers.Learner
 
 case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {
@@ -41,6 +42,8 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
       statement.executeUpdate("create table medida ( name VARCHAR, unique (name) on conflict rollback)")
+      val measures = Seq("ALCDaAcc", "ALCDaGmeans", "custoPraAccPass", "custoPraGmeansPass", "accEmQ", "gmeansEmQ", "tempoDeUmaConsulta", "tempoPraQ")
+      measures.foreach(med => statement.executeUpdate(s"insert into table medida values ('$med')"))
       statement.executeUpdate("create table path ( name VARCHAR, desc VARCHAR, unique (name) on conflict rollback)")
       statement.executeUpdate("create table dataset ( name VARCHAR, pathid INT, unique (name) on conflict rollback)")
       statement.executeUpdate("create table meta ( datasetid INT, name VARCHAR, value FLOAT, unique (datasetid, name) on conflict rollback)")

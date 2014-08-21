@@ -22,7 +22,9 @@ import java.io.File
 
 import al.strategies._
 import app.ArgParser
-import exp.raw.HeavyGnosticQueries._
+import app.db.entities.AppFile
+import exp.query.HeavyGnosticQueries
+import HeavyGnosticQueries._
 import ml.classifiers._
 
 object CreateAppFile extends App {

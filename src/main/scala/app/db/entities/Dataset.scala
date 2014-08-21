@@ -16,9 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package app.db
-
-import java.util.Calendar
+package app.db.entities
 
 import al.strategies.{RandomSampling, Strategy}
 import ml.Pattern

@@ -16,46 +16,51 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.hit
 
 import al.strategies._
 import app.ArgParser
-import app.db.Dataset
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.NB
-import util.Datasets
+import ml.classifiers.{C45, KNNBatch, NB}
 import weka.filters.unsupervised.attribute.Standardize
 
-object HeavyGnosticQueries extends CrossValidation with App {
+object HeavyHits extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
-    s"strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of $timeLimitSeconds s;\n"
+  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded strategies) for the given list of datasets."
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
 
   run(ff)
 
+  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
   def strats0(run: Int, pool: Seq[Pattern]) = List(
     ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
     ExpErrorReductionMargin(learner(run, pool), pool, "entropy", samplingSize),
     ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
-    //    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize),
-    ExpErrorReductionMargin(learner(run, pool), pool, "gmeans+residual", samplingSize)
+    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize)
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!completeForQCalculation(db)) {
-      println(s"$db is not Rnd queries/hits complete to calculate Q. Skipping...")
+    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+      println(s"Rnd NB, 5NN or C45 hits are incomplete for $db with ${learner(-1, Seq())}. Skipping...")
       false
-    } else if (!nonRndQueriesComplete(db)) true
-    else {
-      println(s"Heavy queries are complete for $db with ${learner(-1, Seq())}. Skipping...")
-      false
+    } else {
+      if (!hitsComplete(learner(-1, Seq()))(db)) {
+        if (nonRndQueriesComplete(db)) true
+        else println(s"Queries are incomplete for $db for some of the given strategies. Skipping...")
+        false
+      } else {
+        println(s"Heavy hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
+        false
+      }
     })
     fazer
   }
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+    val nc = pool.head.nclasses
     val Q = q(db)
-    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q))
+    strats(run, pool).foreach(s => db.saveHits(s, learner(run, pool), run, fold, nc, f, testSet, timeLimitSeconds, Q))
   }
 }

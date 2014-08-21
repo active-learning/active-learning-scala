@@ -16,32 +16,39 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.hit
 
 import al.strategies._
 import app.ArgParser
-import app.db.Dataset
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.KNNBatch
+import ml.classifiers._
 import weka.filters.unsupervised.attribute.Standardize
 
-object Random5NNHits extends CrossValidation with App {
+object SVMHits extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
+  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
 
-  def strats0(run: Int, pool: Seq[Pattern]) = List(RandomSampling(Seq()))
+  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
+  def strats0(run: Int, pool: Seq[Pattern]) = List(
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
+  )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!rndQueriesComplete(db)) {
-      println(s"Rnd queries are incomplete for $db. Skipping...")
+    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+      println(s"Rnd NB or 5NN or C45 hits are incomplete for $db with ${SVM()}. Skipping...")
       false
     } else {
-      if (!db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) true
+      if (!hitsComplete(SVM())(db)) true
       else {
-        println(s"Rnd 5NN hits are complete for $db. Skipping...")
+        println(s"SVM hits are complete for $db with ${SVM()}. Skipping...")
         false
       }
     })
@@ -50,9 +57,7 @@ object Random5NNHits extends CrossValidation with App {
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
-
-    //Completa 5NN hits do Rnd
-    val Q = 10000
-    strats(run, pool).foreach(s => db.saveHits(s, KNNBatch(5, "eucl", pool, "", weighted = true), run, fold, nc, f, testSet, 8 * 3600, Q))
+    val Q = q(db)
+    strats(run, pool).foreach(s => db.saveHits(s, SVM(run * 100 + fold), run, fold, nc, f, testSet, timeLimitSeconds, Q))
   }
 }

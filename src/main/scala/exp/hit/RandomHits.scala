@@ -16,15 +16,14 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.hit
 
 import al.strategies._
 import app.ArgParser
-import app.db.Dataset
-import exp.raw.LightHits._
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.{C45, KNNBatch, NoLearner, NB}
-import util.Datasets
+import ml.classifiers.{C45, KNNBatch, NB}
 import weka.filters.unsupervised.attribute.Standardize
 
 object RandomHits extends CrossValidation with App {

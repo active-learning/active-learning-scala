@@ -16,7 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package app.db
+package app.db.entities
 
 import java.io.{File, FileWriter}
 import java.sql.{Connection, DriverManager}

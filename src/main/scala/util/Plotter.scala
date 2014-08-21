@@ -1,3 +1,5 @@
+package util
+
 /*
  active-learning-scala: Active Learning library for Scala
  Copyright (c) 2014 Davi Pereira dos Santos
@@ -15,10 +17,6 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+object Plotter {
 
-package app.db
-
-case class Results(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {
-  val database = "results"
 }
-

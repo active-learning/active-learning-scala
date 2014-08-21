@@ -16,16 +16,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.hit
 
 import al.strategies._
 import app.ArgParser
-import app.db.Dataset
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.{C45, NB, KNNBatch}
+import ml.classifiers.{C45, KNNBatch, NB}
 import weka.filters.unsupervised.attribute.Standardize
 
-object HeavyHits extends CrossValidation with App {
+object LightHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded strategies) for the given list of datasets."
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
@@ -34,10 +35,20 @@ object HeavyHits extends CrossValidation with App {
 
   //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
-    ExpErrorReductionMargin(learner(run, pool), pool, "entropy", samplingSize),
-    ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
-    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize)
+    ClusterBased(pool),
+    Uncertainty(learner(run, pool), pool),
+    Entropy(learner(run, pool), pool),
+    Margin(learner(run, pool), pool),
+    new SGmulti(learner(run, pool), pool, "consensus"),
+    new SGmulti(learner(run, pool), pool, "majority"),
+    new SGmultiJS(learner(run, pool), pool),
+    DensityWeighted(learner(run, pool), pool, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "maha"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "manh"),
+    MahalaWeighted(learner(run, pool), pool, 1),
+    MahalaWeightedTrainingUtility(learner(run, pool), pool, 1, 1) //,
   )
 
   def ee(db: Dataset) = {
@@ -50,7 +61,7 @@ object HeavyHits extends CrossValidation with App {
         else println(s"Queries are incomplete for $db for some of the given strategies. Skipping...")
         false
       } else {
-        println(s"Heavy hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
+        println(s"Light hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
         false
       }
     })

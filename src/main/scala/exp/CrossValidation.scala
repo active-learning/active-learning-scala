@@ -16,17 +16,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp
 
 import java.io.File
-import java.lang.{Throwable, Exception}
 import java.util.Calendar
 
-import al.strategies.{ClusterBased, Strategy, RandomSampling}
-import app.db.Dataset
+import al.strategies.{ClusterBased, RandomSampling, Strategy}
+import app.db.ClassName
+import app.db.entities.Dataset
 import ml.Pattern
 import ml.classifiers._
-import util.{Lock, Datasets, Lazy}
+import util.{Datasets, Lazy, Lock}
 import weka.filters.unsupervised.attribute.Standardize
 
 import scala.collection.mutable

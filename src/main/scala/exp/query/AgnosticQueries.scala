@@ -16,45 +16,35 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.query
 
-import al.strategies._
+import al.strategies.{ClusterBased, RandomSampling}
 import app.ArgParser
-import app.db.Dataset
-import exp.raw.LightHits._
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.{KNNBatch, NoLearner, NB}
-import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
-object RandomNBHits extends CrossValidation with App {
+object AgnosticQueries extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
+  val desc = "Version " + ArgParser.version + " \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
+    "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +
+    "Rnd because it is the baseline to define Q and\n" +
+    "Clu because it relies on external implementation.\n"
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
 
-  def strats0(run: Int, pool: Seq[Pattern]) = List(RandomSampling(Seq()))
+  def strats0(run: Int, pool: Seq[Pattern]) = List(ClusterBased(Seq()))
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!rndQueriesComplete(db)) {
-      println(s"Rnd queries are incomplete for $db. Skipping...")
-      false
-    } else {
-      if (!db.rndHitsComplete(NB())) true
-      else {
-        println(s"Rnd NB hits are complete for $db. Skipping...")
-        false
-      }
-    })
+    val fazer = !db.isLocked && (!rndQueriesComplete(db) || !nonRndQueriesComplete(db))
+    if (!fazer) println(s"Agnostic queries are complete for $db. Skipping...")
     fazer
   }
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
-    val nc = pool.head.nclasses
-
-    //Completa NB hits do Rnd
-    val Q = 10000
-    strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 8 * 3600, Q))
+    db.saveQueries(RandomSampling(pool), run, fold, f, timeLimitSeconds) //it is interesting to have all queries, but we have to save (by exiting) sometimes if the dataset is big.
+    db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }
 }

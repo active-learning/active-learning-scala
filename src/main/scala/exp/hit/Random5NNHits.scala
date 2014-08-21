@@ -16,16 +16,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.hit
 
 import al.strategies._
 import app.ArgParser
-import app.db.Dataset
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.C45
+import ml.classifiers.KNNBatch
 import weka.filters.unsupervised.attribute.Standardize
 
-object RandomC45Hits extends CrossValidation with App {
+object Random5NNHits extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
@@ -39,9 +40,9 @@ object RandomC45Hits extends CrossValidation with App {
       println(s"Rnd queries are incomplete for $db. Skipping...")
       false
     } else {
-      if (!db.rndHitsComplete(C45())) true
+      if (!db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) true
       else {
-        println(s"Rnd C45() hits are complete for $db. Skipping...")
+        println(s"Rnd 5NN hits are complete for $db. Skipping...")
         false
       }
     })
@@ -51,8 +52,8 @@ object RandomC45Hits extends CrossValidation with App {
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val nc = pool.head.nclasses
 
-    //Completa C45() hits do Rnd
+    //Completa 5NN hits do Rnd
     val Q = 10000
-    strats(run, pool).foreach(s => db.saveHits(s, C45(), run, fold, nc, f, testSet, 8 * 3600, Q))
+    strats(run, pool).foreach(s => db.saveHits(s, KNNBatch(5, "eucl", pool, "", weighted = true), run, fold, nc, f, testSet, 8 * 3600, Q))
   }
 }

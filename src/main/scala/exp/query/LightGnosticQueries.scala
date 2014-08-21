@@ -16,14 +16,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.raw
+package exp.query
 
 import al.strategies._
 import app.ArgParser
-import app.db.Dataset
+import app.db.entities.Dataset
+import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.NB
-import util.Datasets
 import weka.filters.unsupervised.attribute.Standardize
 
 object LightGnosticQueries extends CrossValidation with App {

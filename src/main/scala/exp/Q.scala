@@ -16,33 +16,35 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package app.db
-
-import java.sql.DriverManager
+package exp
 
 import app.ArgParser
+import app.db.entities.Dataset
 
 /**
  * Created by davi on 09/06/14.
  */
-object SQLMulti extends App {
-  val desc = "Version 0.1 \n Apply SQL queries to all provided databases, unifying results in an volatile table, " +
-    "allowing a second query to be applied in it." +
-    "This program is needed because SQLite has a limited of only 20 simultaneous attached datasets."
-  val (path, datasetNames, sqls) = ArgParser.testArgsWithText(getClass.getSimpleName.dropRight(1), args, desc)
+object Q extends App {
+  val desc = s"Version ${ArgParser.version} \n Imprime Qs."
+  val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   val parallel = args(2) == "y"
-  val dest = Dataset(path) _
-  val arr = sqls.split(';')
-  val sql = arr(0)
-  val sql2 = arr(1)
-
-  //todo:useDatabase class
-  Class.forName("org.sqlite.JDBC")
-  val url = "jdbc:sqlite::memory:"
-  val connection = DriverManager.getConnection(url)
-  val statement = connection.createStatement()
-  ???
-  //todo:terminar
-
-
+  val readOnly = true
+  val runs = 5
+  val folds = 5
+  val dest = Dataset(path, createOnAbsence = false, readOnly) _
+  val qname = (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
+    val db = dest(datasetName)
+    if (db.dbOriginal.exists()) {
+      db.open()
+      //Pega mediana.
+      val Q = db.Q
+      println(s"$Q $datasetName ${db.n}")
+      db.close()
+      (Q, datasetName)
+    } else (-1, datasetName)
+  }
+  qname.sortBy(_._1) foreach println
+  println("")
+  println(qname.sortBy(_._1).map(_._2).mkString(","))
+  println("")
 }
