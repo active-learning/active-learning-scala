@@ -34,21 +34,27 @@ import scala.collection.mutable
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   lazy val Q = {
-    if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !rndHitsComplete(C45())) -1 //-1: just warming
+    exec("create table if not exists res ( m INT, s INT, l INT, r INT, f INT, v FLOAT, unique (m,s,l,r,f) on conflict rollback )")
+    val tmp = exec("select * from res where m=app.medida.rowid and app.medida.name='Q' and s=-1 and l=-1 and r=-1 and f=-1")
+    val alreadyCalculated = tmp.size > 0
+    if (alreadyCalculated) tmp.get.head.head
     else {
-      //Faz lista com 25 Q (um para cada pool); é o primeiro ponto de acc max do melhor classificador.
-      val QNB_Q5NN_QC45 = (for {
-        r <- (0 until runs).par
-        f <- (0 until folds).par
-        sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (2,3,5) and pred=expe group by position,learnerid order by sum(value) desc, position asc limit 1"
-      } yield {
-        exec(sql).get.head.head
-      }).toList
+      if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !rndHitsComplete(C45())) -1 //-1: just warming
+      else {
+        //Faz lista com 25 Qs (um para cada pool); é o primeiro ponto de acc max do melhor dentre os 3 classificadores.
+        val QNB_Q5NN_QC45 = (for {
+          r <- (0 until runs).par
+          f <- (0 until folds).par
+          sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (2,3,5) and pred=expe group by position,learnerid order by sum(value) desc, position asc limit 1"
+        } yield {
+          exec(sql).get.head.head
+        }).toList
 
-      //Pega mediana.
-      val QAccMax = QNB_Q5NN_QC45.sorted.toList(runs * folds / 2).toInt
-      println(s"Q=$QAccMax")
-      QAccMax
+        //Pega mediana.
+        val QAccMax = QNB_Q5NN_QC45.sorted.toList(runs * folds / 2).toInt
+        println(s"Q=$QAccMax")
+        QAccMax
+      }
     }
   }
 

@@ -42,13 +42,15 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
       val statement = connection.createStatement()
       statement.executeUpdate("begin")
       statement.executeUpdate("create table medida ( name VARCHAR, unique (name) on conflict rollback)")
-      val measures = Seq("ALCDaAcc", "ALCDaGmeans", "custoPraAccPass", "custoPraGmeansPass", "accEmQ", "gmeansEmQ", "tempoDeUmaConsulta", "tempoPraQ")
+      val measures = Seq("Q", "ALCDaAcc", "ALCDaGmeans", "custoPraAccPass", "custoPraGmeansPass", "accEmQ", "gmeansEmQ", "tempoDaPiorConsulta", "tempoMedioDeConsulta", "tempoPraQ")
       measures.foreach(med => statement.executeUpdate(s"insert into table medida values ('$med')"))
+
+      //todo: useless tables?
       statement.executeUpdate("create table path ( name VARCHAR, desc VARCHAR, unique (name) on conflict rollback)")
-      statement.executeUpdate("create table res ( m INT, s INT, l INT, r INT, f INT, v FLOAT, unique (m,s,l,r,f) on conflict rollback )")
       statement.executeUpdate("create table dataset ( name VARCHAR, pathid INT, unique (name) on conflict rollback)")
       statement.executeUpdate("create table meta ( datasetid INT, name VARCHAR, value FLOAT, unique (datasetid, name) on conflict rollback)")
       statement.executeUpdate("create table config ( name VARCHAR, value FLOAT, unique (name) on conflict rollback)")
+
       statement.executeUpdate("end")
     } catch {
       case e: Throwable => e.printStackTrace
