@@ -18,6 +18,8 @@
 
 package app.db.entities
 
+import java.util.Calendar
+
 import al.strategies.{RandomSampling, Strategy}
 import ml.Pattern
 import ml.classifiers._
@@ -295,7 +297,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val queries = fetchQueries(strat, run, fold, f)
       val nextPosition = queries.size
       val r = if (nextPosition < Q && nextPosition < strat.pool.size) {
-        println(s"Gerando queries na posição ${if (Q == Int.MaxValue) strat.pool.size else nextPosition} de um total de $Q queries para $dataset pool: $run.$fold ...")
+        println(s"${Calendar.getInstance().getTime} Gerando queries na posição ${if (Q == Int.MaxValue) strat.pool.size else nextPosition} de um total de $Q queries para $dataset pool: $run.$fold ...")
         incCounter()
         val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
         else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
@@ -325,7 +327,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
               println(e.getMessage)
               safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
           }
-          println(s"$q $strat queries written to " + dbCopy + s" at $run.$fold. Backing up tmpFile...")
+          println(s"${Calendar.getInstance().getTime} $q $strat queries written to " + dbCopy + s" at $run.$fold. Backing up tmpFile...")
           save()
           releaseOp()
         }
