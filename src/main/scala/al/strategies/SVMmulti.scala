@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.SVM
+import ml.classifiers.SVMLib
 import svmal.SVMStrategymulti
 import util.Datasets
 
@@ -34,7 +34,7 @@ import scala.util.Random
 case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
   override val toString = s"SVMmulti ($algorithm)"
   val abr = "SVM" + algorithm.take(3).toLowerCase
-  val learner = SVM() //just to visual tests and to be referenced in db
+  val learner = SVMLib() //just to visual tests and to be referenced in db
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val labeledar = labeled.toArray

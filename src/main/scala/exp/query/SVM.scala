@@ -23,22 +23,21 @@ import app.ArgParser
 import app.db.entities.Dataset
 import exp.CrossValidation
 import ml.Pattern
+import ml.classifiers.SVMLib
 import weka.filters.unsupervised.attribute.Standardize
 
-object HeavyGnosticQueries extends CrossValidation with App {
+object SVM extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
-    s"strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of $timeLimitSeconds s;\n"
-  val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)
+  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
+  val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
-    ExpErrorReductionMargin(learner(run, pool), pool, "entropy", samplingSize),
-    ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
-    //    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize),
-    ExpErrorReductionMargin(learner(run, pool), pool, "gmeans+residual", samplingSize)
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
   )
 
   def ee(db: Dataset) = {
@@ -47,7 +46,7 @@ object HeavyGnosticQueries extends CrossValidation with App {
       false
     } else if (!nonRndQueriesComplete(db)) true
     else {
-      println(s"Heavy queries are complete for $db with ${learner(-1, Seq())}. Skipping...")
+      println(s"SVM queries are complete for $db with ${SVMLib()}. Skipping...")
       false
     })
     fazer
@@ -55,6 +54,6 @@ object HeavyGnosticQueries extends CrossValidation with App {
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val Q = q(db)
-    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q))
+    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q, allWin = true))
   }
 }

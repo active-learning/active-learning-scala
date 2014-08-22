@@ -16,23 +16,24 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.query
+package exp.hit
 
 import al.strategies._
 import app.ArgParser
 import app.db.entities.Dataset
 import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.SVM
+import ml.classifiers._
 import weka.filters.unsupervised.attribute.Standardize
 
-object SVMQueries extends CrossValidation with App {
+object SVM extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
+  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
 
+  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
   def strats0(run: Int, pool: Seq[Pattern]) = List(
     SVMmulti(pool, "SELF_CONF"),
     SVMmulti(pool, "KFF"),
@@ -41,19 +42,22 @@ object SVMQueries extends CrossValidation with App {
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!completeForQCalculation(db)) {
-      println(s"$db is not Rnd queries/hits complete to calculate Q. Skipping...")
+    val fazer = !db.isLocked && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+      println(s"Rnd NB or 5NN or C45 hits are incomplete for $db with ${SVMLib()}. Skipping...")
       false
-    } else if (!nonRndQueriesComplete(db)) true
-    else {
-      println(s"SVM queries are complete for $db with ${SVM()}. Skipping...")
-      false
+    } else {
+      if (!hitsComplete(SVMLib())(db)) true
+      else {
+        println(s"SVM hits are complete for $db with ${SVMLib()}. Skipping...")
+        false
+      }
     })
     fazer
   }
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+    val nc = pool.head.nclasses
     val Q = q(db)
-    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q, allWin = true))
+    strats(run, pool).foreach(s => db.saveHits(s, SVMLib(run * 100 + fold), run, fold, nc, f, testSet, timeLimitSeconds, Q))
   }
 }

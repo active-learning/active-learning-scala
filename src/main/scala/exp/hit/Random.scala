@@ -26,7 +26,7 @@ import ml.Pattern
 import ml.classifiers.{C45, KNNBatch, NB}
 import weka.filters.unsupervised.attribute.Standardize
 
-object RandomHits extends CrossValidation with App {
+object Random extends CrossValidation with App {
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames0, learner) = ArgParser.testArgsWithLearner(className, args, desc)

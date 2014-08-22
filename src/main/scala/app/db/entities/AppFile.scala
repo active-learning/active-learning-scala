@@ -20,7 +20,6 @@ package app.db.entities
 
 import al.strategies.Strategy
 import app.ArgParser
-import app.db.entities.Database
 import ml.classifiers.Learner
 
 case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {

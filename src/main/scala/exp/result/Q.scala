@@ -16,7 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp
+package exp.result
 
 import app.ArgParser
 import app.db.entities.Dataset

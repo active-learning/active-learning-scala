@@ -23,8 +23,7 @@ import java.io.File
 import al.strategies._
 import app.ArgParser
 import app.db.entities.AppFile
-import exp.query.HeavyGnosticQueries
-import HeavyGnosticQueries._
+import exp.query.Heavy._
 import ml.classifiers._
 
 object CreateAppFile extends App {
@@ -77,7 +76,7 @@ object CreateAppFile extends App {
     IELM(), IELMEnsemble(), EIELM(), CIELM(), ECIELM(),
     interaELM(),
     LASVM(),
-    SVM()
+    SVMLib()
   )
 
   //opens (creates) app.db
