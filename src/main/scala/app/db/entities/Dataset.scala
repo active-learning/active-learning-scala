@@ -62,7 +62,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
         incCounter()
         acquireOp()
-        exec(s"insert into res values (1,-1,-1,-1,-1,$QAccMax)")
+        exec(s"insert into res values (1,-1,-1,-1,-1,$QAccMax)") //todo: aqui quebra caso db esteja aberto como readOnly
         save()
         releaseOp()
 
