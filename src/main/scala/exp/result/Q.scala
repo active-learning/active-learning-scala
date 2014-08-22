@@ -25,10 +25,10 @@ import app.db.entities.Dataset
  * Created by davi on 09/06/14.
  */
 object Q extends App {
-  val desc = s"Version ${ArgParser.version} \n Imprime Qs."
+  val desc = s"Version ${ArgParser.version} \n Calcula, completa dbs e imprime Qs."
   val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   val parallel = args(2) == "y"
-  val readOnly = true
+  val readOnly = false
   val runs = 5
   val folds = 5
   val dest = Dataset(path, createOnAbsence = false, readOnly) _
@@ -36,7 +36,6 @@ object Q extends App {
     val db = dest(datasetName)
     if (db.dbOriginal.exists()) {
       db.open()
-      //Pega mediana.
       val Q = db.Q
       println(s"$Q $datasetName ${db.n}")
       db.close()

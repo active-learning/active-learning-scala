@@ -34,9 +34,15 @@ import scala.collection.mutable
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
   lazy val Q = {
-    exec("create table if not exists res ( m INT, s INT, l INT, r INT, f INT, v FLOAT, unique (m,s,l,r,f) on conflict rollback )")
-    val tmp = exec("select * from res where m=app.medida.rowid and app.medida.name='Q' and s=-1 and l=-1 and r=-1 and f=-1")
-    val alreadyCalculated = tmp.size > 0
+    if (!readOnly) {
+      incCounter()
+      acquireOp()
+      exec("create table if not exists res ( m INT, s INT, l INT, r INT, f INT, v FLOAT, unique (m,s,l,r,f) on conflict rollback )")
+      //save() Only save when really inserting ( = pseudo-transaction)
+      releaseOp()
+    }
+    val tmp = exec("select v from res where m=1 and s=-1 and l=-1 and r=-1 and f=-1")
+    val alreadyCalculated = tmp.get.size > 0
     if (alreadyCalculated) tmp.get.head.head.toInt
     else {
       if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !rndHitsComplete(C45())) -1 //-1: just warming
@@ -53,6 +59,13 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         //Pega mediana.
         val QAccMax = QNB_Q5NN_QC45.sorted.toList(runs * folds / 2).toInt
         println(s"Q=$QAccMax")
+
+        incCounter()
+        acquireOp()
+        exec(s"insert into res values (1,-1,-1,-1,-1,$QAccMax)")
+        save()
+        releaseOp()
+
         QAccMax
       }
     }
