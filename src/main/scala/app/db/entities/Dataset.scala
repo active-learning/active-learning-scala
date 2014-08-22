@@ -37,7 +37,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     exec("create table if not exists res ( m INT, s INT, l INT, r INT, f INT, v FLOAT, unique (m,s,l,r,f) on conflict rollback )")
     val tmp = exec("select * from res where m=app.medida.rowid and app.medida.name='Q' and s=-1 and l=-1 and r=-1 and f=-1")
     val alreadyCalculated = tmp.size > 0
-    if (alreadyCalculated) tmp.get.head.head
+    if (alreadyCalculated) tmp.get.head.head.toInt
     else {
       if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !rndHitsComplete(C45())) -1 //-1: just warming
       else {
