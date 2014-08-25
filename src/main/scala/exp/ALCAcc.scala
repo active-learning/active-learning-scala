@@ -19,16 +19,22 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package exp
 
 import app.ArgParser
-import app.db.entities.Dataset
+import app.db.entities.{AppFile, Dataset}
 
 object ALCAcc extends Res {
   val desc = s"Version ${ArgParser.version} \nCalcula ALCs e coloca na tabela 'res'."
 
   def core(db: Dataset) {
-    val Q = db.Q
-    val timeSteps = (Q - db.nclasses) * db.nclasses * db.nclasses
-    val hitsAcumulados = "select sum(value) from hit where strategyid=1 and learnerid=3 and pred=expe and position<4 group by run,fold"
-    val sizesAcumulados = "select sum(value) from hit where strategyid=1 and learnerid=3 and position<4 group by run,fold"
+    strats foreach { st =>
+      val Q = db.Q
+      val s = sid(st)
+      val hits = db.exec(s"select sum(value) from hit where strategyid=$s and learnerid=$lid and pred=expe and position<$Q group by run,fold").get.map(_.head)
+      val tries = db.exec(s"select sum(value) from hit where strategyid=$s and learnerid=$lid and position<$Q group by run,fold").get.map(_.head)
+      val expectedTries = db.n * runs * (Q - db.nclasses)
+      if (expectedTries != tries.sum) db.safeQuit(s"$expectedTries expected tries is different from ${tries.sum} tries found (tries = number os instances in the test set * (Q - |Y|) * runs).")
+      if (hits.zip(tries).exists(x => x._1 > x._2)) db.safeQuit(s"One of the $hits expected hits is greater than one of the $tries tries found (tries = number os instances in the test set * (Q - |Y|) * runs).")
+      println(db + ": " + hits.sum / tries.sum)
+    }
   }
 
   run()

@@ -109,7 +109,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting learner to insert queries into: " + dbCopy + s" with query '$sql'.")
+        safeQuit("\nProblems consulting learner from " + dbCopy + s" with query '$sql'.")
     }
     lidmap.getOrElseUpdate(learner.toString, lid)
   }
@@ -123,7 +123,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       resultSet.getInt("rowid")
     } catch {
       case e: Throwable => e.printStackTrace
-        safeQuit("\nProblems consulting strategy to insert queries into: " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
+        safeQuit("\nProblems consulting strategy from " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
     }
     sidmap.getOrElseUpdate(strat.toString, sid)
   }

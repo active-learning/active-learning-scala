@@ -22,10 +22,43 @@ import al.strategies.Strategy
 import app.ArgParser
 import ml.classifiers.Learner
 
+import scala.collection.mutable
+
 case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) extends Database {
   println("App. path = " + ArgParser.appPath)
   val database = "app"
   val path = ArgParser.appPath
+  val sidmap = mutable.Map[String, Int]()
+  val lidmap = mutable.Map[String, Int]()
+
+  def fetchlid(learner: Learner) = {
+    val sql = "select rowid from learner where name='" + learner + "'"
+    //Fetch LearnerId by name.
+    lazy val lid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting learner from " + dbCopy + s" with query '$sql'.")
+    }
+    lidmap.getOrElseUpdate(learner.toString, lid)
+  }
+
+  def fetchsid(strat: Strategy) = {
+    //Fetch StrategyId by name.
+    lazy val sid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery("select rowid from strategy where name='" + strat + "'")
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting strategy from " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
+    }
+    sidmap.getOrElseUpdate(strat.toString, sid)
+  }
 
   def createOtherTables() {
     if (readOnly) {

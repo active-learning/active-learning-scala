@@ -21,7 +21,7 @@ package exp
 import al.strategies._
 import app.ArgParser
 import app.db.ClassName
-import app.db.entities.Dataset
+import app.db.entities.{AppFile, Dataset}
 import ml.Pattern
 
 trait Res extends App with ClassName {
@@ -33,35 +33,43 @@ trait Res extends App with ClassName {
   val runs = 5
   val folds = 5
   val desc: String
+  lazy val af = {
+    val r = AppFile(createOnAbsence = false, readOnly = true)
+    r.open()
+    r
+  }
+  lazy val lid = af.fetchlid(learner(-1, Seq()))
+
+  def sid(s: Strategy) = af.fetchsid(s)
 
   def core(db: Dataset)
 
-  def strats(run: Int, pool: Seq[Pattern]) = List(
-    RandomSampling(pool),
-    ClusterBased(pool),
+  lazy val strats = List(
+    RandomSampling(Seq()),
+    ClusterBased(Seq()),
 
-    Entropy(learner(run, pool), pool),
-    Margin(learner(run, pool), pool),
-    new SGmulti(learner(run, pool), pool, "consensus"),
-    new SGmulti(learner(run, pool), pool, "majority"),
-    new SGmultiJS(learner(run, pool), pool),
-    DensityWeighted(learner(run, pool), pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "maha"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "manh"),
-    MahalaWeighted(learner(run, pool), pool, 1),
-    MahalaWeightedTrainingUtility(learner(run, pool), pool, 1, 1),
+    Entropy(learner(-1, Seq()), Seq()),
+    Margin(learner(-1, Seq()), Seq()),
+    new SGmulti(learner(-1, Seq()), Seq(), "consensus"),
+    new SGmulti(learner(-1, Seq()), Seq(), "majority"),
+    new SGmultiJS(learner(-1, Seq()), Seq()),
+    DensityWeighted(learner(-1, Seq()), Seq(), 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "maha"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "manh"),
+    MahalaWeighted(learner(-1, Seq()), Seq(), 1),
+    MahalaWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1),
 
-    ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
-    ExpErrorReductionMargin(learner(run, pool), pool, "entropy", samplingSize),
-    ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
-    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize),
+    ExpErrorReduction(learner(-1, Seq()), Seq(), "entropy", samplingSize),
+    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "entropy", samplingSize),
+    ExpErrorReduction(learner(-1, Seq()), Seq(), "accuracy", samplingSize),
+    ExpErrorReduction(learner(-1, Seq()), Seq(), "gmeans", samplingSize),
 
-    SVMmulti(pool, "SELF_CONF"),
-    SVMmulti(pool, "KFF"),
-    SVMmulti(pool, "BALANCED_EE"),
-    SVMmulti(pool, "SIMPLE")
+    SVMmulti(Seq(), "SELF_CONF"),
+    SVMmulti(Seq(), "KFF"),
+    SVMmulti(Seq(), "BALANCED_EE"),
+    SVMmulti(Seq(), "SIMPLE")
   )
 
   def run() {
@@ -71,5 +79,6 @@ trait Res extends App with ClassName {
       core(db)
       db.close()
     }
+    af.close()
   }
 }
