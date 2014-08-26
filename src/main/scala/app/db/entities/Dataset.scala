@@ -41,7 +41,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       //save() Only save when really inserting ( = pseudo-transaction)
       releaseOp()
     }
-    val tmp = exec("select v from res where m=1 and s=-1 and l=-1 and r=-1 and f=-1")
+    val tmp = exec(s"select v from res where m=${fetchmid("Q")} and s=-1 and l=-1 and r=-1 and f=-1")
     val alreadyCalculated = tmp.get.size > 0
     if (alreadyCalculated) tmp.get.head.head.toInt
     else {
@@ -90,6 +90,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   val database = dataset
   val sidmap = mutable.Map[String, Int]()
   val lidmap = mutable.Map[String, Int]()
+  val midmap = mutable.Map[String, Int]()
 
   /**
    * Returns only the recorded number of tuples.
@@ -98,6 +99,21 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit ${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
   def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
+
+  def fetchmid(str: String) = {
+    val sql = "select rowid from medida where name='" + str + "'"
+    //Fetch MedidaId by name.
+    lazy val mid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting medida from " + dbCopy + s" with query '$sql'.")
+    }
+    midmap.getOrElseUpdate(str, mid)
+  }
 
   def fetchlid(learner: Learner) = {
     val sql = "select rowid from app.learner where name='" + learner + "'"

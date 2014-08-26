@@ -30,6 +30,22 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
   val path = ArgParser.appPath
   val sidmap = mutable.Map[String, Int]()
   val lidmap = mutable.Map[String, Int]()
+  val midmap = mutable.Map[String, Int]()
+
+  def fetchmid(str: String) = {
+    val sql = "select rowid from medida where name='" + str + "'"
+    //Fetch MedidaId by name.
+    lazy val mid = try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      resultSet.next()
+      resultSet.getInt("rowid")
+    } catch {
+      case e: Throwable => e.printStackTrace
+        safeQuit("\nProblems consulting medida from " + dbCopy + s" with query '$sql'.")
+    }
+    midmap.getOrElseUpdate(str, mid)
+  }
 
   def fetchlid(learner: Learner) = {
     val sql = "select rowid from learner where name='" + learner + "'"
