@@ -16,33 +16,38 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package exp
+package exp.result
 
 import al.strategies._
 import app.ArgParser
 import app.db.ClassName
 import app.db.entities.{AppFile, Dataset}
-import ml.Pattern
 
 trait Res extends App with ClassName {
   lazy val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
-  lazy val parallel = args(2) == "y"
-  lazy val dest = Dataset(path, createOnAbsence = false, readOnly) _
+  lazy val parallel = {
+    learner //just to unlazy argsTest and avoid OutOfBounds Exc here
+    args(2) == "y"
+  }
   val samplingSize = 500
-  val readOnly = true
   val runs = 5
   val folds = 5
   val desc: String
+  val readOnly: Boolean
   lazy val af = {
     val r = AppFile(createOnAbsence = false, readOnly = true)
     r.open()
     r
   }
-  lazy val lid = af.fetchlid(learner(-1, Seq()))
+  lazy val le = learner(-1, Seq())
+  lazy val lid = af.fetchlid(le)
+  val medida: String
 
-  def sid(s: Strategy) = af.fetchsid(s)
+  def fetsid(s: Strategy) = af.fetchsid(s)
 
-  def core(db: Dataset)
+  lazy val mid = af.fetchmid(medida)
+
+  def core(db: Dataset, sid: Int, Q: Int, st: String): Boolean
 
   lazy val strats = List(
     RandomSampling(Seq()),
@@ -72,13 +77,36 @@ trait Res extends App with ClassName {
     SVMmulti(Seq(), "SIMPLE")
   )
 
+  def end(): Unit
+
   def run() {
     (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
-      val db = dest(datasetName)
+      val db = Dataset(path, createOnAbsence = false, readOnly)(datasetName)
       db.open()
-      core(db)
+      val Q = db.Q
+      strats foreach { st =>
+        val sid = fetsid(st)
+        val medidas = db.exec(s"select count(*) from res where m=$mid and s=$sid and l=$lid").get.head.head
+        val complete = medidas == runs * folds
+        if (readOnly) {
+          if (complete && core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
+          else println(s"$db / $st : collecting of results incomplete!")
+        } else {
+          if (complete) println(s"$medida already calculated for $db / $st.")
+          else {
+            if (medidas > runs * folds) db.safeQuit(s"Inconsistency: $medidas ${medida}s is greater than ${runs * folds} pools!")
+            else {
+              db.exec("begin")
+              if (core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
+              db.exec("end")
+            }
+          }
+        }
+      }
+      if (!readOnly) db.save()
       db.close()
     }
     af.close()
+    end()
   }
 }

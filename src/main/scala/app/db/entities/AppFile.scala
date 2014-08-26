@@ -91,7 +91,7 @@ case class AppFile(createOnAbsence: Boolean = false, readOnly: Boolean = false) 
       statement.executeUpdate("begin")
       statement.executeUpdate("create table medida ( name VARCHAR, unique (name) on conflict rollback)")
       val measures = Seq("Q", "ALCDaAcc", "ALCDaGmeans", "custoPraAccPass", "custoPraGmeansPass", "accEmQ", "gmeansEmQ", "tempoDaPiorConsulta", "tempoMedioDeConsulta", "tempoPraQ")
-      measures.foreach(med => statement.executeUpdate(s"insert into table medida values ('$med')"))
+      measures.foreach(med => statement.executeUpdate(s"insert into medida values ('$med')"))
 
       //todo: useless tables?
       statement.executeUpdate("create table path ( name VARCHAR, desc VARCHAR, unique (name) on conflict rollback)")
