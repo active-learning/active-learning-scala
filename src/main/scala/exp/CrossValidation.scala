@@ -266,7 +266,7 @@ trait CrossValidation extends Lock with ClassName {
     var learner = ""
     val r = strats(-1, Seq()).forall {
       case s: ClusterBased => db.countPerformedQueries(s) == expectedQueriesForClusterBased
-      case _: RandomSampling => justQuit("Improper use of nonRndQueriesComplete with Rnd.")
+      case s: RandomSampling => rndQueriesComplete(db)
       case s =>
         val Q = q(db)
         (0 until runs).forall { run =>

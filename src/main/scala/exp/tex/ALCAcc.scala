@@ -29,7 +29,7 @@ object ALCAcc extends Res {
   val desc = s"Version ${ArgParser.version} \nPega ALCs da tabela 'res' e imprime tabela latex."
   lazy val medida = "ALCDaAcc"
   val readOnly = true
-  val mat = mutable.Map[String, Seq[(Double, Double)]]()
+  val mat = mutable.LinkedHashMap[String, Seq[(Double, Double)]]()
   var sts = mutable.LinkedHashSet[String]()
 
   def core(db: Dataset, sid: Int, Q: Int, st: String) = {
@@ -49,8 +49,8 @@ object ALCAcc extends Res {
   }
 
   def end() = {
-    val matm = mat.map(x => x._1 -> x._2.map(_._1)).toMap
-    val matmd = mat.toMap
+    val matm = mat.map(x => x._1 -> x._2.map(_._1))
+    val matmd = mat
     println(mat)
     println("")
     println("extensive ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -60,7 +60,7 @@ object ALCAcc extends Res {
     println("")
     println("1vs1 -----------------------------------------------------------------------")
     println("")
-    StatTests.pairTable(StatTests.friedmanNemenyi(matm, sts.toVector, "tabalcacc", medida))
+    StatTests.pairTable(StatTests.friedmanNemenyi(matm, sts.toVector), "tabalcacc", medida)
   }
 
   run()

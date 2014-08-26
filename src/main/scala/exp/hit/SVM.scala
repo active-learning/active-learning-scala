@@ -28,7 +28,7 @@ import weka.filters.unsupervised.attribute.Standardize
 
 object SVM extends CrossValidation with App {
   val args1 = args
-  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets."
+  val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets. Uses weka despite the queries coming from another SVM implementation."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
 
   run(ff)
@@ -46,8 +46,11 @@ object SVM extends CrossValidation with App {
       println(s"Rnd NB or 5NN or C45 hits are incomplete for $db with ${SVMLib()}. Skipping...")
       false
     } else {
-      if (!hitsComplete(SVMLib())(db)) true
-      else {
+      if (!hitsComplete(SVMLib())(db)) {
+        if (nonRndQueriesComplete(db)) true
+        else println(s"SVM queries are incomplete for $db for some of the given strategies. Skipping...")
+        false
+      } else {
         println(s"SVM hits are complete for $db with ${SVMLib()}. Skipping...")
         false
       }

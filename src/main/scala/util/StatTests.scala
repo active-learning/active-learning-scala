@@ -1,6 +1,7 @@
 package util
 
 import scala.collection.immutable.ListMap
+import scala.collection.mutable
 
 /*
  active-learning-scala: Active Learning library for Scala
@@ -20,6 +21,8 @@ import scala.collection.immutable.ListMap
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object StatTests {
+  def f(x: Double) = "%4.3f".format(x)
+
   /**
    * Takes a map DatasetName -> strategyMeasuresTheHigherTheBetter
    * and returns a map strategyName -> Vector(wins strat 1?, wins strat 2?, ...)
@@ -28,17 +31,20 @@ object StatTests {
    * 2: 0.95 confidence on win
    * @param measures
    */
-  def friedmanNemenyi(measures: Map[String, Seq[Double]], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.map(_._2.toArray).toArray, true)).map(x => x._1 -> x._2.toVector)
+  def friedmanNemenyi(measures: mutable.LinkedHashMap[String, Seq[Double]], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.map(_._2.toArray).toArray, true)).map(x => x._1 -> x._2.toVector)
 
   /**
    * prints a Latex table with all data,
    * rows: datasets
    * columns: strategies
    */
-  def extensiveTable(measures: Map[String, Seq[Double]], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
+  def extensiveTable(measures: mutable.LinkedHashMap[String, Seq[Double]], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l), i) =>
-      val vals = l.map(x => if (x == l.max) s"\\textbf{$x}" else x).mkString(" & ")
+      val vals = l.map { xf =>
+        val x = f(xf)
+        if (xf == l.max) s"\\textbf{$x}" else x
+      }.mkString(" & ")
       s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
     }.mkString("\n")
     table(core, nstrats, strategies, tableName, measure, language)
@@ -64,18 +70,20 @@ object StatTests {
 \end{table}""")
   }
 
-  def extensiveTable2(measures: ListMap[String, Seq[(Double, Double)]], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
+  def extensiveTable2(measures: mutable.LinkedHashMap[String, Seq[(Double, Double)]], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l), i) =>
-      val vals = l.map { case (x1, x2) =>
-        if (x1 == l.map(_._1).max) s"\\textbf{$x1/$x2}" else s"$x1/$x2"
+      val vals = l.map { case (x1f, x2f) =>
+        val x1 = f(x1f)
+        val x2 = f(x2f)
+        if (x1f == l.map(_._1).max) s"\\textbf{$x1/$x2}" else s"$x1/$x2"
       }.mkString(" & ")
       s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
     }.mkString("\n")
     table(core, nstrats, strategies, tableName, measure, language)
   }
 
-  def winsLossesTies(measures: ListMap[String, Seq[Double]], strategies: Vector[String]) = ???
+  def winsLossesTies(measures: mutable.LinkedHashMap[String, Seq[Double]], strategies: Vector[String]) = ???
 
   /**
    * prints a Latex table for pairwise comparisons
@@ -104,7 +112,7 @@ object StatTests {
 }
 
 object FriedmanNemenyiTest extends App {
-  val m = Map(
+  val m = mutable.LinkedHashMap(
     "d1" -> Seq(0.91, 0.02, 0.11, 0.3),
     "d2" -> Seq(0.49, 0.01, 0.11, 0.12),
     "d3" -> Seq(0.48, 0.0, 0.01, 0.13),
