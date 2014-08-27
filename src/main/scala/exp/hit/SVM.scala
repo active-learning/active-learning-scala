@@ -48,8 +48,10 @@ object SVM extends CrossValidation with App {
     } else {
       if (!hitsComplete(SVMLib())(db)) {
         if (nonRndQueriesComplete(db)) true
-        else println(s"SVM queries are incomplete for $db for some of the given strategies. Skipping...")
-        false
+        else {
+          println(s"SVM queries are incomplete for $db for some of the given strategies. Skipping...")
+          false
+        }
       } else {
         println(s"SVM hits are complete for $db with ${SVMLib()}. Skipping...")
         false

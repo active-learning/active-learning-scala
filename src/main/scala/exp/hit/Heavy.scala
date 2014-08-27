@@ -48,8 +48,10 @@ object Heavy extends CrossValidation with App {
     } else {
       if (!hitsComplete(learner(-1, Seq()))(db)) {
         if (nonRndQueriesComplete(db)) true
-        else println(s"Queries are incomplete for $db for some of the given strategies. Skipping...")
-        false
+        else {
+          println(s"Queries are incomplete for $db for some of the given strategies. Skipping...")
+          false
+        }
       } else {
         println(s"Heavy hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
         false
