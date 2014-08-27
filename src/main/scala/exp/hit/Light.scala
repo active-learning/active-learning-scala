@@ -33,7 +33,6 @@ object Light extends CrossValidation with App {
 
   run(ff)
 
-  //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
   def strats0(run: Int, pool: Seq[Pattern]) = List(
     RandomSampling(pool),
     ClusterBased(pool),
