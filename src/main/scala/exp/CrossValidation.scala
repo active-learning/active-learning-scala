@@ -36,6 +36,8 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  val debug = true
+
   def close() = Unit
 
   def isOpen() = false
@@ -133,7 +135,7 @@ trait CrossValidation extends Lock with ClassName {
         var incomplete = false
         if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
         else {
-          db.open()
+          db.open(debug)
           incomplete = ee(db)
           if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
           db.close()
@@ -150,7 +152,7 @@ trait CrossValidation extends Lock with ClassName {
               //            println("Beginning dataset " + datasetName + " ...")
               val db = dest(datasetName)
               dbToWait = db
-              db.open(debug = false)
+              db.open(debug)
 
               (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
                 println("    Beginning run " + run + " for " + datasetName + " ...")
@@ -253,8 +255,7 @@ trait CrossValidation extends Lock with ClassName {
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
           val tmp = db.countPerformedConfMatricesForPool(s, learner, run, fold)
-          println(s"$s / $learner $run.$fold : $tmp >= $Q")
-          println(s"$tmp >= $Q ?")
+          if (db.debug) println(s"$s / $learner $run.$fold : $tmp >= $Q")
           tmp >= Q
         }
       }
