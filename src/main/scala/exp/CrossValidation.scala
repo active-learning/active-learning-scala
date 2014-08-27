@@ -273,7 +273,9 @@ trait CrossValidation extends Lock with ClassName {
           (0 until folds).forall { fold =>
             strat = s.toString
             learner = s.learner.toString
-            db.countPerformedQueriesForPool(s, run, fold) >= Q
+            val tmp = db.countPerformedQueriesForPool(s, run, fold)
+            println(s"$tmp >= $Q ?")
+            tmp >= Q
           }
         }
     }
