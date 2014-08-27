@@ -31,14 +31,14 @@ object StatTests {
    * 2: 0.95 confidence on win
    * @param measures
    */
-  def friedmanNemenyi(measures: mutable.LinkedHashMap[String, Seq[Double]], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.map(_._2.toArray).toArray, true)).map(x => x._1 -> x._2.toVector)
+  def friedmanNemenyi(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.map(_._2.toArray).toArray, true)).map(x => x._1 -> x._2.toVector)
 
   /**
    * prints a Latex table with all data,
    * rows: datasets
    * columns: strategies
    */
-  def extensiveTable(measures: mutable.LinkedHashMap[String, Seq[Double]], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
+  def extensiveTable(measures: Seq[(String, Seq[Double])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l), i) =>
       val vals = l.map { xf =>
@@ -70,7 +70,7 @@ object StatTests {
 \end{table}""")
   }
 
-  def extensiveTable2(measures: mutable.LinkedHashMap[String, Seq[(Double, Double)]], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
+  def extensiveTable2(measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l), i) =>
       val vals = l.map { case (x1f, x2f) =>
@@ -83,7 +83,7 @@ object StatTests {
     table(core, nstrats, strategies, tableName, measure, language)
   }
 
-  def winsLossesTies(measures: mutable.LinkedHashMap[String, Seq[Double]], strategies: Vector[String]) = ???
+  def winsLossesTies(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = ???
 
   /**
    * prints a Latex table for pairwise comparisons
@@ -112,7 +112,7 @@ object StatTests {
 }
 
 object FriedmanNemenyiTest extends App {
-  val m = mutable.LinkedHashMap(
+  val m = Seq(
     "d1" -> Seq(0.91, 0.02, 0.11, 0.3),
     "d2" -> Seq(0.49, 0.01, 0.11, 0.12),
     "d3" -> Seq(0.48, 0.0, 0.01, 0.13),

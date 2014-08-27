@@ -83,28 +83,30 @@ trait Res extends App with ClassName {
     (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
       val db = Dataset(path, createOnAbsence = false, readOnly)(datasetName)
       db.open()
-      val Q = db.Q
-      strats foreach { st =>
-        val sid = fetsid(st)
-        val medidas = db.exec(s"select count(*) from res where m=$mid and s=$sid and l=$lid").get.head.head
-        val complete = medidas == runs * folds
-        if (readOnly) {
-          if (complete && core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
-          else println(s"$db / $st : collecting of results incomplete!")
-        } else {
-          if (complete) println(s"$medida already calculated for $db / $st.")
-          else {
-            if (medidas > runs * folds) db.safeQuit(s"Inconsistency: $medidas ${medida}s is greater than ${runs * folds} pools!")
+      if (db.isOpen()) {
+        val Q = db.Q
+        strats foreach { st =>
+          val sid = fetsid(st)
+          val medidas = db.exec(s"select count(*) from res where m=$mid and s=$sid and l=$lid").get.head.head
+          val complete = medidas == runs * folds
+          if (readOnly) {
+            if (complete && core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
+            else println(s"$db / $st : collecting of results incomplete!")
+          } else {
+            if (complete) println(s"$medida already calculated for $db / $st.")
             else {
-              db.exec("begin")
-              if (core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
-              db.exec("end")
+              if (medidas > runs * folds) db.safeQuit(s"Inconsistency: $medidas ${medida}s is greater than ${runs * folds} pools!")
+              else {
+                db.exec("begin")
+                if (core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
+                db.exec("end")
+              }
             }
           }
         }
+        if (!readOnly) db.save()
+        db.close()
       }
-      if (!readOnly) db.save()
-      db.close()
     }
     af.close()
     end()

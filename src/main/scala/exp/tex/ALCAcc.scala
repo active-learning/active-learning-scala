@@ -49,13 +49,20 @@ object ALCAcc extends Res {
   }
 
   def end() = {
-    val matm = mat.map(x => x._1 -> x._2.map(_._1))
-    val matmd = mat
-    println(mat)
+    val mats = mat.toSeq.sortBy(_._1)
+    val matm = mats.map(x => x._1 -> x._2.map(_._1))
+    val matmd = mats
+    println(mats)
     println("")
     println("extensive ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     println("")
-    StatTests.extensiveTable2(matmd, sts.toVector, "tabalcacc", medida)
+    StatTests.extensiveTable2(matmd.take(50), sts.toVector, "tabalcacc", medida)
+    println("")
+    StatTests.extensiveTable2(matmd.drop(50).take(50), sts.toVector, "tabalcacc", medida)
+    println("")
+    StatTests.extensiveTable2(matmd.drop(100).take(50), sts.toVector, "tabalcacc", medida)
+    println("")
+    StatTests.extensiveTable2(matmd.drop(150).take(50), sts.toVector, "tabalcacc", medida)
 
     println("")
     println("1vs1 -----------------------------------------------------------------------")
