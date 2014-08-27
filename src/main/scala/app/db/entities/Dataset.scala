@@ -218,7 +218,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    */
   def countPerformedConfMatricesForPool(strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
     val q = countPerformedQueriesForPool(strategy, run, fold)
-    if (debug) println(s"select count(*) from hit ${where(strategy, learner)} and run=$run and fold=$fold")
     val c0 = exec(s"select count(*) from hit ${where(strategy, learner)} and run=$run and fold=$fold").get.head.head.toInt / (nclasses * nclasses).toDouble
     val c = if (c0 == 0) 0 else c0 + nclasses
     val m = countEvenWhenEmpty(s" from hit ${where(strategy, learner)} and run=$run and fold=$fold").head.head.toInt
