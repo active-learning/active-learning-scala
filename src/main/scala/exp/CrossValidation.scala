@@ -235,7 +235,11 @@ trait CrossValidation extends Lock with ClassName {
       } else {
         db.open(debug)
         incomplete = ee(db)
-        if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
+        if (incomplete) {
+          lista.append((datasetName, idx))
+          skiped += 1
+          q(db, justWarming = true)
+        } //warm start for Q. there is no concurrency here
         else finished += 1
         db.close()
       }
@@ -304,7 +308,7 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def p(msg: String, lista: Seq[(String, Int)] = Seq()): Unit = {
-    println(s"\n${Calendar.getInstance().getTime} $msg")
     if (lista.nonEmpty) println(s"${datasetNames0.length} total; ${lista.length} enqueued; $skiped skipped, $finished finished.")
+    println(s"\n${Calendar.getInstance().getTime} $msg")
   }
 }
