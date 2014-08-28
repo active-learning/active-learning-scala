@@ -137,7 +137,7 @@ trait CrossValidation extends Lock with ClassName {
     }
 
     running = false
-    println("bye!")
+    p("bye!")
   }
 
   def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
@@ -210,13 +210,15 @@ trait CrossValidation extends Lock with ClassName {
           }
         }
     }
-    if (!r) println(s"$strat / $learner queries incomplete for $db")
+    if (!r) p(s"$strat / $learner queries incomplete for $db")
     r
   }
 
 
   def compilerBugSucks(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit, lista: mutable.Buffer[(String, Int)]) {
-    println("Datasets restantes: " + lista.toSeq)
+    skiped = 0
+    finished = 0
+    p("Datasets restantes: " + lista.toSeq, lista)
     println("------------------------------------------------")
     val lista2 = lista.clone()
     (if (parallelDatasets) lista2.par else lista2) foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
@@ -224,10 +226,10 @@ trait CrossValidation extends Lock with ClassName {
       lista.remove(0)
 
       //test previous progress
-      println(s"Testing dataset $datasetName ($datasetNr)")
+      p(s"Testing dataset $datasetName ($datasetNr)", lista)
       val db = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
       var incomplete = false
-      if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
+      if (db.isLocked) p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
       else {
         db.open(debug)
         incomplete = ee(db)
@@ -239,17 +241,17 @@ trait CrossValidation extends Lock with ClassName {
       if (incomplete) {
 
         //Open connection to load patterns via weka SQL importer.
-        println("Loading patterns for dataset " + datasetName + " ...")
+        p("Loading patterns for dataset " + datasetName + " ...", lista)
         source(datasetName) match {
           case Right(patts) =>
 
-            //            println("Beginning dataset " + datasetName + " ...")
+            //            p("Beginning dataset " + datasetName + " ...")
             val db = dest(datasetName)
             dbToWait = db
             db.open(debug)
 
             (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-              println("    Beginning run " + run + " for " + datasetName + " ...")
+              p("    Beginning run " + run + " for " + datasetName + " ...", lista)
               Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
 
                 //z-score
@@ -257,7 +259,7 @@ trait CrossValidation extends Lock with ClassName {
                 lazy val pool = {
                   val tr = Datasets.applyFilterChangingOrder(tr0, f) //weka is unpredictable: without lazy results differ
                   val res = new Random(run * 100 + fold).shuffle(tr)
-                  //                println(s"    data standardized for run $run and fold $fold.")
+                  //                p(s"    data standardized for run $run and fold $fold.")
                   res
                 }
                 lazy val testSet = {
@@ -265,12 +267,12 @@ trait CrossValidation extends Lock with ClassName {
                   new Random(run * 100 + fold).shuffle(ts)
                 }
 
-                println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
+                p(" : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !", lista)
                 runCore(db, run, fold, pool, testSet, f)
-                println(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
+                p(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !", lista)
 
               }
-              //            println("  Run " + run + " finished for " + datasetName + " !")
+              //            p("  Run " + run + " finished for " + datasetName + " !")
             }
 
             if (!db.readOnly) {
@@ -282,18 +284,22 @@ trait CrossValidation extends Lock with ClassName {
             acquire()
             finished += 1
             release()
-            println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames0.length + ")\n")
+            p(s"Dataset (# $datasetNr) " + datasetName + " finished!\n", lista)
             Thread.sleep(10)
             if (db.isOpen) db.close()
           case Left(str) =>
             acquire()
             skiped += 1
             release()
-            println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.\n")
+            p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
             lista.append((datasetName, idx))
         }
       }
     }
+  }
 
+  def p(msg: String, lista: Seq[(String, Int)] = Seq()): Unit = {
+    println(s"${Calendar.getInstance().getTime} $msg")
+    if (lista.nonEmpty) println(s"${lista.length} ds; $skiped skipped, $finished finished.\n")
   }
 }
