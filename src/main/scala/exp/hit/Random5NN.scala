@@ -42,7 +42,7 @@ object Random5NN extends CrossValidation with App {
     } else {
       if (!db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true))) true
       else {
-        println(s"Rnd 5NN hits are complete for $db. Skipping...")
+        println(s"Rnd 5NN hits are complete for $db.")
         false
       }
     })

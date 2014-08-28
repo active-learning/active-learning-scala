@@ -42,7 +42,7 @@ object RandomC45 extends CrossValidation with App {
     } else {
       if (!db.rndHitsComplete(C45())) true
       else {
-        println(s"Rnd C45() hits are complete for $db. Skipping...")
+        println(s"Rnd C45() hits are complete for $db.")
         false
       }
     })

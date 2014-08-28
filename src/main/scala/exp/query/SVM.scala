@@ -46,7 +46,7 @@ object SVM extends CrossValidation with App {
       false
     } else if (!nonRndQueriesComplete(db)) true
     else {
-      println(s"SVM queries are complete for $db with ${SVMLib()}. Skipping...")
+      println(s"SVM queries are complete for $db with ${SVMLib()}.")
       false
     })
     fazer

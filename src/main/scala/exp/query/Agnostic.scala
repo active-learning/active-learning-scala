@@ -39,7 +39,7 @@ object Agnostic extends CrossValidation with App {
 
   def ee(db: Dataset) = {
     val fazer = !db.isLocked && (!rndQueriesComplete(db) || !nonRndQueriesComplete(db))
-    if (!fazer) println(s"Agnostic queries are complete for $db. Skipping...")
+    if (!fazer) println(s"Agnostic queries are complete for $db.")
     fazer
   }
 

@@ -63,7 +63,7 @@ object Light extends CrossValidation with App {
           false
         }
       } else {
-        println(s"Light hits are complete for $db with ${learner(-1, Seq())}. Skipping...")
+        println(s"Light hits are complete for $db with ${learner(-1, Seq())}.")
         false
       }
     })
