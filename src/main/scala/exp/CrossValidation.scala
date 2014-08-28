@@ -126,11 +126,12 @@ trait CrossValidation extends Lock with ClassName {
     }).start()
 
     try {
-      var lista = datasetNames0.zipWithIndex
+      val lista = collection.mutable.Buffer() ++ datasetNames0.zipWithIndex
       while (lista.nonEmpty) {
-        (if (parallelDatasets) lista.par else lista) foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
+        val ll = lista.toList
+        (if (parallelDatasets) ll.par else ll) foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
           val datasetNr = idx + 1
-          lista = lista.tail
+          lista.remove(0)
 
           //test previous progress
           println(s"Testing dataset $datasetName ($datasetNr)")
@@ -163,16 +164,8 @@ trait CrossValidation extends Lock with ClassName {
 
                     //z-score
                     lazy val f = Datasets.zscoreFilter(tr0)
-                    lazy val pool = {
-                      val tr = Datasets.applyFilterChangingOrder(tr0, f)
-                      val res = new Random(run * 100 + fold).shuffle(tr)
-                      //                println(s"    data standardized for run $run and fold $fold.")
-                      res
-                    }
-                    lazy val testSet = {
-                      val ts = Datasets.applyFilterChangingOrder(ts0, f)
-                      new Random(run * 100 + fold).shuffle(ts)
-                    }
+                    lazy val pool = new Random(run * 100 + fold).shuffle(Datasets.applyFilterChangingOrder(tr0, f))
+                    lazy val testSet = new Random(run * 100 + fold).shuffle(Datasets.applyFilterChangingOrder(ts0, f))
 
                     println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
                     runCore(db, run, fold, pool, testSet, f)
@@ -198,8 +191,8 @@ trait CrossValidation extends Lock with ClassName {
                 acquire()
                 skiped += 1
                 release()
+                lista.append((datasetName, idx))
                 println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.\n")
-                lista = lista :+(datasetName, idx)
             }
           }
         }
