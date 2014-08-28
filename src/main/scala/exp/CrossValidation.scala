@@ -228,11 +228,14 @@ trait CrossValidation extends Lock with ClassName {
       p(s"Testing dataset $datasetName ($datasetNr)", lista)
       val db = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
       var incomplete = false
-      if (db.isLocked) p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
-      else {
+      if (db.isLocked) {
+        p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
+        skiped += 1
+      } else {
         db.open(debug)
         incomplete = ee(db)
         if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
+        else finished += 1
         db.close()
       }
 
@@ -293,7 +296,7 @@ trait CrossValidation extends Lock with ClassName {
             p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
             lista.append((datasetName, idx))
         }
-      } else finished += 1
+      }
     }
   }
 
