@@ -110,5 +110,6 @@ trait Res extends App with ClassName {
     }
     af.close()
     end()
+    println("bye!")
   }
 }

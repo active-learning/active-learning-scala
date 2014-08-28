@@ -36,7 +36,7 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
-  val waitingForDBAvailability=60000
+  val waitingForDBAvailability = 60000
   val debug = false
 
   def close() = Unit
