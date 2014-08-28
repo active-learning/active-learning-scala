@@ -216,7 +216,8 @@ trait CrossValidation extends Lock with ClassName {
 
 
   def compilerBugSucks(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit, lista: mutable.Buffer[(String, Int)]) {
-    (if (parallelDatasets) lista.par else lista) foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
+    val lista2 = lista.clone()
+    (if (parallelDatasets) lista2.par else lista2) foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
       val datasetNr = idx + 1
       lista.remove(0)
 
