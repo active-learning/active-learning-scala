@@ -126,76 +126,78 @@ trait CrossValidation extends Lock with ClassName {
     }).start()
 
     try {
-      (if (parallelDatasets) datasetNames0.par else datasetNames0).zipWithIndex foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
-        val datasetNr = idx + 1
+      val lista = collection.mutable.Buffer() ++ datasetNames0.zipWithIndex
+      while (lista.nonEmpty) {
+        val ll = lista.toList
+        (if (parallelDatasets) ll.par else ll) foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
+          val datasetNr = idx + 1
+          lista.remove(0)
 
-        //test previous progress
-        println(s"Testing dataset $datasetName ($datasetNr)")
-        val db = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
-        var incomplete = false
-        if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
-        else {
-          db.open(debug)
-          incomplete = ee(db)
-          if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
-          db.close()
-        }
+          //test previous progress
+          println(s"Testing dataset $datasetName ($datasetNr)")
+          val db = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
+          var incomplete = false
+          if (db.isLocked) println(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...")
+          else {
+            db.open(debug)
+            incomplete = ee(db)
+            if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
+            db.close()
+          }
 
-        //process dataset
-        if (incomplete) {
+          //process dataset
+          if (incomplete) {
 
-          //Open connection to load patterns via weka SQL importer.
-          println("Loading patterns for dataset " + datasetName + " ...")
-          source(datasetName) match {
-            case Right(patts) =>
+            //Open connection to load patterns via weka SQL importer.
+            println("Loading patterns for dataset " + datasetName + " ...")
+            source(datasetName) match {
+              case Right(patts) =>
 
-              //            println("Beginning dataset " + datasetName + " ...")
-              val db = dest(datasetName)
-              dbToWait = db
-              db.open(debug)
+                //            println("Beginning dataset " + datasetName + " ...")
+                val db = dest(datasetName)
+                dbToWait = db
+                db.open(debug)
 
-              (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
-                println("    Beginning run " + run + " for " + datasetName + " ...")
-                Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
+                (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+                  println("    Beginning run " + run + " for " + datasetName + " ...")
+                  Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
 
-                  //z-score
-                  lazy val f = Datasets.zscoreFilter(tr0)
-                  lazy val pool = {
-                    val tr = Datasets.applyFilterChangingOrder(tr0, f)
-                    val res = new Random(run * 100 + fold).shuffle(tr)
-                    //                println(s"    data standardized for run $run and fold $fold.")
-                    res
+                    //z-score
+                    lazy val f = Datasets.zscoreFilter(tr0)
+                    lazy val pool = {
+                      new Random(run * 100 + fold).shuffle(Datasets.applyFilterChangingOrder(tr0, f))
+                    }
+                    lazy val testSet = {
+                      new Random(run * 100 + fold).shuffle(Datasets.applyFilterChangingOrder(ts0, f))
+                    }
+
+                    println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
+                    runCore(db, run, fold, pool, testSet, f)
+                    println(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
+
                   }
-                  lazy val testSet = {
-                    val ts = Datasets.applyFilterChangingOrder(ts0, f)
-                    new Random(run * 100 + fold).shuffle(ts)
-                  }
-
-                  println(Calendar.getInstance().getTime + " : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !")
-                  runCore(db, run, fold, pool, testSet, f)
-                  println(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !")
-
+                  //            println("  Run " + run + " finished for " + datasetName + " !")
                 }
-                //            println("  Run " + run + " finished for " + datasetName + " !")
-              }
 
-              if (!db.readOnly) {
-                incCounter()
-                db.acquireOp()
-                db.save() //não tem problema se der safequit aqui, pois não há mais threads para aguardar
-                db.releaseOp()
-              }
-              acquire()
-              finished += 1
-              release()
-              println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames0.length + ")\n")
-              Thread.sleep(10)
-              if (db.isOpen) db.close()
-            case Left(str) =>
-              acquire()
-              skiped += 1
-              release()
-              println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.\n")
+                if (!db.readOnly) {
+                  incCounter()
+                  db.acquireOp()
+                  db.save() //não tem problema se der safequit aqui, pois não há mais threads para aguardar
+                  db.releaseOp()
+                }
+                acquire()
+                finished += 1
+                release()
+                println(s"Dataset (# $datasetNr) " + datasetName + " finished! (" + finished + "/" + datasetNames0.length + ")\n")
+                Thread.sleep(10)
+                if (db.isOpen) db.close()
+              case Left(str) =>
+                acquire()
+                skiped += 1
+                release()
+                lista.append((datasetName, idx))
+                println(s"Skipping $datasetName ($datasetNr) because $str. $skiped datasets skiped.\n")
+            }
           }
         }
       }
