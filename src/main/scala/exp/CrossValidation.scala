@@ -229,6 +229,8 @@ trait CrossValidation extends Lock with ClassName {
       var incomplete = false
       if (db.isLocked) {
         p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
+        Thread.sleep(1000)
+        lista.append((datasetName, idx))
         skiped += 1
       } else {
         db.open(debug)
@@ -293,6 +295,7 @@ trait CrossValidation extends Lock with ClassName {
             skiped += 1
             release()
             p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
+            Thread.sleep(1000)
             lista.append((datasetName, idx))
         }
       }
@@ -301,7 +304,7 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def p(msg: String, lista: Seq[(String, Int)] = Seq()): Unit = {
-    println(s"${Calendar.getInstance().getTime} $msg")
-    if (lista.nonEmpty) println(s"${datasetNames0.length} total; ${lista.length} enqueued; $skiped skipped, $finished finished.\n")
+    println(s"\n${Calendar.getInstance().getTime} $msg")
+    if (lista.nonEmpty) println(s"${datasetNames0.length} total; ${lista.length} enqueued; $skiped skipped, $finished finished.")
   }
 }
