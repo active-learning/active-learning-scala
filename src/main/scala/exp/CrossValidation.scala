@@ -293,12 +293,12 @@ trait CrossValidation extends Lock with ClassName {
             p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
             lista.append((datasetName, idx))
         }
-      }
+      } else finished += 1
     }
   }
 
   def p(msg: String, lista: Seq[(String, Int)] = Seq()): Unit = {
     println(s"${Calendar.getInstance().getTime} $msg")
-    if (lista.nonEmpty) println(s"${lista.length} ds; $skiped skipped, $finished finished.\n")
+    if (lista.nonEmpty) println(s"${datasetNames0.length} total; ${lista.length} enqueued; $skiped skipped, $finished finished.\n")
   }
 }
