@@ -69,7 +69,7 @@ trait Res extends App with ClassName {
     ExpErrorReduction(learner(-1, Seq()), Seq(), "entropy", samplingSize),
     ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "entropy", samplingSize),
     ExpErrorReduction(learner(-1, Seq()), Seq(), "accuracy", samplingSize),
-    ExpErrorReduction(learner(-1, Seq()), Seq(), "gmeans+residual", samplingSize),
+    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "gmeans+residual", samplingSize),
 
     SVMmulti(Seq(), "SELF_CONF"),
     SVMmulti(Seq(), "KFF"),
