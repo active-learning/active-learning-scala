@@ -53,34 +53,38 @@ trait Strategy {
    * Se estourar o tempo limite,
    * espera a query atual terminar
    * e retorna aquelas feitas até esse ponto.
-   * Logo, a atual é desperdiçada.
+   * A atual não é desperdiçada.
    * @param seconds
    */
   def timeLimitedQueries(seconds: Double, exiting: () => Boolean = () => false) = {
     val ti = System.currentTimeMillis()
     var t = 0d
-    val withinTimeLimit = queries.takeWhile { _ =>
+    var last: Pattern = null
+    val withinTimeLimit = queries.takeWhile { p =>
+      last = p
       t = (System.currentTimeMillis() - ti) / 1000d
       t <= seconds && !exiting()
     }.toSeq
-    withinTimeLimit
+    if (t <= seconds && !exiting()) withinTimeLimit else withinTimeLimit :+ last
   }
 
   /**
    * Se estourar o tempo limite,
    * espera a query atual terminar
    * e retorna aquelas feitas até esse ponto.
-   * Logo, a atual é desperdiçada.
+   * A atual não é desperdiçada.
    * @param seconds
    */
   def timeLimitedResumeQueries(labeled: Seq[Pattern], seconds: Double, exiting: () => Boolean = () => false) = {
     val ti = System.currentTimeMillis()
     var t = 0d
-    val withinTimeLimit = resume_queries(labeled).takeWhile { _ =>
+    var last: Pattern = null
+    val withinTimeLimit = resume_queries(labeled).takeWhile { p =>
+      last = p
       t = (System.currentTimeMillis() - ti) / 1000d
       t <= seconds && !exiting()
     }.toSeq
-    withinTimeLimit
+    if (t <= seconds && !exiting()) withinTimeLimit else withinTimeLimit :+ last
   }
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern]
