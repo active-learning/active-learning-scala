@@ -36,6 +36,7 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  val waitingForDBAvailability=60000
   val debug = false
 
   def close() = Unit
@@ -229,7 +230,7 @@ trait CrossValidation extends Lock with ClassName {
       var incomplete = false
       if (db.isLocked) {
         p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
-        Thread.sleep(5000)
+        Thread.sleep(waitingForDBAvailability)
         lista.append((datasetName, idx))
         skiped += 1
       } else {
@@ -299,7 +300,7 @@ trait CrossValidation extends Lock with ClassName {
             skiped += 1
             release()
             p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
-            Thread.sleep(5000)
+            Thread.sleep(waitingForDBAvailability)
             lista.append((datasetName, idx))
         }
       }
