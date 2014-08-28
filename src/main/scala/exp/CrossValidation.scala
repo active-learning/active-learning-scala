@@ -222,7 +222,6 @@ trait CrossValidation extends Lock with ClassName {
     val lista2 = lista.clone()
     (if (parallelDatasets) lista2.par else lista2) foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
       val datasetNr = idx + 1
-      lista.remove(0)
 
       //test previous progress
       p(s"Testing dataset $datasetName ($datasetNr)", lista)
@@ -297,6 +296,7 @@ trait CrossValidation extends Lock with ClassName {
             lista.append((datasetName, idx))
         }
       }
+      lista.remove(0)
     }
   }
 
