@@ -60,12 +60,14 @@ trait Strategy {
     val ti = System.currentTimeMillis()
     var t = 0d
     var last: Pattern = null
+    var continua = true
     val withinTimeLimit = queries.takeWhile { p =>
       last = p
       t = (System.currentTimeMillis() - ti) / 1000d
-      t <= seconds && !exiting()
+      continua = t <= seconds && !exiting()
+      continua
     }.toSeq
-    if (t <= seconds && !exiting()) withinTimeLimit else withinTimeLimit :+ last
+    if (continua) withinTimeLimit else withinTimeLimit :+ last
   }
 
   /**
@@ -79,12 +81,14 @@ trait Strategy {
     val ti = System.currentTimeMillis()
     var t = 0d
     var last: Pattern = null
+    var continua = true
     val withinTimeLimit = resume_queries(labeled).takeWhile { p =>
       last = p
       t = (System.currentTimeMillis() - ti) / 1000d
-      t <= seconds && !exiting()
+      continua = t <= seconds && !exiting()
+      continua
     }.toSeq
-    if (t <= seconds && !exiting()) withinTimeLimit else withinTimeLimit :+ last
+    if (continua) withinTimeLimit else withinTimeLimit :+ last
   }
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern]
