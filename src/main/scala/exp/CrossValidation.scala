@@ -36,7 +36,7 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
-  val debug = true
+  val debug = false
 
   def close() = Unit
 
@@ -44,7 +44,7 @@ trait CrossValidation extends Lock with ClassName {
 
   var fileLocked = false
 
-  def parallelDatasets = args1(2).contains("d")
+  def parallelDatasets = false //args1(2).contains("d")
 
   def parallelRuns = args1(2).contains("r")
 
@@ -126,7 +126,7 @@ trait CrossValidation extends Lock with ClassName {
     }).start()
 
     try {
-      (if (parallelDatasets) datasetNames0 else datasetNames0).zipWithIndex foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
+      (if (parallelDatasets) datasetNames0.par else datasetNames0).zipWithIndex foreach { case (datasetName, idx) => //datasets cannot be parallelized anymore
         val datasetNr = idx + 1
 
         //test previous progress
