@@ -217,7 +217,6 @@ trait CrossValidation extends Lock with ClassName {
 
   def compilerBugSucks(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit, lista: mutable.Buffer[(String, Int)]) {
     skiped = 0
-    finished = 0
     p("Datasets restantes: " + lista.toSeq, lista)
     println("------------------------------------------------")
     val lista2 = lista.clone()
