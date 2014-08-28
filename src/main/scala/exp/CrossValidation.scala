@@ -165,12 +165,12 @@ trait CrossValidation extends Lock with ClassName {
                     //z-score
                     lazy val f = Datasets.zscoreFilter(tr0)
 
-                    //compiler bug around here
-                    lazy val pool = {
+                    //compiler bug around here when lazy present
+                    val pool = {
                       val a = Datasets.applyFilterChangingOrder(tr0, f)
                       new Random(run * 100 + fold).shuffle(a)
                     }
-                    lazy val testSet = {
+                    val testSet = {
                       val b = Datasets.applyFilterChangingOrder(ts0, f)
                       new Random(run * 100 + fold).shuffle(b)
                     }
