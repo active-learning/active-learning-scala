@@ -229,7 +229,7 @@ trait CrossValidation extends Lock with ClassName {
       var incomplete = false
       if (db.isLocked) {
         p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
-        Thread.sleep(1000)
+        Thread.sleep(5000)
         lista.append((datasetName, idx))
         skiped += 1
       } else {
@@ -295,7 +295,7 @@ trait CrossValidation extends Lock with ClassName {
             skiped += 1
             release()
             p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
-            Thread.sleep(1000)
+            Thread.sleep(5000)
             lista.append((datasetName, idx))
         }
       }
