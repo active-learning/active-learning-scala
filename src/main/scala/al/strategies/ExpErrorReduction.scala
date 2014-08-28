@@ -132,7 +132,7 @@ object EERTest extends App {
   //1000:1s
   //    val s = MahalaWeightedTrainingUtility(learner, patts.take(n), 1, 1)//13s
   //    val s = MahalaWeightedRefreshedTrainingUtility(learner, patts.take(n), 1, 1, 25)//25:90000s
-  val s = ExpErrorReduction(learner, patts.take(n), "gmeans", 25)
+  val s = ExpErrorReduction(learner, patts.take(n), "gmeans+residual", 25)
   //25:7s 100:15s 200:45s 400:300s 1000:2000s
   //  val m = learner.build(patts.take(n))
   //  println(m.accuracy(patts.drop(n)))

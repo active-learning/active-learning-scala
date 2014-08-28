@@ -56,18 +56,15 @@ object ALCAcc extends Res {
     println("")
     println("extensive ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     println("")
-    StatTests.extensiveTable2(matmd.take(50), sts.toVector, "tabalcacc", medida)
-    println("")
-    StatTests.extensiveTable2(matmd.drop(50).take(50), sts.toVector, "tabalcacc", medida)
-    println("")
-    StatTests.extensiveTable2(matmd.drop(100).take(50), sts.toVector, "tabalcacc", medida)
-    println("")
-    StatTests.extensiveTable2(matmd.drop(150).take(50), sts.toVector, "tabalcacc", medida)
+    matmd.grouped(50) foreach { g =>
+      StatTests.extensiveTable2(g, sts.toVector, "tabalcacc", medida)
+      println("")
+    }
 
-    println("")
-    println("1vs1 -----------------------------------------------------------------------")
-    println("")
-    StatTests.pairTable(StatTests.friedmanNemenyi(matm, sts.toVector), "tabalcacc", medida)
+    //    println("")
+    //    println("1vs1 -----------------------------------------------------------------------")
+    //    println("")
+    //    StatTests.pairTable(StatTests.friedmanNemenyi(matm, sts.toVector), "tabalcacc", medida)
   }
 
   run()

@@ -69,7 +69,7 @@ trait Res extends App with ClassName {
     ExpErrorReduction(learner(-1, Seq()), Seq(), "entropy", samplingSize),
     ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "entropy", samplingSize),
     ExpErrorReduction(learner(-1, Seq()), Seq(), "accuracy", samplingSize),
-    ExpErrorReduction(learner(-1, Seq()), Seq(), "gmeans", samplingSize),
+    ExpErrorReduction(learner(-1, Seq()), Seq(), "gmeans+residual", samplingSize),
 
     SVMmulti(Seq(), "SELF_CONF"),
     SVMmulti(Seq(), "KFF"),
@@ -90,7 +90,7 @@ trait Res extends App with ClassName {
           val medidas = db.exec(s"select count(*) from res where m=$mid and s=$sid and l=$lid").get.head.head
           val complete = medidas == runs * folds
           if (readOnly) {
-            if (complete && core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
+            if (complete && core(db, sid, Q, st.abr.toString)) println(s"$db / $st : ok")
             else println(s"$db / $st : collecting of results incomplete!")
           } else {
             if (complete) println(s"$medida already calculated for $db / $st.")
@@ -98,7 +98,7 @@ trait Res extends App with ClassName {
               if (medidas > runs * folds) db.safeQuit(s"Inconsistency: $medidas ${medida}s is greater than ${runs * folds} pools!")
               else {
                 db.exec("begin")
-                if (core(db, sid, Q, st.toString)) println(s"$db / $st : ok")
+                if (core(db, sid, Q, st.abr.toString)) println(s"$db / $st : ok")
                 db.exec("end")
               }
             }
