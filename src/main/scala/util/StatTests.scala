@@ -72,14 +72,15 @@ object StatTests {
 
   def extensiveTable2(measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
     val nstrats = measures.head._2.length
-    val core = measures.zipWithIndex.map { case ((d, l), i) =>
+    val core = measures.zipWithIndex.map { case ((d, l0), i) =>
+      val l = l0 map (x => (x._1 * 1000).round / 1000d -> (x._2 * 1000).round / 1000d)
       val max = l.maxBy(_._1)._1
       val dmax = l.maxBy(_._2)._2
       val vals = l.map { case (x1f, x2f) =>
         val x1 = f(x1f)
         val x2 = f(x2f)
-        val str = if (x1f == max) s"\\textbf{$x1}" else s"$x1"
-        str + "/" + (if (x2f == dmax) s"\\textbf{$x2}" else s"$x2")
+        val str = if (x1f == max) s"\\textcolor{blue}{\\textbf{$x1}}" else s"$x1" // \\usepackage[usenames,dvipsnames]{color}
+        str + "/" + (if (x2f == dmax) s"\\textcolor{red}{\\textbf{$x2}}" else s"$x2")
       }.mkString(" & ")
       s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
     }.mkString("\n")
