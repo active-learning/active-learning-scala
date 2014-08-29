@@ -94,6 +94,7 @@ object ArgParser {
       case "5NNc" => KNNBatch(5, "cheb", pool)
       case "5NNe" => KNNBatch(5, "eucl", pool, "", weighted = true)
       case "5NNm" => KNNBatch(5, "manh", pool)
+      case "Varios" => NoLearner()
     }
     (args(0) + "/", args(1).split(",").toSeq, learner)
   }

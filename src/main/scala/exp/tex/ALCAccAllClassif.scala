@@ -21,42 +21,43 @@ package exp.tex
 import app.ArgParser
 import app.db.entities.Dataset
 import exp.result.Res
+import ml.classifiers.{VFDT, KNNBatch, NB}
 import util.{StatTests, Stat, FriedmanNemenyiTest}
 
 import scala.collection.mutable
 
-object ALCAcc extends Res {
-  val desc = s"Version ${ArgParser.version} \nPega ALCs da tabela 'res' e imprime tabela latex."
+object ALCAccAllClassif extends Res {
+  val desc = s"Version ${ArgParser.version} \nPega ALCs da tabela 'res' e imprime tabela latex. Learner will be ignored!"
   lazy val medida = "ALCDaAcc"
   val readOnly = true
-  val learners = Seq(learner(-1, Seq()))
   val mat = mutable.LinkedHashMap[String, Seq[(Double, Double)]]()
   var sts = mutable.LinkedHashSet[String]()
-
-  def coreIncomp(db: Dataset): Unit = {
-    val seq = mat.getOrElse(db.toString, Seq())
-    mat.update(db.toString, seq :+(-1d, -1d))
-  }
+  val learners = Seq(NB(), VFDT(), KNNBatch(5, "eucl", Seq(), "", weighted = true))
+  val lids = learners map af.fetchlid
 
   def core(db: Dataset, sid: Int, Q: Int, st: String, le: String, lid: Int) = {
     val seq = mat.getOrElse(db.toString, Seq()) // seq of ALCavgs (one for each strat)
     db.exec(s"select v from res where m=$mid and s=$sid and l=$lid group by r,f order by r,f") match {
+      case None | Some(mutable.Queue()) =>
+        println(s"Skipping $db/$st")
+        if (mat.exists(_._1 == db.toString)) {
+          mat.update(db.toString, seq :+(-1d, -1d))
+          sts += s"$st${le.split(" ").head.dropRight(1)}"
+        }
+        false
       case Some(q) =>
         val ALCs = q.map(_.head).toVector
         val (m, s) = Stat.media_desvioPadrao(ALCs)
         mat.update(db.toString, seq :+(m, s))
-        sts += st
+        sts += s"$st${le.split(" ").head.dropRight(1)}"
         true
-      case None =>
-        println(s"Skipping $db/$st")
-        coreIncomp(db)
-        false
     }
   }
 
   def end() = {
-    val mats = mat.toSeq.sortBy(_._1).map(x => x._1.take(6) + " " + x._1.takeRight(6) -> x._2)
-    val matm = mats.map(x => x._1.take(6) + " " + x._1.takeRight(6) -> x._2.map(_._1))
+    val abr = 5
+    val mats = mat.toSeq.sortBy(_._1).map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2)
+    val matm = mats.map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2.map(_._1))
     val matmd = mats
     println(mats)
     println("")

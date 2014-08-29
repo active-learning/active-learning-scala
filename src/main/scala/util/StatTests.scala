@@ -52,7 +52,7 @@ object StatTests {
 
   private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") {
     if (nstrats != strategies.size) {
-      println(s"Inconsistency: $nstrats != ${strategies.size}")
+      println(s"Inconsistency #measures-in-the-first-row != strategies.size: $nstrats != ${strategies.size}")
       sys.exit(1)
     }
     val caption = language match {
@@ -73,10 +73,13 @@ object StatTests {
   def extensiveTable2(measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l), i) =>
+      val max = l.maxBy(_._1)._1
+      val dmax = l.maxBy(_._2)._2
       val vals = l.map { case (x1f, x2f) =>
         val x1 = f(x1f)
         val x2 = f(x2f)
-        if (x1f == l.map(_._1).max) s"\\textbf{$x1/$x2}" else s"$x1/$x2"
+        val str = if (x1f == max) s"\\textbf{$x1}" else s"$x1"
+        str + "/" + (if (x2f == dmax) s"\\textbf{$x2}" else s"$x2")
       }.mkString(" & ")
       s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
     }.mkString("\n")

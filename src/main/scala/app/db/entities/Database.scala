@@ -62,7 +62,7 @@ trait Database extends Lock {
    */
   def open(debug: Boolean = false) = {
     this.debug = debug
-    if (isOpen) justQuit(s"Database $dbOriginal already opened as $dbCopy!")
+    if (isOpen()) justQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
     if (isLocked) {
       if (dbOriginal.exists()) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")

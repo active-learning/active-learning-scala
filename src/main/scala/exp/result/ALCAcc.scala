@@ -20,13 +20,15 @@ package exp.result
 
 import app.ArgParser
 import app.db.entities.Dataset
+import ml.classifiers.Learner
 
 object ALCAcc extends Res {
   val desc = s"Version ${ArgParser.version} \nCalcula ALCs e coloca na tabela 'res'."
   lazy val medida = "ALCDaAcc"
   val readOnly = false
+  val learners = Seq(learner(-1, Seq()))
 
-  def core(db: Dataset, sid: Int, Q: Int, st: String) = {
+  def core(db: Dataset, sid: Int, Q: Int, st: String, le: String, lid: Int) = {
     var r = false
     val hits = db.exec(s"select sum(value),run,fold from hit where strategyid=$sid and learnerid=$lid and pred=expe and position<$Q group by run,fold order by run,fold").get
     val tries = db.exec(s"select sum(value),run,fold from hit where strategyid=$sid and learnerid=$lid and position<$Q group by run,fold order by run,fold").get
