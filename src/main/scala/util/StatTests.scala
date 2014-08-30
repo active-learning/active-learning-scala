@@ -34,21 +34,17 @@ object StatTests {
   def friedmanNemenyi(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.map(_._2.toArray).toArray, true)).map(x => x._1 -> x._2.toVector)
 
   /**
-   * prints a Latex table with all data,
-   * rows: datasets
-   * columns: strategies
+   * Winners per row (dataset or pool).
    */
-  def extensiveTable(measures: Seq[(String, Seq[Double])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
-    val nstrats = measures.head._2.length
-    val core = measures.zipWithIndex.map { case ((d, l), i) =>
-      val vals = l.map { xf =>
-        val x = f(xf)
-        if (xf == l.max) s"\\textbf{$x}" else x
-      }.mkString(" & ")
-      s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
-    }.mkString("\n")
-    table(core, nstrats, strategies, tableName, measure, language)
+  def winners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
+    val ranked = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+    println(ranked)
+    strategies.zipWithIndex.filter { case (s, i) =>
+      ranked.contains(i)
+    }.map(_._1)
   }
+
+  def winsLossesTies(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = ???
 
   private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") {
     if (nstrats != strategies.size) {
@@ -70,6 +66,23 @@ object StatTests {
 \end{table}""")
   }
 
+  /**
+   * prints a Latex table with all data,
+   * rows: datasets
+   * columns: strategies
+   */
+  def extensiveTable(measures: Seq[(String, Seq[Double])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
+    val nstrats = measures.head._2.length
+    val core = measures.zipWithIndex.map { case ((d, l), i) =>
+      val vals = l.map { xf =>
+        val x = f(xf)
+        if (xf == l.max) s"\\textbf{$x}" else x
+      }.mkString(" & ")
+      s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
+    }.mkString("\n")
+    table(core, nstrats, strategies, tableName, measure, language)
+  }
+
   def extensiveTable2(measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l0), i) =>
@@ -86,8 +99,6 @@ object StatTests {
     }.mkString("\n")
     table(core, nstrats, strategies, tableName, measure, language)
   }
-
-  def winsLossesTies(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = ???
 
   /**
    * prints a Latex table for pairwise comparisons
@@ -116,28 +127,27 @@ object StatTests {
 }
 
 object FriedmanNemenyiTest extends App {
-  val m = Seq(
-    "d1" -> Seq(0.91, 0.02, 0.11, 0.3),
-    "d2" -> Seq(0.49, 0.01, 0.11, 0.12),
-    "d3" -> Seq(0.48, 0.0, 0.01, 0.13),
-    "d4" -> Seq(0.45, 0.0, 0.02, 0.13),
-    "d5" -> Seq(0.46, 0.0, 0.09, 0.13),
-    "d6" -> Seq(0.43, 0.0, 0.09, 0.13),
-    "d7" -> Seq(0.43, 0.0, 0.08, 0.13),
-    "d8" -> Seq(0.44, 0.0, 0.08, 0.13),
-    "d9" -> Seq(0.48, 0.0, 0.05, 0.13),
-    "d10" -> Seq(0.47, 0.002, 0.16, 0.192),
-    "d11" -> Seq(0.417, 0.0012, 0.116, 0.117),
-    "d12" -> Seq(0.427, 0.0022, 0.126, 0.127),
-    "d13" -> Seq(0.437, 0.0102, 0.136, 0.138),
-    "d14" -> Seq(0.437, 0.0102, 0.136, 0.138),
-    "d15" -> Seq(0.437, 0.0102, 0.136, 0.138),
-    "d16" -> Seq(0.437, 0.0102, 0.136, 0.138),
-    "d17" -> Seq(0.437, 0.0102, 0.136, 0.138),
-    "d18" -> Seq(0.437, 0.0102, 0.136, 0.138),
-    "d19" -> Seq(0.447, 0.0040, 0.146, 0.149),
-    "d20" -> Seq(0.447, 0.0040, 0.146, 0.149)
+  val m0 = Seq(
+    "d1" -> Seq(5, 4, 3, 2, 0d),
+    "d2" -> Seq(5, 4, 3, 2, 0d),
+    "d3" -> Seq(5, 4, 3, 2, 0d),
+    "d4" -> Seq(5, 4, 3, 22, 0d),
+    "d5" -> Seq(5, 4, 3, 22, 0d),
+    "d6" -> Seq(5, 4, 3, 22, 0d),
+    "d7" -> Seq(5, 4, 3, 22, 0d),
+    "d8" -> Seq(5, 4, 3, 22, 0d),
+    "d9" -> Seq(500, 4000, 30000, 200000, 200001d),
+    "d10" -> Seq(50, 40, 3, 2, 0d),
+    "d11" -> Seq(50, 4, 3, 2, 0d),
+    "d12" -> Seq(50, 4, 3, 2, 0d),
+    "d13" -> Seq(50, 4, 3, 2, 0d),
+    "d14" -> Seq(50, 4, 3, 2, 1d),
+    "d15" -> Seq(5, 4, 3, 22, 1d),
+    "d16" -> Seq(5, 4, 3, 22, 1d)
   )
-  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4")), "teste", "ALC")
+  val m = m0 //map (x=> x._1 -> (x._2 ++ x._2.map(_ -0.09)))
+  //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4","e1", "e2", "e3", "e4")), "teste", "ALC")
+  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
+  StatTests.winners(m, Vector("e1", "e2", "e3", "e4", "e5"))
   //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
 }

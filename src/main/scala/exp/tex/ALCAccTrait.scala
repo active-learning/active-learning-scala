@@ -54,21 +54,25 @@ trait ALCAccTrait extends Res {
 
   def end() = {
     val abr = 5
-    val mats = mat.toSeq.sortBy(_._1).map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2)
+    val matClean = mat.filterNot(_._2.contains((-1d, -1d)))
+    println(matClean)
+    val stsClean = sts.zip(mat).filter { case (st, (da, li)) => matClean.contains(da)} map (_._1)
+    val mats = matClean.toSeq.sortBy(_._1).map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2)
+
     val matm = mats.map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2.map(_._1))
-    val matmd = mats
+
     println(mats)
     println("")
     println("extensive ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     println("")
-    matmd.grouped(50) foreach { g =>
-      StatTests.extensiveTable2(g, sts.toVector, "tabalcacc", medida)
+    mats.grouped(50) foreach { g =>
+      StatTests.extensiveTable2(g, stsClean.toVector, "tabalcacc", medida)
       println("")
     }
 
-    //    println("")
-    //    println("1vs1 -----------------------------------------------------------------------")
-    //    println("")
-    //    StatTests.pairTable(StatTests.friedmanNemenyi(matm, sts.toVector), "tabalcacc", medida)
+    println("")
+    println("1vs1 -----------------------------------------------------------------------")
+    println("")
+    StatTests.pairTable(StatTests.friedmanNemenyi(matm, stsClean.toVector), "tabalcacc", medida)
   }
 }

@@ -1,4 +1,5 @@
 package util;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -13,6 +14,9 @@ import weka.core.Utils;
  * @author thiago
  */
 public class FriedmanTest {
+
+    static final double[] qAlpha5pct = {1.960, 2.344, 2.569, 2.728, 2.850, 2.948, 3.031, 3.102, 3.164, 3.219, 3.268, 3.313, 3.354, 3.391,
+            3.426, 3.458, 3.489, 3.517, 3.544, 3.569, 3.593, 3.616, 3.637, 3.658, 3.678, 3.696, 3.714, 3.732};
 
     public static int[][] Friedman(double[][] matriz, boolean asc) {
         StringBuilder statsResults = new StringBuilder();
@@ -69,6 +73,8 @@ public class FriedmanTest {
                 medRank[j] /= nl;
             }
             int[] orderedRank = Utils.sort(medRank);
+            System.out.println(Arrays.toString(medRank));
+            System.out.println(Arrays.toString(orderedRank));
             statsResults.append("Ranking:\n");
             for (int j = 0; j < nc; ++j) {
                 statsResults.append((orderedRank[j] + 1) + "\t" + medRank[orderedRank[j]] + "\n");
@@ -89,8 +95,6 @@ public class FriedmanTest {
             /**
              * daqui para baixo tem a ver com o nemenyi tem que separar em outro metodo TODO
              */
-            double[] qAlpha5pct = {1.960, 2.344, 2.569, 2.728, 2.850, 2.948, 3.031, 3.102, 3.164, 3.219, 3.268, 3.313, 3.354, 3.391,
-                    3.426, 3.458, 3.489, 3.517, 3.544, 3.569, 3.593, 3.616, 3.637, 3.658, 3.678, 3.696, 3.714, 3.732};
             double[] qAlpha10pct = {1.645, 2.052, 2.291, 2.460, 2.589, 2.693, 2.780, 2.855, 2.920, 2.978, 3.030, 3.077, 3.120, 3.159,
                     3.196, 3.230, 3.261, 3.291, 3.319, 3.346, 3.371, 3.394, 3.417, 3.439, 3.459, 3.479, 3.498, 3.516};
             double critDiff = Math.sqrt((nc * (nc + 1.0)) / (6.0 * nl));
@@ -99,13 +103,13 @@ public class FriedmanTest {
             statsResults.append("Nemenyi Test:");
             int[] sorts = Utils.sort(medRank);
             statsResults.append("CritDiff(.05) ").append(qAlpha5pct[nc - 2] * critDiff).append("\n");
-            statsResults.append("CritDiff(.10) ").append(qAlpha10pct[nc - 2] * critDiff).append("\n");
+//            statsResults.append("CritDiff(.10) ").append(qAlpha10pct[nc - 2] * critDiff).append("\n");
             for (int j = 0; j < nc; ++j) {
                 for (int jj = j + 1; jj < nc; ++jj) {
                     //statsResults.append("C"+sorts[nc-j-1]+"/C"+sorts[nc-jj-1]+" "+ (medRank[sorts[nc-j-1]]-medRank[sorts[nc-jj-1]])+"\n");
                     double diff = medRank[sorts[nc - j - 1]] - medRank[sorts[nc - jj - 1]];
-                    if (diff >= (qAlpha10pct[nc - 2] * critDiff)) {
-                        statsResults.append(sorts[nc - j - 1] + 1).append(" ").append(sorts[nc - jj - 1] + 1).append(" ").append(medRank[sorts[nc - j - 1]] - medRank[sorts[nc - jj - 1]]).append("\n");
+                    if (diff >= (qAlpha5pct[nc - 2] * critDiff)) {
+                        statsResults.append(sorts[nc - j - 1] + 1).append(" ").append(sorts[nc - jj - 1] + 1).append(" ").append(medRank[sorts[nc - j - 1]] - medRank[sorts[nc - jj - 1]]).append(" " + medRank[sorts[nc - j - 1]] + " " + medRank[sorts[nc - jj - 1]]).append("\n");
                     }
                 }
             }
@@ -142,9 +146,93 @@ public class FriedmanTest {
 
         }
 
-//        System.out.println(statsResults);
+        System.out.println(statsResults);
 
         return table;
+    }
+
+    /**
+     * List is the ranking of avgs.
+     */
+    public static LinkedList<Number> CD(double[][] matriz, boolean asc) {
+        LinkedList<Number> l = new LinkedList<>();
+
+        int nl = matriz.length;
+        int nc = matriz[0].length;
+        double[][] ranks = new double[nl][nc];
+        double F_Friedman = Double.NaN;
+        double chiFriedman = Double.NaN;
+        try {
+            for (int i = 0; i < nl; ++i) {
+                int[] sorts = Utils.sort(matriz[i]);
+                for (int j = 0; j < nc; ++j) {
+                    if (!asc) {
+                        ranks[i][sorts[j]] = j + 1;
+                    } else {
+                        ranks[i][sorts[j]] = nc - j;
+                    }
+                }
+                BitSet modificados = new BitSet(nc);
+                modificados.clear();
+                for (int j = 0; j < nc; ++j) {
+                    if (modificados.get(j)) {
+                        continue;
+                    }
+                    double val = matriz[i][j];
+                    int iguais = 1;
+                    double soma = ranks[i][j];
+
+                    for (int jj = j + 1; jj < nc; ++jj) {
+                        if (matriz[i][jj] == val) {
+                            ++iguais;
+                            soma += ranks[i][jj];
+                        }
+                    }
+                    if (iguais > 1) {
+                        for (int jj = j; jj < nc; ++jj) {
+                            if (matriz[i][jj] == val) {
+                                modificados.set(jj);
+                                ranks[i][jj] = soma / ((double) iguais);
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            double[] medRank = new double[nc];
+            for (int j = 0; j < nc; ++j) {
+                medRank[j] = 0;
+                for (int i = 0; i < nl; ++i) {
+                    medRank[j] += ranks[i][j];
+                }
+                medRank[j] /= nl;
+            }
+            int[] orderedRank = Utils.sort(medRank);
+
+            chiFriedman = (12.0 * nl) / (nc * (nc + 1));
+            double tmp = 0;
+            for (int j = 0; j < nc; ++j) {
+                tmp += medRank[j] * medRank[j];
+            }
+            chiFriedman *= (tmp - (nc * (((nc + 1) * (nc + 1)) / 4.0)));
+            F_Friedman = ((nl - 1) * chiFriedman) / ((nl * (nc - 1)) - chiFriedman);
+            double critDiff = qAlpha5pct[nc - 2] * Math.sqrt((nc * (nc + 1.0)) / (6.0 * nl));
+
+            double limit = medRank[orderedRank[0]] + critDiff;
+            System.out.println(medRank[orderedRank[0]] + " " + critDiff);
+            int j = 0;
+            while (j < nc && medRank[orderedRank[j]] <= limit) {
+                l.add(orderedRank[j]);
+                j++;
+                System.out.println(medRank[orderedRank[j]] + " " + limit);
+            }
+
+        } catch (Exception e) {
+            System.out.println("|||erro calculando pvalue Friedman: " + "nc=" + nc + "--nl=" + nl + "--XF=" + chiFriedman + "--FF=" + F_Friedman + "\n" + e.getMessage());
+            e.printStackTrace();
+        }
+        return l;
     }
 
     /**
