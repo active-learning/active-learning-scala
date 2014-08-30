@@ -128,22 +128,22 @@ object StatTests {
 
 object FriedmanNemenyiTest extends App {
   val m0 = Seq(
-    "d1" -> Seq(5, 4, 3, 2, 0d),
-    "d2" -> Seq(5, 4, 3, 2, 0d),
-    "d3" -> Seq(5, 4, 3, 2, 0d),
-    "d4" -> Seq(5, 4, 3, 22, 0d),
-    "d5" -> Seq(5, 4, 3, 22, 0d),
-    "d6" -> Seq(5, 4, 3, 22, 0d),
-    "d7" -> Seq(5, 4, 3, 22, 0d),
-    "d8" -> Seq(5, 4, 3, 22, 0d),
-    "d9" -> Seq(500, 4000, 30000, 200000, 200001d),
-    "d10" -> Seq(50, 40, 3, 2, 0d),
-    "d11" -> Seq(50, 4, 3, 2, 0d),
-    "d12" -> Seq(50, 4, 3, 2, 0d),
-    "d13" -> Seq(50, 4, 3, 2, 0d),
-    "d14" -> Seq(50, 4, 3, 2, 1d),
-    "d15" -> Seq(5, 4, 3, 22, 1d),
-    "d16" -> Seq(5, 4, 3, 22, 1d)
+    "d1" -> Seq(5d, 4d, 3d, 2d, 0d),
+    "d2" -> Seq(5d, 4d, 3d, 2d, 0d),
+    "d3" -> Seq(5d, 4d, 3d, 2d, 0d),
+    "d4" -> Seq(5d, 4d, 3d, 22d, 0d),
+    "d5" -> Seq(5d, 4d, 3d, 22d, 0d),
+    "d6" -> Seq(5d, 4d, 3d, 22d, 0d),
+    "d7" -> Seq(5d, 4d, 3d, 22d, 0d),
+    "d8" -> Seq(5d, 4d, 3d, 22d, 0d),
+    "d9" -> Seq(500d, 4000d, 30000d, 200000d, 200001d),
+    "d10" -> Seq(50d, 40d, 3d, 2d, 0d),
+    "d11" -> Seq(50d, 4d, 3d, 2d, 0d),
+    "d12" -> Seq(50d, 4d, 3d, 2d, 0d),
+    "d13" -> Seq(50d, 4d, 3d, 2d, 0d),
+    "d14" -> Seq(50d, 4d, 3d, 2d, 1d),
+    "d15" -> Seq(5d, 4d, 3d, 22d, 1d),
+    "d16" -> Seq(5d, 4d, 3d, 22d, 1d)
   )
   val m = m0 //map (x=> x._1 -> (x._2 ++ x._2.map(_ -0.09)))
   //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4","e1", "e2", "e3", "e4")), "teste", "ALC")
