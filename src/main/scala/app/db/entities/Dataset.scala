@@ -85,8 +85,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   lazy val n = exec(s"select count(*) from inst").get.head.head.toInt
   lazy val countRndStartedPools = exec(s"select * from query where strategyid=1 group by run,fold").get.length
   lazy val countRndPerformedQueries = exec(s"select count(*) from query ${where(RandomSampling(Seq()), NoLearner())}").get.head.head.toInt
-  val runs = 5
-  val folds = 5
   val database = dataset
   val sidmap = mutable.Map[String, Int]()
   val lidmap = mutable.Map[String, Int]()

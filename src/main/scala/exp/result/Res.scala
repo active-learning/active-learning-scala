@@ -31,8 +31,8 @@ trait Res extends App with ClassName {
     args(2) == "y"
   }
   val samplingSize = 500
-  val runs = 5
-  val folds = 5
+  val runs = Dataset("")("").runs
+  val folds = Dataset("")("").folds
   val desc: String
   val readOnly: Boolean
   lazy val af = {

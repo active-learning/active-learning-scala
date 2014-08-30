@@ -67,8 +67,6 @@ trait CrossValidation extends Lock with ClassName {
 
   val samplingSize = 500
   val timeLimitSeconds = 5 * 3600
-  val runs = 5
-  val folds = 5
   //lock is just to increment finished datasets counter
   val datasetNames0: Seq[String]
   val rndForLock = new Random(System.currentTimeMillis() % 100000)

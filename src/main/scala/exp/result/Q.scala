@@ -29,8 +29,8 @@ object Q extends App {
   val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   val parallel = args(2) == "y"
   val readOnly = false
-  val runs = 5
-  val folds = 5
+  val runs = Dataset("")("").runs
+  val folds = Dataset("")("").folds
   val dest = Dataset(path, createOnAbsence = false, readOnly) _
   val qname = (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
     val db = dest(datasetName)
