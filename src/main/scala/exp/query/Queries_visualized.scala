@@ -16,7 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package exp.other
+package exp.query
 
 import al.strategies._
 import ml.Pattern

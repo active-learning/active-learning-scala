@@ -220,12 +220,10 @@ public class FriedmanTest {
             double critDiff = qAlpha5pct[nc - 2] * Math.sqrt((nc * (nc + 1.0)) / (6.0 * nl));
 
             double limit = medRank[orderedRank[0]] + critDiff;
-            System.out.println(medRank[orderedRank[0]] + " " + critDiff);
             int j = 0;
             while (j < nc && medRank[orderedRank[j]] <= limit) {
                 l.add(orderedRank[j]);
                 j++;
-                System.out.println(medRank[orderedRank[j]] + " " + limit);
             }
 
         } catch (Exception e) {
