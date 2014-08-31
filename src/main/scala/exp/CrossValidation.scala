@@ -74,7 +74,7 @@ trait CrossValidation extends Lock with ClassName {
   val qmap = mutable.Map[String, Int]()
   val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
   var finished = 0
-  var skiped = 0
+  var skipped = 0
   var available = true
   var dbToWait: Dataset = null
   val fileToStopProgram = "/tmp/safeQuit.davi"
@@ -216,7 +216,7 @@ trait CrossValidation extends Lock with ClassName {
 
 
   def compilerBugSucks(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit, lista: mutable.Buffer[(String, Int)]) {
-    skiped = 0
+    skipped = 0
     p("Datasets restantes: " + lista.toSeq, lista)
     println("------------------------------------------------")
     val lista2 = lista.clone()
@@ -231,15 +231,11 @@ trait CrossValidation extends Lock with ClassName {
         p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
         Thread.sleep(waitingForDBAvailability)
         lista.append((datasetName, idx))
-        skiped += 1
+        skipped += 1
       } else {
         db.open(debug)
         incomplete = ee(db)
-        if (incomplete) {
-          lista.append((datasetName, idx))
-          //          skiped += 1
-          q(db, justWarming = true)
-        } //warm start for Q. there is no concurrency here
+        if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
         else finished += 1
         db.close()
       }
@@ -296,7 +292,7 @@ trait CrossValidation extends Lock with ClassName {
             if (db.isOpen) db.close()
           case Left(str) =>
             acquire()
-            skiped += 1
+            skipped += 1
             release()
             p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
             Thread.sleep(waitingForDBAvailability)
@@ -308,7 +304,7 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def p(msg: String, lista: Seq[(String, Int)] = Seq()): Unit = {
-    if (lista.nonEmpty) println(s"${datasetNames0.length} total; ${lista.length} enqueued; $skiped skipped, $finished finished.")
+    if (lista.nonEmpty) println(s"${datasetNames0.length} total; ${lista.length} enqueued; $skipped skipped, $finished finished.")
     println(s"\n${Calendar.getInstance().getTime} $msg")
   }
 }

@@ -20,30 +20,60 @@ package exp.meta
 
 import app.ArgParser
 import app.db.entities.Dataset
+import exp.result.Res
+import ml.classifiers.{KNNBatch, NB, Learner}
+import util.{StatTests, Stat}
 
-/**
- * Created by davi on 09/06/14.
- */
-object DecisionTree extends App {
-  val desc = s"Version ${ArgParser.version} \n Identifica vencedores em cada base para servirem de rótulo num metadataset com metaatributos que será gerado."
-  val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
-  val parallel = args(2) == "y"
-  val readOnly = false
-  val runs = Dataset("")("").runs
-  val folds = Dataset("")("").folds
-  val dest = Dataset(path, createOnAbsence = false, readOnly) _
-  val qname = (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
-    val db = dest(datasetName)
-    if (db.dbOriginal.exists()) {
-      db.open()
-      val Q = db.Q
-      println(s"$Q $datasetName ${db.n}")
-      db.close()
-      (Q, datasetName)
-    } else (-1, datasetName)
+import scala.collection.mutable
+
+object DecisionTree extends Res {
+  val desc = s"Version ${ArgParser.version} \n Identifica vencedores em cada base para servirem de rótulo num metadataset com metaatributos que será gerado. Learner will be ignored."
+  lazy val medida = "ALCDaAcc"
+  val readOnly = true
+  val mat = mutable.LinkedHashMap[String, Seq[(Double, Double)]]()
+  var sts = mutable.LinkedHashSet[String]()
+  val learners = Seq(NB(), KNNBatch(5, "eucl", Seq(), "", weighted = true))
+
+  def core(db: Dataset, sid: Int, Q: Int, st: String, le: String, lid: Int) = {
+    val seq = mat.getOrElse(db.toString, Seq()) // seq of ALCavgs (one for each strat)
+    db.exec(s"select v from res where m=$mid and s=$sid and l=$lid group by r,f order by r,f") match {
+      case None | Some(mutable.Queue()) =>
+        println(s"Skipping $db/$st")
+        if (mat.exists(_._1 == db.toString)) {
+          mat.update(db.toString, seq :+(-1d, -1d))
+          sts += s"$st${le.split(" ").head.dropRight(1)}"
+        }
+        false
+      case Some(q) =>
+        val ALCs = q.map(_.head).toVector
+        val (m, s) = Stat.media_desvioPadrao(ALCs)
+        mat.update(db.toString, seq :+(m, s))
+        sts += s"$st${le.split(" ").head.dropRight(1)}"
+        true
+    }
   }
-  qname.sortBy(_._1) foreach println
-  println("")
-  println(qname.sortBy(_._1).map(_._2).mkString(","))
-  println("")
+
+  def end() = {
+    val abr = 5
+    val matClean = mat.filterNot(_._2.contains((-1d, -1d)))
+    println(matClean)
+    val stsClean = sts.zip(mat).filter { case (st, (da, li)) => matClean.contains(da)} map (_._1)
+    val mats = matClean.toSeq.sortBy(_._1).map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2)
+
+    val matm = mats.map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2.map(_._1))
+
+    println(mats)
+    println("")
+    println("extensive ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    println("")
+    mats.grouped(50) foreach { g =>
+      StatTests.extensiveTable2(g, stsClean.toVector, "tabalcacc", medida)
+      println("")
+    }
+
+    println("")
+    println("1vs1 -----------------------------------------------------------------------")
+    println("")
+    StatTests.pairTable(StatTests.friedmanNemenyi(matm, stsClean.toVector), "tabalcacc", medida)
+  }
 }
