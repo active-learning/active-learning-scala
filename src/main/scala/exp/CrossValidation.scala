@@ -130,7 +130,7 @@ trait CrossValidation extends Lock with ClassName {
     } catch {
       case e: Throwable =>
         running = false
-        println(s"Exceção inesperada:")
+        p(s"Exceção inesperada:")
         e.printStackTrace()
         justQuit(s"Exceção inesperada:")
     }
@@ -140,10 +140,10 @@ trait CrossValidation extends Lock with ClassName {
   }
 
   def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
-    println("Rnd queries incomplete.")
+    p("Rnd queries incomplete.")
     false
   } else if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
-    println("Rnd NB, 5NN or C45 hits incomplete.")
+    p("Rnd NB, 5NN or C45 hits incomplete.")
     false
   } else true
 
@@ -183,7 +183,7 @@ trait CrossValidation extends Lock with ClassName {
       (0 until runs).forall { run =>
         (0 until folds).forall { fold =>
           val tmp = db.countPerformedConfMatricesForPool(s, learner, run, fold)
-          if (db.debug) println(s"$s / $learner $run.$fold : $tmp >= $Q")
+          if (db.debug) p(s"$s / $learner $run.$fold : $tmp >= $Q")
           tmp >= Q
         }
       }
