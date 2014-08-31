@@ -263,7 +263,7 @@ trait CrossValidation extends Lock with ClassName {
                 //z-score
                 lazy val f = Datasets.zscoreFilter(tr0)
                 lazy val pool = {
-                  val tr = Datasets.applyFilterChangingOrder(tr0, f) //weka is unpredictable: without lazy results differ
+                  val tr = Datasets.applyFilterChangingOrder(tr0, f) //weka is unpredictable: without lazy resulting z-score values differ
                   val res = new Random(run * 100 + fold).shuffle(tr)
                   //                p(s"    data standardized for run $run and fold $fold.")
                   res
