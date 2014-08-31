@@ -72,7 +72,7 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     //    println(" Weka WARD clusterer called.")
     r
   }
-  lazy val uuid = UUID.randomUUID() + "_" + pool.hashCode + hashCode() + "_" + System.currentTimeMillis + "_" + pool.head.hashCode()
+  lazy val uuid = UUID.randomUUID() + "_" + pool.hashCode + hashCode() + "_" + System.currentTimeMillis + "_" + pool.head.hashCode
   lazy val tree_file = "/tmp/ClusterBased" + uuid + ".tree"
   lazy val labels_file = "/tmp/ClusterBased" + uuid + ".labels"
   lazy val results = {
