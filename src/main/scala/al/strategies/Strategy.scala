@@ -22,6 +22,8 @@ import ml.Pattern
 import ml.classifiers.Learner
 import util.Graphics.Plot
 
+import scala.collection.mutable
+
 /**
  * Only distinct patterns are accepted into the pool.
  */
@@ -112,15 +114,24 @@ trait Strategy {
   }
 
   protected def extract_one_per_class(patterns: Seq[Pattern]) = {
+    val patternsWithoutFirsts = patterns.toBuffer
     val firstof_each_class = ((0 until nclasses) map {
       c => patterns find (_.label == c) match {
-        case Some(pattern) => pattern
+        case Some(pattern) =>
+          patternsWithoutFirsts -= pattern
+          pattern
         case _ => println("Dataset should have at least one instance from each class per fold! Label index " + c + " not found in dataset " + patterns.head.dataset().relationName() + " !")
           sys.exit(1)
       }
     }).toList
-    (firstof_each_class, patterns.diff(firstof_each_class))
+    (firstof_each_class, patternsWithoutFirsts)
   }
 
   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern])
+}
+
+object ExtractFirstsTest extends App {
+  val l = List(Pattern(1, List(1, 3), 2), Pattern(2, List(1, 2), 2), Pattern(3, List(1, 4), 1), Pattern(4, List(2, 2), 0), Pattern(5, List(3, 2), 2))
+  val s = RandomSampling(l)
+  val qs = s.queries
 }
