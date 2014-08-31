@@ -30,6 +30,7 @@ import util.{Datasets, Lazy, Lock}
 import weka.filters.unsupervised.attribute.Standardize
 
 import scala.collection.mutable
+import scala.io.Source
 import scala.util.Random
 
 /**
@@ -71,7 +72,7 @@ trait CrossValidation extends Lock with ClassName {
   val datasetNames0: Seq[String]
   val rndForLock = new Random(System.currentTimeMillis() % 100000)
   val qmap = mutable.Map[String, Int]()
-  val memlimit = 28000
+  val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
   var finished = 0
   var skiped = 0
   var available = true
