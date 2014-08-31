@@ -132,7 +132,7 @@ trait CrossValidation extends Lock with ClassName {
         running = false
         p(s"Exceção inesperada:")
         e.printStackTrace()
-        justQuit(s"Exceção inesperada:")
+        unsafeQuit(s"Exceção inesperada:") //inesperada excep agora sai em unsafequit, pois pode ser por heap size; antes era justQuit
     }
 
     running = false
