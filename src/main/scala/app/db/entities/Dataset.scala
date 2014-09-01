@@ -370,7 +370,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
           nextPosition + q
         }
       } else {
-        acquire()
+        acquireOp()
         nextPosition
       }
       releaseOp()
