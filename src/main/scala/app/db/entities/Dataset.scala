@@ -331,8 +331,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val nextPosition = queries.size
       val r = if (nextPosition < Q && nextPosition < strat.pool.size) {
         println(s"${Calendar.getInstance().getTime} Gerando queries na posição $nextPosition de um total de ${if (Q == Int.MaxValue) strat.pool.size else Q} queries para $dataset pool: $run.$fold ...")
-        incCounter()
         println("-------")
+        incCounter()
+        println("++++++")
         val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
         else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
         q = nextIds.length
