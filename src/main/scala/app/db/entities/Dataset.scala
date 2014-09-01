@@ -365,7 +365,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
                 safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
             }
             println(s"${Calendar.getInstance().getTime} $q $strat queries written to " + dbCopy + s" at $run.$fold. Backing up tmpFile...")
-            save()
+            weakSave()
           }
           nextPosition + q
         }

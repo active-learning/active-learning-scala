@@ -195,7 +195,7 @@ trait Database extends Lock {
         i += 1
       }
       statement.execute("end")
-      save()
+      weakSave()
       releaseOp()
     } catch {
       case e: Throwable => e.printStackTrace
@@ -207,7 +207,19 @@ trait Database extends Lock {
   /**
    * Copies file from temp to the original (locked)
    * which does not occur at close().
+   * It verifies if the last save() was too recent to avoid overloading NFS.
+   * It assumes the locking mechanism is properly used.
    */
+  var lastSave = System.currentTimeMillis()
+
+  def weakSave() {
+    val now = System.currentTimeMillis()
+    if (now > lastSave + 5000) {
+      lastSave = now
+      save()
+    }
+  }
+
   def save() {
     if (readOnly) justQuit("readOnly databases don't accept save(), and there is no reason to accept.")
 
