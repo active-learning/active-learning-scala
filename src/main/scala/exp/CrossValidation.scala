@@ -37,7 +37,7 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
-  val waitingForDBAvailability = 15000
+  val waitingForDBAvailability = 10000
   val debug = false
 
   def close() = Unit
@@ -247,7 +247,7 @@ trait CrossValidation extends Lock with ClassName {
         dbToWait = db
         db.open(debug)
 
-        //Open connection to load patterns via weka SQL importer (from dbCopy).
+        //Open connection to load patterns via weka SQL importer (from dbCopy). This is good to avoid two programs opening the same db at the same time.
         p("Loading patterns for dataset " + datasetName + " ...", lista)
         source(datasetName) match {
           case Right(patts) =>
