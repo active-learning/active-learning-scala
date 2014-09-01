@@ -337,8 +337,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
         else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
         q = nextIds.length
+        println("ant ac1")
         acquireOp()
-        println("depois")
+        println("depois ac1")
         if (nextPosition == 0 && q < nclasses) {
           println(s"Interrupted querying did not get enough queries to write ($q < $nclasses).")
           0
@@ -373,10 +374,14 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
           nextPosition + q
         }
       } else {
+        println("ant ac2")
         acquireOp()
+        println("dep ac2")
         nextPosition
       }
+      println("ant rel")
       releaseOp()
+      println("dep rel")
       Some(r)
     }
 
