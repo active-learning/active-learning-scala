@@ -335,36 +335,41 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         val (nextIds, t) = if (nextPosition == 0) Tempo.timev(strat.timeLimitedQueries(seconds, exiting).take(Q).map(_.id).toVector)
         else Tempo.timev(strat.timeLimitedResumeQueries(queries, seconds, exiting).take(Q - nextPosition).map(_.id).toVector)
         q = nextIds.length
-        if (allWin && nextPosition + q != Q) println(s"In allWin mode: ($nextPosition + $q) generated queries != $Q expected queries; ignoring write request.")
-        else {
-          acquireOp()
-          println(s"Gravando queries para $dataset pool: $run.$fold ...")
-          var str = ""
-          try {
-            val statement = connection.createStatement()
-            statement.executeUpdate("begin")
-            nextIds.zipWithIndex.foreach { case (pattId, idx) =>
-              val position = nextPosition + idx
-              str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
-              statement.executeUpdate(str)
+        if (q < nclasses) {
+          println(s"Interrupted querying did not get enough queries to write ($q < $nclasses).")
+          0
+        } else {
+          if (allWin && nextPosition + q != Q) println(s"In allWin mode: ($nextPosition + $q) generated queries != $Q expected queries; ignoring write request.")
+          else {
+            acquireOp()
+            println(s"Gravando queries para $dataset pool: $run.$fold ...")
+            var str = ""
+            try {
+              val statement = connection.createStatement()
+              statement.executeUpdate("begin")
+              nextIds.zipWithIndex.foreach { case (pattId, idx) =>
+                val position = nextPosition + idx
+                str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
+                statement.executeUpdate(str)
+              }
+              //str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
+              //statement.executeUpdate(str)
+              //str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
+              //statement.executeUpdate(str)
+              statement.executeUpdate("end")
+            } catch {
+              case e: Throwable => e.printStackTrace
+                releaseOp()
+                println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
+                println(e.getMessage)
+                safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
             }
-            //str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
-            //statement.executeUpdate(str)
-            //str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
-            //statement.executeUpdate(str)
-            statement.executeUpdate("end")
-          } catch {
-            case e: Throwable => e.printStackTrace
-              releaseOp()
-              println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
-              println(e.getMessage)
-              safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
+            println(s"${Calendar.getInstance().getTime} $q $strat queries written to " + dbCopy + s" at $run.$fold. Backing up tmpFile...")
+            save()
+            releaseOp()
           }
-          println(s"${Calendar.getInstance().getTime} $q $strat queries written to " + dbCopy + s" at $run.$fold. Backing up tmpFile...")
-          save()
-          releaseOp()
+          nextPosition + q
         }
-        nextPosition + q
       } else nextPosition
       Some(r)
     }
