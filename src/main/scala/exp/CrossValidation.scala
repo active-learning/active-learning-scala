@@ -128,11 +128,14 @@ trait CrossValidation extends Lock with ClassName {
     try {
       val lista = datasetNames0.zipWithIndex.toBuffer
       while (lista.nonEmpty && running) compilerBugSucks(runCore, lista)
+      //      while (lista.nonEmpty) compilerBugSucks(runCore, lista)
     } catch {
       case e: Throwable =>
+        running = false
         p(s"Exceção inesperada:")
         e.printStackTrace()
-        unsafeQuit(s"Exceção inesperada:") //inesperada excep agora sai em unsafequit, pois pode ser por heap size; antes era justQuit
+        justQuit(s"Exceção inesperada:") //inesperada excep agora sai em unsafequit, pois pode ser por heap size; antes era justQuit
+      //        unsafeQuit(s"Exceção inesperada:") //inesperada excep agora sai em unsafequit, pois pode ser por heap size; antes era justQuit
     }
     running = false
     p("bye!")
@@ -278,7 +281,7 @@ trait CrossValidation extends Lock with ClassName {
             if (!db.readOnly) {
               incCounter()
               db.acquireOp()
-              Thread.sleep(100)
+              //              Thread.sleep(100)
               println(s"Saving $db to close.")
               db.save() //não tem problema se der safequit aqui, pois não há mais threads para aguardar
               db.releaseOp()

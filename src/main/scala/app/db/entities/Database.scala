@@ -86,7 +86,7 @@ trait Database extends Lock {
       try {
         if (!readOnly) {
           lockFile()
-          Thread.sleep(100)
+          Thread.sleep(10)
           if (!FileUtils.contentEquals(dbLock, dbCopy)) {
             if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
             FileUtils.copyFile(dbLock, dbCopy)
@@ -197,7 +197,8 @@ trait Database extends Lock {
         i += 1
       }
       statement.execute("end")
-      weakSave()
+      //      weakSave()
+      save()
       releaseOp()
     } catch {
       case e: Throwable => e.printStackTrace
@@ -225,7 +226,7 @@ trait Database extends Lock {
   def save() {
     if (readOnly) justQuit("readOnly databases don't accept save(), and there is no reason to accept.")
 
-    Thread.sleep(100)
+    Thread.sleep(1000)
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
     if (checkExistsForNFS(new File(dbCopy + "-journal"))) safeQuit(s"save: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
@@ -233,7 +234,7 @@ trait Database extends Lock {
       //      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
       FileUtils.copyFile(dbCopy, dbLock)
       //      println(s"$dbCopy para $dbLock copiado!")
-      Thread.sleep(100)
+      Thread.sleep(200)
     }
   }
 
