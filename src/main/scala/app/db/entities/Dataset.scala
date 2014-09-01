@@ -371,7 +371,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
           }
           nextPosition + q
         }
+        println("---r")
         releaseOp()
+        println("+ + r")
       } else nextPosition
       Some(r)
     }
