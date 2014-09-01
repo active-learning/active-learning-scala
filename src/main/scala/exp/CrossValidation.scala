@@ -234,7 +234,7 @@ trait CrossValidation extends Lock with ClassName {
         lista.append((datasetName, idx))
         skipped += 1
       } else {
-        db0.open(debug = true)
+        db0.open(debug)
         incomplete = ee(db0)
         if (incomplete) q(db0, justWarming = true) //warm start for Q. there is no concurrency here
         else finished += 1
