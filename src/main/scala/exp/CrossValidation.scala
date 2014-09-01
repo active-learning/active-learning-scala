@@ -106,12 +106,12 @@ trait CrossValidation extends Lock with ClassName {
           }
           val tmpLockingFile = new File(fileToStopProgram)
           val tmpLockingFileUnsafe = new File(fileToStopProgramUnsafe)
-          if (tmpLockingFileUnsafe.exists()) {
+          if (checkExistsForNFS(tmpLockingFileUnsafe)) {
             reason = s"$fileToStopProgramUnsafe found, unsafe-quiting."
             tmpLockingFileUnsafe.delete()
             if (dbToWait != null && dbToWait.isOpen) dbToWait.unsafeQuit(reason) else justQuit(s"Db was closed: $reason")
             running = false
-          } else if (tmpLockingFile.exists()) {
+          } else if (checkExistsForNFS(tmpLockingFile)) {
             reason = s"$fileToStopProgram found, safe-quiting."
             tmpLockingFile.delete()
             if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason) else justQuit(s"Db was closed: $reason")

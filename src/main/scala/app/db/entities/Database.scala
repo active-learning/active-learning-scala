@@ -65,21 +65,21 @@ trait Database extends Lock {
     if (isOpen()) justQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
     if (isLocked) {
-      if (dbOriginal.exists()) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
+      if (checkExistsForNFS(dbOriginal)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
       else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
       false
       //todo: maybe a locked database should be readable
     } else {
       var created = false
-      if (dbCopy.exists() && !readOnly) justQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
+      if (checkExistsForNFS(dbCopy) && !readOnly) justQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
 
       if (createOnAbsence) {
-        if (!dbOriginal.exists()) {
+        if (!checkExistsForNFS(dbOriginal)) {
           createDatabase()
           created = true
         }
       } else {
-        if (!dbOriginal.exists()) justQuit(dbOriginal + " não existe!")
+        if (!checkExistsForNFS(dbOriginal)) justQuit(dbOriginal + " não existe!")
       }
 
       //open
@@ -138,7 +138,7 @@ trait Database extends Lock {
     dbOriginal.renameTo(dbLock)
   }
 
-  def isLocked = dbLock.exists()
+  def isLocked = checkExistsForNFS(dbLock)
 
   def exec(sql: String) = {
     if (debug) println(s"[$sql]")
@@ -225,7 +225,7 @@ trait Database extends Lock {
 
     Thread.sleep(1000)
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
-    if (new File(dbCopy + "-journal").exists()) safeQuit(s"save: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+    if (checkExistsForNFS(new File(dbCopy + "-journal"))) safeQuit(s"save: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     if (!FileUtils.contentEquals(dbCopy, dbLock)) {
       //      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
@@ -286,7 +286,7 @@ trait Database extends Lock {
     if (!readOnly) {
 
       //Checks if something happened to put db in inconsistent state.
-      if (new File(dbCopy + "-journal").exists()) justQuit(s"close: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+      if (checkExistsForNFS(new File(dbCopy + "-journal"))) justQuit(s"close: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
       if (fileLocked) dbCopy.delete()
       unlockFile()
     }
@@ -297,7 +297,7 @@ trait Database extends Lock {
    */
   def unlockFile() {
     if (readOnly) justQuit("readOnly databases don't accept unlockFile(), and there is no reason to accept.")
-    if (dbOriginal.exists()) justQuit(s"$dbOriginal should not exist; $dbLock needs to take its place.")
+    if (checkExistsForNFS(dbOriginal)) justQuit(s"$dbOriginal should not exist; $dbLock needs to take its place.")
     if (!fileLocked) justQuit(s"Trying to unlock $dbLock, but this connection is not responsible for that lock.")
     else {
       dbLock.renameTo(dbOriginal)
