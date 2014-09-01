@@ -217,13 +217,13 @@ trait Database extends Lock {
     if (now > lastSave + 5000) {
       lastSave = now
       save()
-    }
+    } else Thread.sleep(100)
   }
 
   def save() {
     if (readOnly) justQuit("readOnly databases don't accept save(), and there is no reason to accept.")
 
-    Thread.sleep(1000)
+    Thread.sleep(100)
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
     if (checkExistsForNFS(new File(dbCopy + "-journal"))) safeQuit(s"save: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
@@ -231,7 +231,7 @@ trait Database extends Lock {
       //      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
       FileUtils.copyFile(dbCopy, dbLock)
       //      println(s"$dbCopy para $dbLock copiado!")
-      Thread.sleep(200)
+      Thread.sleep(100)
     }
   }
 
