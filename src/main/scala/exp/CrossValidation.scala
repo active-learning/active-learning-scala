@@ -56,7 +56,7 @@ trait CrossValidation extends Lock with ClassName {
 
   def path: String
 
-  lazy val source = Datasets.patternsFromSQLite(path) _
+  lazy val source = Datasets.patternsFromSQLite(folderToCopyDb) _
 
   def dest = Dataset(path) _
 
@@ -242,16 +242,15 @@ trait CrossValidation extends Lock with ClassName {
       //process dataset
       if (incomplete) {
 
-        //Open connection to load patterns via weka SQL importer.
+        //            p("Beginning dataset " + datasetName + " ...")
+        val db = dest(datasetName)
+        dbToWait = db
+        db.open(debug)
+
+        //Open connection to load patterns via weka SQL importer (from dbCopy).
         p("Loading patterns for dataset " + datasetName + " ...", lista)
         source(datasetName) match {
           case Right(patts) =>
-
-            //            p("Beginning dataset " + datasetName + " ...")
-            val db = dest(datasetName)
-            dbToWait = db
-            db.open(debug)
-
             (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
               p("    Beginning run " + run + " for " + datasetName + " ...", lista)
               Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
