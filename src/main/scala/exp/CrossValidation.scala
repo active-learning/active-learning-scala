@@ -223,19 +223,19 @@ trait CrossValidation extends Lock with ClassName {
 
       //test previous progress
       p(s"Testing dataset $datasetName ($datasetNr)", lista)
-      val db = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
+      val db0 = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
       var incomplete = false
-      if (db.isLocked) {
-        p(s"${db.dbOriginal} is locked as ${db.dbLock}! Cannot open it. Skipping...", lista)
+      if (db0.isLocked) {
+        p(s"${db0.dbOriginal} is locked as ${db0.dbLock}! Cannot open it. Skipping...", lista)
         Thread.sleep(waitingForDBAvailability)
         lista.append((datasetName, idx))
         skipped += 1
       } else {
-        db.open(debug)
-        incomplete = ee(db)
-        if (incomplete) q(db, justWarming = true) //warm start for Q. there is no concurrency here
+        db0.open(debug = true)
+        incomplete = ee(db0)
+        if (incomplete) q(db0, justWarming = true) //warm start for Q. there is no concurrency here
         else finished += 1
-        db.close()
+        db0.close()
       }
 
       //process dataset
@@ -243,8 +243,8 @@ trait CrossValidation extends Lock with ClassName {
 
         p("Beginning dataset " + datasetName + " ...")
         val db = dest(datasetName)
-        dbToWait = db
         db.open(debug)
+        dbToWait = db
 
         //Open connection to load patterns via weka SQL importer (from dbCopy). This is good to avoid two programs opening the same db at the same time.
         p("Loading patterns for dataset " + datasetName + " ...", lista)
