@@ -278,6 +278,8 @@ trait CrossValidation extends Lock with ClassName {
             if (!db.readOnly) {
               incCounter()
               db.acquireOp()
+              Thread.sleep(100)
+              println(s"Saving $db to close.")
               db.save() //não tem problema se der safequit aqui, pois não há mais threads para aguardar
               db.releaseOp()
             }

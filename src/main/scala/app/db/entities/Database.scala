@@ -86,11 +86,11 @@ trait Database extends Lock {
       try {
         if (!readOnly) {
           lockFile()
-          Thread.sleep(10)
+          Thread.sleep(100)
           if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-            //            println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
+            if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
             FileUtils.copyFile(dbLock, dbCopy)
-            //            println(s"$dbLock para $dbCopy copiado!")
+            if (debug) println(s"$dbLock para $dbCopy copiado!")
             Thread.sleep(100)
           }
         }
@@ -132,9 +132,11 @@ trait Database extends Lock {
    * All this shit is needed because of SQLite relying on NFS locks.
    */
   def lockFile() {
+    if (!new File(path + "locked/").exists()) justQuit(s"$path/locked/ does not exist.")
     if (readOnly) justQuit("readOnly databases don't accept lockFile(), and there is no reason to accept.")
     if (fileLocked || isLocked) justQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
     fileLocked = true
+    if (debug) println(s"Renaming $dbOriginal to $dbLock")
     dbOriginal.renameTo(dbLock)
   }
 
