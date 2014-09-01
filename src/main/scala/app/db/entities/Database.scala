@@ -43,7 +43,7 @@ trait Database extends Lock {
 
   lazy val dbOriginal = new File(path + database + ".db")
   lazy val dbLock = new File(path + "locked/" + database + ".db")
-  lazy val dbCopy = if (!readOnly) new File("/tmp/" + database + ".db") else dbOriginal
+  lazy val dbCopy = if (!readOnly) new File(folderToCopyDb + database + ".db") else dbOriginal
   //  lazy val dbCopy = if (!readOnly) new File("/run/shm/" + database + ".db") else dbOriginal
   val path: String
   val database: String
