@@ -89,7 +89,7 @@ trait CrossValidation extends Lock with ClassName {
    */
   def q(db: Dataset, justWarming: Boolean = false) = {
     val Q = qmap.getOrElseUpdate(db.toString, db.Q)
-    if (Q == -1 && !justWarming) justQuit(s"Impossible to calculate Q properly, rnd '$this' hits for NB or 5NN are incomplete!")
+    if (Q == -1 && !justWarming) justQuit(s"Impossible to calculate Q properly, rnd '$this' hits for NB or 5NN or C45 are incomplete!")
     else Q
   }
 
@@ -241,7 +241,7 @@ trait CrossValidation extends Lock with ClassName {
       //process dataset
       if (incomplete) {
 
-        //            p("Beginning dataset " + datasetName + " ...")
+        p("Beginning dataset " + datasetName + " ...")
         val db = dest(datasetName)
         dbToWait = db
         db.open(debug)
