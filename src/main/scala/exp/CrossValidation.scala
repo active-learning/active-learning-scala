@@ -127,7 +127,7 @@ trait CrossValidation extends Lock with ClassName {
 
     try {
       val lista = datasetNames0.zipWithIndex.toBuffer
-      while (lista.nonEmpty) compilerBugSucks(runCore, lista)
+      while (lista.nonEmpty && running) compilerBugSucks(runCore, lista)
     } catch {
       case e: Throwable =>
         running = false
