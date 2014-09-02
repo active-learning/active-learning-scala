@@ -292,9 +292,13 @@ trait Database extends Lock {
     connection = null
     if (!readOnly) {
 
-      //Checks if something happened to put db in inconsistent state.
+      if (debug) println("Checking if something happened to put db in inconsistent state...")
       if (checkExistsForNFS(new File(dbCopy + "-journal"))) justQuit(s"close: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
+
+      if (debug) println("Deleting dbCopy...")
       if (fileLocked) dbCopy.delete()
+
+      if (debug) println("Unlocking...")
       unlockFile()
     }
   }
@@ -307,6 +311,7 @@ trait Database extends Lock {
     if (checkExistsForNFS(dbOriginal)) justQuit(s"$dbOriginal should not exist; $dbLock needs to take its place.")
     if (!fileLocked) justQuit(s"Trying to unlock $dbLock, but this connection is not responsible for that lock.")
     else {
+      if (debug) println(s"Renaming $dbLock to $dbOriginal")
       dbLock.renameTo(dbOriginal)
       fileLocked = false
     }
