@@ -136,7 +136,7 @@ trait CrossValidation extends Lock with ClassName {
         running = false
         p(s"Exceção inesperada:")
         e.printStackTrace()
-        unsafeQuit(s">>> Exceção inesperada: ${e.getMessage}")
+        if (dbToWait != null) dbToWait.unsafeQuit(s">>> Exceção inesperada: ${e.getMessage}") else unsafeQuit(s">>> Exceção inesperada: ${e.getMessage}")
     }
     running = false
     p("bye!")
