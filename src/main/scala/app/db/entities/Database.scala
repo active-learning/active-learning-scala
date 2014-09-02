@@ -55,7 +55,7 @@ trait Database extends Lock {
    * Opens connection to database.
    * @param debug true, if the dataset had to be created (create parameter should be also true)
    */
-  def open() = {
+  def open(): Boolean = {
     //random waiting to avoid simultaneous opening
     if (!readOnly) Thread.sleep((rnd.nextDouble() * 300).toInt)
 
@@ -87,7 +87,10 @@ trait Database extends Lock {
       } else {
         try {
           if (!readOnly) {
-            lockFile()
+            if (!lockFile()) {
+              println("Could not open due to problems with moving dataset file.")
+              return false
+            }
             Thread.sleep(10)
             if (!FileUtils.contentEquals(dbLock, dbCopy)) {
               if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
@@ -134,7 +137,7 @@ trait Database extends Lock {
    * rename file to dataset.db.locked.
    * All this shit is needed because of SQLite relying on NFS locks.
    */
-  def lockFile() {
+  def lockFile() = {
     if (!new File(path + "locked/").exists()) justQuit(s"$path/locked/ does not exist.")
     if (readOnly) justQuit("readOnly databases don't accept lockFile(), and there is no reason to accept.")
     if (fileLocked || isLocked(0)) justQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
