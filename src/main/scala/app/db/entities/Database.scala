@@ -223,7 +223,7 @@ trait Database extends Lock {
 
   def weakSave() {
     val now = System.currentTimeMillis()
-    if (now > lastSave + 5000) {
+    if (now > lastSave + 10000) {
       lastSave = now
       save()
     }
@@ -232,16 +232,18 @@ trait Database extends Lock {
   def save() {
     if (readOnly) justQuit("readOnly databases don't accept save(), and there is no reason to accept.")
 
-    Thread.sleep(1000)
     //Just in case writting to db were not a blocking operation. Or something else happened to put db in inconsistent state.
+    Thread.sleep(100)
+
     if (checkExistsForNFS(new File(dbCopy + "-journal"))) safeQuit(s"save: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     if (!FileUtils.contentEquals(dbCopy, dbLock)) {
       println("Backing up tmpFile...")
       //      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
       FileUtils.copyFile(dbCopy, dbLock)
+      println("Backing up tmpFile ok!")
       //      println(s"$dbCopy para $dbLock copiado!")
-      Thread.sleep(200)
+      Thread.sleep(100)
     }
   }
 
