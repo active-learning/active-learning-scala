@@ -107,19 +107,22 @@ trait CrossValidation extends Lock with ClassName {
           val tmpLockingFile = new File(fileToStopProgram)
           val tmpLockingFileUnsafe = new File(fileToStopProgramUnsafe)
           if (checkExistsForNFS(tmpLockingFileUnsafe)) {
+            running = false
             reason = s"$fileToStopProgramUnsafe found, unsafe-quiting."
             tmpLockingFileUnsafe.delete()
             if (dbToWait != null && dbToWait.isOpen) dbToWait.unsafeQuit(reason) else justQuit(s"Db was closed: $reason")
-            running = false
           } else if (checkExistsForNFS(tmpLockingFile)) {
+            running = false
             reason = s"$fileToStopProgram found, safe-quiting."
             tmpLockingFile.delete()
-            if (dbToWait != null && dbToWait.isOpen) dbToWait.safeQuit(reason) else justQuit(s"Db was closed: $reason")
-            running = false
+            if (dbToWait != null && dbToWait.isOpen) {
+              println("closing dbToWait")
+              dbToWait.safeQuit(reason)
+            } else justQuit(s"Db was closed: $reason")
           } else if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
+            running = false
             reason = s"Limite de $memlimit MB de memoria atingido."
             if (dbToWait != null && dbToWait.isOpen) dbToWait.unsafeQuit(reason) else justQuit(s"Db was closed: $reason")
-            running = false
           }
         }
       }
@@ -290,8 +293,8 @@ trait CrossValidation extends Lock with ClassName {
             finished += 1
             release()
             p(s"Dataset (# $datasetNr) " + datasetName + " finished!\n", lista)
-            Thread.sleep(10)
-            if (db.isOpen) db.close()
+            Thread.sleep((rnd.nextDouble() * 30).toInt)
+            if (db.isOpen()) db.close()
           case Left(str) =>
             acquire()
             skipped += 1
