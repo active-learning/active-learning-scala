@@ -220,7 +220,7 @@ trait Database extends Lock {
     if (now > lastSave + 5000) {
       lastSave = now
       save()
-    } else Thread.sleep(100)
+    }
   }
 
   def save() {
