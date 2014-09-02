@@ -223,7 +223,7 @@ trait Database extends Lock {
 
   def weakSave() {
     val now = System.currentTimeMillis()
-    if (now > lastSave + 10000) {
+    if (now > lastSave + 60000) {
       lastSave = now
       save()
     }
