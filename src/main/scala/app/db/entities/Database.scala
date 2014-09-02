@@ -231,6 +231,7 @@ trait Database extends Lock {
     if (checkExistsForNFS(new File(dbCopy + "-journal"))) safeQuit(s"save: $dbCopy-journal file found! Run 'sqlite3 $dbCopy' before continuing.")
 
     if (!FileUtils.contentEquals(dbCopy, dbLock)) {
+      println("Backing up tmpFile...")
       //      println(s"copiando $dbCopy (${dbCopy.length()}) para $dbLock (${dbLock.length()})")
       FileUtils.copyFile(dbCopy, dbLock)
       //      println(s"$dbCopy para $dbLock copiado!")
