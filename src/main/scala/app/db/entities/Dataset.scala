@@ -353,35 +353,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
                 val position = nextPosition + idx
                 str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
                 statement.executeUpdate(str)
-
-                //        acquireOp()
-                //        if (nextPosition == 0 && q < nclasses) {
-                //          println(s"Interrupted querying did not get enough queries to write ($q < $nclasses).")
-                //          0
-                //        } else {
-                //          if (allWin && nextPosition + q != Q) println(s"In allWin mode: ($nextPosition + $q) generated queries != $Q expected queries; ignoring write request.")
-                //          else {
-                //            println(s"Gravando queries para $dataset pool: $run.$fold ...")
-                //            var str = ""
-                //            try {
-                //              val statement = connection.createStatement()
-                //              statement.executeUpdate("begin")
-                //              nextIds.zipWithIndex.foreach { case (pattId, idx) =>
-                //                val position = nextPosition + idx
-                //                str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
-                //                statement.executeUpdate(str)
-                //              }
-                //              //str = s"insert or ignore into time values ($stratId,$learnerId,$run,$fold,0)"
-                //              //statement.executeUpdate(str)
-                //              //str = s"update time set value = value + $t where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold"
-                //              //statement.executeUpdate(str)
-                //              statement.executeUpdate("end")
-                //            } catch {
-                //              case e: Throwable => e.printStackTrace
-                //                releaseOp()
-                //                println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
-                //                println(e.getMessage)
-                //                safeQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
               }
 
               statement.executeUpdate("end")
