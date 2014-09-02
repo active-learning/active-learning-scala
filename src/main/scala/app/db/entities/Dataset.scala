@@ -396,7 +396,7 @@ object DatasetTest extends App {
 
   //write queries
   val d = Dataset("/home/davi/wcs/ucipp/uci/")("iris")
-  d.open(debug = true)
+  d.open()
   //  d.saveQueries(RandomSampling(patts), 64, 17, 0.2)
 
   //load queries as patterns

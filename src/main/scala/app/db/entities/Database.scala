@@ -50,21 +50,15 @@ trait Database extends Lock {
   val createOnAbsence: Boolean
   var connection: Connection = null
   var fileLocked = false // to avoid relying only in the file (which other process can have locked)
-  /**
-   * @param sql
-   * @return Some: resulting table.
-   */
-  var debug = false
 
   /**
    * Opens connection to database.
    * @param debug true, if the dataset had to be created (create parameter should be also true)
    */
-  def open(debug: Boolean = false) = {
+  def open() = {
     //random waiting to avoid simultaneous opening
     if (!readOnly) Thread.sleep((rnd.nextDouble() * 300).toInt)
 
-    this.debug = debug
     if (isOpen()) justQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
     if (isLocked()) {

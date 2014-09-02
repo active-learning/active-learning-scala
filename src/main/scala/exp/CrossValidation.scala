@@ -38,7 +38,6 @@ import scala.util.Random
  */
 trait CrossValidation extends Lock with ClassName {
   val waitingForDBAvailability = 5000
-  val debug = false
 
   def close() = Unit
 
@@ -236,7 +235,7 @@ trait CrossValidation extends Lock with ClassName {
         lista.append((datasetName, idx))
         skipped += 1
       } else {
-        db0.open(debug)
+        db0.open()
         incomplete = ee(db0)
         if (incomplete) q(db0, justWarming = true) //warm start for Q. there is no concurrency here
         else finished += 1
@@ -248,7 +247,7 @@ trait CrossValidation extends Lock with ClassName {
 
         p("Beginning dataset " + datasetName + " ...")
         val db = dest(datasetName)
-        db.open(debug)
+        db.open()
         dbToWait = db
 
         //Open connection to load patterns via weka SQL importer (from dbCopy). This is good to avoid two programs opening the same db at the same time.

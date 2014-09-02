@@ -81,7 +81,7 @@ object CreateAppFile extends App {
 
   //opens (creates) app.db
   val af = AppFile(createOnAbsence = true)
-  af.open(debug = true)
+  af.open()
   af.createOtherTables()
   af.createTableOfLearners(learners)
   af.createTableOfStrategies(strats)
