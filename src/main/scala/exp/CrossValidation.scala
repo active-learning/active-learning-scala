@@ -133,6 +133,7 @@ trait CrossValidation extends Lock with ClassName {
       //      while (lista.nonEmpty) compilerBugSucks(runCore, lista)
     } catch {
       case e: Throwable =>
+        running = false
         p(s"Exceção inesperada:")
         e.printStackTrace()
         unsafeQuit(s">>> Exceção inesperada: ${e.getMessage}")
