@@ -71,7 +71,6 @@ trait Database extends Lock {
       if (checkExistsForNFS(dbOriginal)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
       else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
       false
-      //todo: maybe a locked database should be readable
     } else {
       var created = false
       if (checkExistsForNFS(dbCopy) && !readOnly) justQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
@@ -86,41 +85,48 @@ trait Database extends Lock {
       }
 
       //open
-      try {
-        if (!readOnly) {
-          lockFile()
-          Thread.sleep(10)
-          if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-            if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
-            FileUtils.copyFile(dbLock, dbCopy)
-            if (debug) println(s"$dbLock para $dbCopy copiado!")
-            Thread.sleep(100)
-          }
-        }
-        Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
-        val url = "jdbc:sqlite:////" + dbCopy
-        connection = DriverManager.getConnection(url)
-      } catch {
-        case e: Throwable => e.printStackTrace
-          println("\nProblems opening db connection: " + dbCopy + " :")
-          println(e.getMessage)
-          unsafeQuit("\nProblems opening db connection: " + dbCopy + " .")
-      }
-      if (debug) println("Connection to " + dbCopy + " opened.")
-
-      if (database != "app") {
-        if (debug) println("Attaching App dataset...")
-        val appPath = ArgParser.appPath
+      if (isLocked) {
+        //recheck due to delays above
+        if (checkExistsForNFS(dbOriginal)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
+        else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
+        false
+      } else {
         try {
-          val statement = connection.createStatement()
-          statement.executeUpdate("attach '" + appPath + "app.db' as app")
+          if (!readOnly) {
+            lockFile()
+            Thread.sleep(10)
+            if (!FileUtils.contentEquals(dbLock, dbCopy)) {
+              if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
+              FileUtils.copyFile(dbLock, dbCopy)
+              if (debug) println(s"$dbLock para $dbCopy copiado!")
+              Thread.sleep(100)
+            }
+          }
+          Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
+          val url = "jdbc:sqlite:////" + dbCopy
+          connection = DriverManager.getConnection(url)
         } catch {
           case e: Throwable => e.printStackTrace
-            unsafeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+            println("\nProblems opening db connection: " + dbCopy + " :")
+            println(e.getMessage)
+            unsafeQuit("\nProblems opening db connection: " + dbCopy + " .")
         }
-        if (debug) println(" Dataset " + appPath + "app.db attached!")
+        if (debug) println("Connection to " + dbCopy + " opened.")
+
+        if (database != "app") {
+          if (debug) println("Attaching App dataset...")
+          val appPath = ArgParser.appPath
+          try {
+            val statement = connection.createStatement()
+            statement.executeUpdate("attach '" + appPath + "app.db' as app")
+          } catch {
+            case e: Throwable => e.printStackTrace
+              unsafeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+          }
+          if (debug) println(" Dataset " + appPath + "app.db attached!")
+        }
+        created
       }
-      created
     }
   }
 
