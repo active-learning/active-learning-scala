@@ -206,8 +206,8 @@ trait Database extends Lock {
         i += 1
       }
       statement.execute("end")
-      //      weakSave()
-      save()
+      weakSave()
+      //      save()
       releaseOp()
     } catch {
       case e: Throwable => e.printStackTrace
