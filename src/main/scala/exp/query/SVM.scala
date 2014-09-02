@@ -41,7 +41,7 @@ object SVM extends CrossValidation with App {
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!completeForQCalculation(db)) {
+    val fazer = !db.isLocked() && (if (!completeForQCalculation(db)) {
       println(s"$db is not Rnd queries/hits complete to calculate Q. Skipping...")
       false
     } else if (!nonRndQueriesComplete(db)) true

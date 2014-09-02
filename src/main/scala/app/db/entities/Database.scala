@@ -67,7 +67,7 @@ trait Database extends Lock {
     this.debug = debug
     if (isOpen()) justQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
-    if (isLocked) {
+    if (isLocked()) {
       if (checkExistsForNFS(dbOriginal)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
       else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
       false
@@ -85,9 +85,9 @@ trait Database extends Lock {
       }
 
       //open
-      if (isLocked) {
+      if (isLocked(0)) {
         //recheck due to delays above
-        if (checkExistsForNFS(dbOriginal)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
+        if (checkExistsForNFS(dbOriginal, 0)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
         else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
         false
       } else {
@@ -143,13 +143,13 @@ trait Database extends Lock {
   def lockFile() {
     if (!new File(path + "locked/").exists()) justQuit(s"$path/locked/ does not exist.")
     if (readOnly) justQuit("readOnly databases don't accept lockFile(), and there is no reason to accept.")
-    if (fileLocked || isLocked) justQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
+    if (fileLocked || isLocked(0)) justQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
     fileLocked = true
     if (debug) println(s"Renaming $dbOriginal to $dbLock")
     dbOriginal.renameTo(dbLock)
   }
 
-  def isLocked = checkExistsForNFS(dbLock)
+  def isLocked(delay: Int = 300) = checkExistsForNFS(dbLock, delay)
 
   def exec(sql: String) = {
     if (debug) println(s"[$sql]")
