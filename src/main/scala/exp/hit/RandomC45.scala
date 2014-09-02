@@ -36,7 +36,7 @@ object RandomC45 extends CrossValidation with App {
   def strats0(run: Int, pool: Seq[Pattern]) = List(RandomSampling(Seq()))
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked && (if (!rndQueriesComplete(db)) {
+    val fazer = !db.isLocked() && (if (!rndQueriesComplete(db)) {
       println(s"Rnd queries are incomplete for $db. Skipping...")
       false
     } else {

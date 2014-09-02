@@ -231,7 +231,7 @@ trait CrossValidation extends Lock with ClassName {
       p(s"Testing dataset $datasetName ($datasetNr)", lista)
       val db0 = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
       var incomplete = false
-      if (db0.isLocked) {
+      if (db0.isLocked()) {
         p(s"${db0.dbOriginal} is locked as ${db0.dbLock}! Cannot open it. Skipping...", lista)
         Thread.sleep(waitingForDBAvailability)
         lista.append((datasetName, idx))
@@ -245,7 +245,7 @@ trait CrossValidation extends Lock with ClassName {
       }
 
       //process dataset
-      if (incomplete) {
+      if (incomplete && !db0.isLocked(0)) {
 
         p("Beginning dataset " + datasetName + " ...")
         val db = dest(datasetName)
