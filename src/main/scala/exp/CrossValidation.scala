@@ -99,7 +99,7 @@ trait CrossValidation extends Lock with ClassName {
       def run() {
         var reason = "nenhum"
         while (running) {
-          1 to 50 takeWhile { _ =>
+          1 to 40 takeWhile { _ =>
             Thread.sleep(100)
             running
           }
