@@ -61,6 +61,9 @@ trait Database extends Lock {
    * @param debug true, if the dataset had to be created (create parameter should be also true)
    */
   def open(debug: Boolean = false) = {
+    //random waiting to avoid simultaneous opening
+    if (!readOnly) Thread.sleep((rnd.nextDouble() * 300).toInt)
+
     this.debug = debug
     if (isOpen()) justQuit(s"Database $dbOriginal already opened as $dbCopy!")
     //check file existence and if it is in use
