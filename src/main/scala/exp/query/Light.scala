@@ -63,6 +63,9 @@ object Light extends CrossValidation with App {
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     val Q = q(db)
-    strats(run, pool) foreach (strat => db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q))
+    strats(run, pool).takeWhile { strat =>
+      db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
+      db.running
+    }
   }
 }

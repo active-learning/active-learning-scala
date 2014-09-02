@@ -54,6 +54,9 @@ object RandomNB extends CrossValidation with App {
 
     //Completa NB hits do Rnd
     val Q = 10000
-    strats(run, pool).foreach(s => db.saveHits(s, NB(), run, fold, nc, f, testSet, 8 * 3600, Q))
+    strats(run, pool).takeWhile { s =>
+      db.saveHits(s, NB(), run, fold, nc, f, testSet, 8 * 3600, Q)
+      db.running
+    }
   }
 }

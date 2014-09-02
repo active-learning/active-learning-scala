@@ -45,6 +45,6 @@ object Agnostic extends CrossValidation with App {
 
   def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
     db.saveQueries(RandomSampling(pool), run, fold, f, timeLimitSeconds) //it is interesting to have all queries, but we have to save (by exiting) sometimes if the dataset is big.
-    db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
+    if (db.running) db.saveQueries(ClusterBased(pool), run, fold, f, Int.MaxValue) //a small time limit would discard all the Cluster queries.
   }
 }
