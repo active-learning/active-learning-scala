@@ -297,7 +297,7 @@ trait CrossValidation extends Lock with ClassName {
             skipped += 1
             release()
             p(s"Skipping $datasetName ($datasetNr) because $str.\n", lista)
-            Thread.sleep(waitingForDBAvailability)
+            rndDelay(5)
             lista.append((datasetName, idx))
         }
       }
