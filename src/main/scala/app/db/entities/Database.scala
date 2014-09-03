@@ -148,7 +148,7 @@ trait Database extends Lock {
     dbOriginal.renameTo(dbLock)
   }
 
-  def isLocked(delay: Int = 0.3) = checkExistsForNFS(dbLock, delay)
+  def isLocked(delay: Double = 0.1) = checkExistsForNFS(dbLock, delay)
 
   def exec(sql: String) = {
     if (debug) println(s"[$sql]")
