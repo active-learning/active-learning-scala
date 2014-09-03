@@ -28,8 +28,8 @@ import scala.collection.mutable
 
 object ALCAccAllClassif extends ALCAccTrait {
   val desc = s"Version ${ArgParser.version} \nPega ALCs da tabela 'res' e imprime tabela latex. Learner will be ignored!"
-  //  val learners = Seq(NB(), VFDT(), KNNBatch(5, "eucl", Seq(), "", weighted = true))
-  val learners = Seq(NB(), KNNBatch(5, "eucl", Seq(), "", weighted = true))
+  val learners = Seq(NB(), VFDT(), KNNBatch(5, "eucl", Seq(), "", weighted = true))
+  //  val learners = Seq(NB(), KNNBatch(5, "eucl", Seq(), "", weighted = true))
 
   run()
 }

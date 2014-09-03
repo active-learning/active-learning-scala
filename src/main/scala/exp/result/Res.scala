@@ -51,7 +51,7 @@ trait Res extends App with ClassName {
   def core(db: Dataset, sid: Int, Q: Int, st: String, le: String, lid: Int): Boolean
 
   lazy val strats = List(
-    RandomSampling(Seq()),
+    //    RandomSampling(Seq()),
     //    ClusterBased(Seq()),
     //
     //    Entropy(learner(-1, Seq()), Seq()),
