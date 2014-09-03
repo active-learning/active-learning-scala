@@ -20,6 +20,9 @@ package exp.result
 
 import app.ArgParser
 import app.db.entities.Dataset
+import util.XSRandom
+
+import scala.util.Random
 
 /**
  * Created by davi on 09/06/14.
@@ -28,16 +31,18 @@ object Q extends App {
   val desc = s"Version ${ArgParser.version} \n Calcula, completa dbs e imprime Qs."
   val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   val parallel = args(2) == "y"
-  val readOnly = false
+  val readOnly = true
   val runs = Dataset("")("").runs
   val folds = Dataset("")("").folds
   val dest = Dataset(path, createOnAbsence = false, readOnly) _
+
+  val rnd = new Random(System.nanoTime())
   val qname = (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
     val db = dest(datasetName)
     if (db.dbOriginal.exists()) {
       db.open()
       val Q = db.Q
-      println(s"Q: $Q N: ${db.n} |Y|: ${db.nclasses} $datasetName ")
+      println(s"Q: $Q\tN: ${db.n} \t|Y|: ${db.nclasses} \t$datasetName ")
       db.close()
       (Q, datasetName)
     } else (-1, datasetName)
@@ -46,4 +51,6 @@ object Q extends App {
   println("")
   println(qname.sortBy(_._1).map(_._2).mkString(","))
   println("")
+  println("shuffled:")
+  println(rnd.shuffle(qname).map(_._2).mkString(","))
 }
