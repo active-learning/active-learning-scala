@@ -23,6 +23,7 @@ import java.sql.{Connection, DriverManager}
 
 import app.ArgParser
 import org.apache.commons.io.FileUtils
+import org.sqlite.SQLiteConnection
 import util.Lock
 
 import scala.collection.mutable
@@ -102,6 +103,7 @@ trait Database extends Lock {
           Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
           val url = "jdbc:sqlite:////" + dbCopy
           connection = DriverManager.getConnection(url)
+          connection.asInstanceOf[SQLiteConnection].setBusyTimeout(5 * 60 * 1000) //5min. de timeout
         } catch {
           case e: Throwable => e.printStackTrace
             println("\nProblems opening db connection: " + dbCopy + " :")
