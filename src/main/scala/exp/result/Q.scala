@@ -37,7 +37,7 @@ object Q extends App {
     if (db.dbOriginal.exists()) {
       db.open()
       val Q = db.Q
-      println(s"$Q $datasetName ${db.n}")
+      println(s"Q: $Q N: ${db.n} |Y|: ${db.nclasses} $datasetName ")
       db.close()
       (Q, datasetName)
     } else (-1, datasetName)
