@@ -375,14 +375,14 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
 
   def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
-    acquireOp2()
+    acquireOp()
     val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
       case Right(x) => x
       case Left(str) =>
         releaseOp2()
         safeQuit(s"Problem loading queries for Rnd: $str.")
     }
-    releaseOp2()
+    releaseOp()
     if (f != null) Datasets.applyFilter(queries, f) else queries
   }
 }
