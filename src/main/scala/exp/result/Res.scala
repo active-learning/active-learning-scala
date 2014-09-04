@@ -24,6 +24,8 @@ import app.db.ClassName
 import app.db.entities.{AppFile, Dataset}
 import ml.classifiers.Learner
 
+import scala.collection.mutable
+
 trait Res extends App with ClassName {
   lazy val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
   lazy val parallel = {
@@ -51,7 +53,7 @@ trait Res extends App with ClassName {
   def core(db: Dataset, sid: Int, Q: Int, st: String, le: String, lid: Int): Boolean
 
   lazy val strats = List(
-    //    RandomSampling(Seq()),
+    RandomSampling(Seq()) //,
     //    ClusterBased(Seq()),
     //
     //    Entropy(learner(-1, Seq()), Seq()),
@@ -67,10 +69,10 @@ trait Res extends App with ClassName {
     //    MahalaWeighted(learner(-1, Seq()), Seq(), 1),
     //    MahalaWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1),
 
-    ExpErrorReduction(learner(-1, Seq()), Seq(), "entropy", samplingSize),
-    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "entropy", samplingSize),
-    ExpErrorReduction(learner(-1, Seq()), Seq(), "accuracy", samplingSize),
-    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "gmeans+residual", samplingSize)
+    //    ExpErrorReduction(learner(-1, Seq()), Seq(), "entropy", samplingSize),
+    //    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "entropy", samplingSize),
+    //    ExpErrorReduction(learner(-1, Seq()), Seq(), "accuracy", samplingSize),
+    //    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "gmeans+residual", samplingSize)
     //    ,
     //    SVMmulti(Seq(), "SELF_CONF"),
     //    SVMmulti(Seq(), "KFF"),
@@ -80,6 +82,7 @@ trait Res extends App with ClassName {
 
   def end(): Unit
 
+  val excluidos = mutable.Queue[String]()
   def run() {
     (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
       val db = Dataset(path, createOnAbsence = false, readOnly)(datasetName)
@@ -96,6 +99,7 @@ trait Res extends App with ClassName {
               //tex
               if (core(db, sid, Q, st.abr.toString, le.toString, lid) && complete) println(s"$db / $st : ok")
               else {
+                excluidos.enqueue(db.toString)
                 println(s"$db / $st / $le : collecting of results incomplete!")
               }
             } else {

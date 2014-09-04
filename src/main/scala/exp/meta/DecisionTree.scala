@@ -33,6 +33,11 @@ object DecisionTree extends Res {
   val mat = mutable.LinkedHashMap[String, Seq[(Double, Double)]]()
   var sts = mutable.LinkedHashSet[String]()
   val learners = Seq(NB(), KNNBatch(5, "eucl", Seq(), "", weighted = true))
+  lazy val metaDb = {
+    val r = Dataset(path, createOnAbsence = true, readOnly = false)("metadb")
+    r.exec("CREATE TABLE inst ( V1 FLOAT, V2 FLOAT, V3 FLOAT, V4 FLOAT, Class VARCHAR )")
+    r
+  }
 
   def core(db: Dataset, sid: Int, Q: Int, st: String, le: String, lid: Int) = {
     val seq = mat.getOrElse(db.toString, Seq()) // seq of ALCavgs (one for each strat)

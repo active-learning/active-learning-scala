@@ -61,6 +61,9 @@ trait ALCAccTrait extends Res {
 
     val matm = mats.map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2.map(_._1))
 
+    println("Completos:")
+    println(datasetNames.diff(excluidos).mkString(","))
+
     println(mats)
     println("")
     println("extensive ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
