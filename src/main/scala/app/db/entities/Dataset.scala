@@ -375,6 +375,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
 
   def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
+    incCounter()
     acquireOp()
     val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
       case Right(x) => x
