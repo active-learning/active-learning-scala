@@ -380,7 +380,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       case Right(x) => x
       case Left(str) =>
         releaseOp2()
-        safeQuit(s"Problem loading queries for Rnd: $str")
+        safeQuit(s"Problem loading queries for Rnd: $str.")
     }
     releaseOp2()
     if (f != null) Datasets.applyFilter(queries, f) else queries

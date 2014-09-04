@@ -49,7 +49,7 @@ object ALDatasets {
       val patterns = instances.zip(queriedInstanceIds).map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
       Right(patterns.toStream)
     } catch {
-      case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage)
+      case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage + "\n" + ex.getStackTraceString + "\nProblems reading file " + arq + ": " + ex.getMessage)
     }
   }
 
