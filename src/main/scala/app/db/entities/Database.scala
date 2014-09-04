@@ -61,6 +61,7 @@ trait Database extends Lock {
     if (!readOnly) Thread.sleep((rnd.nextDouble() * 300).toInt)
 
     if (isOpen()) justQuit(s"Database $dbOriginal already opened as $dbCopy!")
+
     //check file existence and if it is in use
     if (isLocked()) {
       if (checkExistsForNFS(dbOriginal)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
@@ -70,62 +71,68 @@ trait Database extends Lock {
       var created = false
       if (checkExistsForNFS(dbCopy) && !readOnly) justQuit(dbCopy + " já existe! Talvez outro processo esteja usando " + dbOriginal + ". Entretanto, não há lock.")
 
+      var continua = true
       if (createOnAbsence) {
         if (!checkExistsForNFS(dbOriginal)) {
           createDatabase()
           created = true
         }
       } else {
-        if (!checkExistsForNFS(dbOriginal)) justQuit(dbOriginal + " não existe!")
+        if (!checkExistsForNFS(dbOriginal)) {
+          println(dbOriginal + " não existe!")
+          continua = false
+        }
       }
 
       //open
-      if (isLocked(0)) {
-        //recheck due to delays above
-        if (checkExistsForNFS(dbOriginal, 0)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
-        else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
-        false
-      } else {
-        try {
-          if (!readOnly) {
-            if (!lockFile()) {
-              println("Could not open due to problems with moving dataset file.")
-              return false
-            }
-            Thread.sleep(10)
-            if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-              if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
-              FileUtils.copyFile(dbLock, dbCopy)
-              if (debug) println(s"$dbLock para $dbCopy copiado!")
-              Thread.sleep(100)
-            }
-          }
-          Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
-          val url = "jdbc:sqlite:////" + dbCopy
-          connection = DriverManager.getConnection(url)
-          connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. de timeout
-        } catch {
-          case e: Throwable => e.printStackTrace
-            println("\nProblems opening db connection: " + dbCopy + " :")
-            println(e.getMessage)
-            unsafeQuit("\nProblems opening db connection: " + dbCopy + " .")
-        }
-        if (debug) println("Connection to " + dbCopy + " opened.")
-
-        if (database != "app") {
-          if (debug) println("Attaching App dataset...")
-          val appPath = ArgParser.appPath
+      if (continua) {
+        if (isLocked(0)) {
+          //recheck due to delays above
+          if (checkExistsForNFS(dbOriginal, 0)) justQuit(s"Inconsistency: $dbOriginal and $dbLock exist at the same time!")
+          else println(s"$dbOriginal is locked as $dbLock! Cannot open it. Ignoring open request...")
+          false
+        } else {
           try {
-            val statement = connection.createStatement()
-            statement.executeUpdate("attach '" + appPath + "app.db' as app")
+            if (!readOnly) {
+              if (!lockFile()) {
+                println("Could not open due to problems with moving dataset file.")
+                return false
+              }
+              Thread.sleep(10)
+              if (!FileUtils.contentEquals(dbLock, dbCopy)) {
+                if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
+                FileUtils.copyFile(dbLock, dbCopy)
+                if (debug) println(s"$dbLock para $dbCopy copiado!")
+                Thread.sleep(100)
+              }
+            }
+            Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
+            val url = "jdbc:sqlite:////" + dbCopy
+            connection = DriverManager.getConnection(url)
+            connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. de timeout
           } catch {
             case e: Throwable => e.printStackTrace
-              unsafeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+              println("\nProblems opening db connection: " + dbCopy + " :")
+              println(e.getMessage)
+              unsafeQuit("\nProblems opening db connection: " + dbCopy + " .")
           }
-          if (debug) println(" Dataset " + appPath + "app.db attached!")
+          if (debug) println("Connection to " + dbCopy + " opened.")
+
+          if (database != "app") {
+            if (debug) println("Attaching App dataset...")
+            val appPath = ArgParser.appPath
+            try {
+              val statement = connection.createStatement()
+              statement.executeUpdate("attach '" + appPath + "app.db' as app")
+            } catch {
+              case e: Throwable => e.printStackTrace
+                unsafeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+            }
+            if (debug) println(" Dataset " + appPath + "app.db attached!")
+          }
+          created
         }
-        created
-      }
+      } else false
     }
   }
 
