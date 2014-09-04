@@ -49,7 +49,7 @@ object Random extends CrossValidation with App {
           false
         }
       } else {
-        println(s"Light hits are complete for $db with ${learner(-1, Seq())}.")
+        println(s"Rnd hits are complete for $db with ${learner(-1, Seq())}.")
         false
       }
     })
