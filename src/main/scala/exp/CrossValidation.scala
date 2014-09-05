@@ -39,6 +39,7 @@ import scala.util.Random
  */
 trait CrossValidation extends Lock with ClassName {
   val binarizeNominalAtts: Boolean
+
   def close() = Unit
 
   def isOpen() = false
@@ -252,7 +253,7 @@ trait CrossValidation extends Lock with ClassName {
         //Open connection to load patterns via weka SQL importer (from dbCopy). This is good to avoid two programs opening the same db at the same time.
         p("Loading patterns for dataset " + datasetName + " ...", lista)
         val ps = if (binarizeNominalAtts) Datasets.patternsFromSQLite(folderToCopyDb)(datasetName)
-        else Datasets.arff(bina = false, debug = true)(path + datasetName + ".arff", zscored = false)
+        else Datasets.arff(bina = false, debug = true)(path + datasetName + ".arff", zscored = false, preserveClassOrderFromARFFHeader = false)
 
         ps match {
           ////////////////
@@ -262,21 +263,27 @@ trait CrossValidation extends Lock with ClassName {
               Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
 
                 //z-score (if the learner is marked as 'semzscore' then it is a non-exclusively-numeric learner and can benefit from crude attributes, i.e. without filter)
-                lazy val f = if (binarizeNominalAtts) Datasets.zscoreFilter(tr0) else null
+                lazy val f = Datasets.zscoreFilter(tr0)
 
                 lazy val pool = if (binarizeNominalAtts) {
                   val tr = Datasets.applyFilterChangingOrder(tr0, f) //weka is unpredictable: without lazy resulting z-score values differ
                   new Random(run * 100 + fold).shuffle(tr)
-                } else new Random(run * 100 + fold).shuffle(tr0.sortBy(_.vector.toString())) //changes order like would occurs inside filter and then shuffles
-              lazy val testSet = if (binarizeNominalAtts) {
+                } else {
+                  val tr = Datasets.applyFilter(tr0, f)
+                  new Random(run * 100 + fold).shuffle(tr0.zip(tr).sortBy(_._2.vector.toString()).map(_._1)) //changes order like would occurs inside filter and then shuffles
+                }
+
+                lazy val testSet = if (binarizeNominalAtts) {
                   val ts = Datasets.applyFilterChangingOrder(ts0, f)
                   new Random(run * 100 + fold).shuffle(ts)
-                } else new Random(run * 100 + fold).shuffle(ts0.sortBy(_.vector.toString())) //changes order like would occurs inside filter and then shuffles
+                } else {
+                  val ts = Datasets.applyFilter(ts0, f)
+                  new Random(run * 100 + fold).shuffle(ts0.zip(ts).sortBy(_._2.vector.toString()).map(_._1)) //changes order like would occurs inside filter and then shuffles
+                }
 
                 p(" : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !", lista)
-                runCore(db, run, fold, pool, testSet, f)
+                runCore(db, run, fold, pool, testSet, if (binarizeNominalAtts) f else null)
                 p(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !", lista)
-
               }
             }
 
@@ -310,5 +317,64 @@ trait CrossValidation extends Lock with ClassName {
   def p(msg: String, lista: Seq[(String, Int)] = Seq()): Unit = {
     if (lista.nonEmpty) println(s"${datasetNames0.length} total; ${lista.length} enqueued; $skipped skipped, $finished finished.")
     println(s"\n${Calendar.getInstance().getTime} $msg")
+  }
+}
+
+object CVTest extends App {
+  val binarizeNominalAtts = true
+  val run = 0
+  val ps = if (binarizeNominalAtts) Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
+  else Datasets.arff(bina = false, debug = true)("/home/davi/wcs/ucipp/uci/iris.arff", zscored = false)
+  ps match {
+    case Right(patts) =>
+      Datasets.kfoldCV(Lazy(new Random(0).shuffle(patts)), 2, false) { case (tr0, ts0, fold, minSize) =>
+
+        //z-score (if the learner is marked as 'semzscore' then it is a non-exclusively-numeric learner and can benefit from crude attributes, i.e. without filter)
+        lazy val f = if (binarizeNominalAtts) Datasets.zscoreFilter(tr0) else null
+
+        lazy val pool = if (binarizeNominalAtts) {
+          val tr = Datasets.applyFilterChangingOrder(tr0, f) //weka is unpredictable: without lazy resulting z-score values differ
+          new Random(run * 100 + fold).shuffle(tr)
+        } else new Random(run * 100 + fold).shuffle(tr0.sortBy(_.vector.toString())) //changes order like would occurs inside filter and then shuffles
+
+        lazy val testSet = if (binarizeNominalAtts) {
+          val ts = Datasets.applyFilterChangingOrder(ts0, f)
+          new Random(run * 100 + fold).shuffle(ts)
+        } else new Random(run * 100 + fold).shuffle(ts0.sortBy(_.vector.toString())) //changes order like would occur inside filter and then shuffles
+
+        //        pool foreach println
+        if (fold == 0) pool.take(4) foreach (x => println(x.toStringCerto))
+      }
+  }
+  println("")
+  val binarizeNominalAtts2 = false
+  val ps2 = if (binarizeNominalAtts2) Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
+  else Datasets.arff(bina = false, debug = true)("/home/davi/wcs/ucipp/uci/iris.arff", zscored = false, preserveClassOrderFromARFFHeader = false)
+  ps2 match {
+    case Right(patts) =>
+      Datasets.kfoldCV(Lazy(new Random(0).shuffle(patts)), 2, false) { case (tr0, ts0, fold, minSize) =>
+
+        //z-score (if the learner is marked as 'semzscore' then it is a non-exclusively-numeric learner and can benefit from crude attributes, i.e. without filter)
+        lazy val f = Datasets.zscoreFilter(tr0)
+
+        lazy val pool = if (binarizeNominalAtts2) {
+          val tr = Datasets.applyFilterChangingOrder(tr0, f)
+          new Random(run * 100 + fold).shuffle(tr)
+        } else {
+          val tr = Datasets.applyFilter(tr0, f)
+          new Random(run * 100 + fold).shuffle(tr0.zip(tr).sortBy(_._2.vector.toString()).map(_._1))
+        }
+
+        lazy val testSet = if (binarizeNominalAtts2) {
+          val ts = Datasets.applyFilterChangingOrder(ts0, f)
+          new Random(run * 100 + fold).shuffle(ts)
+        } else {
+          val ts = Datasets.applyFilter(ts0, f)
+          new Random(run * 100 + fold).shuffle(ts0.zip(ts).sortBy(_._2.vector.toString()).map(_._1))
+        }
+
+        //        pool foreach println
+        if (fold == 0) pool.take(4) foreach (x => println(x.toStringCerto))
+      }
   }
 }

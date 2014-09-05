@@ -412,13 +412,13 @@ object DatasetTest extends App {
   //  d.saveQueries(RandomSampling(patts), 64, 17, 0.2)
 
   //load queries as patterns
-  //  val qpatts = ALDatasets.queriesFromSQLite(d)(RandomSampling(Seq()), 0, 0) match {
-  //    case Right(x) => x
-  //    case Left(str) => println(s"Problema: $str"); ???
-  //  }
+  val qpattss = ALDatasets.queriesFromSQLite(d)(RandomSampling(Seq()), 0, 0) match {
+    case Right(x) => x
+    case Left(str) => println(s"Problema: $str"); ???
+  }
 
 
-  val qpatts = ALDatasets.queriesFromARFF("/home/davi/wcs/ucipp/uci/iris.arff")(d)(RandomSampling(Seq()), 0, 0) match {
+  val qpattsa = ALDatasets.queriesFromARFF("/home/davi/wcs/ucipp/uci/iris.arff")(d)(RandomSampling(Seq()), 0, 0) match {
     case Right(x) => x
     case Left(str) => println(s"Problema: $str"); ???
   }
@@ -426,6 +426,8 @@ object DatasetTest extends App {
 
   //  d.exec("select  rowid,* from inst").get foreach println
   d.close()
-  qpatts foreach println
+  qpattss.take(3).map(x => x -> x.label) foreach println
+  println("fafasdfas")
+  qpattsa.take(3).map(x => x -> x.label) foreach println
 
 }
