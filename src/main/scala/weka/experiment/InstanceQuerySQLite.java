@@ -690,8 +690,10 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
             System.err.println("Executing query: " + query);
         }
         connectToDatabase();
-        ((SQLiteConnection) m_PreparedStatement.getConnection()).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
-        m_PreparedStatement.setQueryTimeout(20 * 60);
+        if (m_PreparedStatement != null && m_PreparedStatement.getConnection() != null) {
+            ((SQLiteConnection) m_PreparedStatement.getConnection()).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
+            m_PreparedStatement.setQueryTimeout(20 * 60);
+        }
         execute("attach 'app.db' as app");
 
         if (!execute(query)) {
