@@ -55,7 +55,7 @@ trait ALCAccTrait extends Res {
   def end() = {
     val abr = 5
     val matClean = mat.filterNot(_._2.contains((-1d, -1d)))
-    println(matClean)
+    matClean.foreach(x => println(x._2.map(_._1).mkString(" ")))
     val stsClean = sts.zip(mat).filter { case (st, (da, li)) => matClean.contains(da)} map (_._1)
     val mats = matClean.toSeq.sortBy(_._1).map(x => x._1.take(abr) + " " + x._1.drop(abr).takeRight(2) -> x._2)
 

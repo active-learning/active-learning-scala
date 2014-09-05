@@ -60,7 +60,8 @@ object CreateAppFile extends App {
     SVMmulti(Seq(), "KFF"),
     SVMmulti(Seq(), "BALANCED_EE"),
     SVMmulti(Seq(), "SIMPLE"),
-    ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual", samplingSize)
+    ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual", samplingSize),
+    ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy", samplingSize)
   )
 
   //ensures there is no previous file

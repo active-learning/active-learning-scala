@@ -35,11 +35,12 @@ object Heavy extends CrossValidation with App {
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
+    //    ExpErrorReduction(learner(run, pool), pool, "entropy", samplingSize),
     ExpErrorReductionMargin(learner(run, pool), pool, "entropy", samplingSize),
-    ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
+    //    ExpErrorReduction(learner(run, pool), pool, "accuracy", samplingSize),
     //    ExpErrorReduction(learner(run, pool), pool, "gmeans", samplingSize),
-    ExpErrorReductionMargin(learner(run, pool), pool, "gmeans+residual", samplingSize)
+    ExpErrorReductionMargin(learner(run, pool), pool, "gmeans+residual", samplingSize),
+    ExpErrorReductionMargin(learner(run, pool), pool, "accuracy", samplingSize)
   )
 
   def ee(db: Dataset) = {
