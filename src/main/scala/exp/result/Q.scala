@@ -31,7 +31,7 @@ object Q extends App {
   val desc = s"Version ${ArgParser.version} \n Calcula, completa dbs e imprime Qs."
   val (path, datasetNames) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   val parallel = args(2) == "y"
-  val readOnly = true
+  val readOnly = false
   val runs = Dataset("")("").runs
   val folds = Dataset("")("").folds
   val dest = Dataset(path, createOnAbsence = false, readOnly) _
