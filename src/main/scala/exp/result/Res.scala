@@ -18,6 +18,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package exp.result
 
+import al.strategies
 import al.strategies._
 import app.ArgParser
 import app.db.ClassName
@@ -53,26 +54,26 @@ trait Res extends App with ClassName {
   def core(db: Dataset, sid: Int, Q: Int, st: String, le: String, lid: Int): Boolean
 
   lazy val strats = List(
-    RandomSampling(Seq()) //,
-    //    ClusterBased(Seq()),
-    //
-    //    Entropy(learner(-1, Seq()), Seq()),
-    //    Margin(learner(-1, Seq()), Seq()),
-    //    new SGmulti(learner(-1, Seq()), Seq(), "consensus"),
-    //    new SGmulti(learner(-1, Seq()), Seq(), "majority"),
-    //    new SGmultiJS(learner(-1, Seq()), Seq()),
-    //    DensityWeighted(learner(-1, Seq()), Seq(), 1, "eucl"),
-    //    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "cheb"),
-    //    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "eucl"),
-    //    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "maha"),
-    //    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "manh"),
-    //    MahalaWeighted(learner(-1, Seq()), Seq(), 1),
-    //    MahalaWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1),
+    RandomSampling(Seq()),
+    ClusterBased(Seq()),
 
-    //    ExpErrorReduction(learner(-1, Seq()), Seq(), "entropy", samplingSize),
-    //    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "entropy", samplingSize),
-    //    ExpErrorReduction(learner(-1, Seq()), Seq(), "accuracy", samplingSize),
-    //    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "gmeans+residual", samplingSize)
+    Entropy(learner(-1, Seq()), Seq()),
+    Margin(learner(-1, Seq()), Seq()),
+    new SGmulti(learner(-1, Seq()), Seq(), "consensus"),
+    new SGmulti(learner(-1, Seq()), Seq(), "majority"),
+    new SGmultiJS(learner(-1, Seq()), Seq()),
+    DensityWeighted(learner(-1, Seq()), Seq(), 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "cheb"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "eucl"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "maha"),
+    DensityWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1, "manh"),
+    MahalaWeighted(learner(-1, Seq()), Seq(), 1),
+    MahalaWeightedTrainingUtility(learner(-1, Seq()), Seq(), 1, 1),
+
+    ExpErrorReduction(learner(-1, Seq()), Seq(), "entropy", samplingSize),
+    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "entropy", samplingSize),
+    ExpErrorReduction(learner(-1, Seq()), Seq(), "accuracy", samplingSize),
+    ExpErrorReductionMargin(learner(-1, Seq()), Seq(), "gmeans+residual", samplingSize)
     //    ,
     //    SVMmulti(Seq(), "SELF_CONF"),
     //    SVMmulti(Seq(), "KFF"),
@@ -83,6 +84,7 @@ trait Res extends App with ClassName {
   def end(): Unit
 
   val excluidos = mutable.Queue[String]()
+
   def run() {
     (if (parallel) datasetNames.par else datasetNames).toList map { datasetName =>
       val db = Dataset(path, createOnAbsence = false, readOnly)(datasetName)

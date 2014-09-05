@@ -64,6 +64,9 @@ trait ALCAccTrait extends Res {
     println("Completos:")
     println(datasetNames.diff(excluidos).mkString(","))
 
+    println("Incompletos:")
+    println(excluidos.mkString(","))
+
     println(mats)
     println("")
     println("extensive ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
