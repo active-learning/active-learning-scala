@@ -157,7 +157,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val nextPos = nextHitPosition(strat, learner, run, fold)
     val timeStep = math.max(nc, nextPos)
     //    if (timeStep==3) println(s"next=3: $strat $learner $run $fold")
-    val queries = fetchQueries(strat, run, fold, f)
+    val queries = fetchQueries(strat, run, fold, f) ////////////////
 
     //retoma hits
     val initial = queries.take(timeStep)
@@ -327,7 +327,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       }
 
       //Get queries from past jobs, if any.
-      val queries = fetchQueries(strat, run, fold, f)
+      val queries = fetchQueries(strat, run, fold, f) ////////////////
       val nextPosition = queries.size
       val r = if (nextPosition < Q && nextPosition < strat.pool.size) {
         println(s"${Calendar.getInstance().getTime} Gerando $strat queries na posição $nextPosition de um total de ${if (Q == Int.MaxValue) strat.pool.size else Q} queries para $dataset pool: $run.$fold ...")
@@ -375,15 +375,15 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     }
 
   def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize = null) = {
-    incCounter()
-    acquireOp()
+    //    incCounter() //tirei lock daqui, pois busy_timeout está bem grande agora
+    //    acquireOp()
     val queries = ALDatasets.queriesFromSQLite(this)(strat, run, fold) match {
       case Right(x) => x
       case Left(str) =>
         releaseOp2()
         safeQuit(s"Problem loading queries for Rnd: $str.")
     }
-    releaseOp()
+    //    releaseOp()
     if (f != null) Datasets.applyFilter(queries, f) else queries
   }
 }
