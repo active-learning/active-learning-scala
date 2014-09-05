@@ -21,6 +21,7 @@
 
 package weka.experiment;
 
+import org.sqlite.SQLiteConnection;
 import weka.core.*;
 
 import java.io.File;
@@ -35,45 +36,45 @@ import java.util.*;
  * "jdbc:idb=experiments.prp". These may be changed by creating a java
  * properties file called DatabaseUtils.props in user.home or the current
  * directory. eg:
- * <p/>
- * <p/>
+ * <p>
+ * <p>
  * <code><pre>
  * jdbcDriver=jdbc.idbDriver
  * jdbcURL=jdbc:idb=experiments.prp
  * </pre></code>
- * <p/>
- * <p/>
+ * <p>
+ * <p>
  * Command line use just outputs the instances to System.out.
- * <p/>
- * <p/>
+ * <p>
+ * <p>
  * <!-- options-start --> Valid options are:
- * <p/>
- * <p/>
+ * <p>
+ * <p>
  * <pre>
  * -Q &lt;query&gt;
  *  SQL query to execute.
  * </pre>
- * <p/>
+ * <p>
  * <pre>
  * -S
  *  Return sparse rather than normal instances.
  * </pre>
- * <p/>
+ * <p>
  * <pre>
  * -U &lt;username&gt;
  *  The username to use for connecting.
  * </pre>
- * <p/>
+ * <p>
  * <pre>
  * -P &lt;password&gt;
  *  The password to use for connecting.
  * </pre>
- * <p/>
+ * <p>
  * <pre>
  * -D
  *  Enables debug output.
  * </pre>
- * <p/>
+ * <p>
  * <!-- options-end -->
  *
  * @author Len Trigg (trigg@cs.waikato.ac.nz)
@@ -439,7 +440,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
 
     /**
      * Returns an enumeration describing the available options
-     * <p/>
+     * <p>
      *
      * @return an enumeration of all options
      */
@@ -598,35 +599,35 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
 
     /**
      * Parses a given list of options.
-     * <p/>
+     * <p>
      * <!-- options-start --> Valid options are:
-     * <p/>
-     * <p/>
+     * <p>
+     * <p>
      * <pre>
      * -Q &lt;query&gt;
      *  SQL query to execute.
      * </pre>
-     * <p/>
+     * <p>
      * <pre>
      * -S
      *  Return sparse rather than normal instances.
      * </pre>
-     * <p/>
+     * <p>
      * <pre>
      * -U &lt;username&gt;
      *  The username to use for connecting.
      * </pre>
-     * <p/>
+     * <p>
      * <pre>
      * -P &lt;password&gt;
      *  The password to use for connecting.
      * </pre>
-     * <p/>
+     * <p>
      * <pre>
      * -D
      *  Enables debug output.
      * </pre>
-     * <p/>
+     * <p>
      * <!-- options-end -->
      *
      * @param options the list of options as an array of strings
@@ -689,6 +690,8 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
             System.err.println("Executing query: " + query);
         }
         connectToDatabase();
+        ((SQLiteConnection) m_PreparedStatement.getConnection()).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
+        m_PreparedStatement.setQueryTimeout(20 * 60);
         execute("attach 'app.db' as app");
 
         if (!execute(query)) {
