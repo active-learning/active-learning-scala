@@ -34,7 +34,7 @@ object Light extends CrossValidation with App {
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    RandomSampling(pool),
+    //    RandomSampling(pool), rnd não pode ficar aqui pois há o risco de se criarem Q hits em vez de N para os learners especiais 5NN, C45 e NB
     ClusterBased(pool),
     Uncertainty(learner(run, pool), pool),
     Entropy(learner(run, pool), pool),
