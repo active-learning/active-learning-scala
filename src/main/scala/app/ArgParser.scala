@@ -72,6 +72,11 @@ object ArgParser {
     }
     def learner(seed: Int, pool: Seq[Pattern]) = args(3) match {
       case "NB" => NB()
+      case "C45" => C45()
+      case "VFDT" => VFDT()
+      case "NBz" => NB("")
+      case "C45z" => C45("")
+      case "VFDTz" => VFDT("")
 
       case "CI" => CIELM(seed)
       case "ECI" => ECIELM(seed)
@@ -83,8 +88,6 @@ object ArgParser {
       case "LASVM" => LASVM()
       case "SVM" => SVMLib(seed)
 
-      case "C45" => C45()
-      case "VFDT" => VFDT()
       case "1NNc" => KNNBatch(1, "cheb", pool)
       case "1NNe" => KNNBatch(1, "eucl", pool)
       case "1NNm" => KNNBatch(1, "manh", pool)

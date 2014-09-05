@@ -51,7 +51,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         val QNB_Q5NN_QC45 = (for {
           r <- (0 until runs).par
           f <- (0 until folds).par
-          sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (2,3,5) and pred=expe group by position,learnerid order by sum(value) desc, position asc limit 1"
+          sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (16,17,5) and pred=expe group by position,learnerid order by sum(value) desc, position asc limit 1"
         } yield {
           exec(sql).get.head.head
         }).toList

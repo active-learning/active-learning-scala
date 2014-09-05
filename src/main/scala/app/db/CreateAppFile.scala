@@ -71,12 +71,13 @@ object CreateAppFile extends App {
     sys.exit(1)
   }
 
-  val learners = Seq(NoLearner(), NB(), C45(), VFDT(), KNNBatch(5, "eucl", Seq(), "", weighted = true), KNNBatch(5, "manh", Seq()),
+  val learners = Seq(NoLearner(), NB(""), C45(""), VFDT(""), KNNBatch(5, "eucl", Seq(), "", weighted = true), KNNBatch(5, "manh", Seq()),
     KNNBatch(1, "eucl", Seq()),
     IELM(), IELMEnsemble(), EIELM(), CIELM(), ECIELM(),
     interaELM(),
     LASVM(),
-    SVMLib()
+    SVMLib(),
+    NB(), C45(), VFDT() //"semzscore"
   )
 
   //opens (creates) app.db
