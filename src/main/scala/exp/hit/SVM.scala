@@ -27,6 +27,7 @@ import ml.classifiers._
 import weka.filters.unsupervised.attribute.Standardize
 
 object SVM extends CrossValidation with App {
+  lazy val binarizeNominalAtts = !SVMLib().toString.contains("semzscore")
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets. Uses weka despite the queries coming from another SVM implementation."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)

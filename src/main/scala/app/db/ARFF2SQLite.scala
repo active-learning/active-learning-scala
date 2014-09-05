@@ -67,6 +67,7 @@ Steps:
       } else Some(instances)
 
       if (instancesProj.isDefined) {
+        //ignores completly id attributed by ARFF loader in Datasets object
         val instances = instancesProj.get
         val save = new DatabaseSaverForSQLite
         save.setUrl("jdbc:sqlite:////" + path + name + ".db")

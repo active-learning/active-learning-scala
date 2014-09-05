@@ -26,6 +26,7 @@ import ml.Pattern
 import weka.filters.unsupervised.attribute.Standardize
 
 object Light extends CrossValidation with App {
+  lazy val binarizeNominalAtts = !learner(-1, Seq()).toString.contains("semzscore")
   val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded light GNOSTIC " +
     "strategies (i.e. not Rnd, Clu and not EER) mostly due to the fact that they are fast and don't need to be stopped earlier;\n"

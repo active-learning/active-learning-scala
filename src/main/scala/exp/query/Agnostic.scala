@@ -26,6 +26,8 @@ import ml.Pattern
 import weka.filters.unsupervised.attribute.Standardize
 
 object Agnostic extends CrossValidation with App {
+  lazy val binarizeNominalAtts = true
+  //rnd ignores this but Clu depends on distance calculations (which will like some normalization)
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates queries for the given list of datasets according to provided hardcoded agnostic " +
     "strategies (Rnd and Clu) mostly due to the fact that both should go until the end;\n" +

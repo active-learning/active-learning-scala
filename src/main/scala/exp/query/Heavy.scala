@@ -26,6 +26,7 @@ import ml.Pattern
 import weka.filters.unsupervised.attribute.Standardize
 
 object Heavy extends CrossValidation with App {
+  lazy val binarizeNominalAtts = !learner(-1, Seq()).toString.contains("semzscore")
   val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded heavy GNOSTIC " +
     s"strategies (EER entr, acc and gmeans) mostly due to the fact that they are slow and are stopped by time limit of $timeLimitSeconds s;\n"

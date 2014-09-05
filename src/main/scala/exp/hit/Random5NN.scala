@@ -27,6 +27,7 @@ import ml.classifiers.KNNBatch
 import weka.filters.unsupervised.attribute.Standardize
 
 object Random5NN extends CrossValidation with App {
+  lazy val binarizeNominalAtts = !KNNBatch(-1, "eucl", Seq()).toString.contains("semzscore")
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded rnd strategy) for the given list of datasets."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
