@@ -396,7 +396,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         safeQuit(s"Problem loading queries for Rnd: $str.")
     }
     //    releaseOp()
-    if (f != null) Datasets.applyFilter(queries, f) else queries
+    if (f != null) Datasets.applyFilter(queries, f) else queries //não é necessário reordenar, pois essa aplicação de filtro deve preservar a ordem original das queries
   }
 }
 
