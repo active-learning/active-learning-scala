@@ -50,13 +50,13 @@ object Random5NN extends CrossValidation with App {
     fazer
   }
 
-  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize, pattsFromARFFMap: => Map[Int, Pattern]) {
     val nc = pool.head.nclasses
 
     //Completa 5NN hits do Rnd
     val Q = 10000
     strats(run, pool).takeWhile { s =>
-      db.saveHits(s, KNNBatch(5, "eucl", pool, "", weighted = true), run, fold, nc, f, testSet, 8 * 3600, Q)
+      db.saveHits(s, KNNBatch(5, "eucl", pool, "", weighted = true), run, fold, nc, f, testSet, 8 * 3600, pattsFromARFFMap, Q)
       db.running
     }
   }

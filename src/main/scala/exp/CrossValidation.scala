@@ -91,7 +91,7 @@ trait CrossValidation extends Lock with ClassName {
     else Q
   }
 
-  def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit) {
+  def run(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize, => Map[Int, Pattern]) => Unit) {
     //stops according to memory limit or presence of quit-file
     running = true
     new Thread(new Runnable() {
@@ -217,7 +217,7 @@ trait CrossValidation extends Lock with ClassName {
   }
 
 
-  def compilerBugSucks(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize) => Unit, lista: mutable.Buffer[(String, Int)]) {
+  def compilerBugSucks(runCore: (Dataset, Int, Int, => Seq[Pattern], => Seq[Pattern], => Standardize, => Map[Int, Pattern]) => Unit, lista: mutable.Buffer[(String, Int)]) {
     skipped = 0
     p("Datasets restantes: " + lista.toSeq, lista)
     println("------------------------------------------------")
@@ -258,6 +258,7 @@ trait CrossValidation extends Lock with ClassName {
         ps match {
           ////////////////
           case Right(patts) =>
+            val pmap = if (binarizeNominalAtts) null else patts.map(p => p.id -> p).toMap
             (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
               p("    Beginning run " + run + " for " + datasetName + " ...", lista)
               Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
@@ -282,7 +283,7 @@ trait CrossValidation extends Lock with ClassName {
                 }
 
                 p(" : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !", lista)
-                runCore(db, run, fold, pool, testSet, if (binarizeNominalAtts) f else null)
+                runCore(db, run, fold, pool, testSet, if (binarizeNominalAtts) f else null, pmap)
                 p(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !", lista)
               }
             }

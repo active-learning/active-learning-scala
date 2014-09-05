@@ -54,10 +54,10 @@ object Heavy extends CrossValidation with App {
     fazer
   }
 
-  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize, pattsFromARFFMap: => Map[Int, Pattern]) {
     val Q = q(db)
     strats(run, pool) takeWhile { strat =>
-      db.saveQueries(strat, run, fold, f, timeLimitSeconds, Q)
+      db.saveQueries(strat, run, fold, f, timeLimitSeconds, pattsFromARFFMap, Q)
       db.running
     }
   }

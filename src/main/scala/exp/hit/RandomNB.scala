@@ -50,13 +50,13 @@ object RandomNB extends CrossValidation with App {
     fazer
   }
 
-  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize) {
+  def ff(db: Dataset, run: Int, fold: Int, pool: => Seq[Pattern], testSet: => Seq[Pattern], f: => Standardize, pattsFromARFFMap: => Map[Int, Pattern]) {
     val nc = pool.head.nclasses
 
     //Completa NB hits do Rnd
     val Q = 10000
     strats(run, pool).takeWhile { s =>
-      db.saveHits(s, NB(), run, fold, nc, f, testSet, 8 * 3600, Q)
+      db.saveHits(s, NB(), run, fold, nc, f, testSet, 8 * 3600, pattsFromARFFMap, Q)
       db.running
     }
   }
