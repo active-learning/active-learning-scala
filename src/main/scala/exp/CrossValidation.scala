@@ -27,6 +27,7 @@ import app.db.entities.Dataset
 import ml.Pattern
 import ml.classifiers._
 import util.{Datasets, Lazy, Lock}
+import weka.core.Instances
 import weka.filters.unsupervised.attribute.Standardize
 
 import scala.collection.mutable
@@ -37,6 +38,7 @@ import scala.util.Random
  * Created by davi on 05/06/14.
  */
 trait CrossValidation extends Lock with ClassName {
+  val binarizeNominalAtts: Boolean
   def close() = Unit
 
   def isOpen() = false
@@ -52,8 +54,6 @@ trait CrossValidation extends Lock with ClassName {
   def parallelStrats = args1(2).contains("s")
 
   def path: String
-
-  lazy val source = Datasets.patternsFromSQLite(folderToCopyDb) _
 
   def dest = Dataset(path) _
 
@@ -251,31 +251,33 @@ trait CrossValidation extends Lock with ClassName {
 
         //Open connection to load patterns via weka SQL importer (from dbCopy). This is good to avoid two programs opening the same db at the same time.
         p("Loading patterns for dataset " + datasetName + " ...", lista)
-        source(datasetName) match {
+        val ps = if (binarizeNominalAtts) Datasets.patternsFromSQLite(folderToCopyDb)(datasetName)
+        else Datasets.arff(bina = false, debug = true)(path + datasetName + ".arff", zscored = false)
+
+        ps match {
+          ////////////////
           case Right(patts) =>
             (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
               p("    Beginning run " + run + " for " + datasetName + " ...", lista)
               Datasets.kfoldCV(Lazy(new Random(run).shuffle(patts)), folds, parallelFolds) { case (tr0, ts0, fold, minSize) => //Esse Lazy é pra evitar shuffles inuteis (se é que alguém não usa o pool no runCore).
 
-                //z-score
-                lazy val f = Datasets.zscoreFilter(tr0)
-                lazy val pool = {
+                //z-score (if the learner is marked as 'semzscore' then it is a non-exclusively-numeric learner and can benefit from crude attributes, i.e. without filter)
+                lazy val f = if (binarizeNominalAtts) Datasets.zscoreFilter(tr0) else null
+
+                lazy val pool = if (binarizeNominalAtts) {
                   val tr = Datasets.applyFilterChangingOrder(tr0, f) //weka is unpredictable: without lazy resulting z-score values differ
-                  val res = new Random(run * 100 + fold).shuffle(tr)
-                  //                p(s"    data standardized for run $run and fold $fold.")
-                  res
-                }
-                lazy val testSet = {
+                  new Random(run * 100 + fold).shuffle(tr)
+                } else new Random(run * 100 + fold).shuffle(tr0.sortBy(_.vector.toString())) //changes order like would occurs inside filter and then shuffles
+              lazy val testSet = if (binarizeNominalAtts) {
                   val ts = Datasets.applyFilterChangingOrder(ts0, f)
                   new Random(run * 100 + fold).shuffle(ts)
-                }
+                } else new Random(run * 100 + fold).shuffle(ts0.sortBy(_.vector.toString())) //changes order like would occurs inside filter and then shuffles
 
                 p(" : Pool " + fold + " of run " + run + " iniciado for " + datasetName + s" ($datasetNr) !", lista)
                 runCore(db, run, fold, pool, testSet, f)
                 p(Calendar.getInstance().getTime + " :    Pool " + fold + " of run " + run + " finished for " + datasetName + s" ($datasetNr) !", lista)
 
               }
-              //            p("  Run " + run + " finished for " + datasetName + " !")
             }
 
             if (!db.readOnly) {

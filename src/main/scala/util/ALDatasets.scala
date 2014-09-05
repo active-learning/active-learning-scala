@@ -25,6 +25,7 @@ import svmal.libsvm.SvmLibProblem
 import weka.core.Instance
 import weka.experiment.InstanceQuerySQLite
 import scala.collection.JavaConversions._
+import scala.util.Left
 
 object ALDatasets {
 
@@ -50,6 +51,23 @@ object ALDatasets {
       Right(patterns.toStream)
     } catch {
       case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage + "\n" + ex.getStackTraceString + "\nProblems reading file " + arq + ": " + ex.getMessage)
+    }
+  }
+
+  /**
+   * Reads ARFF patterns in the querying order (aplying all preprocessing except binarization).
+   * Z-score is not applied also.
+   */
+  def queriesFromARFF(arffFullPathAndFile: String)(db: Dataset)(strategy: Strategy, run: Int, fold: Int) = {
+    val learner = strategy.learner
+    val queriedIds = db.exec(s"select q.instid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position").get.map(x => x.head.toInt)
+    Datasets.arff(bina = false, debug = true)(arffFullPathAndFile, zscored = false) match {
+      case Right(ps) =>
+        val pmap = ps.map(p => p.id -> p).toMap
+        //        println((1 to 150).diff(pmap.keys.toList))
+        val queries = queriedIds map pmap
+        Right(queries.toStream)
+      case Left(str) => Left(str)
     }
   }
 
