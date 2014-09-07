@@ -194,7 +194,8 @@ trait Database extends Lock {
         Some(queue)
       } else {
         if (readOnly) justQuit("readOnly databases only accept select and pragma SQL commands!")
-        statement.execute(sql)
+        val r = statement.executeUpdate(sql)
+        if (debug && r > 0) println(s"statement.execute returned $r for $sql")
         None
       }
     } catch {
@@ -257,48 +258,6 @@ trait Database extends Lock {
       println("Backing up tmpFile ok!")
       //      println(s"$dbCopy para $dbLock copiado!")
       Thread.sleep(100)
-    }
-  }
-
-  def runStr(sql: String) = {
-    if (!isOpen) justQuit("Not applying sql query " + sql + ". Database is closed.")
-
-    try {
-      val statement = connection.createStatement()
-      if (sql.toLowerCase.startsWith("select ")) {
-        val resultSet = statement.executeQuery(sql)
-        val rsmd = resultSet.getMetaData
-        val numColumns = rsmd.getColumnCount
-        val columnsType = new Array[Int](numColumns + 1)
-        columnsType(0) = 0
-        1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
-
-        val queue = mutable.Queue[Seq[String]]()
-        while (resultSet.next()) {
-          val seq = 1 to numColumns map { i =>
-            //            val s = columnsType(i) match {
-            //              case java.sql.Types.BOOLEAN | java.sql.Types.DATE | java.sql.Types.TIMESTAMP | java.sql.Types.TINYINT | java.sql.Types.SMALLINT | java.sql.Types.INTEGER | java.sql.Types.BIGINT | java.sql.Types.CHAR | java.sql.Types.VARCHAR => resultSet.getString(i)
-            //              case java.sql.Types.NVARCHAR => resultSet.getNString(i)
-            //              case java.sql.Types.FLOAT | java.sql.Types.NUMERIC | java.sql.Types.DOUBLE => "%2.2f".format(resultSet.getDouble(i))
-            //              case _ => resultSet.getString(i)
-            //            }
-            resultSet.getString(i)
-          }
-          queue.enqueue(seq)
-        }
-        Some(queue)
-      } else {
-        if (readOnly) justQuit("readOnly databases only accept select SQL command!")
-        incCounter()
-        acquireOp()
-        statement.execute(sql)
-        releaseOp()
-        None
-      }
-    } catch {
-      case e: Throwable => e.printStackTrace
-        releaseOp()
-        safeQuit("\nProblems executing SQL query '" + sql + "' in: " + dbCopy + ".\n" + e.getMessage)
     }
   }
 
