@@ -40,6 +40,11 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
   }
 
+  lazy val Qready = {
+    val Qs = exec(s"select v from res where m=${fetchmid("Q")} and s=-1 and l=-1 and r=-1 and f=-1").get.size
+    if (Qs > 1) unsafeQuit(s"More than one Q at $database .") else Qs == 1
+  }
+
   /**
    * Remove all hits with position greater than the position where the better learner (NB,5NN,C45)
    * in its better pool reaches the maximum accuracy.
@@ -47,9 +52,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def compactify() {
     //depois que compacta deixa-se de passar nos testes de HitsComplete!!!!!
     //Porém basta verificar se o Q já está definido.
-    val tmp = exec(s"select v from res where m=${fetchmid("Q")} and s=-1 and l=-1 and r=-1 and f=-1")
-    val alreadyCalculated = tmp.get.size > 0
-    if (alreadyCalculated) {
+    if (Qready) {
       //Faz lista com 25 Qs (um para cada pool); é o primeiro ponto de acc max do melhor dentre os 3 classificadores.
       val QNB_Q5NN_QC45 = (for {
         r <- (0 until runs).par
