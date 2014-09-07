@@ -38,7 +38,7 @@ object SQLBatch extends App {
     if (db.dbOriginal.exists()) {
       db.open()
       sqls.split(";").foreach { sql =>
-        (if (args(2).contains("str")) db.runStr(sql) else db.exec(sql)) match {
+        db.exec(sql) match {
           case Some(queue) => println(queue.map(_.mkString(" ")).mkString(" " + datasetName + "\n") + " " + datasetName)
           case None => println(s"$datasetName ok.")
         }

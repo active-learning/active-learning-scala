@@ -39,11 +39,8 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   lazy val costAtAccMax = {
 
   }
-
-  lazy val Qready = {
-    val Qs = exec(s"select v from res where m=${fetchmid("Q")} and s=-1 and l=-1 and r=-1 and f=-1").get.size
-    if (Qs > 1) unsafeQuit(s"More than one Q at $database .") else Qs == 1
-  }
+  lazy val QFromRes = exec(s"select v from res where m=${fetchmid("Q")} and s=-1 and l=-1 and r=-1 and f=-1").get
+  lazy val Qready = if (QFromRes.size > 1) unsafeQuit(s"More than one Q at $database .") else QFromRes.size == 1
 
   /**
    * Remove all hits with position greater than the position where the better learner (NB,5NN,C45)
@@ -63,14 +60,17 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       }).toList
 
       //Pega max.
-      val PosAccMax = QNB_Q5NN_QC45.sorted.toList.head.toInt
+      val PosAccMax = QNB_Q5NN_QC45.sorted.toList.last.toInt
       println(s"posições de maximos: $QNB_Q5NN_QC45 posição do max: $PosAccMax")
 
-      //      incCounter()
-      //      acquireOp()
-      //      exec(s"delete from hit where position>$PosAccMax") //todo?: aqui quebra caso db esteja aberto como readOnly
-      //      save()
-      //      releaseOp()
+      incCounter()
+      acquireOp()
+      exec("begin")
+      exec(s"delete from hit where position>$PosAccMax")
+      exec("end")
+      //      exec(s"vacuum")
+      //            save()
+      releaseOp()
 
     }
   }
@@ -83,9 +83,8 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       //save() Only save when really inserting ( = pseudo-transaction)
       releaseOp()
     }
-    val tmp = exec(s"select v from res where m=${fetchmid("Q")} and s=-1 and l=-1 and r=-1 and f=-1")
-    val alreadyCalculated = tmp.get.size > 0
-    if (alreadyCalculated) tmp.get.head.head.toInt
+    val alreadyCalculated = QFromRes.size > 0
+    if (alreadyCalculated) QFromRes.head.head.toInt
     else {
       if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !rndHitsComplete(C45())) -1 //-1: just warming
       else {
@@ -449,22 +448,50 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 }
 
 object DatasetTest extends App {
+  val l = "appendicitis,blogger,glioma16,fertility-diagnosis,planning-relax,qualitative-bankruptcy,lenses,acute-inflammations-urinary,lung-cancer,post-operative-patient,dbworld-subjects-stemmed,iris,robot-failure-lp3,zoo,leukemia-haslinger,dbworld-bodies-stemmed,volcanoes-d1,hepatitis,movement-libras-1,robot-failure-lp2,heart-disease-processed-switzerland,habermans-survival,robot-failure-lp4,robot-failure-lp1,hayes-roth,volcanoes-d3,teaching-assistant-evaluation,wine,lsvt-voice-rehabilitation,breast-tissue-6class,seeds,led7digit,heart-disease-processed-hungarian,ozone-eighthr,volcanoes-d4,molecular-promotor-gene,voting,breast-tissue-4class,statlog-heart,thyroid-newthyroid,monks3,breast-cancer-wisconsin,spectf-heart,volcanoes-d2,heart-disease-processed-cleveland,heart-disease-processed-va,steel-plates-faults,meta-data,lymphography,monks1,cardiotocography-10class,flare,robot-failure-lp5,spect-heart,flags,parkinsons,vertebra-column-2c,vertebra-column-3c,arcene,systhetic-control,ionosphere,dresses-sales,horse-colic-surgical,connectionist-mines-vs-rocks,glass,bupa,heart-disease-reprocessed-hungarian,dermatology,indian-liver-patient,mammographic-mass,ecoli,blood-transfusion-service,wholesale-channel,movement-libras-10,ozone-onehr,climate-simulation-craches,wdbc,user-knowledge,arrhythmia,volcanoes-e2,micro-mass-mixed-spectra,saheart,credit-approval,movement-libras,statlog-australian-credit,waveform-v1,pima-indians-diabetes,leaf,volcanoes-e4,volcanoes-e1,balance-scale,autoUniv-au6-cd1-400,volcanoes-a1,banknote-authentication,monks2,autoUniv-au7-cpd1-500,volcanoes-e5,connectionist-vowel-reduced,wine-quality-red,autoUniv-au7-700,volcanoes-a4,waveform-v2,micro-mass-pure-spectra,autoUniv-au6-250-drift-au6-cd1-500,annealing,statlog-german-credit-numeric,autoUniv-au1-1000,tic-tac-toe,statlog-vehicle-silhouettes,autoUniv-au6-1000,volcanoes-a2,ringnorm,statlog-german-credit,yeast-4class,qsar-biodegradation,volcanoes-e3,volcanoes-a3,autoUniv-au7-300-drift-au7-cpd1-800,connectionist-vowel,cnae-9,yeast,thyroid-hypothyroid,cmc,hill-valley-with-noise,mushroom-expanded,mushroom,hill-valley-without-noise,digits2,thyroid-sick-euthyroid,twonorm,cardiotocography-3class,robot-nav-sensor-readings-2,semeion,multiple-features,car-evaluation,statlog-image-segmentation,mfeat-fourier,robot-nav-sensor-readings-4,thyroid-allrep,thyroid-dis,thyroid-allhyper,thyroid-allhypo,thyroid-allbp,kr-vs-kp,thyroid-ann,wine-quality-white-5class,thyroid-sick,abalone-11class,volcanoes-b3,statlog-landsat-satellite,turkiye-student,molecular-splice-junction,wilt,abalone-3class,volcanoes-b5,volcanoes-b4,spambase,volcanoes-b1,wine-quality-5class,page-blocks,artificial-characters,banana,volcanoes-b6,robot-nav-sensor-readings-24,optdigits,texture,phoneme,first-order-theorem,volcanoes-b2,musk,pendigits,gas-drift-different-concentrations,eeg-eye-state,gas-drift,nursery,nursery-4class,magic".split(",")
+  val res = l forall { d =>
+    val da = Dataset("/home/davi/wcs/ucipp/uci/new/", false, true)(d)
+    val db = Dataset("/home/davi/wcs/ucipp/uci/new/", false, true)(d)
+    da.open()
+    db.open()
+
+    val patts = Datasets.arff(true)("/home/davi/wcs/ucipp/uci/" + da.database + ".arff", false, false).right.get
+    val m = patts.map(p => p.id -> p).toMap
+
+    val a = ALDatasets.queriesFromARFF(da.path + da.database + ".arff")(da)(RandomSampling(Seq()), 0, 0, m).right.get
+    val b = ALDatasets.queriesFromSQLite(db)(RandomSampling(Seq()), 0, 0).right.get
+    //    val a = Datasets.patternsFromSQLite(da.path)(da.database).right.get
+    //    val b = Datasets.patternsFromSQLite(db.path)(db.database).right.get
+    //    val b = Datasets.arff(true)(db.path + db.database + ".arff", false, false).right.get
+    val sa = a.sameElements(b)
+    a.toList take 7 foreach (x => println(x.toStringCerto.count(_ == ',')))
+    println("-----")
+    b.toList take 7 foreach (x => println(x.toStringCerto.count(_ == ',')))
+    println(sa)
+    println("")
+    da.close()
+    db.close()
+    sa
+  }
+  println("tudo igual : " + res)
+  sys.exit(1)
   //load patterns
   //  val patts = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get
 
   //reorder patterns as queries
   //  val shuffled = patts.drop(5) ++ patts.take(4)
 
-  val d = Dataset("/home/davi/wcs/ucipp/uci/")("iris")
+  //  val d = Dataset("/home/davi/wcs/ucipp/uci/")("arcene")
+  val d = Dataset("/home/davi/wcs/ucipp/uci/")("abalone-3class")
   d.open()
   //  d.saveQueries(RandomSampling(patts), 64, 17, 0.2)
 
   //load queries as patterns
-  val qpattss = ALDatasets.queriesFromSQLite(d)(RandomSampling(Seq()), 0, 0) match {
+  val qpattss = ALDatasets.queriesFromSQLite(Dataset("/home/davi/wcs/ucipp/uci/")("abalone-3class"))(RandomSampling(Seq()), 0, 0) match {
     case Right(x) => x
     case Left(str) => println(s"Problema: $str"); ???
   }
-
+  qpattss take 10 foreach println
 
   //  val qpattsa = ALDatasets.queriesFromARFF("/home/davi/wcs/ucipp/uci/iris.arff")(d)(RandomSampling(Seq()), 0, 0,) match {
   //    case Right(x) => x
@@ -473,18 +500,7 @@ object DatasetTest extends App {
 
 
   //  d.exec("select  rowid,* from inst").get foreach println
+  println(d.compactify())
   d.close()
-  qpattss.take(3).map(x => x -> x.label) foreach println
-  println("fafasdfas")
-  //  qpattsa.take(3).map(x => x -> x.label) foreach println
 
 }
-
-/*
-investigar
-Safe quiting (waiting for 0 other jobs): countPerformedConfMatrices: Inconsistency at Random Sampling / NB_semzscore: number of queries
-Queue(1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0)
-
-for digits2 is lesser than total number of conf. matrices
-Queue(1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103)
-*/
