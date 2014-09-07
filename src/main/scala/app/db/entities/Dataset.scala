@@ -115,8 +115,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
   /**
    * checa se tabela de matrizes de confusão está completa para todos os pools inteiros para Random/learner
+   * Se Q está pronto, então queries tão completas (para acelerar e também permitir que bases sejam compactadas apagado-se hits em excesso)
    */
-  def rndHitsComplete(learner: Learner) = {
+  def rndHitsComplete(learner: Learner) = if (Qready) true
+  else {
     val expectedHits = n * (folds - 1) * runs
     val hitExs = countPerformedConfMatrices(RandomSampling(Seq()), learner)
     if (hitExs > expectedHits) justQuit(s"$hitExs confusion matrices of Rnd cannot be greater than $expectedHits for $this with $learner")
@@ -136,7 +138,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
    * Returns only the recorded number of tuples.
    * You should add runs*folds*|Y|²*|Y| manually.
    */
-  def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit ${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
+  //  def rndCompleteHits(learner: Learner) = exec(s"select count(*) from hit ${where(RandomSampling(Seq()), learner)}").get.head.head.toInt
 
   def where(strategy: Strategy, learner: Learner) = s" where strategyid=${fetchsid(strategy)} and learnerid=${fetchlid(learner)}"
 

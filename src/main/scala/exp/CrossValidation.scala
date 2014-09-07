@@ -142,6 +142,11 @@ trait CrossValidation extends Lock with ClassName {
     p("bye!")
   }
 
+  /**
+   * todo: put this inside db
+   * @param db
+   * @return
+   */
   def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
     p("Rnd queries incomplete.")
     false
