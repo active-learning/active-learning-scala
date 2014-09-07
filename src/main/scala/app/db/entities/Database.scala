@@ -327,6 +327,8 @@ trait Database extends Lock {
     else {
       if (debug) println(s"Renaming $dbLock to $dbOriginal")
       dbLock.renameTo(dbOriginal)
+      while (checkExistsForNFS(dbLock)) rndDelay(1)
+      while (!checkExistsForNFS(dbOriginal)) rndDelay(1)
       fileLocked = false
     }
   }
