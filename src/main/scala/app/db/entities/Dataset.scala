@@ -401,6 +401,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
 
               statement.executeUpdate("end")
             } catch {
+              case e: NullPointerException =>
+                releaseOp()
+                println(e.getMessage)
+                justQuit(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ].")
               case e: Throwable => e.printStackTrace
                 releaseOp()
                 println(s"\nProblems inserting queries for $strat / ${strat.learner} into: $dbCopy: [ $str ]:")
