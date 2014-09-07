@@ -55,20 +55,15 @@ object ALDatasets {
   }
 
   /**
-   * Reads ARFF patterns in the querying order (aplying all preprocessing except binarization).
+   * Reads ARFF patterns (actually from a generic map) in the querying order (aplying all preprocessing except binarization).
    * Z-score is not applied also.
    * It does not preserve labels to keep consistency with SQLite Weka Saver.
    */
-  def queriesFromARFF(arffFullPathAndFile: String)(db: Dataset)(strategy: Strategy, run: Int, fold: Int, pattsFromARFFMap: Map[Int, Pattern]) = {
+  def queriesFromMap(arffFullPathAndFile: String)(db: Dataset)(strategy: Strategy, run: Int, fold: Int, mapIdToPattern: Map[Int, Pattern]) = {
     val learner = strategy.learner
     val queriedIds = db.exec(s"select q.instid from query as q, app.strategy as s, app.learner as l where run = $run and fold = $fold and q.strategyid=s.rowid and s.name='$strategy' and q.learnerid=l.rowid and l.name='$learner' order by position").get.map(x => x.head.toInt)
-    //    Datasets.arff(bina = false, debug = true)(arffFullPathAndFile, zscored = false, preserveClassOrderFromARFFHeader = false) match {
-    //      case Right(ps) =>
-    //        val pmap = pattsFromARFF.map(p => p.id -> p).toMap
-    val queries = queriedIds map pattsFromARFFMap
+    val queries = queriedIds map mapIdToPattern
     Right(queries.toStream)
-    //      case Left(str) => Left(str)
-    //    }
   }
 
 

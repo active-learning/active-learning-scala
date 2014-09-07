@@ -51,23 +51,24 @@ Steps:
       }
     } else if (instancesOp.isDefined) {
       val instances = instancesOp.get
-      val instancesProj = if (instances.numAttributes > 1998) {
-        val filter = new RandomProjection
-        filter.setNumberOfAttributes(1998)
-        filter.setInputFormat(instances)
-        filter.setSeed(0)
-
-        //        Some(Filter.useFilter(instances, filter))
-        Try(Filter.useFilter(instances, filter)) match {
-          case Success(x) => println("Reduced attributes from " + instances.numAttributes + " to " + x.numAttributes + " in '" + name + "'.")
-            Some(x)
-          case Failure(ex) => println("\nSkipping dataset '" + name + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
-            None
-        }
-      } else Some(instances)
+      //Agora já vem projected.
+      val instancesProj = Some(instances) //if (instances.numAttributes > 1998) {
+      //        val filter = new RandomProjection
+      //        filter.setNumberOfAttributes(1998)
+      //        filter.setInputFormat(instances)
+      //        filter.setSeed(0)
+      //
+      //        //        Some(Filter.useFilter(instances, filter))
+      //        Try(Filter.useFilter(instances, filter)) match {
+      //          case Success(x) => println("Reduced attributes from " + instances.numAttributes + " to " + x.numAttributes + " in '" + name + "'.")
+      //            Some(x)
+      //          case Failure(ex) => println("\nSkipping dataset '" + name + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
+      //            None
+      //        }
+      //      } else Some(instances)
 
       if (instancesProj.isDefined) {
-        //ignores completly id attributed by ARFF loader in Datasets object
+        //ignores completely id attributed by ARFF loader in Datasets object, although the order is usually preserved.
         val instances = instancesProj.get
         val save = new DatabaseSaverForSQLite
         save.setUrl("jdbc:sqlite:////" + path + name + ".db")

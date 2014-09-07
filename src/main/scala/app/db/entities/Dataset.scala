@@ -433,7 +433,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
   def fetchQueries(strat: Strategy, run: Int, fold: Int, f: Standardize, pattsFromARFFMap: Map[Int, Pattern]) = {
     //    incCounter() //tirei lock daqui, pois busy_timeout está bem grande agora
     //    acquireOp()
-    val qs = if (f == null) ALDatasets.queriesFromARFF(path + dataset + ".arff")(this)(strat, run, fold, pattsFromARFFMap)
+    val qs = if (f == null) ALDatasets.queriesFromMap(path + dataset + ".arff")(this)(strat, run, fold, pattsFromARFFMap)
     else ALDatasets.queriesFromSQLite(this)(strat, run, fold)
 
     val queries = qs match {
@@ -458,7 +458,7 @@ object DatasetTest extends App {
     val patts = Datasets.arff(true)("/home/davi/wcs/ucipp/uci/" + da.database + ".arff", false, false).right.get
     val m = patts.map(p => p.id -> p).toMap
 
-    val a = ALDatasets.queriesFromARFF(da.path + da.database + ".arff")(da)(RandomSampling(Seq()), 0, 0, m).right.get
+    val a = ALDatasets.queriesFromMap(da.path + da.database + ".arff")(da)(RandomSampling(Seq()), 0, 0, m).right.get
     val b = ALDatasets.queriesFromSQLite(db)(RandomSampling(Seq()), 0, 0).right.get
     //    val a = Datasets.patternsFromSQLite(da.path)(da.database).right.get
     //    val b = Datasets.patternsFromSQLite(db.path)(db.database).right.get
