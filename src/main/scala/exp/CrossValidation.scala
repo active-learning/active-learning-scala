@@ -234,7 +234,7 @@ trait CrossValidation extends Lock with ClassName {
       //test previous progress
       p(s"Testing dataset $datasetName ($datasetNr)", lista)
       val db0 = Dataset(path, createOnAbsence = false, readOnly = true)(datasetName)
-      var notResumable = false
+      var resumable = false
       if (db0.isLocked()) {
         p(s"${db0.dbOriginal} is locked as ${db0.dbLock}! Cannot open it. Skipping...", lista)
         rndDelay(5, 1)
@@ -247,11 +247,12 @@ trait CrossValidation extends Lock with ClassName {
         skipped += 1
       } else {
         db0.open()
-        notResumable = ee(db0)
-        if (notResumable) q(db0, justWarming = true) //warm start for Q. there is no concurrency here
+        resumable = ee(db0)
+        if (resumable) q(db0, justWarming = true) //warm start for Q. there is no concurrency here
         else {
           if (db0.finished) finished += 1
           else {
+            resumable = false
             lista.append((datasetName, idx))
             skipped += 1
           }
@@ -260,7 +261,7 @@ trait CrossValidation extends Lock with ClassName {
       }
 
       //process dataset
-      if (notResumable && !db0.isLocked(0)) {
+      if (resumable && !db0.isLocked(0)) {
 
         p("Beginning dataset " + datasetName + " ...")
         val db = dest(datasetName)
