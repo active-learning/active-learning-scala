@@ -150,4 +150,5 @@ object FriedmanNemenyiTest extends App {
   StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
   StatTests.winners(m, Vector("e1", "e2", "e3", "e4", "e5"))
   //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
+  m0 foreach (x => println(x._2.mkString(" ")))
 }
