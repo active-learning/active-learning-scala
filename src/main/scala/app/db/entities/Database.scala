@@ -153,6 +153,8 @@ trait Database extends Lock {
     fileLocked = true
     if (debug) println(s"Renaming $dbOriginal to $dbLock")
     dbOriginal.renameTo(dbLock)
+    while (checkExistsForNFS(dbOriginal)) rndDelay(1)
+    while (!checkExistsForNFS(dbLock)) rndDelay(1)
   }
 
   def isLocked(delay: Double = 0.1) = checkExistsForNFS(dbLock, delay)
