@@ -252,7 +252,6 @@ trait CrossValidation extends Lock with ClassName {
         else {
           if (db0.finished) finished += 1
           else {
-            resumable = false
             lista.append((datasetName, idx))
             skipped += 1
           }
