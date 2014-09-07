@@ -50,6 +50,7 @@ object Heavy extends CrossValidation with App {
     } else if (!nonRndQueriesComplete(db)) true
     else {
       println(s"Heavy queries are complete for $db with ${learner(-1, Seq())}.")
+      db.finished = true
       false
     })
     fazer

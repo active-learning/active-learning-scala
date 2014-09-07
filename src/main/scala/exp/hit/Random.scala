@@ -51,6 +51,7 @@ object Random extends CrossValidation with App {
         }
       } else {
         println(s"Rnd hits are complete for $db with ${learner(-1, Seq())}.")
+        db.finished = true
         false
       }
     })

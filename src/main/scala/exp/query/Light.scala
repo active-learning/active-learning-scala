@@ -57,6 +57,7 @@ object Light extends CrossValidation with App {
     } else if (!nonRndQueriesComplete(db)) true
     else {
       println(s"Light queries are complete for $db with ${learner(-1, Seq())}.")
+      db.finished = true
       false
     })
     fazer

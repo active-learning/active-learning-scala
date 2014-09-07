@@ -33,6 +33,9 @@ import scala.collection.mutable
  * um arquivo db que é um dataset.
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
+  //for external use
+  var finished: Boolean = false
+
   lazy val costAtAccMax = {
 
   }

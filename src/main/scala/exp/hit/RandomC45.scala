@@ -44,6 +44,7 @@ object RandomC45 extends CrossValidation with App {
       if (!db.rndHitsComplete(C45())) true
       else {
         println(s"Rnd C45() hits are complete for $db.")
+        db.finished = true
         false
       }
     })

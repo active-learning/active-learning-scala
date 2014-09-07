@@ -44,6 +44,7 @@ object RandomNB extends CrossValidation with App {
       if (!db.rndHitsComplete(NB())) true
       else {
         println(s"Rnd NB hits are complete for $db.")
+        db.finished = true
         false
       }
     })

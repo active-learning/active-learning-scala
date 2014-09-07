@@ -55,6 +55,7 @@ object SVM extends CrossValidation with App {
         }
       } else {
         println(s"SVM hits are complete for $db with ${SVMLib()}.")
+        db.finished = true
         false
       }
     })
