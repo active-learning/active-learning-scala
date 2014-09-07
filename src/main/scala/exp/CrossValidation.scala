@@ -234,7 +234,7 @@ trait CrossValidation extends Lock with ClassName {
         rndDelay(5, 1)
         lista.append((datasetName, idx))
         skipped += 1
-      } else if (db0.checkExistsForNFS(db0.dbOriginal)) {
+      } else if (!db0.checkExistsForNFS(db0.dbOriginal)) {
         p(s"${db0.dbOriginal} not found! Cannot open it. Skipping...", lista)
         rndDelay(5, 1)
         lista.append((datasetName, idx))
