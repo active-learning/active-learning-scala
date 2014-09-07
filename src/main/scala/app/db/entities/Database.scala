@@ -95,7 +95,7 @@ trait Database extends Lock {
           try {
             if (!readOnly) {
               if (!lockFile()) {
-                println("Could not open due to problems with moving dataset file.")
+                println(s"Could not open due to problems with moving dataset file $database.")
                 return false
               }
               Thread.sleep(10)
@@ -123,10 +123,11 @@ trait Database extends Lock {
             val appPath = ArgParser.appPath
             try {
               val statement = connection.createStatement()
+              statement.execute("select 1 from inst")
               statement.executeUpdate("attach '" + appPath + "app.db' as app")
             } catch {
               case e: Throwable => e.printStackTrace
-                unsafeQuit("\nProblems Attaching " + appPath + s" to $dbCopy.")
+                unsafeQuit("\nProblems selectFromInst-testing or Attaching " + appPath + s" to $dbCopy.")
             }
             if (debug) println(" Dataset " + appPath + "app.db attached!")
           }
@@ -152,9 +153,10 @@ trait Database extends Lock {
     if (fileLocked || isLocked(0)) justQuit(s"$dbLock should not exist; $dbOriginal needs to take its place.")
     fileLocked = true
     if (debug) println(s"Renaming $dbOriginal to $dbLock")
-    dbOriginal.renameTo(dbLock)
+    val res = dbOriginal.renameTo(dbLock)
     while (checkExistsForNFS(dbOriginal)) rndDelay(1)
     while (!checkExistsForNFS(dbLock)) rndDelay(1)
+    res
   }
 
   def isLocked(delay: Double = 0.1) = checkExistsForNFS(dbLock, delay)
@@ -315,23 +317,24 @@ trait Database extends Lock {
       if (fileLocked) dbCopy.delete()
 
       if (debug) println("Unlocking...")
-      unlockFile()
+      if (!unlockFile()) println(s"Problems unlocking file $database")
     }
   }
 
   /**
    * rename dataset.db.locked to original name.
    */
-  def unlockFile() {
+  def unlockFile() = {
     if (readOnly) justQuit("readOnly databases don't accept unlockFile(), and there is no reason to accept.")
     if (checkExistsForNFS(dbOriginal)) justQuit(s"$dbOriginal should not exist; $dbLock needs to take its place.")
     if (!fileLocked) justQuit(s"Trying to unlock $dbLock, but this connection is not responsible for that lock.")
     else {
       if (debug) println(s"Renaming $dbLock to $dbOriginal")
-      dbLock.renameTo(dbOriginal)
+      val res = dbLock.renameTo(dbOriginal)
       while (checkExistsForNFS(dbLock)) rndDelay(1)
       while (!checkExistsForNFS(dbOriginal)) rndDelay(1)
       fileLocked = false
+      res
     }
   }
 }
