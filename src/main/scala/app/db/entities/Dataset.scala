@@ -33,6 +33,42 @@ import scala.collection.mutable
  * um arquivo db que é um dataset.
  */
 case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boolean = false)(dataset: String) extends Database {
+  lazy val costAtAccMax = {
+
+  }
+
+  /**
+   * Remove all hits with position greater than the position where the better learner (NB,5NN,C45)
+   * in its better pool reaches the maximum accuracy.
+   */
+  def compactify() {
+    //depois que compacta deixa-se de passar nos testes de HitsComplete!!!!!
+    //Porém basta verificar se o Q já está definido.
+    val tmp = exec(s"select v from res where m=${fetchmid("Q")} and s=-1 and l=-1 and r=-1 and f=-1")
+    val alreadyCalculated = tmp.get.size > 0
+    if (alreadyCalculated) {
+      //Faz lista com 25 Qs (um para cada pool); é o primeiro ponto de acc max do melhor dentre os 3 classificadores.
+      val QNB_Q5NN_QC45 = (for {
+        r <- (0 until runs).par
+        f <- (0 until folds).par
+        sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (16,17,5) and pred=expe group by position,learnerid order by sum(value) desc, position asc limit 1"
+      } yield {
+        exec(sql).get.head.head
+      }).toList
+
+      //Pega max.
+      val PosAccMax = QNB_Q5NN_QC45.sorted.toList.head.toInt
+      println(s"posições de maximos: $QNB_Q5NN_QC45 posição do max: $PosAccMax")
+
+      //      incCounter()
+      //      acquireOp()
+      //      exec(s"delete from hit where position>$PosAccMax") //todo?: aqui quebra caso db esteja aberto como readOnly
+      //      save()
+      //      releaseOp()
+
+    }
+  }
+
   lazy val Q = {
     if (!readOnly) {
       incCounter()
@@ -431,3 +467,12 @@ object DatasetTest extends App {
   //  qpattsa.take(3).map(x => x -> x.label) foreach println
 
 }
+
+/*
+investigar
+Safe quiting (waiting for 0 other jobs): countPerformedConfMatrices: Inconsistency at Random Sampling / NB_semzscore: number of queries
+Queue(1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0, 1090.0, 1090.0, 1090.0, 1091.0, 1091.0)
+
+for digits2 is lesser than total number of conf. matrices
+Queue(1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103, 1150.0889795918367, 1150.0889795918367, 1150.0889795918367, 1151.1469387755103, 1151.1469387755103)
+*/
