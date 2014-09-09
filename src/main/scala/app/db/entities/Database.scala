@@ -109,7 +109,7 @@ trait Database extends Lock {
             Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
             val url = "jdbc:sqlite:////" + dbCopy
             connection = DriverManager.getConnection(url)
-            connection.asInstanceOf[SQLiteConnection].setBusyTimeout(1000 + 1 * 20 * 60 * 1000) //20min. de timeout
+            connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. de timeout
           } catch {
             case e: Throwable => e.printStackTrace
               println("\nProblems opening db connection: " + dbCopy + " :")

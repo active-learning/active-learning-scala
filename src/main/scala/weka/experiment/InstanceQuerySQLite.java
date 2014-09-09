@@ -697,6 +697,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
 //        }
         execute("attach 'app.db' as app");
 
+        //trying to eliminate id column
         if (!execute("select * from inst limit 1")) {
             if (m_PreparedStatement.getUpdateCount() == -1) {
                 throw new Exception("Query didn't produce results");
@@ -710,7 +711,6 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
             }
         }
         ResultSet rs0 = getResultSet();
-
         ResultSetMetaData rsMetaData = rs0.getMetaData();
         int numberOfColumns = rsMetaData.getColumnCount();
         String str = "";
@@ -721,6 +721,10 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
 //        System.out.println("select " + str + " from ( " + query + " )");
 //        if (!execute("select " + str + " from ( " + query + " )")) {
         System.out.println(query);
+        rs0.close();
+
+
+        //original query
         if (!execute(query)) {
             if (m_PreparedStatement.getUpdateCount() == -1) {
                 throw new Exception("Query didn't produce results");

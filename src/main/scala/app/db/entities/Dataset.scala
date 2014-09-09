@@ -405,7 +405,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
                 str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
                 statement.executeUpdate(str)
               }
-              println(str + " " + nextIds.length)
               statement.executeUpdate("end")
               statement.close()
               println("Queries written.")
