@@ -21,7 +21,7 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers.{Learner, NB}
 import ml.models.Model
-import util.Datasets
+import util.{ALDatasets, Datasets}
 
 import scala.util.Random
 
@@ -55,7 +55,7 @@ case class Worst(learner: Learner, pool: Seq[Pattern], sampleSize: Int, testSet:
 
 object WRTest extends App {
   //KNN(5, "eucl")
-  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
+  val patts = new Random(0).shuffle(ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
   val n = (patts.length * 0.5).toInt
   val s = Worst(learner, patts.take(n), 500)
   val b = s.queries.toList

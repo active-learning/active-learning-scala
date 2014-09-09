@@ -20,7 +20,7 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers._
 import ml.models.Model
-import util.Datasets
+import util.{ALDatasets, Datasets}
 
 import scala.util.Random
 
@@ -40,7 +40,7 @@ case class DensityWeighted(learner: Learner, pool: Seq[Pattern], beta: Double, d
 }
 
 object DWTest extends App {
-  lazy val source = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
+  lazy val source = ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
   source("iris") match {
     case Right(patts) =>
       0 until 5 foreach { run =>

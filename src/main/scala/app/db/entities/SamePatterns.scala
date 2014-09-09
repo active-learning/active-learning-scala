@@ -18,7 +18,7 @@
 
 package app.db.entities
 
-import util.Datasets
+import util.{ALDatasets, Datasets}
 
 
 /**
@@ -36,7 +36,7 @@ object SamePatterns extends App {
     //do SQLite
     val da = Dataset("/home/davi/wcs/ucipp/uci/", createOnAbsence = false, readOnly = true)(d)
     da.open()
-    val a = Datasets.patternsFromSQLite(da.path)(da.database).right.get
+    val a = ALDatasets.patternsFromSQLite(da.path)(da.database).right.get
     da.close()
 
     //do ARFF

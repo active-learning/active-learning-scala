@@ -57,7 +57,10 @@ Steps:
       save.setAutoKeyGeneration(true)
       save.connectToDatabase()
       Try(save.writeBatchExcep()) match {
-        case Success(_) => println(" Finished: '" + name + "'.")
+        case Success(_) =>
+          //The weights were used as clipboard, but weight info is not written to SQLite. That's good.
+          // instances variable cannot be used unless weights are properly recovered.
+          println(" Finished: '" + name + "'.")
         case Failure(ex) =>
           val file = new File(path + name + ".db")
           file.delete

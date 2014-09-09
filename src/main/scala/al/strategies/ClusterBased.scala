@@ -74,7 +74,7 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
   }
   lazy val uuid = pool.take(20).map(_.id).mkString(".")
   lazy val outputPath = "/home/davi/wcs/ucipp/uci/clusterings"
-  lazy val dataset = pool.head.dataset().relationName().split("/").last.take(20)
+  lazy val dataset = pool.head.dataset().relationName().split("/").last.take(30)
   lazy val tree_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".tree"
   lazy val labels_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".labels"
   lazy val ids_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".ids"

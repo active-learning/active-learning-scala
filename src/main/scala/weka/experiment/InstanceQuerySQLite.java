@@ -691,37 +691,28 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
         }
         connectToDatabase();
         ((SQLiteConnection) m_Connection).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
-//        if (m_PreparedStatement != null && m_PreparedStatement.getConnection() != null) {
-//            ((SQLiteConnection) m_PreparedStatement.getConnection()).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
-//            m_PreparedStatement.setQueryTimeout(20 * 60);
-//        }
         execute("attach 'app.db' as app");
 
-//        //trying to eliminate id column
-//        if (!execute("select * from inst limit 1")) {
-//            if (m_PreparedStatement.getUpdateCount() == -1) {
-//                throw new Exception("Query didn't produce results");
-//            } else {
-//                if (m_Debug) {
-//                    System.err.println(m_PreparedStatement.getUpdateCount()
-//                            + " rows affected.");
-//                }
-//                close();
-//                return null;
-//            }
-//        }
-//        ResultSet rs0 = getResultSet();
-//        ResultSetMetaData rsMetaData = rs0.getMetaData();
-//        int numberOfColumns = rsMetaData.getColumnCount();
-//        String str = "";
-//        for (int i = 2; i <= numberOfColumns; i++)
-//            str += rsMetaData.getColumnName(i) + ",";
-//
-//        str = str.substring(0, str.length() - 1);
-////        System.out.println("select " + str + " from ( " + query + " )");
-////        if (!execute("select " + str + " from ( " + query + " )")) {
-//        System.out.println(query);
-//        rs0.close();
+        //eliminating id column from attributes
+        if (!execute("select * from i limit 1")) {
+            if (m_PreparedStatement.getUpdateCount() == -1) throw new Exception("Query didn't produce results");
+            else {
+                if (m_Debug) System.err.println(m_PreparedStatement.getUpdateCount() + " rows affected.");
+                close();
+                return null;
+            }
+        }
+        ResultSet rs0 = getResultSet();
+        ResultSetMetaData rsMetaData = rs0.getMetaData();
+        int numberOfColumns = rsMetaData.getColumnCount();
+        String str = "";
+        for (int i = 2; i <= numberOfColumns; i++)
+            str += rsMetaData.getColumnName(i) + ",";
+        str = str.substring(0, str.length() - 1);
+        System.out.println("select " + str + " from ( " + query + " )");
+//        if (!execute("select " + str + " from ( " + query + " )")) {
+        System.out.println(query);
+        rs0.close();
 
 
         //original query

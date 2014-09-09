@@ -43,7 +43,11 @@ object ArgParser {
         case Right(data) =>
           println("Processing '" + name + "':")
           val insts = new Instances(data.head.dataset(), data.length)
-          data foreach insts.add
+          data foreach { p =>
+            //Using weight temporarily as clipboard for id.
+            p.setWeight(p.id)
+            insts.add(p)
+          }
           Some(insts)
       }
       Try(f(name, lazyInsts)) match {

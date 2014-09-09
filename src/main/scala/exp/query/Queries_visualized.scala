@@ -22,14 +22,14 @@ import al.strategies._
 import ml.Pattern
 import ml.classifiers._
 import ml.models.Model
-import util.{Datasets, Tempo}
+import util.{ALDatasets, Datasets, Tempo}
 
 import scala.util.Random
 
 object Queries_visualized extends App {
   //  val arff = "/home/davi/unversioned/experimentos/fourclusters.arff"
   //  val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
-  val data = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("banana").right.get).take(2000)
+  val data = new Random(0).shuffle(ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("banana").right.get).take(2000)
   val train = data.take(1000)
   val test = data.drop(1000)
 

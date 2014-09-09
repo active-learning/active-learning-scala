@@ -18,12 +18,14 @@
 
 package util
 
+import java.io.{File, IOException}
+
 import al.strategies.Strategy
 import app.db.entities.Dataset
 import ml.{Pattern, PatternParent}
-import svmal.libsvm.SvmLibProblem
-import weka.core.Instance
+import util.Datasets._
 import weka.experiment.InstanceQuerySQLite
+
 import scala.collection.JavaConversions._
 import scala.util.Left
 
@@ -32,7 +34,6 @@ object ALDatasets {
   /**
    * Reads SQLite patterns in the querying order.
    * It opens a new connection, so it will not be able to open a connection under writing ops.
-   * Z-score is not applied.
    */
   def queriesFromSQLite(db: Dataset)(strategy: Strategy, run: Int, fold: Int) = {
     val learner = strategy.learner
@@ -52,6 +53,36 @@ object ALDatasets {
       Right(patterns.toStream)
     } catch {
       case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage + "\n" + ex.getStackTraceString + "\nProblems reading file " + arq + ": " + ex.getMessage)
+    }
+  }
+
+  /**
+   * Reads a SQLite dataset.
+   * Assigns the rowid to pattern id.
+   */
+  def patternsFromSQLite(path: String)(dataset: String) = {
+    val arq = new File(path + "/" + dataset + ".db")
+    println(s"Opening $arq")
+    if (!checkExistsForNFS(arq)) Left(s"Dataset file $arq not found!")
+    else {
+      try {
+        val patterns = {
+          val query = new InstanceQuerySQLite()
+          query.setDatabaseURL("jdbc:sqlite:////" + arq)
+          query.setQuery("select * from i order by id")
+          query.setDebug(false)
+          val instances = query.retrieveInstances()
+          instances.setClassIndex(instances.numAttributes() - 1)
+          instances.setRelationName(dataset)
+          val parent = PatternParent(instances)
+          val res = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
+          query.close()
+          res.toStream
+        }
+        Right(patterns)
+      } catch {
+        case ex: Exception => Left("Problems reading file " + arq + ": " + ex.getMessage + "\n" + ex.getStackTraceString + "\nProblems reading file " + arq + ": " + ex.getMessage)
+      }
     }
   }
 

@@ -26,7 +26,7 @@ import app.db.ClassName
 import app.db.entities.Dataset
 import ml.Pattern
 import ml.classifiers._
-import util.{Datasets, Lazy, Lock}
+import util.{ALDatasets, Datasets, Lazy, Lock}
 import weka.core.Instances
 import weka.filters.unsupervised.attribute.Standardize
 
@@ -269,7 +269,7 @@ trait CrossValidation extends Lock with ClassName {
 
         //Open connection to load patterns via weka SQL importer (from dbCopy). This is good to avoid two programs opening the same db at the same time.
         p("Loading patterns for dataset " + datasetName + " ...", lista)
-        val ps = if (binarizeNominalAtts) Datasets.patternsFromSQLite(folderToCopyDb)(datasetName)
+        val ps = if (binarizeNominalAtts) ALDatasets.patternsFromSQLite(folderToCopyDb)(datasetName)
         else Datasets.arff(path + datasetName + ".arff")
 
         ps match {
@@ -341,7 +341,7 @@ trait CrossValidation extends Lock with ClassName {
 object CVTest extends App {
   val binarizeNominalAtts = true
   val run = 0
-  val ps = if (binarizeNominalAtts) Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
+  val ps = if (binarizeNominalAtts) ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
   else Datasets.arff("/home/davi/wcs/ucipp/uci/iris.arff")
   ps match {
     case Right(patts) =>
@@ -366,7 +366,7 @@ object CVTest extends App {
   }
   println("")
   val binarizeNominalAtts2 = false
-  val ps2 = if (binarizeNominalAtts2) Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
+  val ps2 = if (binarizeNominalAtts2) ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
   else Datasets.arff("/home/davi/wcs/ucipp/uci/iris.arff")
   ps2 match {
     case Right(patts) =>

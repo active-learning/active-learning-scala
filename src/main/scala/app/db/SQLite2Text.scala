@@ -19,7 +19,7 @@
 package app.db
 
 import app.ArgParser
-import util.Datasets
+import util.{ALDatasets, Datasets}
 
 object SQLite2Text extends App {
   Class.forName("org.sqlite.JDBC")
@@ -27,8 +27,8 @@ object SQLite2Text extends App {
 
   val (path, names) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   names foreach { name =>
-    Datasets.patternsFromSQLite(path)(name) match {
-      case Right(patts) => patts foreach println
+    ALDatasets.patternsFromSQLite(path)(name) match {
+      case Right(patts) => //patts foreach println
       case Left(str) => throw new Error(str)
     }
   }

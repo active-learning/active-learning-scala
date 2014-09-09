@@ -21,7 +21,7 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers.SVMLib
 import svmal.SVMStrategymulti
-import util.Datasets
+import util.{ALDatasets, Datasets}
 
 import scala.util.Random
 
@@ -81,7 +81,7 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
 }
 
 object SVMmultiTest extends App {
-  lazy val source = Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
+  lazy val source = ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
   source("banana") match {
     case Right(patts) =>
       0 until 5 foreach { run =>

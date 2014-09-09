@@ -21,7 +21,7 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers._
 import ml.models.Model
-import util.{Datasets, Tempo}
+import util.{ALDatasets, Datasets, Tempo}
 
 import scala.util.Random
 
@@ -120,7 +120,7 @@ object EERTest extends App {
 
   //    val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get).take(4000)
   //  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/magic.arff", true).right.get)
-  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
+  val patts0 = new Random(0).shuffle(ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("gas-drift").right.get.take(1000000))
   //  val patts0 = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("iris").right.get.take(10000))
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilterChangingOrder(patts0, filter)
