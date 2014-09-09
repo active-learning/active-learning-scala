@@ -709,14 +709,12 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
         for (int i = 2; i <= numberOfColumns; i++)
             str += rsMetaData.getColumnName(i) + ",";
         str = str.substring(0, str.length() - 1);
-        System.out.println("select " + str + " from ( " + query + " )");
-//        if (!execute("select " + str + " from ( " + query + " )")) {
-        System.out.println(query);
+//        System.out.println(query);
         rs0.close();
 
 
         //original query
-        if (!execute(query)) {
+        if (!execute("select " + str + " from ( " + query + " )")) {
             if (m_PreparedStatement.getUpdateCount() == -1) {
                 throw new Exception("Query didn't produce results");
             } else {

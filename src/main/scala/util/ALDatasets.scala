@@ -61,7 +61,15 @@ object ALDatasets {
    * Assigns the rowid to pattern id.
    */
   def patternsFromSQLite(path: String)(dataset: String) = {
-    val arq = new File(path + "/" + dataset + ".db")
+
+    //get ids
+    val db = Dataset(path, createOnAbsence = false, readOnly = true)(dataset)
+    db.open()
+    val ids = db.exec("select id from i order by id asc").get.map(_.head.toInt)
+    db.close()
+
+    val file = path + "/" + dataset + ".db"
+    val arq = new File(file)
     println(s"Opening $arq")
     if (!checkExistsForNFS(arq)) Left(s"Dataset file $arq not found!")
     else {
@@ -69,13 +77,13 @@ object ALDatasets {
         val patterns = {
           val query = new InstanceQuerySQLite()
           query.setDatabaseURL("jdbc:sqlite:////" + arq)
-          query.setQuery("select * from i order by id")
+          query.setQuery("select * from i order by id asc")
           query.setDebug(false)
           val instances = query.retrieveInstances()
           instances.setClassIndex(instances.numAttributes() - 1)
           instances.setRelationName(dataset)
           val parent = PatternParent(instances)
-          val res = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
+          val res = instances.zip(ids).map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
           query.close()
           res.toStream
         }

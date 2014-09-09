@@ -54,7 +54,7 @@ trait Database extends Lock {
 
   /**
    * Opens connection to database.
-   * @param debug true, if the dataset had to be created (create parameter should be also true)
+   * @return true, if the dataset had to be created (create parameter should be also true)
    */
   def open(): Boolean = {
     //random waiting to avoid simultaneous opening
@@ -123,7 +123,7 @@ trait Database extends Lock {
             val appPath = ArgParser.appPath
             try {
               val statement = connection.createStatement()
-              statement.execute("select 1 from inst")
+              statement.execute("select 1 from i")
               statement.executeUpdate("attach '" + appPath + "app.db' as app")
               statement.close()
             } catch {

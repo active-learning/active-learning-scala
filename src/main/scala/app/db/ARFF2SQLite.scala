@@ -27,14 +27,12 @@ import weka.core.converters.DatabaseSaverForSQLite
 
 object ARFF2SQLite extends App {
   Class.forName("org.sqlite.JDBC")
-  val desc = """Version 0.9
+  val desc = """Version 1
 It preprocess the ARFF files before sendind to SQLite.
-It does not preserve the order of the instances.
 Steps:
   RemoveUseless attributes
-  Nominal -> Binary (numeric)
   deduplicate (keeps only one instance with the mode of the conflicting labels).
-  apply RandomProjection to keep at most 1999 attributes            """
+  apply RandomProjection (numeric) to keep at most 1000 attributes            """
 
 
   val (path, names) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
@@ -59,7 +57,7 @@ Steps:
       Try(save.writeBatchExcep()) match {
         case Success(_) =>
           //The weights were used as clipboard, but weight info is not written to SQLite. That's good.
-          // instances variable cannot be used unless weights are properly recovered.
+          // instances variable cannot be used after this unless weights are properly recovered.
           println(" Finished: '" + name + "'.")
         case Failure(ex) =>
           val file = new File(path + name + ".db")

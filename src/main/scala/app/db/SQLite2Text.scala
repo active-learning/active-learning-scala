@@ -28,7 +28,7 @@ object SQLite2Text extends App {
   val (path, names) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
   names foreach { name =>
     ALDatasets.patternsFromSQLite(path)(name) match {
-      case Right(patts) => //patts foreach println
+      case Right(patts) => patts foreach (x => println(x.id + "   " + x.toStringCerto))
       case Left(str) => throw new Error(str)
     }
   }
