@@ -38,7 +38,7 @@ object ArgParser {
     val names = args(1).split(",").toList
     val par = args.length > 2 && args(2) == "y"
     (if (par) names.par else names).foreach { name =>
-      lazy val lazyInsts = Datasets.arff(bina = true, debug = false)(path + name + ".arff", zscored = false) match {
+      lazy val lazyInsts = Datasets.arff(bina = true, debug = false)(path + name + ".arff") match {
         case Left(str) => println(str + "\nSkipping dataset '" + name + "'."); None
         case Right(data) =>
           println("Processing '" + name + "':")
