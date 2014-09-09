@@ -448,7 +448,6 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val queries = qs match {
       case Right(x) => x
       case Left(str) =>
-        releaseOp2()
         safeQuit(s"Problem loading queries for Rnd: $str.")
     }
     //    releaseOp()
