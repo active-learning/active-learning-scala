@@ -109,7 +109,7 @@ trait Database extends Lock {
             Class.forName("org.sqlite.JDBC") //todo: put forName at a global place to avoid repeated calling
             val url = "jdbc:sqlite:////" + dbCopy
             connection = DriverManager.getConnection(url)
-            connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. de timeout
+            connection.asInstanceOf[SQLiteConnection].setBusyTimeout(1000 + 1 * 20 * 60 * 1000) //20min. de timeout
           } catch {
             case e: Throwable => e.printStackTrace
               println("\nProblems opening db connection: " + dbCopy + " :")
@@ -125,6 +125,7 @@ trait Database extends Lock {
               val statement = connection.createStatement()
               statement.execute("select 1 from inst")
               statement.executeUpdate("attach '" + appPath + "app.db' as app")
+              statement.close()
             } catch {
               case e: Throwable => e.printStackTrace
                 unsafeQuit("\nProblems selectFromInst-testing or Attaching " + appPath + s" to $dbCopy.")
@@ -190,11 +191,14 @@ trait Database extends Lock {
           }
           queue.enqueue(seq)
         }
+        resultSet.close()
+        statement.close()
         //        println(s"queue: $queue   sql: $sql")
         Some(queue)
       } else {
         if (readOnly) justQuit("readOnly databases only accept select and pragma SQL commands!")
         val r = statement.executeUpdate(sql)
+        statement.close()
         if (debug && r > 0) println(s"statement.execute returned $r for $sql")
         None
       }
@@ -217,6 +221,7 @@ trait Database extends Lock {
         i += 1
       }
       statement.execute("end")
+      statement.close()
       weakSave()
       //      save()
       releaseOp()
@@ -264,6 +269,7 @@ trait Database extends Lock {
   def isOpen() = connection != null
 
   def close() = if (isOpen()) {
+    println(s"Closing $database ...")
     Thread.sleep(100)
     connection.close()
     connection = null

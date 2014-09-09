@@ -18,16 +18,7 @@
 
 package app.db.entities
 
-import java.util.Calendar
-
-import al.strategies.{RandomSampling, Strategy}
-import ml.Pattern
-import ml.classifiers._
-import util.{Lazy, ALDatasets, Datasets, Tempo}
-import weka.filters.unsupervised.attribute.Standardize
-
-import scala.collection.mutable
-import scala.util.Random
+import util.Datasets
 
 
 /**

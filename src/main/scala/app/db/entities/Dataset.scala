@@ -149,7 +149,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
       resultSet.next()
-      resultSet.getInt("rowid")
+      val r = resultSet.getInt("rowid")
+      resultSet.close()
+      r
     } catch {
       case e: Throwable => e.printStackTrace
         safeQuit("\nProblems consulting medida from " + dbCopy + s" with query '$sql'.")
@@ -164,7 +166,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
       resultSet.next()
-      resultSet.getInt("rowid")
+      val r = resultSet.getInt("rowid")
+      resultSet.close()
+      r
     } catch {
       case e: Throwable => e.printStackTrace
         safeQuit("\nProblems consulting learner from " + dbCopy + s" with query '$sql'.")
@@ -178,7 +182,9 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery("select rowid from app.strategy where name='" + strat + "'")
       resultSet.next()
-      resultSet.getInt("rowid")
+      val r = resultSet.getInt("rowid")
+      resultSet.close()
+      r
     } catch {
       case e: Throwable => e.printStackTrace
         safeQuit("\nProblems consulting strategy from " + dbCopy + " with query \"" + "select rowid from app.strategy where name='" + strat + "'" + "\".")
@@ -364,6 +370,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
         val resultSet = statement.executeQuery(s"select count(rowid) as q from query where strategyid=$stratId and learnerid=$learnerId and run=$run and fold=$fold")
         resultSet.next()
         q = resultSet.getInt("q")
+        resultSet.close()
         if (q > strat.pool.size) justQuit("Excess of queries (" + q + ") fetched from dataset " + dbCopy + " for run=" + run + " and fold=" + fold + s" for $strat / ${strat.learner}. They are greater than Q " + Q + s" or pool size ${strat.pool.size}. ")
       } catch {
         case e: Throwable => e.printStackTrace
@@ -398,8 +405,10 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
                 str = s"insert into query values ($stratId,$learnerId,$run,$fold,$position,$pattId)"
                 statement.executeUpdate(str)
               }
-
+              println(str + " " + nextIds.length)
               statement.executeUpdate("end")
+              statement.close()
+              println("Queries written.")
             } catch {
               case e: NullPointerException =>
                 releaseOp()
