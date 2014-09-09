@@ -47,7 +47,7 @@ object ALDatasets {
       instances.setClassIndex(instances.numAttributes() - 1)
       instances.setRelationName(db.database)
       val parent = PatternParent(instances)
-      val patterns = instances.zip(queriedInstanceIds).map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
+      val patterns = instances.zip(queriedInstanceIds).map { case (instance, idx) => Pattern(idx, instance, false, parent)}
       query.close()
       Right(patterns.toStream)
     } catch {
