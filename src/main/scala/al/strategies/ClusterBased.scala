@@ -72,9 +72,12 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     //    println(" Weka WARD clusterer called.")
     r
   }
-  lazy val uuid = UUID.randomUUID() + "_" + pool.hashCode + hashCode() + "_" + System.currentTimeMillis + "_" + pool.head.hashCode
-  lazy val tree_file = "/tmp/ClusterBased" + uuid + ".tree"
-  lazy val labels_file = "/tmp/ClusterBased" + uuid + ".labels"
+  lazy val uuid = pool.take(20).map(_.id).mkString(".")
+  lazy val outputPath = "/home/davi/wcs/ucipp/uci/clusterings"
+  lazy val dataset = pool.head.dataset().relationName().split("/").last.take(20)
+  lazy val tree_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".tree"
+  lazy val labels_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".labels"
+  lazy val ids_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".ids"
   lazy val results = {
     println("The executable file used for Cluster-based strategy is part of HS. Hierarchical Sampling (HS) version 1.0 see LICENSE GPL file.")
     val fw = new FileWriter(tree_file)
@@ -83,6 +86,9 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     val fw2 = new FileWriter(labels_file)
     fw2.write(rest.map(_.label).mkString("\n"))
     fw2.close()
+    val fw3 = new FileWriter(ids_file)
+    fw3.write(rest.map(_.id).mkString("\n"))
+    fw3.close()
     println("Calling external program...")
     import scala.sys.process._
     val s = Seq("/home/davi/wcs/als/external-software/hierarchical-al/sample", nclasses.toString, tree_file, labels_file, "foo").lines.map(_.toInt).toArray
@@ -111,8 +117,8 @@ object CTest extends App {
   val patts = new Random(0).shuffle(Datasets.arff("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
   //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
   val n = (patts.length * 0.5).toInt
-  val s = ClusterBased(patts.take(2000))
-
+  val s = ClusterBased(patts.take(50))
+  s.clusters.tree.display()
   //  val m = learner.build(patts.take(n))
   //  println(m.accuracy(patts.drop(n)))
 
