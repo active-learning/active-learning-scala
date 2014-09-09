@@ -22,8 +22,6 @@ import java.io.File
 import weka.core.Instances
 
 import scala.util.{Failure, Success, Try}
-import weka.filters.unsupervised.attribute.RandomProjection
-import weka.filters.Filter
 import app.ArgParser
 import weka.core.converters.DatabaseSaverForSQLite
 
@@ -51,39 +49,19 @@ Steps:
       }
     } else if (instancesOp.isDefined) {
       val instances = instancesOp.get
-      //Agora já vem projected.
-      val instancesProj = Some(instances) //if (instances.numAttributes > 1998) {
-      //        val filter = new RandomProjection
-      //        filter.setNumberOfAttributes(1998)
-      //        filter.setInputFormat(instances)
-      //        filter.setSeed(0)
-      //
-      //        //        Some(Filter.useFilter(instances, filter))
-      //        Try(Filter.useFilter(instances, filter)) match {
-      //          case Success(x) => println("Reduced attributes from " + instances.numAttributes + " to " + x.numAttributes + " in '" + name + "'.")
-      //            Some(x)
-      //          case Failure(ex) => println("\nSkipping dataset '" + name + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
-      //            None
-      //        }
-      //      } else Some(instances)
-
-      if (instancesProj.isDefined) {
-        //ignores completely id attributed by ARFF loader in Datasets object, although the order is usually preserved.
-        val instances = instancesProj.get
-        val save = new DatabaseSaverForSQLite
-        save.setUrl("jdbc:sqlite:////" + path + name + ".db")
-        save.setInstances(instances)
-        save.setRelationForTableName(false)
-        save.setAutoKeyGeneration(false)
-        save.setTableName("inst")
-        save.connectToDatabase()
-        Try(save.writeBatchExcep()) match {
-          case Success(_) => println(" Finished: '" + name + "'.")
-          case Failure(ex) =>
-            val file = new File(path + name + ".db")
-            file.delete
-            println(ex + "\nSkipping dataset '" + name + "'.")
-        }
+      val save = new DatabaseSaverForSQLite
+      save.setUrl("jdbc:sqlite:////" + path + name + ".db")
+      save.setInstances(instances)
+      save.setRelationForTableName(false)
+      save.setTableName("i")
+      save.setAutoKeyGeneration(true)
+      save.connectToDatabase()
+      Try(save.writeBatchExcep()) match {
+        case Success(_) => println(" Finished: '" + name + "'.")
+        case Failure(ex) =>
+          val file = new File(path + name + ".db")
+          file.delete
+          println(ex + "\nSkipping dataset '" + name + "'.")
       }
     }
   }

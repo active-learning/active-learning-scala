@@ -270,7 +270,7 @@ trait CrossValidation extends Lock with ClassName {
         //Open connection to load patterns via weka SQL importer (from dbCopy). This is good to avoid two programs opening the same db at the same time.
         p("Loading patterns for dataset " + datasetName + " ...", lista)
         val ps = if (binarizeNominalAtts) Datasets.patternsFromSQLite(folderToCopyDb)(datasetName)
-        else Datasets.arff(bina = false, debug = true)(path + datasetName + ".arff", preserveClassOrderFromARFFHeader = false)
+        else Datasets.arff(path + datasetName + ".arff")
 
         ps match {
           ////////////////
@@ -342,7 +342,7 @@ object CVTest extends App {
   val binarizeNominalAtts = true
   val run = 0
   val ps = if (binarizeNominalAtts) Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
-  else Datasets.arff(bina = false, debug = true)("/home/davi/wcs/ucipp/uci/iris.arff")
+  else Datasets.arff("/home/davi/wcs/ucipp/uci/iris.arff")
   ps match {
     case Right(patts) =>
       Datasets.kfoldCV(Lazy(new Random(0).shuffle(patts)), 2, false) { case (tr0, ts0, fold, minSize) =>
@@ -367,7 +367,7 @@ object CVTest extends App {
   println("")
   val binarizeNominalAtts2 = false
   val ps2 = if (binarizeNominalAtts2) Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris")
-  else Datasets.arff(bina = false, debug = true)("/home/davi/wcs/ucipp/uci/iris.arff", preserveClassOrderFromARFFHeader = false)
+  else Datasets.arff("/home/davi/wcs/ucipp/uci/iris.arff")
   ps2 match {
     case Right(patts) =>
       Datasets.kfoldCV(Lazy(new Random(0).shuffle(patts)), 2, false) { case (tr0, ts0, fold, minSize) =>

@@ -58,7 +58,7 @@ object FPRTest extends App {
 
   //KNN(5, "eucl")
   //  val patts = new Random(0).shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("abalone-11class").right.get).take(2000)
-  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
+  val patts = new Random(0).shuffle(Datasets.arff("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
   val n = (patts.length * 0.5).toInt
   val s = Optimal(learner, patts.take(n), 500, debug = false, patts.drop(n).toArray)
   Tempo.start

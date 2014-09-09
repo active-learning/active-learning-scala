@@ -16,26 +16,20 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ml.generators
+package app.db
 
-import util.{Datasets, Tempo}
+import app.ArgParser
+import util.Datasets
 
-import scala.util.Random
+object SQLite2Text extends App {
+  Class.forName("org.sqlite.JDBC")
+  val desc = """ bla """
 
-object ARFF2matlab extends App {
-  val rnd = new Random(0)
-  val data = Datasets.arff("/home/davi/working-copies/arff/abalone-11classes.arff").right.get
-  rnd.shuffle(data).drop(2000) foreach {
-    x => println(x.label + "," + x.toString_without_class)
+  val (path, names) = ArgParser.testArgs(getClass.getSimpleName.dropRight(1), args, 3, desc)
+  names foreach { name =>
+    Datasets.patternsFromSQLite(path)(name) match {
+      case Right(patts) => patts foreach println
+      case Left(str) => throw new Error(str)
+    }
   }
-/*  1 to 10 foreach {
-    _ =>
-      Tempo.start
-      val ceos = CEOSELM(0)
-      ceos.build(data.take(30))
-      ceos.grow(20)
-      data.take(2000).drop(30) foreach ceos.increment
-      print(ceos.accuracy(data.drop(2000)))
-      Tempo.print_stop
-  }*/
 }

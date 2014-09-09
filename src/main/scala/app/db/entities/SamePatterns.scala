@@ -43,7 +43,7 @@ object SamePatterns extends App {
     val db = Dataset("/home/davi/wcs/ucipp/uci/", createOnAbsence = false, readOnly = true)(d)
     //preserveClassOrderFromARFFHeader should be false when loading direct from arff because
     // the data on SQLite doesn't have header info anymore and registers only the internal label from 0 until |Y|.
-    val b = Datasets.arff(bina = !testarSohIdELabel)(db.path + db.database + ".arff", preserveClassOrderFromARFFHeader = false).right.get
+    val b = Datasets.arff(db.path + db.database + ".arff").right.get
 
     //compara
     val sa = if (testarSohIdELabel) a.map(p => List(p.id, p.label)).sameElements(b.map(p => List(p.id, p.label)))

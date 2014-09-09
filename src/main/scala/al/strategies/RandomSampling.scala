@@ -53,7 +53,7 @@ case class RandomSampling(pool: Seq[Pattern], debug: Boolean = false)
 object RTest extends App {
   def learner = NB()
 
-  val patts = new Random(0).shuffle(Datasets.arff(true)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
+  val patts = new Random(0).shuffle(Datasets.arff("/home/davi/unversioned/experimentos/fourclusters.arff").right.get)
   val n = (patts.length * 0.5).toInt
   val s = RandomSampling(patts.take(n))
   val l = s.queries.toList

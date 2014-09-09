@@ -47,7 +47,7 @@ object CSV2ARFF extends App {
 
 object CSV2ARFFCVTest extends App {
   //val patts0 = new Random(1230).shuffle(Datasets.arff(true)("/home/davi/wcs/marcos/data.arff").right.get)
-  val patts0 = new Random(1230).shuffle(Datasets.arff(true)("/home/davi/wcs/marcos/data-only40superAtts.arff").right.get)
+  val patts0 = new Random(1230).shuffle(Datasets.arff("/home/davi/wcs/marcos/data-only40superAtts.arff").right.get)
   val filter = Datasets.zscoreFilter(patts0)
   val patts = Datasets.applyFilter(patts0, filter)
   val n = patts0.size

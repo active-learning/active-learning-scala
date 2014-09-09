@@ -45,7 +45,7 @@ object SameRndQueriesTest extends App {
     //carrega exemplos do ARFF
     //simula CV
     val run = 4
-    val patts = Lazy(new Random(run).shuffle(Datasets.arff(bina)("/home/davi/wcs/ucipp/uci/" + d + ".arff", preserveClassOrderFromARFFHeader = false).right.get))
+    val patts = Lazy(new Random(run).shuffle(Datasets.arff("/home/davi/wcs/ucipp/uci/" + d + ".arff").right.get))
     val (pool, f, fold) = Datasets.kfoldCV(patts, 5) {
       (tr0, ts0, fold, _) =>
         lazy val f = Datasets.zscoreFilter(tr0)
