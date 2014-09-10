@@ -75,7 +75,7 @@ object SameRndQueriesTest extends App {
     def strat =
     //      RandomSampling(pool)
     //        Uncertainty(NB(), pool)
-      Uncertainty(NB(""), pool)
+      Uncertainty(NB(), pool)
     //        Uncertainty(KNNBatch(5, "eucl", pool, "", weighted = true), pool)
 
 

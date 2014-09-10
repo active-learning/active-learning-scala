@@ -42,10 +42,10 @@ object Light extends CrossValidation with App {
     new SGmulti(learner(run, pool), pool, "majority"),
     new SGmultiJS(learner(run, pool), pool),
     DensityWeighted(learner(run, pool), pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "maha"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "manh"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "cheb"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "eucl"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "maha"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "manh"),
     MahalaWeighted(learner(run, pool), pool, 1),
     MahalaWeightedTrainingUtility(learner(run, pool), pool, 1, 1)
   )

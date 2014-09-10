@@ -26,7 +26,7 @@ import ml.models.Model
  */
 case class NoLearner() extends Learner {
   override val toString = "None"
-  val notes = ""
+  val id = 0
 
   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 

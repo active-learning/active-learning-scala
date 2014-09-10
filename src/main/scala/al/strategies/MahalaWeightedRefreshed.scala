@@ -38,6 +38,7 @@ case class MahalaWeightedRefreshed(learner: Learner, pool: Seq[Pattern], beta: D
   extends StrategyWithMahala with MarginMeasure with Sample {
   override val toString = "Mahala Weighted Refreshed b" + beta + " s" + sample
   val abr = "DWMR"
+  val id = -101
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
     val unlabeledSize = unlabeled.size

@@ -36,10 +36,16 @@ import scala.util.Random
  * @param sample
  * @param debug
  */
-case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criterion: String, sample: Int, debug: Boolean = false)
+case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criterion: String, sample: Int = 300, debug: Boolean = false)
   extends StrategyWithLearner with Sample with EntropyMeasure {
   override val toString = "Expected Error Reduction Margin s" + sample + " (" + criterion + ")"
   val abr = "EERM" + criterion.take(3)
+  lazy val id = if (sample == 300) criterionInt match {
+    case Ventropy => 11
+    case Vaccuracy => 12
+    case VgmeansResidual => 13
+  } else throw new Error("Parametros inesperados para EERMargin.")
+
   //Strategy with empty pool exists only to provide its name.
   val Ventropy = 0
   val Vaccuracy = 1

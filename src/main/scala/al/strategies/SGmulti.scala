@@ -29,6 +29,11 @@ case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debu
   extends StrategySGmulti {
   override val toString = "SGmulti (" + agreement + ")"
   val abr = "SG" + agreement.take(3)
+  val id = agreement match {
+    case "consensus" => 14
+    case "majority" => 15
+  }
+
 
   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
     agreement match {

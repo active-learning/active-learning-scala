@@ -31,12 +31,12 @@ object ALELMExample extends App {
   val n = patts.length / 2
   val initialN = patts.head.nclasses
   // ClusterBased(patts.take(n))
-  val tri = DensityWeightedTrainingUtility(IELM(), patts.take(n), 1, 1, "eucl").queries
-  val tris = DensityWeightedTrainingUtility(IELMScratch(), patts.take(n), 1, 1, "eucl").queries
-  val trei = DensityWeightedTrainingUtility(EIELM(), patts.take(n), 1, 1, "eucl").queries
-  val trie = DensityWeightedTrainingUtility(IELMEnsemble(10), patts.take(n), 1, 1, "eucl").queries
-  val trci = DensityWeightedTrainingUtility(CIELM(), patts.take(n), 1, 1, "eucl").queries
-  val treci = DensityWeightedTrainingUtility(ECIELM(), patts.take(n), 1, 1, "eucl").queries
+  val tri = DensityWeightedTrainingUtility(IELM(), patts.take(n), "eucl").queries
+  val tris = DensityWeightedTrainingUtility(IELMScratch(), patts.take(n), "eucl").queries
+  val trei = DensityWeightedTrainingUtility(EIELM(), patts.take(n), "eucl").queries
+  val trie = DensityWeightedTrainingUtility(IELMEnsemble(10), patts.take(n), "eucl").queries
+  val trci = DensityWeightedTrainingUtility(CIELM(), patts.take(n), "eucl").queries
+  val treci = DensityWeightedTrainingUtility(ECIELM(), patts.take(n), "eucl").queries
   val ts = patts.drop(n)
 
   val li = IELM()

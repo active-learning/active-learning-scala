@@ -26,6 +26,7 @@ case class Entropy(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyWithLearner with EntropyMeasure {
   override val toString = "Entropy"
   val abr = "Ent"
+  val id = 4
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val selected = unlabeled maxBy {

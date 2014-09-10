@@ -34,6 +34,7 @@ case class RandomSampling(pool: Seq[Pattern], debug: Boolean = false)
   override val toString = "Random Sampling"
   val learner = NoLearner()
   val abr = "Rnd"
+  val id = 0
 
   protected def next(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     unlabeled.head

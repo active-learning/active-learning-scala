@@ -39,7 +39,9 @@ case class Optimal(learner: Learner, pool: Seq[Pattern], sampleSize: Int, debug:
   override val toString = "Optimal (accuracy) s" + sampleSize
   val abr = "Opt"
   lazy val rnd = new Random(0)
-  var unlabeledSize = if (pool.length > 0) rest.length else -1 //Strategy with empty pool exists only to provide its name.
+  var unlabeledSize = if (pool.length > 0) rest.length else -1
+  //Strategy with empty pool exists only to provide its name.
+  val id = -300
 
   def next(currentModel: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val (unlabeledSamp, unlabeledSampSize) = if (unlabeledSize > sampleSize) (rnd.shuffle(unlabeled).take(sampleSize), sampleSize) else (unlabeled, unlabeledSize)

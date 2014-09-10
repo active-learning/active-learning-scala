@@ -29,6 +29,7 @@ case class SGmultiJS(learner: Learner, pool: Seq[Pattern], debug: Boolean = fals
   extends StrategySGmulti with EntropyMeasure with JSMeasure {
   override val toString = "SGmultiJS"
   val abr = "SGJS"
+  val id = 16
 
   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) = unlabeled maxBy (pa => JSdivergence(current_models.map(m => m.distribution(pa))))
 

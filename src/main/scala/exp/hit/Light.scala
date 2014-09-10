@@ -44,16 +44,16 @@ object Light extends CrossValidation with App {
     new SGmulti(learner(run, pool), pool, "majority"),
     new SGmultiJS(learner(run, pool), pool),
     DensityWeighted(learner(run, pool), pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "cheb"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "maha"),
-    DensityWeightedTrainingUtility(learner(run, pool), pool, 1, 1, "manh"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "cheb"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "eucl"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "maha"),
+    DensityWeightedTrainingUtility(learner(run, pool), pool, "manh"),
     MahalaWeighted(learner(run, pool), pool, 1),
     MahalaWeightedTrainingUtility(learner(run, pool), pool, 1, 1) //,
   )
 
   def ee(db: Dataset) = {
-    val fazer = !db.isLocked() && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), "", weighted = true)) || !db.rndHitsComplete(C45())) {
+    val fazer = !db.isLocked() && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), weighted = true)) || !db.rndHitsComplete(C45())) {
       println(s"Rnd NB, 5NN or C45 hits are incomplete for $db with ${learner(-1, Seq())}. Skipping...")
       false
     } else {

@@ -28,6 +28,7 @@ case class SGmultiMargin(learner: Learner, pool: Seq[Pattern], debug: Boolean = 
   extends StrategySGmulti with EntropyMeasure with MarginMeasure {
   override val toString = "SGmultiMargin"
   val abr = "SGmar"
+  val id = -303
 
   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
     unlabeled minBy {

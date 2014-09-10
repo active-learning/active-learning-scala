@@ -32,6 +32,7 @@ case class MahalaWeighted(learner: Learner, pool: Seq[Pattern], beta: Double, de
   extends StrategyWithLearner with StrategyWithMahala with MarginMeasure {
   override val toString = "Mahala Weighted b" + beta
   val abr = "DWM"
+  val id = -100
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
     try {

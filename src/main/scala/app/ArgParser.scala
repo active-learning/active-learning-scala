@@ -75,32 +75,32 @@ object ArgParser {
       sys.exit(1)
     }
     def learner(seed: Int, pool: Seq[Pattern]) = args(3) match {
-      case "NB" => NB()
-      case "C45" => C45()
-      case "VFDT" => VFDT()
-      case "NBz" => NB("")
-      case "C45z" => C45("")
-      case "VFDTz" => VFDT("")
-
-      case "CI" => CIELM(seed)
-      case "ECI" => ECIELM(seed)
-      case "I" => IELM(seed)
-      case "EI" => EIELM(seed)
-
-      case "intera" => interaELM(10, 0.1, seed)
-
-      case "LASVM" => LASVM()
-      case "SVM" => SVMLib(seed)
-
-      case "1NNc" => KNNBatch(1, "cheb", pool)
-      case "1NNe" => KNNBatch(1, "eucl", pool)
-      case "1NNm" => KNNBatch(1, "manh", pool)
-      case "3NNc" => KNNBatch(3, "cheb", pool)
-      case "3NNe" => KNNBatch(3, "eucl", pool, "", weighted = true)
-      case "3NNm" => KNNBatch(3, "manh", pool)
-      case "5NNc" => KNNBatch(5, "cheb", pool)
-      case "5NNe" => KNNBatch(5, "eucl", pool, "", weighted = true)
-      case "5NNm" => KNNBatch(5, "manh", pool)
+      //      case "NB" => NB()
+      //      case "C45" => C45()
+      //      case "VFDT" => VFDT()
+      //      case "NBz" => NB("")
+      //      case "C45z" => C45("")
+      //      case "VFDTz" => VFDT("")
+      //
+      //      case "CI" => CIELM(seed)
+      //      case "ECI" => ECIELM(seed)
+      //      case "I" => IELM(seed)
+      //      case "EI" => EIELM(seed)
+      //
+      //      case "intera" => interaELM(10, 0.1, seed)
+      //
+      //      case "LASVM" => LASVM()
+      //      case "SVM" => SVMLib(seed)
+      //
+      //      case "1NNc" => KNNBatch(1, "cheb", pool)
+      //      case "1NNe" => KNNBatch(1, "eucl", pool)
+      //      case "1NNm" => KNNBatch(1, "manh", pool)
+      //      case "3NNc" => KNNBatch(3, "cheb", pool)
+      //      case "3NNe" => KNNBatch(3, "eucl", pool, "", weighted = true)
+      //      case "3NNm" => KNNBatch(3, "manh", pool)
+      //      case "5NNc" => KNNBatch(5, "cheb", pool)
+      //      case "5NNe" => KNNBatch(5, "eucl", pool, "", weighted = true)
+      //      case "5NNm" => KNNBatch(5, "manh", pool)
       case "Varios" => NoLearner()
     }
     (args(0) + "/", args(1).split(",").toSeq, learner)

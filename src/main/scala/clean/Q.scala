@@ -25,6 +25,7 @@ object Q extends AppWithUsage {
   init()
 
   val datasets = Source.fromFile(args(0)).getLines().filter(_.length > 2)
+
   datasets foreach { dataset =>
     println(s"Processing dataset $dataset ...")
 

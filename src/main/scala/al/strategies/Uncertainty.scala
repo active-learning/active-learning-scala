@@ -29,6 +29,7 @@ case class Uncertainty(learner: Learner, pool: Seq[Pattern], debug: Boolean = fa
   extends StrategyWithLearner {
   override val toString = "Uncertainty"
   val abr = "Unc"
+  val id = 2
 
   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val selected = unlabeled minBy (pa => current_model.distribution(pa).max)
