@@ -85,7 +85,7 @@ object ALDatasets {
           val parent = PatternParent(instances)
           val res = instances.zip(ids).map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
           query.close()
-          res.toStream
+          res.toVector
         }
         Right(patterns)
       } catch {

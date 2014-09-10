@@ -42,7 +42,7 @@ case class Ds(path: String, debug: Boolean = true)(dataset: String) extends Db(s
       val parent = PatternParent(instances)
       val res = instances.zip(ids).map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
       query.close()
-      res
+      res.toVector
     } catch {
       case ex: Exception => justQuit(s"${ex.getStackTraceString} \n Problems reading file $database: ${ex.getMessage}")
     }

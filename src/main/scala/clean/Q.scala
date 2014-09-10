@@ -19,7 +19,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
+import util.Datasets
+
 import scala.io.Source
+import scala.util.Random
 
 object Q extends AppWithUsage {
   val arguments = List("file-with-dataset-names")
@@ -29,7 +32,8 @@ object Q extends AppWithUsage {
 
   datasets foreach { dataset =>
     println(s"Processing dataset $dataset ...")
-    val db = Ds("/home/davi/wcs/ucipp/uci")(dataset)
-
+    val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    //    Datasets.kfoldCV()
   }
 }

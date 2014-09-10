@@ -31,7 +31,7 @@ class MySpec extends UnitSpec {
   val zbPatts = Datasets.applyFilter(zf)(bPatts)
   ds.close()
 
-  "A Db" should "create a table, write and read two tuples" in {
+  "Database" should "create a table, write and read two tuples" in {
     val db = new Db("/home/davi/wcs/als/test.db")
     assert(db.write("drop table if exists test") ===())
     assert(db.write("create table test (a INT, b FLOAT)") ===())
@@ -41,7 +41,7 @@ class MySpec extends UnitSpec {
     db.close()
   }
 
-  "A nonAttsProjected and nonUselessAtssRemoved dataset db file" should "have ids matching with the line numbers from ARFF file" in {
+  "Dataset db file" should "have ids matching ARFF line numbers" in {
     val source = Source.fromFile("/home/davi/wcs/ucipp/uci/flags.arff")
     val arff = source.getLines().dropWhile(!_.contains("@data")).toList.tail.zipWithIndex.map { case (line, idx) =>
       idx -> line.replace("'", "")
@@ -52,7 +52,7 @@ class MySpec extends UnitSpec {
     }
   }
 
-  "id of each pattern" should "survive to bina+zscore weka filters" in {
+  "patterns' ids" should "survive to bina+zscore weka filters" in {
     //label sequence in 'flags' dataset can be used to verify correctness of wekafiltered id senquence
     val m = ds.patterns.map(p => p.id -> p.label).toMap
     zbPatts foreach { p =>
@@ -60,7 +60,7 @@ class MySpec extends UnitSpec {
     }
   }
 
-  "all weights" should "after filters, be 1 at input and output patterns" in {
+  "weights" should "remain 1 at input and output of filters" in {
     assert(ds.patterns ++ bPatts ++ zbPatts forall (_.weight() == 1))
   }
   it should "raise Error if are not 1 before filters" in {
@@ -68,5 +68,38 @@ class MySpec extends UnitSpec {
     intercept[Error] {
       Datasets.applyFilter(bf)(zbPatts)
     }
+  }
+
+  val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
+  val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
+  val min = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => min}.head
+  "5-fold CV" should "create different folds" in {
+    assert(trs.map(_.sortBy(_.id)).distinct.size === trs.size)
+  }
+  it should "have 1 occurrence of each instance at 4 pools" in {
+    val occs = ds.patterns map { p =>
+      trs.map { tr => tr.count(_ == p)}
+    }
+    assert(occs.map(_.sorted) === Vector.fill(ds.patterns.size)(Vector(0, 1, 1, 1, 1)))
+  }
+  it should "have 1 occurrence of each instance for all ts folds" in {
+    val occs = ds.patterns map { p =>
+      tss.map { ts => ts.count(_ == p)}
+    }
+    assert(occs.map(_.sorted) === Vector.fill(ds.patterns.size)(Vector(0, 0, 0, 0, 1)))
+  }
+  it should "have no instance in both pool and ts" in {
+    trs.zip(tss) foreach { case (tr, ts) =>
+      assert(ts.intersect(tr).isEmpty)
+    }
+  }
+  it should "not miss any instance" in {
+    assert(ds.patterns.diff(tss.flatten).isEmpty)
+  }
+  it should "have pools with size not exceeding min+1" in {
+    trs foreach (tr => assert(tr.size === min || tr.size === min + 1))
+  }
+  it should "have tss with 0.2 the original size" in {
+    tss foreach (ts => assert(ts.size === (ds.patterns.size * 0.2).toInt || ts.size === (ds.patterns.size * 0.2).toInt + 1))
   }
 }
