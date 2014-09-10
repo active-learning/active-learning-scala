@@ -23,6 +23,14 @@ import scala.util.Random
  */
 
 class MySpec extends UnitSpec {
+  val ds = Ds("/home/davi/wcs/ucipp/uci")("flags")
+  val shuffled = new Random(0).shuffle(ds.patterns)
+  val bf = Datasets.binarizeFilter(shuffled.take(30))
+  val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+  val zf = Datasets.zscoreFilter(bPatts)
+  val zbPatts = Datasets.applyFilter(zf)(bPatts)
+  ds.close()
+
   "A Db" should "create a table, write and read two tuples" in {
     val db = new Db("/home/davi/wcs/als/test.db")
     assert(db.write("drop table if exists test") ===())
@@ -39,36 +47,26 @@ class MySpec extends UnitSpec {
       idx -> line.replace("'", "")
     }.toMap
     source.close()
-    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags")
     ds.patterns foreach { p =>
       assertResult(arff(p.id))(p.toString) //weka loader reindexes nominal attributes from zero (as in p.vector), but toString recovers original values
     }
-    ds.close()
   }
 
   "id of each pattern" should "survive to bina+zscore weka filters" in {
-    //label sequence of flags dataset can be used to verify correctness of id senquence
-    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags")
-    val shuffled = new Random(0).shuffle(ds.patterns)
-    val bf = Datasets.binarizeFilter(shuffled.take(30))
-    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
-
-    val zf = Datasets.zscoreFilter(bPatts)
-    val zbPatts = Datasets.applyFilter(zf)(bPatts)
-
+    //label sequence in 'flags' dataset can be used to verify correctness of wekafiltered id senquence
     val m = ds.patterns.map(p => p.id -> p.label).toMap
-
     zbPatts foreach { p =>
       assertResult(m(p.id))(p.label)
     }
-    ds.close()
   }
 
-
-  //  it should "throw NoSuchElementException if an empty stack is popped" in {
-  //    val emptyStack = new Stack[String]
-  //    intercept[NoSuchElementException] {
-  //      emptyStack.pop()
-  //    }
-  //  }
+  "all weights" should "after filters, be 1 at input and output patterns" in {
+    assert(ds.patterns ++ bPatts ++ zbPatts forall (_.weight() == 1))
+  }
+  it should "raise Error if are not 1 before filters" in {
+    zbPatts.head.setWeight(0.1)
+    intercept[Error] {
+      Datasets.applyFilter(bf)(zbPatts)
+    }
+  }
 }
