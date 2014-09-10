@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait AppWithUsage extends App {
+  Class.forName("org.sqlite.JDBC")
+
   def arguments: List[String]
 
   def init() {

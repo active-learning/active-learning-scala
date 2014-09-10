@@ -40,37 +40,3 @@ case class DensityWeighted(learner: Learner, pool: Seq[Pattern], beta: Double = 
     selected
   }
 }
-
-object DWTest extends App {
-  lazy val source = ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci") _
-  source("iris") match {
-    case Right(patts) =>
-      0 until 5 foreach { run =>
-        Datasets.kfoldCV(new Random(run).shuffle(patts), 5, false) { case (tr0, ts0, fold, minSize) =>
-
-          //z-score
-          lazy val f = Datasets.zscoreFilter(tr0)
-          lazy val pool = {
-            val tr = Datasets.applyFilterChangingOrder(tr0, f)
-            val res = new Random(run * 100 + fold).shuffle(tr)
-            res
-          }
-          lazy val testSet = {
-            val ts = Datasets.applyFilterChangingOrder(ts0, f)
-            new Random(run * 100 + fold).shuffle(ts)
-          }
-
-          def l = KNNBatch(5, "eucl", pool) // VFDT() //NB() //C45() //
-        val n = 11
-          val s = DensityWeighted(l, pool, 1, "eucl")
-          println(s.queries.take(n + 5).toList.map(_.id))
-
-          val s2 = DensityWeighted(l, pool, 1, "eucl")
-          val qs = s2.queries.take(n).toList
-          println(qs.map(_.id) + " " + (s2.resume_queries(qs).take(5).toList).map(_.id))
-          if (s.queries.take(n + 7).toList.map(_.id) != (qs ++ s2.resume_queries(qs).take(7).toList).map(_.id)) println("problems")
-          println("")
-        }
-      }
-  }
-}

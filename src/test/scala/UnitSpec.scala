@@ -1,7 +1,6 @@
 /*
-
-active-learning-scala: Active Learning library for Scala
-Copyright (c) 2014 Davi Pereira dos Santos
+ active-learning-scala: Active Learning library for Scala
+ Copyright (c) 2014 Davi Pereira dos Santos
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,21 +14,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
-package clean
+import org.scalatest._
 
-import scala.io.Source
-
-object Q extends AppWithUsage {
-  val arguments = List("file-with-dataset-names")
-  init()
-
-  val datasets = Source.fromFile(args(0)).getLines().filter(_.length > 2)
-
-  datasets foreach { dataset =>
-    println(s"Processing dataset $dataset ...")
-    val db = Ds("/home/davi/wcs/ucipp/uci")(dataset)
-
-  }
-}
+abstract class UnitSpec extends FlatSpec with Matchers with
+OptionValues with Inside with Inspectors

@@ -45,6 +45,7 @@ object ArgParser {
           val insts = new Instances(data.head.dataset(), data.length)
           data foreach { p =>
             //Using weight temporarily as clipboard for id.
+            if (p.weight() != 1) throw new Error(s"Weight ${p.weight()} differs from 1! That info would be lost.")
             p.setWeight(p.id)
             insts.add(p)
           }
