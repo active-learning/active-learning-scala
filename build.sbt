@@ -21,4 +21,4 @@ libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.2.2"
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-language:reflectiveCalls")
 
-test in assembly := {}
+
