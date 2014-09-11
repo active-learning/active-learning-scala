@@ -84,6 +84,11 @@ class Db(val database: String, debug: Boolean = true) {
     sys.exit(1)
   }
 
+  def quit(msg: String) = {
+    close()
+    justQuit(msg)
+  }
+
   val connection = {
     if (!fileExists(database)) justQuit(s" $database not found!")
     try {
@@ -174,7 +179,7 @@ class Db(val database: String, debug: Boolean = true) {
   }
 
   def close() {
-    if (debug) println(s"Closing $database ...")
+    if (debug) println(s"Connection to $database closed.")
     connection.close()
   }
 }
