@@ -28,6 +28,7 @@ import scala.collection.JavaConversions._
  */
 case class Ds(path: String, debug: Boolean = true)(dataset: String) extends Db(s"$path/$dataset.db", debug) {
   override lazy val toString = dataset
+  lazy val n = read("select count(1) from i").head.head.toInt
   lazy val patterns = {
     val ids = read("select id from i order by id asc").map(_.head.toInt)
     if (debug) println(s"Fetching patterns from $database ...")

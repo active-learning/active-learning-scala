@@ -26,8 +26,7 @@ trait AppWithUsage extends App {
   def arguments: List[String]
 
   def init() {
-    println(args)
-    println(arguments)
+    println(args.mkString(" "))
     if (args.size != arguments.size) {
       println(s"Usage: java -cp you-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
       sys.exit(1)

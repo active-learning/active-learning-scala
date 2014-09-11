@@ -32,11 +32,12 @@ object Q extends AppWithUsage {
   val datasets = Source.fromFile(args(0)).getLines().filter(_.length > 2)
 
   datasets foreach { dataset =>
-    println(s"Processing dataset $dataset ...")
     val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
+    println(s"Processing dataset $dataset (${ds.n} instances) ...")
     0 until runs foreach { run =>
       val shuffled = new Random(run).shuffle(ds.patterns)
       Datasets.kfoldCV(shuffled) { (tr, ts, fold, minSize) =>
+        println(s"Pool $run.$fold (${tr.size} instances) ...")
 
         //Ordena pool e faz versão filtrada.
         val pool = new Random(fold).shuffle(tr.sortBy(_.id))
@@ -54,7 +55,7 @@ object Q extends AppWithUsage {
         List(RandomSampling(pool), ClusterBased(pool)) foreach { strat =>
           println(s"$strat ...")
           ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, 0, $run, $fold)")
-          val poolId = ds.read(s"SELECT id FROM p WHERE s=${strat.id}, 0, $run, $fold").head.head.toInt
+          val poolId = ds.read(s"SELECT id FROM p WHERE s=${strat.id} and l=0 and r=$run and f=$fold").head.head.toInt
           val sqls = strat.queries.zipWithIndex map { case (q, t) => s"INSERT INTO q VALUES ($poolId, $t, ${q.id})"}
           ds.batchWrite(sqls.toList)
           println(s"$strat ok.")
