@@ -23,13 +23,7 @@ import scala.util.Random
  */
 
 class MySpec extends UnitSpec {
-  val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
-  val shuffled = new Random(0).shuffle(ds.patterns)
-  val bf = Datasets.binarizeFilter(shuffled.take(30))
-  val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
-  val zf = Datasets.zscoreFilter(bPatts)
-  val zbPatts = Datasets.applyFilter(zf)(bPatts)
-  ds.close()
+  lazy val datasets = Source.fromFile("datasets-bons.txt").getLines().mkString.split(",")
 
   "Database" should "create a table, write and read two tuples" in {
     val db = new Db("/home/davi/wcs/als/test.db")
@@ -41,25 +35,64 @@ class MySpec extends UnitSpec {
     db.close()
   }
 
-  "Dataset db file" should "have ids matching ARFF line numbers" in {
-    val source = Source.fromFile("/home/davi/wcs/ucipp/uci/flags-colour.arff")
-    val arff = source.getLines().dropWhile(!_.contains("@data")).toList.tail.zipWithIndex.map { case (line, idx) =>
-      idx -> line.replace("'", "")
-    }.toMap
-    source.close()
-    ds.patterns foreach { p =>
-      assertResult(arff(p.id))(p.toString) //weka loader reindexes nominal attributes from zero (as in p.vector), but toString recovers original values
+  "All dataset db files" should "have ids matching ARFF line numbers" in {
+    //label is not checked because there could be mismatching due to deduplication
+    val okOrProjectedOrRemovedAttsOrMissingValues = ("bank-marketing,appendicitis,blogger,glioma16,fertility-diagnosis,planning-relax," +
+      "qualitative-bankruptcy,lenses,acute-inflammations-urinary,lung-cancer,post-operative-patient,dbworld-subjects," +
+      "iris,robot-failure-lp3,zoo,leukemia-haslinger,dbworld-bodies,volcanoes-d1,hepatitis,movement-libras-1," +
+      "robot-failure-lp2,heart-disease-processed-switzerland,habermans-survival,robot-failure-lp4,robot-failure-lp1," +
+      "hayes-roth,volcanoes-d3,teaching-assistant-evaluation,wine,lsvt-voice-rehabilitation,breast-tissue-6class,seeds," +
+      "led7digit,heart-disease-processed-hungarian,ozone-eighthr,volcanoes-d4,molecular-promotor-gene,voting," +
+      "breast-tissue-4class,statlog-heart,thyroid-newthyroid,monks3,breast-cancer-wisconsin,spectf-heart,volcanoes-d2," +
+      "heart-disease-processed-cleveland,heart-disease-processed-va,steel-plates-faults,meta-data,lymphography,monks1," +
+      "cardiotocography-10class,flare,robot-failure-lp5,spect-heart,flags-religion,flags-colour,parkinsons," +
+      "vertebra-column-2c,vertebra-column-3c,arcene,systhetic-control,ionosphere,horse-colic-surgical," +
+      "connectionist-mines-vs-rocks,glass,bupa,heart-disease-reprocessed-hungarian,dermatology,indian-liver-patient," +
+      "mammographic-mass,ecoli,blood-transfusion-service,wholesale-channel,movement-libras-10,ozone-onehr," +
+      "climate-simulation-craches,wdbc,user-knowledge,arrhythmia,volcanoes-e2,micro-mass-mixed-spectra,saheart," +
+      "credit-approval,movement-libras,statlog-australian-credit,waveform-v1,pima-indians-diabetes,leaf,volcanoes-e4," +
+      "volcanoes-e1,balance-scale,autoUniv-au6-cd1-400,volcanoes-a1,banknote-authentication,monks2,autoUniv-au7-cpd1-500," +
+      "volcanoes-e5,connectionist-vowel-reduced,wine-quality-red,autoUniv-au7-700,volcanoes-a4,waveform-v2," +
+      "micro-mass-pure-spectra,autoUniv-au6-250-drift-au6-cd1-500,annealing").split(",")
+    datasets.filter(!okOrProjectedOrRemovedAttsOrMissingValues.contains(_)) foreach { dataset =>
+      val source = Source.fromFile(s"/home/davi/wcs/ucipp/uci/$dataset.arff")
+      val arff = source.getLines().dropWhile(!_.contains("@data")).toList.tail.zipWithIndex.map { case (line, idx) =>
+        idx -> line.replace("'", "")
+      }.toMap
+      source.close()
+      val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
+      ds.patterns foreach { p =>
+        //weka loader reindexes nominal attributes from zero (as in p.vector), but toString recovers original values
+        assertResult(arff(p.id).split(",").dropRight(1).mkString(",").take(50), s"$dataset id:${p.id}")(p.toString.split(",").dropRight(1).mkString(",").take(50))
+      }
+      ds.close()
     }
   }
 
   "patterns' ids" should "survive to bina+zscore weka filters" in {
-    //label sequence in 'flags' dataset can be used to verify correctness of wekafiltered id senquence
-    val m = ds.patterns.map(p => p.id -> p.label).toMap
-    zbPatts foreach { p =>
-      assertResult(m(p.id))(p.label)
+    //label sequence in all datasets can be used to verify correctness of wekafiltered id sequence
+    datasets foreach { dataset =>
+      val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
+      val m = ds.patterns.map(p => p.id -> p.label).toMap
+      val shuffled = new Random(0).shuffle(ds.patterns)
+      val bf = Datasets.binarizeFilter(shuffled.take(30))
+      val bPatts = Datasets.applyFilter(bf)(shuffled.drop(3))
+      val zf = Datasets.zscoreFilter(bPatts)
+      val zbPatts = Datasets.applyFilter(zf)(bPatts)
+      zbPatts foreach { p =>
+        assertResult(m(p.id), s"$dataset id:${p.id}")(p.label)
+      }
+      ds.close()
     }
   }
 
+  val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+  val shuffled = new Random(0).shuffle(ds.patterns)
+  val bf = Datasets.binarizeFilter(shuffled.take(30))
+  val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+  val zf = Datasets.zscoreFilter(bPatts)
+  val zbPatts = Datasets.applyFilter(zf)(bPatts)
+  ds.close()
   "weights" should "remain 1 at input and output of filters" in {
     assert(ds.patterns ++ bPatts ++ zbPatts forall (_.weight() == 1))
   }
