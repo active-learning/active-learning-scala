@@ -42,7 +42,7 @@ class MySpec extends UnitSpec {
   }
 
   "Dataset db file" should "have ids matching ARFF line numbers" in {
-    val source = Source.fromFile("/home/davi/wcs/ucipp/uci/flags.arff")
+    val source = Source.fromFile("/home/davi/wcs/ucipp/uci/flags-colour.arff")
     val arff = source.getLines().dropWhile(!_.contains("@data")).toList.tail.zipWithIndex.map { case (line, idx) =>
       idx -> line.replace("'", "")
     }.toMap
