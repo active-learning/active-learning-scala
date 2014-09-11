@@ -79,6 +79,10 @@ class Db(val database: String, debug: Boolean = true) {
     }
   }
 
+  def error(msg: String) = {
+    throw new Error(s"Error: $msg")
+  }
+
   def justQuit(msg: String) = {
     println(s"Quiting: $msg")
     sys.exit(1)
@@ -90,7 +94,7 @@ class Db(val database: String, debug: Boolean = true) {
   }
 
   val connection = {
-    if (!fileExists(database)) justQuit(s" $database not found!")
+    if (!fileExists(database)) error(s" $database not found!")
     try {
       val url = "jdbc:sqlite:////" + database
       val conn = DriverManager.getConnection(url)
@@ -100,12 +104,12 @@ class Db(val database: String, debug: Boolean = true) {
     } catch {
       case e: Throwable => e.printStackTrace()
         println(e.getMessage)
-        justQuit(s"Problems opening db connection: $database !")
+        error(s"Problems opening db connection: $database !")
     }
   }
 
   def read(sql: String) = {
-    if (connection.isClosed) justQuit(s"Not applying sql query [$sql]. Database $database is closed.")
+    if (connection.isClosed) error(s"Not applying sql query [$sql]. Database $database is closed.")
     if (debug) println(s"[$sql]")
 
     try {
@@ -136,12 +140,12 @@ class Db(val database: String, debug: Boolean = true) {
       queue.toList.map(_.toVector)
     } catch {
       case e: Throwable => e.printStackTrace()
-        justQuit(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
+        error(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
     }
   }
 
   def write(sql: String) {
-    if (connection.isClosed) justQuit(s"Not applying sql query $sql. Database $database is closed.")
+    if (connection.isClosed) error(s"Not applying sql query $sql. Database $database is closed.")
     if (debug) println(s"[$sql]")
 
     try {
@@ -152,7 +156,7 @@ class Db(val database: String, debug: Boolean = true) {
       if (debug && r > 0) println(s"statement.execute returned $r for $sql")
     } catch {
       case e: Throwable => e.printStackTrace()
-        justQuit(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
+        error(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
     } finally release()
   }
 
@@ -161,7 +165,7 @@ class Db(val database: String, debug: Boolean = true) {
    * @param sql
    */
   def batchWrite(sqls: List[String]) {
-    if (connection.isClosed) justQuit(s"Not applying sql queries $sqls. Database $database is closed.")
+    if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
     if (debug) sqls foreach println
 
     try {
@@ -174,7 +178,7 @@ class Db(val database: String, debug: Boolean = true) {
       if (debug && rs.exists(_ > 0)) println(s"statement.execute returned $rs for $sqls")
     } catch {
       case e: Throwable => e.printStackTrace()
-        justQuit(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
+        error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
     } finally release()
   }
 

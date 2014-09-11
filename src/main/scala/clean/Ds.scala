@@ -45,7 +45,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
       query.close()
       res.toVector
     } catch {
-      case ex: Exception => justQuit(s"${ex.getStackTraceString} \n Problems reading file $database: ${ex.getMessage}")
+      case ex: Exception => error(s"${ex.getStackTraceString} \n Problems reading file $database: ${ex.getMessage}")
     }
   }
 }
