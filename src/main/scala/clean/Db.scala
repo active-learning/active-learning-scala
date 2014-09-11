@@ -94,7 +94,7 @@ class Db(val database: String, debug: Boolean = true) {
     try {
       val url = "jdbc:sqlite:////" + database
       val conn = DriverManager.getConnection(url)
-      conn.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. de timeout
+      conn.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
       if (debug) println(s"Connection to $database opened.")
       conn
     } catch {

@@ -19,8 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait AppWithUsage extends App {
-  val runs = 4
-  val folds = 6
+  val runs = 6
+  val folds = 4
   Class.forName("org.sqlite.JDBC")
 
   def arguments: List[String]

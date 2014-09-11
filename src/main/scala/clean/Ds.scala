@@ -26,7 +26,7 @@ import scala.collection.JavaConversions._
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(path: String, debug: Boolean = true)(dataset: String) extends Db(s"$path/$dataset.db", debug) {
+case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(s"$path/$dataset.db", debug) {
   override lazy val toString = dataset
   lazy val n = read("select count(1) from i").head.head.toInt
   lazy val patterns = {

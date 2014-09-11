@@ -37,9 +37,9 @@ object Q extends AppWithUsage {
     }
     val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
     log(s"Processing ${ds.n} instances ...")
-    0 until runs foreach { run =>
+    (0 until runs par) foreach { run =>
       val shuffled = new Random(run).shuffle(ds.patterns)
-      Datasets.kfoldCV(shuffled) { (tr, ts, fold, minSize) =>
+      Datasets.kfoldCV(shuffled, k = folds, parallel = true) { (tr, ts, fold, minSize) =>
         log(s"Pool $run.$fold (${tr.size} instances) ...")
 
         //Ordena pool e faz versão filtrada.
@@ -51,8 +51,8 @@ object Q extends AppWithUsage {
           val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
           new Random(fold).shuffle(filteredTr.sortBy(_.id))
         }
-        if (pool.zip(filteredPool).forall(x => x._1.id == x._2.id)) log("Ids foram mantidos após filtro.")
-        else throw new Error("Ids inconsistentes!")
+        //        if (pool.zip(filteredPool).forall(x => x._1.id == x._2.id)) log("Ids foram mantidos após filtro.")
+        //        else throw new Error("Ids inconsistentes!")
 
         //Grava rnd e clu queries.
         List(RandomSampling(pool), ClusterBased(pool)) foreach { strat =>
