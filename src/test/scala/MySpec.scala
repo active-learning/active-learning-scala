@@ -86,53 +86,103 @@ class MySpec extends UnitSpec {
     }
   }
 
-  val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
-  val shuffled = new Random(0).shuffle(ds.patterns)
-  val bf = Datasets.binarizeFilter(shuffled.take(30))
-  val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
-  val zf = Datasets.zscoreFilter(bPatts)
-  val zbPatts = Datasets.applyFilter(zf)(bPatts)
-  ds.close()
   "weights" should "remain 1 at input and output of filters" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    val zf = Datasets.zscoreFilter(bPatts)
+    val zbPatts = Datasets.applyFilter(zf)(bPatts)
+    ds.close()
     assert(ds.patterns ++ bPatts ++ zbPatts forall (_.weight() == 1))
   }
   it should "raise Error if are not 1 before filters" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    val zf = Datasets.zscoreFilter(bPatts)
+    val zbPatts = Datasets.applyFilter(zf)(bPatts)
+    ds.close()
     zbPatts.head.setWeight(0.1)
     intercept[Error] {
       Datasets.applyFilter(bf)(zbPatts)
     }
   }
 
-  val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
-  val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
-  val min = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => min}.head
   "5-fold CV" should "create different folds" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    val zf = Datasets.zscoreFilter(bPatts)
+    ds.close()
+    val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
     assert(trs.map(_.sortBy(_.id)).distinct.size === trs.size)
   }
   it should "have 1 occurrence of each instance at 4 pools" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    val zf = Datasets.zscoreFilter(bPatts)
+    ds.close()
+    val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
     val occs = ds.patterns map { p =>
       trs.map { tr => tr.count(_ == p)}
     }
     assert(occs.map(_.sorted) === Vector.fill(ds.patterns.size)(Vector(0, 1, 1, 1, 1)))
   }
   it should "have 1 occurrence of each instance for all ts folds" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    ds.close()
+    val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
     val occs = ds.patterns map { p =>
       tss.map { ts => ts.count(_ == p)}
     }
     assert(occs.map(_.sorted) === Vector.fill(ds.patterns.size)(Vector(0, 0, 0, 0, 1)))
   }
   it should "have no instance in both pool and ts" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    ds.close()
+    val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
+    val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
     trs.zip(tss) foreach { case (tr, ts) =>
       assert(ts.intersect(tr).isEmpty)
     }
   }
   it should "not miss any instance" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    ds.close()
+    val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
     assert(ds.patterns.diff(tss.flatten).isEmpty)
   }
   it should "have pools with size not exceeding min+1" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    ds.close()
+    val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
+    val min = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => min}.head
     trs foreach (tr => assert(tr.size === min || tr.size === min + 1))
   }
   it should "have tss with 0.2 the original size" in {
+    val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
+    val shuffled = new Random(0).shuffle(ds.patterns)
+    val bf = Datasets.binarizeFilter(shuffled.take(30))
+    val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
+    ds.close()
+    val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
     tss foreach (ts => assert(ts.size === (ds.patterns.size * 0.2).toInt || ts.size === (ds.patterns.size * 0.2).toInt + 1))
   }
 }
