@@ -93,7 +93,7 @@ public class FriedmanTest {
 
 
             /**
-             * daqui para baixo tem a ver com o nemenyi tem que separar em outro metodo TODO
+             * daqui para baixo tem a ver com o nemenyi
              */
             double[] qAlpha10pct = {1.645, 2.052, 2.291, 2.460, 2.589, 2.693, 2.780, 2.855, 2.920, 2.978, 3.030, 3.077, 3.120, 3.159,
                     3.196, 3.230, 3.261, 3.291, 3.319, 3.346, 3.371, 3.394, 3.417, 3.439, 3.459, 3.479, 3.498, 3.516};

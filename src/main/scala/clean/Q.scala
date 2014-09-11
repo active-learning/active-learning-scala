@@ -19,6 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
+import al.strategies.{ClusterBased, RandomSampling}
 import util.Datasets
 
 import scala.io.Source
@@ -33,7 +34,33 @@ object Q extends AppWithUsage {
   datasets foreach { dataset =>
     println(s"Processing dataset $dataset ...")
     val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
-    val shuffled = new Random(0).shuffle(ds.patterns)
-    //    Datasets.kfoldCV()
+    0 until runs foreach { run =>
+      val shuffled = new Random(run).shuffle(ds.patterns)
+      Datasets.kfoldCV(shuffled) { (tr, ts, fold, minSize) =>
+
+        //Ordena pool e faz versão filtrada.
+        val pool = new Random(fold).shuffle(tr.sortBy(_.id))
+        val filteredPool = {
+          val binaf = Datasets.binarizeFilter(tr)
+          val binarizedTr = Datasets.applyFilter(binaf)(tr)
+          val zscof = Datasets.zscoreFilter(binarizedTr)
+          val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+          new Random(fold).shuffle(filteredTr.sortBy(_.id))
+        }
+        if (pool.zip(filteredPool).forall(x => x._1.id == x._2.id)) println("Ids foram mantidos após filtro.")
+        else throw new Error("Ids inconsistentes!")
+
+        //Grava rnd e clu queries.
+        List(RandomSampling(pool), ClusterBased(pool)) foreach { strat =>
+          println(s"$strat ...")
+          ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, 0, $run, $fold)")
+          val poolId = ds.read(s"SELECT id FROM p WHERE s=${strat.id}, 0, $run, $fold").head.head.toInt
+          val sqls = strat.queries.zipWithIndex map { case (q, t) => s"INSERT INTO q VALUES ($poolId, $t, ${q.id})"}
+          ds.batchWrite(sqls.toList)
+          println(s"$strat ok.")
+        }
+      }
+    }
+    ds.close()
   }
 }

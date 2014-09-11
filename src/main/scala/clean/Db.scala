@@ -124,11 +124,11 @@ class Db(val database: String, debug: Boolean = true) {
             //            }
             resultSet.getDouble(i)
         }
-        queue.enqueue(seq.toVector)
+        queue.enqueue(seq)
       }
       resultSet.close()
       statement.close()
-      queue.toList
+      queue.toList.map(_.toVector)
     } catch {
       case e: Throwable => e.printStackTrace()
         justQuit(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
@@ -148,6 +148,28 @@ class Db(val database: String, debug: Boolean = true) {
     } catch {
       case e: Throwable => e.printStackTrace()
         justQuit(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
+    } finally release()
+  }
+
+  /**
+   * Several queries inside a transaction.
+   * @param sql
+   */
+  def batchWrite(sqls: List[String]) {
+    if (connection.isClosed) justQuit(s"Not applying sql queries $sqls. Database $database is closed.")
+    if (debug) sqls foreach println
+
+    try {
+      acquire()
+      val statement = connection.createStatement()
+      statement.execute("begin")
+      val rs = sqls map statement.executeUpdate
+      statement.execute("end")
+      statement.close()
+      if (debug && rs.exists(_ > 0)) println(s"statement.execute returned $rs for $sqls")
+    } catch {
+      case e: Throwable => e.printStackTrace()
+        justQuit(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
     } finally release()
   }
 
