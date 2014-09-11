@@ -23,7 +23,7 @@ import scala.util.Random
  */
 
 class MySpec extends UnitSpec {
-  val ds = Ds("/home/davi/wcs/ucipp/uci")("flags")
+  val ds = Ds("/home/davi/wcs/ucipp/uci")("flags-colour")
   val shuffled = new Random(0).shuffle(ds.patterns)
   val bf = Datasets.binarizeFilter(shuffled.take(30))
   val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
