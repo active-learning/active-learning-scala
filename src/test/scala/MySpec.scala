@@ -25,7 +25,7 @@ import scala.util.Random
 class MySpec extends UnitSpec {
   lazy val datasets = Source.fromFile("datasets-bons.txt").getLines().mkString.split(",")
 
-  "Database" should "create a table, write and read two tuples" in {
+  "Database" should "create a table, write and read two tuples" in  {
     val db = new Db("/home/davi/wcs/als/test.db")
     assert(db.write("drop table if exists test") ===())
     assert(db.write("create table test (a INT, b FLOAT)") ===())
@@ -35,7 +35,7 @@ class MySpec extends UnitSpec {
     db.close()
   }
 
-  "All dataset db files" should "have ids matching ARFF line numbers" in {
+  "All dataset db files" should "have ids matching ARFF line numbers" ignore  {
     //label is not checked because there could be mismatching due to deduplication
     val okOrProjectedOrRemovedAttsOrMissingValues = ("bank-marketing,appendicitis,blogger,glioma16,fertility-diagnosis,planning-relax," +
       "qualitative-bankruptcy,lenses,acute-inflammations-urinary,lung-cancer,post-operative-patient,dbworld-subjects," +
@@ -69,7 +69,7 @@ class MySpec extends UnitSpec {
     }
   }
 
-  "patterns' ids" should "survive to bina+zscore weka filters" in {
+  "patterns' ids" should "survive to bina+zscore weka filters" ignore {
     //label sequence in all datasets can be used to verify correctness of wekafiltered id sequence
     datasets foreach { dataset =>
       val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
