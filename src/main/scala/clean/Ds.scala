@@ -74,9 +74,9 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
     val queryPoolId = poolId(strat, strat.learner, run, fold)
-    if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.$learner.", this)
+    if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.", this)
     else {
-      val sqls = strat.queries.take(q).zipWithIndex map { case (q, t) => s"INSERT INTO q VALUES ($queryPoolId, $t, ${q.id})"}
+      val sqls = strat.queries.take(q).zipWithIndex map { case (patt, t) => s"INSERT INTO q VALUES ($queryPoolId, $t, ${patt.id})"}
       batchWrite(sqls.toList)
     }
   }
@@ -88,7 +88,8 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
       if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.", this)
       else {
         val qs = queries
-        val sqls = queries.zipWithIndex map { case (q, t) => s"INSERT INTO q VALUES ($hitPoolId, $t, ${q.id})"}
+        ???
+        val sqls = queries.zipWithIndex map { case (q, t) => s"INSERT INTO h VALUES ($hitPoolId, $t, ${q.id})"}
         batchWrite(sqls.toList)
       }
     }

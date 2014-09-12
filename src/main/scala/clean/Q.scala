@@ -30,16 +30,16 @@ object Q extends Exp {
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], run: Int, fold: Int) = {
     //queries
-    ds.writeQueries(pool, strat, run, fold, Int.MaxValue)(NoLearner())
+    ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 
     //hits
-    ???
-    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
-    learners foreach ds.writeHits(pool, strat.queries, strat, run, fold)
+    //    ???
+    //    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
+    //    learners foreach ds.writeHits(pool, strat.queries, strat, run, fold)
   }
 
   def end(ds: Ds) {
-    ???
+    //    ???
     //    //Faz lista com 25 pseudoQs (um para cada pool); é o primeiro ponto de acc max do melhor dentre os 3 classificadores.
     //    val QNB_Q5NN_QC45 = (for {
     //      r <- (0 until runs).par
