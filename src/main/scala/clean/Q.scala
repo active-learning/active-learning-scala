@@ -24,7 +24,9 @@ import ml.Pattern
 import ml.classifiers._
 
 object Q extends Exp {
-  val arguments = List("datasets-path", "file-with-dataset-names")
+  val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):r|f|rf")
+  lazy val parallelRuns = args(2).contains("r")
+  lazy val parallelFolds = args(2).contains("f")
   init()
 
   def strats(pool: Seq[Pattern]) = List(RandomSampling(pool), ClusterBased(pool))

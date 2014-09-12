@@ -29,6 +29,8 @@ import scala.util.Random
 trait Exp extends AppWithUsage {
   lazy val path = args(0)
   lazy val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2).filter(!_.startsWith("#"))
+  val parallelRuns: Boolean
+  val parallelFolds: Boolean
 
   def strats(pool: Seq[Pattern]): List[Strategy]
 
@@ -42,9 +44,9 @@ trait Exp extends AppWithUsage {
       val ds = Ds(path)(dataset)
       ds.open()
       log(s"Processing ${ds.n} instances ...")(ds.toString)
-      (0 until Global.runs par) foreach { run =>
+      (if (parallelRuns) (0 until Global.runs).par else 0 until Global.runs) foreach { run =>
         val shuffled = new Random(run).shuffle(ds.patterns)
-        Datasets.kfoldCV(shuffled, k = Global.folds, parallel = true) { (tr, ts, fold, minSize) =>
+        Datasets.kfoldCV(shuffled, k = Global.folds, parallelFolds) { (tr, ts, fold, minSize) =>
           log(s"Pool $run.$fold (${tr.size} instances) ...")(ds.toString)
 
           //Ordena pool e faz versão filtrada.
