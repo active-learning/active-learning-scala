@@ -25,6 +25,7 @@ import ml.classifiers._
 
 object Q extends Exp {
   val arguments = List("datasets-path", "file-with-dataset-names")
+  init()
 
   def strats(pool: Seq[Pattern]) = List(RandomSampling(pool), ClusterBased(pool))
 

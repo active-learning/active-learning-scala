@@ -27,9 +27,8 @@ import scala.io.Source
 import scala.util.Random
 
 trait Exp extends AppWithUsage {
-  val path = args(0)
-  val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2).filter(!_.startsWith("#"))
-  init()
+  lazy val path = args(0)
+  lazy val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2).filter(!_.startsWith("#"))
 
   def strats(pool: Seq[Pattern]): List[Strategy]
 
@@ -37,37 +36,40 @@ trait Exp extends AppWithUsage {
 
   def end(ds: Ds)
 
-  datasets foreach { dataset =>
-    val ds = Ds(path)(dataset)
-    ds.open()
-    log(s"Processing ${ds.n} instances ...")(ds.toString)
-    (0 until Global.runs par) foreach { run =>
-      val shuffled = new Random(run).shuffle(ds.patterns)
-      Datasets.kfoldCV(shuffled, k = Global.folds, parallel = true) { (tr, ts, fold, minSize) =>
-        log(s"Pool $run.$fold (${tr.size} instances) ...")(ds.toString)
+  override def init() {
+    super.init()
+    datasets foreach { dataset =>
+      val ds = Ds(path)(dataset)
+      ds.open()
+      log(s"Processing ${ds.n} instances ...")(ds.toString)
+      (0 until Global.runs par) foreach { run =>
+        val shuffled = new Random(run).shuffle(ds.patterns)
+        Datasets.kfoldCV(shuffled, k = Global.folds, parallel = true) { (tr, ts, fold, minSize) =>
+          log(s"Pool $run.$fold (${tr.size} instances) ...")(ds.toString)
 
-        //Ordena pool e faz versão filtrada.
-        val pool = new Random(fold).shuffle(tr.sortBy(_.id))
-        val filteredPool = {
-          val binaf = Datasets.binarizeFilter(tr)
-          val binarizedTr = Datasets.applyFilter(binaf)(tr)
-          val zscof = Datasets.zscoreFilter(binarizedTr)
-          val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
-          new Random(fold).shuffle(filteredTr.sortBy(_.id))
+          //Ordena pool e faz versão filtrada.
+          val pool = new Random(fold).shuffle(tr.sortBy(_.id))
+          val filteredPool = {
+            val binaf = Datasets.binarizeFilter(tr)
+            val binarizedTr = Datasets.applyFilter(binaf)(tr)
+            val zscof = Datasets.zscoreFilter(binarizedTr)
+            val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+            new Random(fold).shuffle(filteredTr.sortBy(_.id))
+          }
+          //        if (pool.zip(filteredPool).forall(x => x._1.id == x._2.id)) log("Ids foram mantidos após filtro.")
+          //        else throw new Error("Ids inconsistentes!")
+
+          strats(pool) foreach { strat =>
+            log(s"$strat ...")(ds.toString)
+            ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, 0, $run, $fold)")
+            op(strat, ds, pool, run, fold)
+            log(s"$strat ok.")(ds.toString)
+          }
+
         }
-        //        if (pool.zip(filteredPool).forall(x => x._1.id == x._2.id)) log("Ids foram mantidos após filtro.")
-        //        else throw new Error("Ids inconsistentes!")
-
-        strats(pool) foreach { strat =>
-          log(s"$strat ...")(ds.toString)
-          ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, 0, $run, $fold)")
-          op(strat, ds, pool, run, fold)
-          log(s"$strat ok.")(ds.toString)
-        }
-
       }
+      end(ds)
+      ds.close()
     }
-    end(ds)
-    ds.close()
   }
 }

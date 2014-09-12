@@ -1,7 +1,5 @@
 package clean
 
-import java.util.Calendar
-
 /*
 active-learning-scala: Active Learning library for Scala
 Copyright (c) 2014 Davi Pereira dos Santos
