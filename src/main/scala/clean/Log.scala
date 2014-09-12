@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-trait Log extends App with Log {
+trait Log extends App {
   def log(msg: String, dataset: Ds = null) {
     println(s"${Calendar.getInstance().getTime}\n ${if (dataset == null) dataset} : $msg")
   }
