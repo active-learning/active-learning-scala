@@ -17,7 +17,7 @@
  */
 package al.strategies
 
-import java.io.FileWriter
+import java.io.{File, FileWriter}
 import java.util.UUID
 
 import clean.Global
@@ -81,16 +81,21 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
   lazy val labels_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".labels"
   lazy val ids_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".ids"
   lazy val results = {
-    println("The executable file used for Cluster-based strategy is part of HS. Hierarchical Sampling (HS) version 1.0 see LICENSE GPL file.")
-    val fw = new FileWriter(tree_file)
-    fw.write(clusters.parent_vector.mkString("\n"))
-    fw.close()
-    val fw2 = new FileWriter(labels_file)
-    fw2.write(rest.map(_.label).mkString("\n"))
-    fw2.close()
-    val fw3 = new FileWriter(ids_file)
-    fw3.write(rest.map(_.id).mkString("\n"))
-    fw3.close()
+    //    println("The executable file used for Cluster-based strategy is part of HS. Hierarchical Sampling (HS) version 1.0 see LICENSE GPL file.")
+    println(" HS GPL ")
+    val f = new File(tree_file)
+    if (f.exists()) println("Tree already done, recovering ...")
+    else {
+      val fw2 = new FileWriter(labels_file)
+      fw2.write(rest.map(_.label).mkString("\n"))
+      fw2.close()
+      val fw3 = new FileWriter(ids_file)
+      fw3.write(rest.map(_.id).mkString("\n"))
+      fw3.close()
+      val fw = new FileWriter(tree_file)
+      fw.write(clusters.parent_vector.mkString("\n"))
+      fw.close()
+    }
     println("Calling external program...")
     import scala.sys.process._
     val s = Seq(Global.appPath + "/external-software/hierarchical-al/sample", nclasses.toString, tree_file, labels_file, "foo").lines.map(_.toInt).toArray
