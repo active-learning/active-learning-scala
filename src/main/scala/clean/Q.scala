@@ -28,20 +28,21 @@ import scala.io.Source
 import scala.util.Random
 
 object Q extends AppWithUsage {
-  val arguments = List("file-with-dataset-names")
+  val arguments = List("datasets-path", "file-with-dataset-names")
   init()
 
-  val datasets = Source.fromFile(args(0)).getLines().filter(_.length > 2)
+  val path = args(0)
+  val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2)
 
   datasets foreach { dataset =>
     def log(msg: String): Unit = {
       println(s"${Calendar.getInstance().getTime}\n $dataset : $msg")
     }
-    val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
+    val ds = Ds(path)(dataset)
     log(s"Processing ${ds.n} instances ...")
-    (0 until runs par) foreach { run =>
+    (0 until Global.runs par) foreach { run =>
       val shuffled = new Random(run).shuffle(ds.patterns)
-      Datasets.kfoldCV(shuffled, k = folds, parallel = true) { (tr, ts, fold, minSize) =>
+      Datasets.kfoldCV(shuffled, k = Global.folds, parallel = true) { (tr, ts, fold, minSize) =>
         log(s"Pool $run.$fold (${tr.size} instances) ...")
 
         //Ordena pool e faz versão filtrada.

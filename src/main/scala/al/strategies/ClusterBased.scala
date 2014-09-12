@@ -20,6 +20,7 @@ package al.strategies
 import java.io.FileWriter
 import java.util.UUID
 
+import clean.Global
 import ml.Pattern
 import ml.classifiers.{NB, NoLearner}
 import ml.clusterers.HC.HClusterer
@@ -73,8 +74,8 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     //    println(" Weka WARD clusterer called.")
     r
   }
-  lazy val uuid = pool.take(20).map(_.id).mkString(".")
-  lazy val outputPath = "/home/davi/wcs/ucipp/uci/clusterings"
+  lazy val uuid = pool.take(20).map(_.id).mkString(".") + s"-${pool.size}-"
+  lazy val outputPath = Global.appPath + "/clusterings"
   lazy val dataset = pool.head.dataset().relationName().split("/").last.take(30)
   lazy val tree_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".tree"
   lazy val labels_file = s"$outputPath/ClusterBased-$dataset-" + uuid + ".labels"
@@ -92,7 +93,7 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     fw3.close()
     println("Calling external program...")
     import scala.sys.process._
-    val s = Seq("/home/davi/wcs/als/external-software/hierarchical-al/sample", nclasses.toString, tree_file, labels_file, "foo").lines.map(_.toInt).toArray
+    val s = Seq(Global.appPath + "/external-software/hierarchical-al/sample", nclasses.toString, tree_file, labels_file, "foo").lines.map(_.toInt).toArray
     println(" external program called...")
     s
   }

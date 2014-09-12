@@ -19,17 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-trait AppWithUsage extends App {
-  Class.forName("org.sqlite.JDBC")
-
-  def arguments: List[String]
-
-  def init() {
-    println(args.mkString(" "))
-    if (args.size != arguments.size) {
-      println(s"Usage: java -cp you-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
-      sys.exit(1)
-    }
-  }
+object Global {
+  val runs = 5
+  val folds = 5
+  val appPath = new File(".").getCanonicalPath + "/"
 }
