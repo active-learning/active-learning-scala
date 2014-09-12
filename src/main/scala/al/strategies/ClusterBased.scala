@@ -84,7 +84,7 @@ case class ClusterBased(pool: Seq[Pattern], debug: Boolean = false)
     //    println("The executable file used for Cluster-based strategy is part of HS. Hierarchical Sampling (HS) version 1.0 see LICENSE GPL file.")
     println(" HS GPL ")
     val f = new File(tree_file)
-    if (f.exists()) println("Tree already done, recovering ...")
+    if (f.exists() && f.length() > 0) println("Tree already done, recovering ...")
     else {
       val fw2 = new FileWriter(labels_file)
       fw2.write(rest.map(_.label).mkString("\n"))
