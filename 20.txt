@@ -18,4 +18,3 @@ heart-disease-processed-switzerland
 autoUniv-au6-1000
 magic
 volcanoes-a2
-volcanoes-d1
