@@ -19,62 +19,40 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import java.util.Calendar
+import al.strategies.{ClusterBased, RandomSampling, Strategy}
+import ml.Pattern
+import ml.classifiers._
 
-import al.strategies.{ClusterBased, RandomSampling}
-import util.Datasets
-
-import scala.io.Source
-import scala.util.Random
-
-object Q extends AppWithUsage {
+object Q extends Exp {
   val arguments = List("datasets-path", "file-with-dataset-names")
-  init()
 
-  val path = args(0)
-  val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2)
+  def strats(pool: Seq[Pattern]) = List(RandomSampling(pool), ClusterBased(pool))
 
-  datasets foreach { dataset =>
-    def log(msg: String): Unit = {
-      println(s"${Calendar.getInstance().getTime}\n $dataset : $msg")
-    }
-    val ds = Ds(path)(dataset)
-    log(s"Processing ${ds.n} instances ...")
-    (0 until Global.runs par) foreach { run =>
-      val shuffled = new Random(run).shuffle(ds.patterns)
-      Datasets.kfoldCV(shuffled, k = Global.folds, parallel = true) { (tr, ts, fold, minSize) =>
-        log(s"Pool $run.$fold (${tr.size} instances) ...")
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], run: Int, fold: Int) = {
+    //queries
+    ds.writeQueries(pool, strat, run, fold, Int.MaxValue)(NoLearner())
 
-        //Ordena pool e faz versão filtrada.
-        val pool = new Random(fold).shuffle(tr.sortBy(_.id))
-        val filteredPool = {
-          val binaf = Datasets.binarizeFilter(tr)
-          val binarizedTr = Datasets.applyFilter(binaf)(tr)
-          val zscof = Datasets.zscoreFilter(binarizedTr)
-          val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
-          new Random(fold).shuffle(filteredTr.sortBy(_.id))
-        }
-        //        if (pool.zip(filteredPool).forall(x => x._1.id == x._2.id)) log("Ids foram mantidos após filtro.")
-        //        else throw new Error("Ids inconsistentes!")
+    //hits
+    ???
+    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
+    learners foreach ds.writeHits(pool, strat.queries, strat, run, fold)
+  }
 
-        //Grava rnd e clu queries.
-        List(RandomSampling(pool), ClusterBased(pool)) foreach { strat =>
-          log(s"$strat ...")
-          ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, 0, $run, $fold)")
-          val poolId = ds.read(s"SELECT id FROM p WHERE s=${strat.id} and l=0 and r=$run and f=$fold").head.head.toInt
-          val gravou = ds.read(s"SELECT COUNT(1) FROM q WHERE p=$poolId").head.head match {
-            case 0 => false
-            case qs => if (qs != pool.size) ds.quit(s"$qs previous queries should be ${pool.size}") else true
-          }
-          if (gravou) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.")
-          else {
-            val sqls = strat.queries.zipWithIndex map { case (q, t) => s"INSERT INTO q VALUES ($poolId, $t, ${q.id})"}
-            ds.batchWrite(sqls.toList)
-          }
-          log(s"$strat ok.")
-        }
-      }
-    }
-    ds.close()
+  def end(ds: Ds) {
+    ???
+    //    //Faz lista com 25 pseudoQs (um para cada pool); é o primeiro ponto de acc max do melhor dentre os 3 classificadores.
+    //    val QNB_Q5NN_QC45 = (for {
+    //      r <- (0 until runs).par
+    //      f <- (0 until folds).par
+    //      sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (16,17,5) and pred=expe group by position,learnerid order by sum(value) desc, position asc limit 1"
+    //    } yield {
+    //      exec(sql).get.head.head
+    //    }).toList
+    //
+    //    //Pega mediana.
+    //    val QAccMax = QNB_Q5NN_QC45.sorted.toList(runs * folds / 2).toInt
+    //    println(s"Q=$QAccMax")
+    //
+    //    exec(s"insert into res values (1,-1,-1,-1,-1,$QAccMax)") //todo: aqui quebra caso db esteja aberto como readOnly
   }
 }

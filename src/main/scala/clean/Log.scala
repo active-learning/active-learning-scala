@@ -20,16 +20,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-trait AppWithUsage extends App with Log {
-  Class.forName("org.sqlite.JDBC")
-
-  def arguments: List[String]
-
-  def init() {
-    println(args.mkString(" "))
-    if (args.size != arguments.size) {
-      println(s"Usage: java -cp you-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
-      sys.exit(1)
-    }
+trait Log extends App with Log {
+  def log(msg: String, dataset: Ds = null) {
+    println(s"${Calendar.getInstance().getTime}\n ${if (dataset == null) dataset} : $msg")
   }
 }

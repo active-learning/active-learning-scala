@@ -35,7 +35,7 @@ import scala.collection.parallel.mutable
  * A escrita depende do mutex aqui implementado, mas
  * pode ser resolvida pelo SQLite via tentativas durante BUSY_WAITING.
  */
-class Db(val database: String, debug: Boolean = true) {
+class Db(val database: String, debug: Boolean = true) extends Log {
   override lazy val toString = database
   private var available = true
 
@@ -52,13 +52,6 @@ class Db(val database: String, debug: Boolean = true) {
       notify()
     }
   }
-
-  //  if (!FileUtils.contentEquals(dbLock, dbCopy)) {
-  //    if (debug) println(s"copiando $dbLock (${dbLock.length()}) para $dbCopy (${dbCopy.length()})")
-  //    FileUtils.copyFile(dbLock, dbCopy)
-  //    if (debug) println(s"$dbLock para $dbCopy copiado!")
-  //    Thread.sleep(100)
-  //  }
 
   /**
    * A more reliable test for file existence.
