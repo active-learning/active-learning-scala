@@ -26,7 +26,7 @@ class MySpec extends UnitSpec {
   lazy val datasets = Source.fromFile("datasets-bons.txt").getLines().mkString.split(",")
 
   "Database" should "create a table, write and read two tuples" in {
-    val db = new Db(Global.appPath + "/test.db", true)
+    val db = new Db(Global.appPath + "/test.db", false)
     db.open()
     assert(db.write("drop table if exists test") ===())
     assert(db.write("create table test (a INT, b FLOAT)") ===())
