@@ -39,11 +39,12 @@ trait Exp extends AppWithUsage {
 
   datasets foreach { dataset =>
     val ds = Ds(path)(dataset)
-    log(s"Processing ${ds.n} instances ...", ds)
+    ds.open()
+    log(s"Processing ${ds.n} instances ...", ds.toString)
     (0 until Global.runs par) foreach { run =>
       val shuffled = new Random(run).shuffle(ds.patterns)
       Datasets.kfoldCV(shuffled, k = Global.folds, parallel = true) { (tr, ts, fold, minSize) =>
-        log(s"Pool $run.$fold (${tr.size} instances) ...", ds)
+        log(s"Pool $run.$fold (${tr.size} instances) ...", ds.toString)
 
         //Ordena pool e faz versão filtrada.
         val pool = new Random(fold).shuffle(tr.sortBy(_.id))
@@ -58,10 +59,10 @@ trait Exp extends AppWithUsage {
         //        else throw new Error("Ids inconsistentes!")
 
         strats(pool) foreach { strat =>
-          log(s"$strat ...", ds)
+          log(s"$strat ...", ds.toString)
           ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, 0, $run, $fold)")
           op(strat, ds, pool, run, fold)
-          log(s"$strat ok.", ds)
+          log(s"$strat ok.", ds.toString)
         }
 
       }

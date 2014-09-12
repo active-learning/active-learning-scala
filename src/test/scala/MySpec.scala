@@ -26,7 +26,8 @@ class MySpec extends UnitSpec {
   lazy val datasets = Source.fromFile("datasets-bons.txt").getLines().mkString.split(",")
 
   "Database" should "create a table, write and read two tuples" in {
-    val db = new Db(Global.appPath + "/test.db")
+    val db = new Db(Global.appPath + "/test.db", true)
+    db.open()
     assert(db.write("drop table if exists test") ===())
     assert(db.write("create table test (a INT, b FLOAT)") ===())
     assert(db.write("insert into test values (7, 0.7)") ===())
@@ -88,6 +89,7 @@ class MySpec extends UnitSpec {
 
   "weights" should "remain 1 at input and output of filters" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -98,6 +100,7 @@ class MySpec extends UnitSpec {
   }
   it should "raise Error if are not 1 before filters" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -112,6 +115,7 @@ class MySpec extends UnitSpec {
 
   "5-fold CV" should "create different folds" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -122,6 +126,7 @@ class MySpec extends UnitSpec {
   }
   it should "have 1 occurrence of each instance at 4 pools" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -135,6 +140,7 @@ class MySpec extends UnitSpec {
   }
   it should "have 1 occurrence of each instance for all ts folds" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -147,6 +153,7 @@ class MySpec extends UnitSpec {
   }
   it should "have no instance in both pool and ts" in {
     val ds = Ds("/home/davi/wcs/als/")("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -159,6 +166,7 @@ class MySpec extends UnitSpec {
   }
   it should "not miss any instance" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -168,6 +176,7 @@ class MySpec extends UnitSpec {
   }
   it should "have pools with size not exceeding min+1" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))
@@ -178,6 +187,7 @@ class MySpec extends UnitSpec {
   }
   it should "have tss with 0.2 the original size" in {
     val ds = Ds(Global.appPath)("flags-colour")
+    ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
     val bPatts = Datasets.applyFilter(bf)(shuffled.drop(30))

@@ -35,9 +35,24 @@ import scala.collection.parallel.mutable
  * A escrita depende do mutex aqui implementado, mas
  * pode ser resolvida pelo SQLite via tentativas durante BUSY_WAITING.
  */
-class Db(val database: String, debug: Boolean = true) extends Log {
+class Db(val database: String, debug: Boolean = true) {
   override lazy val toString = database
   private var available = true
+  private var connection: Connection = null
+
+  def open() {
+    if (!fileExists(database)) error(s" $database not found!")
+    try {
+      val url = "jdbc:sqlite:////" + database
+      connection = DriverManager.getConnection(url)
+      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
+      if (debug) println(s"Connection to $database opened.")
+    } catch {
+      case e: Throwable => e.printStackTrace()
+        println(e.getMessage)
+        error(s"Problems opening db connection: $database !")
+    }
+  }
 
   def acquire() = {
     synchronized {
@@ -86,23 +101,8 @@ class Db(val database: String, debug: Boolean = true) extends Log {
     justQuit(msg)
   }
 
-  val connection = {
-    if (!fileExists(database)) error(s" $database not found!")
-    try {
-      val url = "jdbc:sqlite:////" + database
-      val conn = DriverManager.getConnection(url)
-      conn.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
-      if (debug) println(s"Connection to $database opened.")
-      conn
-    } catch {
-      case e: Throwable => e.printStackTrace()
-        println(e.getMessage)
-        error(s"Problems opening db connection: $database !")
-    }
-  }
-
   def read(sql: String) = {
-    if (connection.isClosed) error(s"Not applying sql query [$sql]. Database $database is closed.")
+    test(sql)
     if (debug) println(s"[$sql]")
 
     try {
@@ -137,8 +137,10 @@ class Db(val database: String, debug: Boolean = true) extends Log {
     }
   }
 
+  def test(sql: String) = if (connection == null || connection.isClosed) error(s"Not applying sql query [$sql]. Database $database is closed.")
+
   def write(sql: String) {
-    if (connection.isClosed) error(s"Not applying sql query $sql. Database $database is closed.")
+    test(sql)
     if (debug) println(s"[$sql]")
 
     try {
