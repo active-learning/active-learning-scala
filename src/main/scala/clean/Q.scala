@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
+import java.util.Calendar
+
 import al.strategies.{ClusterBased, RandomSampling}
 import util.Datasets
 
@@ -33,7 +35,7 @@ object Q extends AppWithUsage {
 
   datasets foreach { dataset =>
     def log(msg: String): Unit = {
-      println(s"$dataset: $msg")
+      println(s"${Calendar.getInstance().getTime}\n $dataset : $msg")
     }
     val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
     log(s"Processing ${ds.n} instances ...")
