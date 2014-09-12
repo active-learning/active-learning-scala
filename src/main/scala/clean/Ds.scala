@@ -74,7 +74,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
     val queryPoolId = poolId(strat, strat.learner, run, fold)
-    if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.", this)
+    if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")(dataset)
     else {
       val sqls = strat.queries.take(q).zipWithIndex map { case (patt, t) => s"INSERT INTO q VALUES ($queryPoolId, $t, ${patt.id})"}
       batchWrite(sqls.toList)
@@ -85,7 +85,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     if (learner.id != strat.learner.id && strat.id != 0 && strat.id != 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
       val hitPoolId = poolId(strat, learner, run, fold)
-      if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.", this)
+      if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")(dataset)
       else {
         val qs = queries
         ???
