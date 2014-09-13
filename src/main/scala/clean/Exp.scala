@@ -73,5 +73,6 @@ trait Exp extends AppWithUsage {
       end(ds)
       ds.close()
     }
+    log("Datasets prontos.")
   }
 }
