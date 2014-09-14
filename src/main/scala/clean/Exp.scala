@@ -56,7 +56,7 @@ trait Exp extends AppWithUsage {
             //Ordena pool,testSet e aplica filtro se preciso.
             val needsFilter = (strat, strat.learner) match {
               case (_, _: ELM) => true
-              case (DensityWeightedTrainingUtility(_, _, "maha"), _) => true
+              case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
               case (_: MahalaWeightedTrainingUtility, _) => true
               case _ => false
             }

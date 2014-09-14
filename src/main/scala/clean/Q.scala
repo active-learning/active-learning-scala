@@ -45,6 +45,8 @@ object Q extends Exp {
     val queries = ds.queries(strat, run, fold)
     val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
     learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
+
+    //Q
   }
 
   def end(ds: Ds) {

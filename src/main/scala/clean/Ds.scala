@@ -19,18 +19,17 @@
 package clean
 
 import al.strategies.Strategy
-import app.db.entities.Dataset
 import ml.classifiers.Learner
+import ml.models.Model
 import ml.{Pattern, PatternParent}
 import weka.experiment.InstanceQuerySQLite
 
 import scala.collection.JavaConversions._
-import scala.util.Left
 
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(s"$path/$dataset.db", debug) {
+case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(s"$path/$dataset.db", debug) with Blob {
   override lazy val toString = dataset
   lazy val n = read("select count(1) from i").head.head.toInt
   lazy val patterns = fetchPatterns("i order by id asc")
@@ -82,15 +81,38 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     }
   }
 
-  def writeHits(pool: Seq[Pattern], queries: Stream[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
+  /**
+   * Grava tantas matrizes de confusão quantas {queries - |Y| + 1} houver.
+   * Time step das tabelas q e h é o mesmo.
+   * +1 é referente à mat. de conf. do primeiro build, i.e. t = |Y| - 1.
+   * Outra forma de ver é que as primeiras |Y| queries geram a primeira mat. de conf.
+   * Strat.learner deve ser igual a learner, em strats gnósticas.
+   * @param pool
+   * @param testSet
+   * @param queries
+   * @param strat
+   * @param run
+   * @param fold
+   * @param learner
+   * @return
+   */
+  def writeHits(pool: Seq[Pattern], testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
     if (learner.id != strat.learner.id && strat.id != 0 && strat.id != 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
       val hitPoolId = poolId(strat, learner, run, fold)
       if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")(dataset)
       else {
-        val qs = queries
-        ???
-        val sqls = queries.zipWithIndex map { case (q, t) => s"INSERT INTO h VALUES ($hitPoolId, $t, ${q.id})"}
+        val initialPatterns = pool.take(nclasses)
+        val rest = pool.drop(nclasses)
+        var m: Model = null
+        val sqls = null +: rest.zipWithIndex map { case (patt, idx) =>
+          val t = idx + nclasses - 1
+          m = if (patt == null) learner.build(initialPatterns)
+          else learner.update(m, fast_mutable = true)(patt)
+          val cm = m.confusion(testSet)
+          val blob = shrinkToBytes(cm.flatten)
+          s"INSERT INTO h VALUES ($hitPoolId, $t, $blob)"
+        }
         batchWrite(sqls.toList)
       }
     }
