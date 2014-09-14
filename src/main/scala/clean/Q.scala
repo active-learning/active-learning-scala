@@ -42,6 +42,7 @@ object Q extends Exp {
     }
 
     //hits
+    ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)")
     val queries = ds.queries(strat, run, fold)
     val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
     learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
