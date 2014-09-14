@@ -45,25 +45,11 @@ object Q extends Exp {
     val queries = ds.queries(strat, run, fold)
     val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
     learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
-
-    //Q
   }
 
   def end(ds: Ds) {
-    //    ???
-    //    //Faz lista com 25 pseudoQs (um para cada pool); é o primeiro ponto de acc max do melhor dentre os 3 classificadores.
-    //    val QNB_Q5NN_QC45 = (for {
-    //      r <- (0 until runs).par
-    //      f <- (0 until folds).par
-    //      sql = s"select position from hit where run=$r and fold=$f and strategyid=1 and learnerid in (16,17,5) and pred=expe group by position,learnerid order by sum(value) desc, position asc limit 1"
-    //    } yield {
-    //      exec(sql).get.head.head
-    //    }).toList
-    //
-    //    //Pega mediana.
-    //    val QAccMax = QNB_Q5NN_QC45.sorted.toList(runs * folds / 2).toInt
-    //    println(s"Q=$QAccMax")
-    //
-    //    exec(s"insert into res values (1,-1,-1,-1,-1,$QAccMax)") //todo: aqui quebra caso db esteja aberto como readOnly
+    //Q
+    val Q = ds.Q.getOrElse(ds.calculaQ)
+    println(s"Q: $Q")
   }
 }

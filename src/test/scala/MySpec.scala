@@ -52,17 +52,17 @@ class MySpec extends UnitSpec with Blob {
     assert(db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )") ===())
     val a = Array(3.toByte, 5.toByte, 255.toByte, 0.toByte, 24.toByte)
     db.writeBlob("insert into h values (1, 3, ?)", a)
-    assert(a.sameElements(db.readBlob("select mat from h where p=1 and t=3")))
+    assert(a.sameElements(db.readBlobs("select mat from h where p=1 and t=3").head._1))
     db.close()
   }
 
-  "Dataset" should s"zip shrink, write, read and stretch a confusion matrix (boundary cells with limit values 4095 and 0) ${mat.toList.map(_.toList)}" in {
+  "Dataset" should s"shrink, write, read and stretch a confusion matrix (boundary cells with limit values 4095 and 0) ${mat.toList.map(_.toList)}" in {
     val db = new Db(Global.appPath + "/test.db", false)
     db.open()
     assert(db.write("drop table if exists h") ===())
     assert(db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )") ===())
     assert(db.writeBlob("insert into h values (1, 32, ?)", shrinkToBytes(mat.flatten)) ===())
-    val blob = db.readBlob("select mat from h where p=1 and t=32")
+    val blob = db.readBlobs("select mat from h where p=1 and t=32").head._1
     assertResult(mat.flatten)(stretchFromBytes(blob))
     db.close()
   }

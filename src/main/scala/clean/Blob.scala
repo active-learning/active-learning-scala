@@ -19,6 +19,17 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait Blob {
+  def hits(m: Array[Array[Int]]) = {
+    val n = m.size
+    var i = 0
+    var s = 0
+    while (i < n) {
+      s += m(i)(i)
+      i += 1
+    }
+    s
+  }
+
   def shrinkToBytes(numbers: Seq[Int], bits: Int = 12) = {
     val binary = numbers flatMap (n => Integer.toBinaryString(n).takeRight(bits).reverse.padTo(12, 0).reverse)
     val n = binary.size

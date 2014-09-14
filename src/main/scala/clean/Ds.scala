@@ -33,7 +33,18 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   override lazy val toString = dataset
   lazy val n = read("select count(1) from i").head.head.toInt
   lazy val patterns = fetchPatterns("i order by id asc")
-  lazy val Q = read(s"select v from r where m=0 AND p=-1")
+  lazy val calculaQ = {
+    val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
+    val hit_t = readBlobs(s"select mat,t from h WHERE p IN (${poolIds.mkString(",")}) ORDER BY t").map { case (b, t) => hits(stretchFromBytes(b).grouped(nclasses).map(_.toArray).toArray) -> t}
+    val maxAcc = hit_t.map(_._1).max
+    val firstTAtMaxAcc = hit_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
+    write(s"INSERT INTO r values (0, -1, $firstTAtMaxAcc)")
+    firstTAtMaxAcc
+  }
+  lazy val Q = {
+    val r = read(s"select v from r where m=0 AND p=-1").head
+    if (r.isEmpty) None else Some(r)
+  }
   lazy val nclasses = patterns.head.nclasses
 
   /**

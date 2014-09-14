@@ -149,17 +149,20 @@ class Db(val database: String, debug: Boolean = true) extends Log {
     } finally release()
   }
 
-  def readBlob(sql: String) = {
+  def readBlobs(sql: String) = {
     test(sql)
     if (debug) log(s"[$sql]")()
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
-      resultSet.next()
-      val bytes = resultSet.getBytes(1)
+      val queue = collection.mutable.Queue[(Array[Byte], Int)]()
+      while (resultSet.next()) {
+        val bytes = resultSet.getBytes(1)
+        queue.enqueue(bytes -> resultSet.getInt(2))
+      }
       resultSet.close()
       statement.close()
-      bytes
+      queue.toList
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
