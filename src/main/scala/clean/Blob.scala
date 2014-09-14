@@ -1,7 +1,5 @@
 package clean
 
-import java.util.Calendar
-
 /*
 active-learning-scala: Active Learning library for Scala
 Copyright (c) 2014 Davi Pereira dos Santos
@@ -21,7 +19,17 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait Blob {
-  def zip(numbers: Seq[Int]) = numbers flatMap (n => Integer.toBinaryString(n).reverse.padTo(12, 0).reverse)
+  def shrinkToBytes(numbers: Seq[Int], bits: Int = 12) = {
+    println(numbers)
+    val binary = numbers flatMap (n => Integer.toBinaryString(n).takeRight(bits).reverse.padTo(12, 0).reverse)
+    val n = binary.size
+    val pad32bit = binary.reverse.padTo(n + (8 - n % 8), 0).reverse
+   Converter.fromBinary(pad32bit.mkString)
+  }
 
-  def unzip(bytes: Array[Byte]) = (bytes grouped 12).map(_.mkString).map(Integer.parseInt(_, 2)).toList
+  def stretchFromBytes(bytes: Array[Byte], bits: Int = 12) = {
+    val a = Converter.toBinary(bytes)
+    val b = a.drop(a.size % 12).grouped(12).map(_.mkString).toList
+   b.map(Integer.parseInt(_, 2))
+  }
 }

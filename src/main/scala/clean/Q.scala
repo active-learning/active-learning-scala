@@ -35,6 +35,8 @@ object Q extends Exp {
     //queries
     ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 
+    ds.write("DROP TABLE h")
+    ds.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )")
     //hits
     //    ???
     //    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())

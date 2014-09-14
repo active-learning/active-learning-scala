@@ -35,6 +35,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   lazy val n = read("select count(1) from i").head.head.toInt
   lazy val patterns = fetchPatterns("i order by id asc")
   lazy val Q = read(s"select v from r where m=0 AND p=-1")
+  lazy val nclasses = patterns.head.nclasses
 
   /**
    * Reads SQLite patterns in the querying order.

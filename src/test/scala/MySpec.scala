@@ -1,4 +1,5 @@
-import clean.{Global, Ds, Db}
+import clean._
+import ml.classifiers.NB
 import util.Datasets
 
 import scala.io.Source
@@ -22,7 +23,7 @@ import scala.util.Random
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class MySpec extends UnitSpec {
+class MySpec extends UnitSpec with Blob {
   lazy val datasets = Source.fromFile("datasets-bons.txt").getLines().mkString.split(",")
 
   "Database" should "create a table, write and read two tuples" in {
@@ -33,6 +34,36 @@ class MySpec extends UnitSpec {
     assert(db.write("insert into test values (7, 0.7)") ===())
     assert(db.write("insert into test values (8, 0.8)") ===())
     assertResult(List(Vector(7, 0.7), Vector(8, 0.8)))(db.read("select * from test"))
+    db.close()
+  }
+
+  val d = Ds(Global.appPath)("flags-colour")
+  d.open()
+  val l = NB()
+  val m = l.build(d.patterns.take(20))
+  d.close()
+  val mat = m.confusion(d.patterns.drop(20))
+  mat(0)(0) = 4095
+  mat(d.nclasses - 1)(d.nclasses - 1) = 0
+  "Dataset" should s"blob" in {
+    val db = new Db(Global.appPath + "/test.db", false)
+    db.open()
+    assert(db.write("drop table if exists h") ===())
+    assert(db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )") ===())
+    val a = Array(3.toByte, 5.toByte, 255.toByte, 0.toByte, 24.toByte)
+    db.writeBlob("insert into h values (1, 3, ?)", a)
+    assert(a.sameElements(db.readBlob("select mat from h where p=1 and t=3")))
+    db.close()
+  }
+
+  "Dataset" should s"zip shrink, write, read and stretch a confusion matrix (boundary cells with limit values 4095 and 0) ${mat.toList.map(_.toList)}" in {
+    val db = new Db(Global.appPath + "/test.db", false)
+    db.open()
+    assert(db.write("drop table if exists h") ===())
+    assert(db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )") ===())
+    assert(db.writeBlob("insert into h values (1, 32, ?)", shrinkToBytes(mat.flatten)) ===())
+    val blob = db.readBlob("select mat from h where p=1 and t=32")
+    assertResult(mat.flatten)(stretchFromBytes(blob))
     db.close()
   }
 

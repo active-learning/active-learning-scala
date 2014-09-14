@@ -23,10 +23,6 @@ import java.sql.{Connection, DriverManager}
 
 import org.sqlite.SQLiteConnection
 
-import scala.collection
-import scala.collection.immutable.Queue
-import scala.collection.parallel.mutable
-
 /**
  * Cada instancia desta classe representa uma conexao a
  * um arquivo db.
@@ -104,7 +100,6 @@ class Db(val database: String, debug: Boolean = true) extends Log {
   def read(sql: String) = {
     test(sql)
     if (debug) log(s"[$sql]")()
-
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
@@ -142,7 +137,6 @@ class Db(val database: String, debug: Boolean = true) extends Log {
   def write(sql: String) {
     test(sql)
     if (debug) log(s"[$sql]")()
-
     try {
       acquire()
       val statement = connection.createStatement()
@@ -152,6 +146,39 @@ class Db(val database: String, debug: Boolean = true) extends Log {
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
+    } finally release()
+  }
+
+  def readBlob(sql: String) = {
+    test(sql)
+    if (debug) log(s"[$sql]")()
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      resultSet.next()
+      val bytes = resultSet.getBytes(1)
+      resultSet.close()
+      statement.close()
+      bytes
+    } catch {
+      case e: Throwable => e.printStackTrace()
+        error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
+    } finally release()
+  }
+
+  def writeBlob(sql: String, data: Array[Byte]) {
+    test(sql)
+    if (debug) log(s"[$sql]")()
+    try {
+      acquire()
+      val statement = connection.prepareStatement(sql)
+      statement.setBytes(1, data)
+      val r = statement.execute()
+      statement.close()
+      if (debug) log(s"statement.execute returned $r for $sql")()
+    } catch {
+      case e: Throwable => e.printStackTrace()
+        error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
     } finally release()
   }
 
