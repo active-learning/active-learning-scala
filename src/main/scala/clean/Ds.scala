@@ -69,7 +69,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     case ex: Exception => error(s"${ex.getStackTraceString} \n Problems reading file $database: ${ex.getMessage}")
   }
 
-  def queries(strat: Strategy, run: Int, fold: Int) = fetchPatterns(s"i, q where i.id=q.i and s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold order by t asc")
+  def queries(strat: Strategy, run: Int, fold: Int) = fetchPatterns(s"i, q, p where i.id=q.i and p.id=p and p.s=${strat.id} and p.l=${strat.learner.id} and p.r=$run and p.f=$fold order by t asc")
 
   def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold").head.head.toInt
 
