@@ -19,8 +19,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies.Strategy
+import al.strategies.{MahalaWeightedTrainingUtility, DensityWeightedTrainingUtility, Strategy}
 import ml.Pattern
+import ml.neural.elm.ELM
 import util.Datasets
 
 import scala.io.Source
@@ -34,7 +35,7 @@ trait Exp extends AppWithUsage {
 
   def strats(pool: Seq[Pattern]): List[Strategy]
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], run: Int, fold: Int)
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], run: Int, fold: Int)
 
   def end(ds: Ds)
 
@@ -49,22 +50,35 @@ trait Exp extends AppWithUsage {
         Datasets.kfoldCV(shuffled, k = Global.folds, parallelFolds) { (tr, ts, fold, minSize) =>
           log(s"Pool $run.$fold (${tr.size} instances) ...")(ds.toString)
 
-          //Ordena pool e faz versão filtrada.
-          val pool = new Random(fold).shuffle(tr.sortBy(_.id))
-          val filteredPool = {
-            val binaf = Datasets.binarizeFilter(tr)
-            val binarizedTr = Datasets.applyFilter(binaf)(tr)
-            val zscof = Datasets.zscoreFilter(binarizedTr)
-            val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
-            new Random(fold).shuffle(filteredTr.sortBy(_.id))
-          }
-          //        if (pool.zip(filteredPool).forall(x => x._1.id == x._2.id)) log("Ids foram mantidos após filtro.")
-          //        else throw new Error("Ids inconsistentes!")
-
-          strats(pool) foreach { strat =>
+          strats(Seq()) foreach { strat =>
             log(s"$strat ...")(ds.toString)
+
+            //Ordena pool,testSet e aplica filtro se preciso.
+            val needsFilter = (strat, strat.learner) match {
+              case (_, _: ELM) => true
+              case (DensityWeightedTrainingUtility(_, _, "maha"), _) => true
+              case (_: MahalaWeightedTrainingUtility, _) => true
+              case _ => false
+            }
+            val (pool, testSet) = if (needsFilter) (new Random(fold).shuffle(tr.sortBy(_.id)), new Random(fold).shuffle(ts.sortBy(_.id)))
+            else {
+              val binaf = Datasets.binarizeFilter(tr)
+              val binarizedTr = Datasets.applyFilter(binaf)(tr)
+              val binarizedTs = Datasets.applyFilter(binaf)(ts)
+
+              val zscof = Datasets.zscoreFilter(binarizedTr)
+              val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+              val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
+
+              (new Random(fold).shuffle(filteredTr.sortBy(_.id)), new Random(fold).shuffle(filteredTs.sortBy(_.id)))
+            }
+
+            //inaugura pool no ds se ainda não existir
             ds.write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, 0, $run, $fold)")
-            op(strat, ds, pool, run, fold)
+
+            //opera no ds
+            op(strats(pool).find(_.id == strat.id).get, ds, pool, testSet, run, fold)
+
             log(s"$strat ok.")(ds.toString)
           }
 

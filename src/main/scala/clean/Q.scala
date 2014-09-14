@@ -31,16 +31,20 @@ object Q extends Exp {
 
   def strats(pool: Seq[Pattern]) = List(RandomSampling(pool), ClusterBased(pool))
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], run: Int, fold: Int) = {
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], run: Int, fold: Int) = {
     //queries
     ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 
-    ds.write("DROP TABLE h")
-    ds.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )")
+    if (ds.read("SELECT count(1) from h").size == 0) {
+      //ajeita tabela
+      ds.write("DROP TABLE h")
+      ds.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )")
+    }
+
     //hits
-    //    ???
-    //    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
-    //    learners foreach ds.writeHits(pool, strat.queries, strat, run, fold)
+    val queries = ds.queries(strat, run, fold)
+    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
+    learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
   }
 
   def end(ds: Ds) {
