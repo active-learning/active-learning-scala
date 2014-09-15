@@ -42,7 +42,7 @@ trait Exp extends AppWithUsage {
   override def init() {
     super.init()
     datasets foreach { dataset =>
-      val ds = Ds(path)(dataset)
+      val ds = Ds(path, Global.debug)(dataset)
       ds.open()
 
       //ajeita tabela h
