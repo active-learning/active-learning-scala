@@ -33,9 +33,9 @@ trait Exp extends AppWithUsage {
   val parallelRuns: Boolean
   val parallelFolds: Boolean
 
-  def strats(pool: Seq[Pattern]): List[Strategy]
+  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], run: Int, fold: Int)
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int)
 
   def end(ds: Ds)
 
@@ -56,8 +56,8 @@ trait Exp extends AppWithUsage {
         val shuffled = new Random(run).shuffle(ds.patterns)
         Datasets.kfoldCV(shuffled, k = Global.folds, parallelFolds) { (tr, ts, fold, minSize) =>
           log(s"Pool $run.$fold (${tr.size} instances) ...")(ds.toString)
-
-          strats(Seq()) foreach { strat =>
+          val learnerSeed = run * 10000 + fold
+          strats(Seq(), learnerSeed) foreach { strat =>
             log(s"$strat ...")(ds.toString)
 
             //Ordena pool,testSet e aplica filtro se preciso.
@@ -81,7 +81,7 @@ trait Exp extends AppWithUsage {
             }
 
             //opera no ds
-            op(strats(pool).find(_.id == strat.id).get, ds, pool, testSet, run, fold)
+            op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold)
 
             log(s"$strat ok.")(ds.toString)
           }
