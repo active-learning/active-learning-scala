@@ -42,8 +42,8 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     firstTAtMaxAcc
   }
   lazy val Q = {
-    val r = read(s"select v from r where m=0 AND p=-1").head
-    if (r.isEmpty) None else Some(r)
+    val r = read(s"select v from r where m=0 AND p=-1").map(_.head)
+    if (r.isEmpty) None else Some(r.head)
   }
   lazy val nclasses = patterns.head.nclasses
 
