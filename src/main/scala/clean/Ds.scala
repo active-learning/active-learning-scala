@@ -96,8 +96,8 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     }
   }
 
-  def hitsFinished(poolId: Int, pool: Seq[Pattern]) {
-    val (sid, lid, r, f) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(0) -> tup(1)).head
+  def hitsFinished(poolId: Int, pool: Seq[Pattern]) = {
+    val (sid, lid, r, f) = read(s"SELECT s,l,r,f FROM p WHERE id=$poolId").map(tup => (tup(0), tup(1), tup(2), tup(3))).head
     val qf = if (sid < 2) {
       val queryPoolId = read(s"SELECT id FROM p WHERE s=$sid and l=0 and r=$r and f=$f").head.head.toInt
       queriesFinished(queryPoolId, pool)
