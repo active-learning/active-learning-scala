@@ -74,44 +74,49 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold").head.head.toInt
 
   def queriesFinished(poolId: Int, pool: Seq[Pattern]) = {
-    lazy val Q = this.Q.getOrElse(quit(s"Q not found for dataset $dataset"))
-    val (qs, lastT) = read(s"SELECT COUNT(1),max(t) FROM q WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
-    if (qs != lastT + 1) quit(s"Inconsistency: $qs queries differs from last time step+1 ${lastT + 1}")
-    val sid = read(s"SELECT s FROM p WHERE id=$poolId").head.head.toInt
-    val PoolSize = pool.size
-    sid match {
-      case id if id < 2 => qs match {
-        case 0 => false
-        case PoolSize => true
-        case _ => quit(s"$qs previous agnostic queries should be ${pool.size}")
-      }
-      case _ => qs match {
-        case 0 => false
-        case Q => true
-        case _ => quit(s"$qs previous queries should be $Q")
-      }
+    Q match {
+      case Some(q) =>
+        val (qs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM q WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
+        if (qs != lastT + 1) quit(s"Inconsistency: $qs queries differs from last time step+1 ${lastT + 1}")
+        val sid = read(s"SELECT s FROM p WHERE id=$poolId").head.head.toInt
+        val PoolSize = pool.size
+        sid match {
+          case id if id < 2 => qs match {
+            case 0 => false
+            case PoolSize => true
+            case _ => quit(s"$qs previous agnostic queries should be ${pool.size}")
+          }
+          case _ => qs match {
+            case 0 => false
+            case `q` => true
+            case _ => quit(s"$qs previous queries should be $Q")
+          }
+        }
+      case None => false
     }
   }
 
-  def hitsFinished(poolId: Int, pool: Seq[Pattern]) = {
-    lazy val Q = this.Q.getOrElse(quit(s"Q not found for dataset $dataset"))
-    val (hs, lastT) = read(s"SELECT COUNT(1),max(t) FROM h WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
-    if (hs != lastT - nclasses + 2) quit(s"Inconsistency: $hs conf. mat.s differs from last time step-|Y|+2 ${lastT - nclasses + 2}")
-    val (sid, lid) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(0) -> tup(1)).head
-    val ExpectedAgnosticHits = pool.size - nclasses + 1
-    (sid, lid) match {
-      case (s, l) if s < 2 && l < 4 => hs match {
-        case 0 => false
-        case ExpectedAgnosticHits => true
-        case _ => quit(s"$hs previous agnostic conf. mat.s should be $ExpectedAgnosticHits")
-      }
-      case _ => hs match {
-        case 0 => false
-        case Q => true
-        case _ => quit(s"$hs previous conf. mat.s should be $Q")
+  def hitsFinished(poolId: Int, pool: Seq[Pattern]) =
+    if (!queriesFinished(poolId, pool)) quit(s"Missing Q, queries were not found for dataset $dataset")
+    else {
+      val (hs, lastT) = read(s"SELECT COUNT(1),max(t) FROM h WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
+      if (hs != lastT - nclasses + 2) quit(s"Inconsistency: $hs conf. mat.s differs from last time step-|Y|+2 ${lastT - nclasses + 2}")
+      val (sid, lid) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(0) -> tup(1)).head
+      val ExpectedAgnosticHits = pool.size - nclasses + 1
+      (sid, lid) match {
+        case (s, l) if s < 2 && l < 4 => hs match {
+          case 0 => false
+          case ExpectedAgnosticHits => true
+          case _ => quit(s"$hs previous agnostic conf. mat.s should be $ExpectedAgnosticHits")
+        }
+        case _ => val Q = this.Q.get
+          hs match {
+            case 0 => false
+            case Q => true
+            case _ => quit(s"$hs previous conf. mat.s should be $Q")
+          }
       }
     }
-  }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
     //inaugura pool no ds se ainda não existir (apenas para o learner usado na strat)
