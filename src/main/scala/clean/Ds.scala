@@ -71,7 +71,10 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def queries(strat: Strategy, run: Int, fold: Int) = fetchPatterns(s"i, q, p where i.id=q.i and p.id=p and p.s=${strat.id} and p.l=${strat.learner.id} and p.r=$run and p.f=$fold order by t asc")
 
-  def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold").head.head.toInt
+  def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold") match {
+    case List() => None
+    case List(seq) => Some(seq.head.toInt)
+  }
 
   def queriesFinished(poolId: Int, pool: Seq[Pattern]) = {
     Q match {
@@ -124,10 +127,10 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
-    //inaugura pool no ds se ainda não existir (apenas para o learner usado na strat)
-    write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)")
+    //inaugura pool no ds (apenas para o learner usado na strat)
+    write(s"INSERT INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)")
 
-    val queryPoolId = poolId(strat, strat.learner, run, fold)
+    val queryPoolId = poolId(strat, strat.learner, run, fold).getOrElse(quit("Impossivel pegar poolId."))
     if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")(dataset)
     else {
       val sqls = strat.queries.take(q).zipWithIndex map { case (patt, t) => s"INSERT INTO q VALUES ($queryPoolId, $t, ${patt.id})"}
@@ -151,12 +154,12 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
    * @return
    */
   def writeHits(pool: Seq[Pattern], testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
-    if (learner.id != strat.learner.id && strat.id != 0 && strat.id != 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
+    if (learner.id != strat.learner.id && strat.id > 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
-      //inaugura pool no ds se ainda não existir (para os learners que não foram usados na strat)
-      write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)")
+      //inaugura pool no ds (para os learners que não foram usados na strat)
+      if (strat.id < 2 && learner.id > 3) write(s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)")
 
-      val hitPoolId = poolId(strat, learner, run, fold)
+      val hitPoolId = poolId(strat, learner, run, fold).getOrElse(quit("Impossivel pegar poolId."))
       if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")(dataset)
       else {
         val initialPatterns = pool.take(nclasses)

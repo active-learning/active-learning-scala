@@ -45,12 +45,6 @@ trait Exp extends AppWithUsage {
       val ds = Ds(path, Global.debug)(dataset)
       ds.open()
 
-      //ajeita tabela h
-      if (ds.read("SELECT count(1) from h").head.head == 0) {
-        ds.write("DROP TABLE h")
-        ds.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )")
-      }
-
       log(s"Processing ${ds.n} instances ...")(ds.toString)
       (if (parallelRuns) (0 until Global.runs).par else 0 until Global.runs) foreach { run =>
         val shuffled = new Random(run).shuffle(ds.patterns)

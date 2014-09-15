@@ -178,7 +178,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
       statement.setBytes(1, data)
       val r = statement.execute()
       statement.close()
-      if (debug) log(s"statement.execute returned $r for $sql")()
+      if (debug && !r) log(s"writeBlob: statement.execute returned $r for $sql")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
@@ -204,7 +204,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
       }
       statement.execute("end")
       statement.close()
-      if (debug && rs.contains(false)) log(s"statement.execute returned $rs for $sqls")(database)
+      if (debug && rs.contains(false)) log(s"batchWriteBlob: statement.execute returned $rs for $sqls")(database)
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
@@ -226,7 +226,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
       val rs = sqls map statement.executeUpdate
       statement.execute("end")
       statement.close()
-      if (debug && rs.exists(_ > 0)) log(s"statement.execute returned $rs for $sqls")()
+      if (debug && rs.count(_ == 1) < sqls.size) log(s"batchWrite: statement.execute returned $rs for $sqls")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
