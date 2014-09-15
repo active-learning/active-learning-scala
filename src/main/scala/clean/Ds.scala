@@ -98,12 +98,12 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     val (hs, lastT) = read(s"SELECT COUNT(1),max(t) FROM h WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
     if (hs != lastT - nclasses + 2) quit(s"Inconsistency: $hs conf. mat.s differs from last time step-|Y|+2 ${lastT - nclasses + 2}")
     val (sid, lid) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(0) -> tup(1)).head
-    val PoolSize = pool.size
+    val ExpectedAgnosticHits = pool.size - nclasses + 1
     (sid, lid) match {
       case (s, l) if s < 2 && l < 4 => hs match {
         case 0 => false
-        case PoolSize => true
-        case _ => quit(s"$hs previous agnostic conf. mat.s should be ${pool.size}")
+        case ExpectedAgnosticHits => true
+        case _ => quit(s"$hs previous agnostic conf. mat.s should be $ExpectedAgnosticHits")
       }
       case _ => hs match {
         case 0 => false
