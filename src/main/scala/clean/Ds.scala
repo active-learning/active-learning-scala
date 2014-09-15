@@ -18,7 +18,7 @@
 
 package clean
 
-import al.strategies.Strategy
+import al.strategies.{StrategyAgnostic, Strategy}
 import ml.classifiers.Learner
 import ml.models.Model
 import ml.{Pattern, PatternParent}
@@ -73,10 +73,22 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold").head.head.toInt
 
-  //todo: em gnostic strats testar qtdade de queries pelo Q
-  def queriesFinished(poolId: Int, pool: Seq[Pattern]) = read(s"SELECT COUNT(1) FROM q WHERE p=$poolId").head.head match {
-    case 0 => false
-    case qs => if (qs != pool.size) quit(s"$qs previous queries should be ${pool.size}") else true
+  def queriesFinished(poolId: Int, pool: Seq[Pattern]) = {
+    lazy val Q = this.Q.getOrElse(quit(s"Q not found for dataset $dataset"))
+    lazy val qs = read(s"SELECT COUNT(1) FROM q WHERE p=$poolId").head.head.toInt
+    val strat = read(s"SELECT s FROM p WHERE id=$poolId")
+    strat match {
+      case _: StrategyAgnostic => qs match {
+        case 0 => false
+        case pool.size => true
+        case _ => quit(s"$qs previous queries should be ${pool.size}")
+      }
+      case _ => qs match {
+        case Q => true
+        case 0 => false
+        case _ => quit(s"$qs previous queries should be $Q")
+      }
+    }
   }
 
   //todo: testar qtdade de hits pela qtdade de queries para o pool
