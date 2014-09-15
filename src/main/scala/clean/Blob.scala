@@ -34,11 +34,11 @@ trait Blob {
     val binary = numbers flatMap (n => Integer.toBinaryString(n).takeRight(bits).reverse.padTo(12, 0).reverse)
     val n = binary.size
     val pad32bit = binary.reverse.padTo(n + (8 - n % 8), 0).reverse
-    Converter.fromBinary(pad32bit.mkString)
+    BaseConverter.fromBinary(pad32bit.mkString)
   }
 
   def stretchFromBytes(bytes: Array[Byte], bits: Int = 12) = {
-    val a = Converter.toBinary(bytes)
+    val a = BaseConverter.toBinary(bytes)
     val b = a.drop(a.size % 12).grouped(12).map(_.mkString).toList
     b.map(Integer.parseInt(_, 2))
   }

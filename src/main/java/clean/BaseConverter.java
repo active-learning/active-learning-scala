@@ -18,8 +18,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 
-public class Converter {
-    private Converter() {
+public class BaseConverter {
+    private BaseConverter() {
     }
 
     static String toBinary(byte[] bytes) {
