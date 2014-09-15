@@ -186,6 +186,32 @@ class Db(val database: String, debug: Boolean = true) extends Log {
   }
 
   /**
+   * Several blob writings inside a transaction.
+   * @param sqls
+   */
+  def batchWriteBlob(sqls: List[String], blobs: List[Array[Byte]]) {
+    if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
+    if (debug) sqls foreach log
+
+    try {
+      acquire()
+      val statement = connection.createStatement()
+      statement.execute("begin")
+      val rs = sqls.zip(blobs) map { case (sql, blob) =>
+        val statement = connection.prepareStatement(sql)
+        statement.setBytes(1, blob)
+        statement.execute()
+      }
+      statement.execute("end")
+      statement.close()
+      if (debug && rs.contains(false)) log(s"statement.execute returned $rs for $sqls")(database)
+    } catch {
+      case e: Throwable => e.printStackTrace()
+        error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
+    } finally release()
+  }
+
+  /**
    * Several queries inside a transaction.
    * @param sql
    */

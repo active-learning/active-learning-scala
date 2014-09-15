@@ -73,17 +73,22 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold").head.head.toInt
 
+  //todo: em gnostic strats testar qtdade de queries pelo Q
   def queriesFinished(poolId: Int, pool: Seq[Pattern]) = read(s"SELECT COUNT(1) FROM q WHERE p=$poolId").head.head match {
     case 0 => false
     case qs => if (qs != pool.size) quit(s"$qs previous queries should be ${pool.size}") else true
   }
 
+  //todo: testar qtdade de hits pela qtdade de queries para o pool
   def hitsFinished(poolId: Int, pool: Seq[Pattern]) = read(s"SELECT COUNT(1) FROM h WHERE p=$poolId").head.head match {
     case 0 => false
     case hs => if (hs != pool.size) quit(s"$hs previous hits should be ${pool.size}") else true
   }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
+    //inaugura pool no ds se ainda não existir (apenas para o learner usado na strat)
+    write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)")
+
     val queryPoolId = poolId(strat, strat.learner, run, fold)
     if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")(dataset)
     else {
@@ -110,21 +115,25 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   def writeHits(pool: Seq[Pattern], testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
     if (learner.id != strat.learner.id && strat.id != 0 && strat.id != 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
+      //inaugura pool no ds se ainda não existir (para os learners que não foram usados na strat)
+      write(s"INSERT OR IGNORE INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)")
+
       val hitPoolId = poolId(strat, learner, run, fold)
       if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")(dataset)
       else {
         val initialPatterns = pool.take(nclasses)
         val rest = pool.drop(nclasses)
         var m: Model = null
-        val sqls = null +: rest.zipWithIndex map { case (patt, idx) =>
+        val tuples = ((null +: rest).zipWithIndex map { case (patt, idx) =>
           val t = idx + nclasses - 1
           m = if (patt == null) learner.build(initialPatterns)
           else learner.update(m, fast_mutable = true)(patt)
           val cm = m.confusion(testSet)
           val blob = shrinkToBytes(cm.flatten)
-          s"INSERT INTO h VALUES ($hitPoolId, $t, $blob)"
-        }
-        batchWrite(sqls.toList)
+          (s"INSERT INTO h VALUES ($hitPoolId, $t, ?)", blob)
+        }).toList
+        val (sqls, blobs) = tuples.unzip
+        batchWriteBlob(sqls, blobs)
       }
     }
 }
