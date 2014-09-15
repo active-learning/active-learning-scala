@@ -82,7 +82,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   //todo: testar qtdade de hits pela qtdade de queries para o pool
   def hitsFinished(poolId: Int, pool: Seq[Pattern]) = read(s"SELECT COUNT(1) FROM h WHERE p=$poolId").head.head match {
     case 0 => false
-    case hs => if (hs != pool.size) quit(s"$hs previous hits should be ${pool.size}") else true
+    case hs => if (hs != pool.size - nclasses + 1) quit(s"$hs previous hits should be ${pool.size - nclasses + 1}") else true
   }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
