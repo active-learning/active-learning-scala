@@ -96,12 +96,16 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     }
   }
 
-  def hitsFinished(poolId: Int, pool: Seq[Pattern]) =
-    if (!queriesFinished(poolId, pool)) quit(s"Missing Q, queries were not found for dataset $dataset")
+  def hitsFinished(poolId: Int, pool: Seq[Pattern]) {
+    val (sid, lid, r, f) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(0) -> tup(1)).head
+    val qf = if (sid < 2) {
+      val queryPoolId = read(s"SELECT id FROM p WHERE s=$sid and l=0 and r=$r and f=$f").head.head.toInt
+      queriesFinished(queryPoolId, pool)
+    } else queriesFinished(poolId, pool)
+    if (!qf) quit(s"Missing Q, queries were not found for dataset $dataset")
     else {
       val (hs, lastT) = read(s"SELECT COUNT(1),max(t) FROM h WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
       if (hs != lastT - nclasses + 2) quit(s"Inconsistency: $hs conf. mat.s differs from last time step-|Y|+2 ${lastT - nclasses + 2}")
-      val (sid, lid) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(0) -> tup(1)).head
       val ExpectedAgnosticHits = pool.size - nclasses + 1
       (sid, lid) match {
         case (s, l) if s < 2 && l < 4 => hs match {
@@ -117,6 +121,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
           }
       }
     }
+  }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
     //inaugura pool no ds se ainda não existir (apenas para o learner usado na strat)
