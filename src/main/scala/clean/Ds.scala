@@ -75,7 +75,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def queriesFinished(poolId: Int, pool: Seq[Pattern]) = {
     lazy val Q = this.Q.getOrElse(quit(s"Q not found for dataset $dataset"))
-    val (qs, lastT) = read(s"SELECT COUNT(1),max(t) FROM q WHERE p=$poolId").map(tup => tup(1) -> tup(2)).head
+    val (qs, lastT) = read(s"SELECT COUNT(1),max(t) FROM q WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
     if (qs != lastT + 1) quit(s"Inconsistency: $qs queries differs from last time step+1 ${lastT + 1}")
     val sid = read(s"SELECT s FROM p WHERE id=$poolId").head.head.toInt
     val PoolSize = pool.size
@@ -95,9 +95,9 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def hitsFinished(poolId: Int, pool: Seq[Pattern]) = {
     lazy val Q = this.Q.getOrElse(quit(s"Q not found for dataset $dataset"))
-    val (hs, lastT) = read(s"SELECT COUNT(1),max(t) FROM h WHERE p=$poolId").map(tup => tup(1) -> tup(2)).head
+    val (hs, lastT) = read(s"SELECT COUNT(1),max(t) FROM h WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
     if (hs != lastT - nclasses + 2) quit(s"Inconsistency: $hs conf. mat.s differs from last time step-|Y|+2 ${lastT - nclasses + 2}")
-    val (sid, lid) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(1) -> tup(2)).head
+    val (sid, lid) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(0) -> tup(1)).head
     val PoolSize = pool.size
     (sid, lid) match {
       case (s, l) if s < 2 && l < 4 => hs match {
