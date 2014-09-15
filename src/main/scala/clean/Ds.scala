@@ -75,26 +75,42 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
 
   def queriesFinished(poolId: Int, pool: Seq[Pattern]) = {
     lazy val Q = this.Q.getOrElse(quit(s"Q not found for dataset $dataset"))
-    lazy val qs = read(s"SELECT COUNT(1) FROM q WHERE p=$poolId").head.head.toInt
-    val strat = read(s"SELECT s FROM p WHERE id=$poolId")
-    strat match {
-      case _: StrategyAgnostic => qs match {
+    val (qs, lastT) = read(s"SELECT COUNT(1),max(t) FROM q WHERE p=$poolId").map(tup => tup(1) -> tup(2)).head
+    if (qs != lastT + 1) quit(s"Inconsistency: $qs queries differs from last time step+1 ${lastT + 1}")
+    val sid = read(s"SELECT s FROM p WHERE id=$poolId").head.head.toInt
+    val PoolSize = pool.size
+    sid match {
+      case id if id < 2 => qs match {
         case 0 => false
-        case pool.size => true
-        case _ => quit(s"$qs previous queries should be ${pool.size}")
+        case PoolSize => true
+        case _ => quit(s"$qs previous agnostic queries should be ${pool.size}")
       }
       case _ => qs match {
-        case Q => true
         case 0 => false
+        case Q => true
         case _ => quit(s"$qs previous queries should be $Q")
       }
     }
   }
 
-  //todo: testar qtdade de hits pela qtdade de queries para o pool
-  def hitsFinished(poolId: Int, pool: Seq[Pattern]) = read(s"SELECT COUNT(1) FROM h WHERE p=$poolId").head.head match {
-    case 0 => false
-    case hs => if (hs != pool.size - nclasses + 1) quit(s"$hs previous hits should be ${pool.size - nclasses + 1}") else true
+  def hitsFinished(poolId: Int, pool: Seq[Pattern]) = {
+    lazy val Q = this.Q.getOrElse(quit(s"Q not found for dataset $dataset"))
+    val (hs, lastT) = read(s"SELECT COUNT(1),max(t) FROM h WHERE p=$poolId").map(tup => tup(1) -> tup(2)).head
+    if (hs != lastT - nclasses + 2) quit(s"Inconsistency: $hs conf. mat.s differs from last time step-|Y|+2 ${lastT - nclasses + 2}")
+    val (sid, lid) = read(s"SELECT s,l FROM p WHERE id=$poolId").map(tup => tup(1) -> tup(2)).head
+    val PoolSize = pool.size
+    (sid, lid) match {
+      case (s, l) if s < 2 && l < 4 => hs match {
+        case 0 => false
+        case PoolSize => true
+        case _ => quit(s"$hs previous agnostic conf. mat.s should be ${pool.size}")
+      }
+      case _ => hs match {
+        case 0 => false
+        case Q => true
+        case _ => quit(s"$hs previous conf. mat.s should be $Q")
+      }
+    }
   }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
