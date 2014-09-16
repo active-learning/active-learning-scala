@@ -43,7 +43,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   }
   lazy val Q = {
     val r = read(s"select v from r where m=0 AND p=-1").map(_.head)
-    if (r.isEmpty) None else Some(r.head)
+    if (r.isEmpty) None else Some(r.head.toInt)
   }
   lazy val nclasses = patterns.head.nclasses
   override val context = dataset
@@ -113,14 +113,14 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       val ExpectedAgnosticHits = pool.size - nclasses + 1
       (sid, lid) match {
         case (s, l) if s < 2 && l < 4 => hs match {
-          case 0 => false
-          case ExpectedAgnosticHits => true
+          case 0 => None
+          case ExpectedAgnosticHits => Some(ExpectedAgnosticHits)
           case _ => quit(s"$hs previous agnostic conf. mat.s should be $ExpectedAgnosticHits")
         }
         case _ => val Q = this.Q.get
           hs match {
-            case 0 => false
-            case Q => true
+            case 0 => None
+            case Q => Some(Q)
             case _ => quit(s"$hs previous conf. mat.s should be $Q")
           }
       }
@@ -157,17 +157,20 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     if (learner.id != strat.learner.id && strat.id > 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
       poolId(strat, learner, run, fold) match {
-        case Some(hitPoolId) => if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")
-        else quit(s"Inconsistency: pool $hitPoolId exists, but conf. mat.s don't.")
+        case Some(hitPoolId) => hitsFinished(hitPoolId, pool) match {
+          case Some(q) => log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")
+          case None => quit(s"Inconsistency: pool $hitPoolId exists, but conf. mat.s don't.")
+        }
         case None =>
-          val poolSQL = if (strat.id < 2 && learner.id > 0) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else "SELECT 1"
-          val initialPatterns = pool.take(nclasses)
-          val rest = pool.drop(nclasses)
-          var m: Model = null
-          val tuples = (poolSQL, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
+          val Q = this.Q.getOrElse(quit(s"Q not found for $this !"))
+          val insertIntoP = if (strat.id < 2) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else "SELECT 1"
+          val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q
+          if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries is different from $expectedQ expected!")
+          val (initialPatterns, rest) = queries.splitAt(nclasses)
+          var m: Model = learner.build(initialPatterns)
+          val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
             val t = idx + nclasses - 1
-            m = if (patt == null) learner.build(initialPatterns)
-            else learner.update(m, fast_mutable = true)(patt)
+            if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
             val cm = m.confusion(testSet)
             val blob = shrinkToBytes(cm.flatten)
             (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)

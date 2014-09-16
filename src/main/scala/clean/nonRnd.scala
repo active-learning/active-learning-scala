@@ -19,35 +19,32 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies.{ClusterBased, RandomSampling, Strategy}
+import al.strategies.{ClusterBased, ExpErrorReductionMargin, Strategy}
 import ml.Pattern
 import ml.classifiers._
 
-object Q extends Exp {
-  val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):r|f|rf")
+trait nonRnd extends Exp {
+  val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):n|r|f|rf", "learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
-  val context = "Qapp"
+  val samplingSize = 500
   init()
 
-  def strats(pool: => Seq[Pattern], seed: Int) = List(RandomSampling(pool))
-
   def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
-    //queries
-    ds.log("queries")
-    ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
+    val Q = ds.Q.getOrElse(ds.quit(s"Q not found for $ds !"))
 
-    //hits
+    //queries (só no primeiro learner)
+    ds.log("queries")
+    ds.writeQueries(pool, strat, run, fold, Q)
+
+    //hits (pra cada learner)
     ds.log("fetch queries")
     val queries = ds.queries(strat, run, fold)
     ds.log("hits")
-    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
-    learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
+    ds.writeHits(pool, testSet, queries, strat, run, fold)(learner(pool, learnerSeed))
   }
 
   def end(ds: Ds) {
-    //Q
-    val Q = ds.Q.getOrElse(ds.calculaQ)
-    println(s"Q: $Q")
+    ds.log("fim")
   }
 }

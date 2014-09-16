@@ -19,17 +19,12 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies.{ExpErrorReductionMargin, Strategy}
+import al.strategies.ClusterBased
 import ml.Pattern
-import ml.classifiers._
 
-object EER extends nonRnd {
-  val context = "EERapp"
+object agno extends nonRnd {
+  val context = "agnoApp"
   init()
 
-  def strats(pool: => Seq[Pattern], learnerSeed: Int) = List(
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "entropy", samplingSize),
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "gmeans+residual", samplingSize),
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "accuracy", samplingSize)
-  )
+  def strats(pool: => Seq[Pattern], learnerSeed: Int) = List(ClusterBased(pool))
 }

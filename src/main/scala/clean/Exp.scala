@@ -20,7 +20,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean
 
 import al.strategies.{MahalaWeightedTrainingUtility, DensityWeightedTrainingUtility, Strategy}
+import clean.agno._
 import ml.Pattern
+import ml.classifiers._
 import ml.neural.elm.ELM
 import util.Datasets
 
@@ -92,5 +94,32 @@ trait Exp extends AppWithUsage {
       ds.close()
     }
     log("Datasets prontos.")
+  }
+
+  def learner(pool: Seq[Pattern], learnerSeed: Int) = args(3) match {
+    case "nb" => NB()
+    case "5nn" => KNNBatch(5, "eucl", pool, weighted = true)
+    case "c45" => C45()
+    case "vfdt" => VFDT()
+    case "CI" => CIELM(learnerSeed)
+    case "ECI" => ECIELM(learnerSeed)
+    case "I" => IELM(learnerSeed)
+    case "EI" => EIELM(learnerSeed)
+    case "intera" => interaELM(learnerSeed)
+    case "SVM" => SVMLib(learnerSeed)
+
+    //      case "NBz" => NB("")
+    //      case "C45z" => C45("")
+    //      case "VFDTz" => VFDT("")
+    //      case "LASVM" => LASVM()
+    //      case "1NNc" => KNNBatch(1, "cheb", pool)
+    //      case "1NNe" => KNNBatch(1, "eucl", pool)
+    //      case "1NNm" => KNNBatch(1, "manh", pool)
+    //      case "3NNc" => KNNBatch(3, "cheb", pool)
+    //      case "3NNe" => KNNBatch(3, "eucl", pool, "", weighted = true)
+    //      case "3NNm" => KNNBatch(3, "manh", pool)
+    //      case "5NNc" => KNNBatch(5, "cheb", pool)
+    //      case "5NNm" => KNNBatch(5, "manh", pool)
+    //    case "Varios" => NoLearner()
   }
 }
