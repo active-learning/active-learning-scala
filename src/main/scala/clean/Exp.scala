@@ -61,7 +61,7 @@ trait Exp extends AppWithUsage {
               case (_: MahalaWeightedTrainingUtility, _) => true
               case _ => false
             }
-            val (pool, testSet) = if (needsFilter) (new Random(fold).shuffle(tr.sortBy(_.id)), new Random(fold).shuffle(ts.sortBy(_.id)))
+            val (pool, testSet) = if (!needsFilter) (new Random(fold).shuffle(tr.sortBy(_.id)), new Random(fold).shuffle(ts.sortBy(_.id)))
             else {
               val binaf = Datasets.binarizeFilter(tr)
               val binarizedTr = Datasets.applyFilter(binaf)(tr)
