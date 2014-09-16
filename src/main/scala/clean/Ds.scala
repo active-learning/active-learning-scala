@@ -162,9 +162,8 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           case None => quit(s"Inconsistency: pool $hitPoolId exists, but conf. mat.s don't.")
         }
         case None =>
-          val Q = this.Q.getOrElse(quit(s"Q not found for $this !"))
           val insertIntoP = if (strat.id < 2) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else "SELECT 1"
-          val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q
+          val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q.getOrElse(quit(s"Q not found for $dataset !"))
           if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries is different from $expectedQ expected!")
           val (initialPatterns, rest) = queries.splitAt(nclasses)
           var m: Model = learner.build(initialPatterns)
