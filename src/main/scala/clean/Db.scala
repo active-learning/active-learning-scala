@@ -192,7 +192,8 @@ class Db(val database: String) extends Log {
    */
   def batchWriteBlob(sqls: List[String], blobs: List[Array[Byte]]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    sqls foreach (m => log(m))
+    log("batch write blob ...")
+    log(sqls.mkString("\n"))
 
     try {
       acquire()
@@ -210,6 +211,7 @@ class Db(val database: String) extends Log {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
     } finally release()
+    log("batch write blob finished.")
   }
 
   /**
