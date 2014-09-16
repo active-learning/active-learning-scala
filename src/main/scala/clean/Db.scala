@@ -191,7 +191,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
    */
   def batchWriteBlob(sqls: List[String], blobs: List[Array[Byte]]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    if (debug) sqls foreach log
+    if (debug) sqls foreach (m => log(m)(database))
 
     try {
       acquire()
@@ -217,7 +217,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
    */
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    if (debug) sqls foreach log
+    if (debug) sqls foreach (m => log(m)(database))
 
     try {
       acquire()

@@ -33,17 +33,20 @@ object Q extends Exp {
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int) = {
     //queries
+    if (Global.debug) log("queries")(ds.database)
     ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 
     //hits
-    val queries = ds.queries(strat, run, fold)
-    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
-    learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
+    //    if(Global.debug) log("fetch queries")(ds.database)
+    //    val queries = ds.queries(strat, run, fold)
+    //    if(Global.debug) log("hits")(ds.database)
+    //    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
+    //    learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
   }
 
   def end(ds: Ds) {
     //Q
-    val Q = ds.Q.getOrElse(ds.calculaQ)
-    println(s"Q: $Q")
+    //    val Q = ds.Q.getOrElse(ds.calculaQ)
+    //    println(s"Q: $Q")
   }
 }
