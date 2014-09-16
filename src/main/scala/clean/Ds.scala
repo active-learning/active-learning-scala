@@ -127,6 +127,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
+    if (debug) println(poolId(strat, strat.learner, run, fold))
     poolId(strat, strat.learner, run, fold) match {
       case Some(queryPoolId) => if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")(dataset)
       else quit(s"Inconsistency: pool $queryPoolId exists, but queries don't.")
