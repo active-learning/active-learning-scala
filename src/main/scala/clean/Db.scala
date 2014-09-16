@@ -31,10 +31,11 @@ import org.sqlite.SQLiteConnection
  * A escrita depende do mutex aqui implementado, mas
  * pode ser resolvida pelo SQLite via tentativas durante BUSY_WAITING.
  */
-class Db(val database: String, debug: Boolean = true) extends Log {
+class Db(val database: String) extends Log {
   override lazy val toString = database
   private var available = true
   private var connection: Connection = null
+  val context = database
 
   def open() {
     if (!fileExists(database)) error(s" $database not found!")
@@ -42,10 +43,10 @@ class Db(val database: String, debug: Boolean = true) extends Log {
       val url = "jdbc:sqlite:////" + database
       connection = DriverManager.getConnection(url)
       connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
-      if (debug) log(s"Connection to $database opened.")()
+      log(s"Connection to $database opened.")
     } catch {
       case e: Throwable => e.printStackTrace()
-        log(e.getMessage)()
+        log(e.getMessage)
         error(s"Problems opening db connection: $database !")
     }
   }
@@ -88,7 +89,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
   }
 
   def justQuit(msg: String) = {
-    log(s"Quiting: $msg")()
+    log(s"Quiting: $msg")
     sys.exit(1)
   }
 
@@ -99,7 +100,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
 
   def read(sql: String) = {
     test(sql)
-    if (debug) log(s"[$sql]")()
+    log(s"[$sql]")
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
@@ -136,13 +137,13 @@ class Db(val database: String, debug: Boolean = true) extends Log {
 
   def write(sql: String) {
     test(sql)
-    if (debug) log(s"[$sql]")()
+    log(s"[$sql]")
     try {
       acquire()
       val statement = connection.createStatement()
       val r = statement.executeUpdate(sql)
       statement.close()
-      //      if (debug && r > 0) log(s"statement.execute returned $r for $sql")()
+      //       log(s"statement.execute returned $r for $sql")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
@@ -151,7 +152,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
 
   def readBlobs(sql: String) = {
     test(sql)
-    if (debug) log(s"[$sql]")()
+    log(s"[$sql]")
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
@@ -171,14 +172,14 @@ class Db(val database: String, debug: Boolean = true) extends Log {
 
   def writeBlob(sql: String, data: Array[Byte]) {
     test(sql)
-    if (debug) log(s"[$sql]")()
+    log(s"[$sql]")
     try {
       acquire()
       val statement = connection.prepareStatement(sql)
       statement.setBytes(1, data)
       val r = statement.execute()
       statement.close()
-      //      if (debug && !r) log(s"writeBlob: statement.execute returned $r for $sql")()
+      //      log(s"writeBlob: statement.execute returned $r for $sql")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
@@ -191,7 +192,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
    */
   def batchWriteBlob(sqls: List[String], blobs: List[Array[Byte]]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    if (debug) sqls foreach (m => log(m)(database))
+    sqls foreach (m => log(m))
 
     try {
       acquire()
@@ -204,7 +205,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
       }
       statement.execute("end")
       statement.close()
-      //      if (debug && rs.contains(false)) log(s"batchWriteBlob: statement.execute returned $rs for $sqls")(database)
+      //       log(s"batchWriteBlob: statement.execute returned $rs for $sqls")(database)
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
@@ -217,7 +218,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
    */
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    if (debug) sqls foreach (m => log(m)(database))
+    sqls foreach (m => log(m))
 
     try {
       acquire()
@@ -226,7 +227,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
       val rs = sqls map statement.executeUpdate
       statement.execute("end")
       statement.close()
-      //      if (debug && rs.count(_ == 1) < sqls.size) log(s"batchWrite: statement.execute returned $rs for $sqls")()
+      //  log(s"batchWrite: statement.execute returned $rs for $sqls")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
@@ -234,7 +235,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
   }
 
   def close() {
-    if (debug) log(s"Connection to $database closed.")()
+    log(s"Connection to $database closed.")
     connection.close()
   }
 }

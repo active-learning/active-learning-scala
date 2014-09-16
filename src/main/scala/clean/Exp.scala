@@ -42,17 +42,17 @@ trait Exp extends AppWithUsage {
   override def init() {
     super.init()
     datasets foreach { dataset =>
-      val ds = Ds(path, Global.debug)(dataset)
+      val ds = Ds(path, dataset)
       ds.open()
 
-      log(s"Processing ${ds.n} instances ...")(ds.toString)
+      ds.log(s"Processing ${ds.n} instances ...")
       (if (parallelRuns) (0 until Global.runs).par else 0 until Global.runs) foreach { run =>
         val shuffled = new Random(run).shuffle(ds.patterns)
         Datasets.kfoldCV(shuffled, k = Global.folds, parallelFolds) { (tr, ts, fold, minSize) =>
-          log(s"Pool $run.$fold (${tr.size} instances) ...")(ds.toString)
+          ds.log(s"Pool $run.$fold (${tr.size} instances) ...")
           val learnerSeed = run * 10000 + fold
           strats(Seq(), learnerSeed) foreach { strat =>
-            log(s"$strat ...")(ds.toString)
+            ds.log(s"$strat ...")
 
             //Ordena pool,testSet e aplica filtro se preciso.
             val needsFilter = (strat, strat.learner) match {
@@ -83,7 +83,7 @@ trait Exp extends AppWithUsage {
             //opera no ds
             op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold)
 
-            log(s"$strat ok.")(ds.toString)
+            ds.log(s"$strat ok.")
           }
 
         }
@@ -91,6 +91,6 @@ trait Exp extends AppWithUsage {
       end(ds)
       ds.close()
     }
-    log("Datasets prontos.")()
+    log("Datasets prontos.")
   }
 }

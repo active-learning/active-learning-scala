@@ -29,7 +29,7 @@ import scala.collection.JavaConversions._
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(s"$path/$dataset.db", debug) with Blob {
+case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") with Blob {
   override lazy val toString = dataset
   lazy val n = read("select count(1) from i").head.head.toInt
   lazy val patterns = fetchPatterns("i order by id asc")
@@ -53,7 +53,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
    */
   def fetchPatterns(sqlTail: String) = try {
     val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
-    if (debug) println(s"Fetching patterns from $database ...")
+    println(s"Fetching patterns from $database ...")
     val query = new InstanceQuerySQLite()
     query.setDatabaseURL("jdbc:sqlite:////" + database)
     query.setQuery("select i.* from " + sqlTail)
@@ -127,9 +127,9 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
-    if (debug) println(poolId(strat, strat.learner, run, fold))
+    println(poolId(strat, strat.learner, run, fold))
     poolId(strat, strat.learner, run, fold) match {
-      case Some(queryPoolId) => if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")(dataset)
+      case Some(queryPoolId) => if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")
       else quit(s"Inconsistency: pool $queryPoolId exists, but queries don't.")
       case None => val poolSQL = s"INSERT INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)"
         val sqls = poolSQL +: (strat.queries.take(q).zipWithIndex map { case (patt, t) => s"INSERT INTO q select id, $t, ${patt.id} from p where s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold"})
@@ -156,7 +156,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
     if (learner.id != strat.learner.id && strat.id > 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
       poolId(strat, learner, run, fold) match {
-        case Some(hitPoolId) => if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")(dataset)
+        case Some(hitPoolId) => if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")
         else quit(s"Inconsistency: pool $hitPoolId exists, but conf. mat.s don't.")
         case None =>
           val poolSQL = if (strat.id < 2 && learner.id > 3) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else "SELECT 1"
@@ -172,6 +172,7 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
             (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
           }).toList
           val (sqls, blobs) = tuples.unzip
+          log(tuples.mkString("\n"))
           batchWriteBlob(sqls, blobs)
       }
     }

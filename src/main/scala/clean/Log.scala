@@ -21,7 +21,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait Log {
-  def log(msg: String)(dataset: String = "") {
-    println(s"${Calendar.getInstance().getTime}\n ($dataset) : $msg")
+  val context: String
+
+  def log(msg: String) {
+    if (Global.debug) println(s"$context : $msg    ${Calendar.getInstance().getTime}")
   }
 }

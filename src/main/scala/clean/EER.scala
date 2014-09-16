@@ -28,6 +28,7 @@ object EER extends Exp {
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
   val samplingSize = 500
+  val context = "EERapp"
 
   init()
 
@@ -47,7 +48,7 @@ object EER extends Exp {
   }
 
   def end(ds: Ds) {
-    log("fim")(ds.toString)
+    ds.log("fim")
   }
 
   def learner(pool: Seq[Pattern], learnerSeed: Int) = args(3) match {

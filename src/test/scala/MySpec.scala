@@ -27,7 +27,7 @@ class MySpec extends UnitSpec with Blob {
   lazy val datasets = Source.fromFile("datasets-bons.txt").getLines().mkString.split(",")
 
   "Database" should "create a table, write and read two tuples" in {
-    val db = new Db(Global.appPath + "/test.db", false)
+    val db = new Db(Global.appPath + "/test.db")
     db.open()
     assert(db.write("drop table if exists test") ===())
     assert(db.write("create table test (a INT, b FLOAT)") ===())
@@ -46,7 +46,7 @@ class MySpec extends UnitSpec with Blob {
   mat(0)(0) = 4095
   mat(d.nclasses - 1)(d.nclasses - 1) = 0
   "Dataset" should s"blob" in {
-    val db = new Db(Global.appPath + "/test.db", false)
+    val db = new Db(Global.appPath + "/test.db")
     db.open()
     assert(db.write("drop table if exists h") ===())
     assert(db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )") ===())
@@ -57,7 +57,7 @@ class MySpec extends UnitSpec with Blob {
   }
 
   "Dataset" should s"shrink, write, read and stretch a confusion matrix (boundary cells with limit values 4095 and 0) ${mat.toList.map(_.toList)}" in {
-    val db = new Db(Global.appPath + "/test.db", false)
+    val db = new Db(Global.appPath + "/test.db")
     db.open()
     assert(db.write("drop table if exists h") ===())
     assert(db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )") ===())

@@ -27,21 +27,22 @@ object Q extends Exp {
   val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):r|f|rf")
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
+  val context = "Qapp"
   init()
 
   def strats(pool: => Seq[Pattern], seed: Int) = List(RandomSampling(pool), ClusterBased(pool))
 
   def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
     //queries
-    if (Global.debug) log("queries")(ds.database)
+    ds.log("queries")
     ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 
     //hits
-    //    if(Global.debug) log("fetch queries")(ds.database)
-    //    val queries = ds.queries(strat, run, fold)
-    //    if(Global.debug) log("hits")(ds.database)
-    //    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
-    //    learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
+    ds.log("fetch queries")
+    val queries = ds.queries(strat, run, fold)
+    ds.log("hits")
+    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
+    learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
   }
 
   def end(ds: Ds) {
