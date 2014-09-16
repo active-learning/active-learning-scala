@@ -33,9 +33,9 @@ trait Exp extends AppWithUsage {
   val parallelRuns: Boolean
   val parallelFolds: Boolean
 
-  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
+  def strats(pool: => Seq[Pattern], seed: Int): List[Strategy]
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int)
+  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int)
 
   def end(ds: Ds)
 
@@ -61,17 +61,23 @@ trait Exp extends AppWithUsage {
               case (_: MahalaWeightedTrainingUtility, _) => true
               case _ => false
             }
-            val (pool, testSet) = if (!needsFilter) (new Random(fold).shuffle(tr.sortBy(_.id)), new Random(fold).shuffle(ts.sortBy(_.id)))
+
+            //bina
+            lazy val binaf = Datasets.binarizeFilter(tr)
+            lazy val binarizedTr = Datasets.applyFilter(binaf)(tr)
+            lazy val binarizedTs = Datasets.applyFilter(binaf)(ts)
+
+            //tr
+            lazy val zscof = Datasets.zscoreFilter(binarizedTr)
+            lazy val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
             else {
-              val binaf = Datasets.binarizeFilter(tr)
-              val binarizedTr = Datasets.applyFilter(binaf)(tr)
-              val binarizedTs = Datasets.applyFilter(binaf)(ts)
-
-              val zscof = Datasets.zscoreFilter(binarizedTr)
               val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+              new Random(fold).shuffle(filteredTr.sortBy(_.id))
+            }
+            lazy val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
+            else {
               val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
-
-              (new Random(fold).shuffle(filteredTr.sortBy(_.id)), new Random(fold).shuffle(filteredTs.sortBy(_.id)))
+              new Random(fold).shuffle(filteredTs.sortBy(_.id))
             }
 
             //opera no ds

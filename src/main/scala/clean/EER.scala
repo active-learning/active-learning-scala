@@ -31,13 +31,13 @@ object EER extends Exp {
 
   init()
 
-  def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
+  def strats(pool: => Seq[Pattern], learnerSeed: Int) = List(
     ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "entropy", samplingSize),
     ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "gmeans+residual", samplingSize),
     ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "accuracy", samplingSize)
   )
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int) = {
+  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
     //queries
     ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 

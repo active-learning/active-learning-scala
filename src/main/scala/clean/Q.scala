@@ -29,9 +29,9 @@ object Q extends Exp {
   lazy val parallelFolds = args(2).contains("f")
   init()
 
-  def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool), ClusterBased(pool))
+  def strats(pool: => Seq[Pattern], seed: Int) = List(RandomSampling(pool), ClusterBased(pool))
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int) = {
+  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
     //queries
     if (Global.debug) log("queries")(ds.database)
     ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
