@@ -17,4 +17,3 @@ wine-quality-red
 volcanoes-e1
 contraceptive-method-choice
 gas-drift
-flags-colour

@@ -11,7 +11,6 @@ turkiye-student
 spect-heart
 mfeat-fourier
 robot-failure-lp1
-flags-religion
 car-evaluation
 volcanoes-d3
 hill-valley-with-noise
