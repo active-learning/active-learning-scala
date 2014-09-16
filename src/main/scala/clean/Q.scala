@@ -47,7 +47,7 @@ object Q extends Exp {
 
   def end(ds: Ds) {
     //Q
-    //    val Q = ds.Q.getOrElse(ds.calculaQ)
-    //    println(s"Q: $Q")
+    val Q = ds.Q.getOrElse(ds.calculaQ)
+    println(s"Q: $Q")
   }
 }
