@@ -127,14 +127,12 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   }
 
   def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
-    //inaugura pool no ds (apenas para o learner usado na strat)
-    write(s"INSERT INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)")
-
-    val queryPoolId = poolId(strat, strat.learner, run, fold).getOrElse(quit("Impossivel pegar poolId."))
-    if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")(dataset)
-    else {
-      val sqls = strat.queries.take(q).zipWithIndex map { case (patt, t) => s"INSERT INTO q VALUES ($queryPoolId, $t, ${patt.id})"}
-      batchWrite(sqls.toList)
+    poolId(strat, strat.learner, run, fold) match {
+      case Some(queryPoolId) => if (queriesFinished(queryPoolId, pool)) log(s"Queries do pool $run.$fold já estavam gravadas para $strat.${strat.learner}.")(dataset)
+      else quit(s"Inconsistency: pool $queryPoolId exists, but queries don't.")
+      case None => val poolSQL = s"INSERT INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)"
+        val sqls = poolSQL +: (strat.queries.take(q).zipWithIndex map { case (patt, t) => s"INSERT INTO q select id, $t, ${patt.id} from p where s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold"})
+        batchWrite(sqls.toList)
     }
   }
 
@@ -156,25 +154,24 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   def writeHits(pool: Seq[Pattern], testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
     if (learner.id != strat.learner.id && strat.id > 1) quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
-      //inaugura pool no ds (para os learners que não foram usados na strat)
-      if (strat.id < 2 && learner.id > 3) write(s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)")
-
-      val hitPoolId = poolId(strat, learner, run, fold).getOrElse(quit("Impossivel pegar poolId."))
-      if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")(dataset)
-      else {
-        val initialPatterns = pool.take(nclasses)
-        val rest = pool.drop(nclasses)
-        var m: Model = null
-        val tuples = ((null +: rest).zipWithIndex map { case (patt, idx) =>
-          val t = idx + nclasses - 1
-          m = if (patt == null) learner.build(initialPatterns)
-          else learner.update(m, fast_mutable = true)(patt)
-          val cm = m.confusion(testSet)
-          val blob = shrinkToBytes(cm.flatten)
-          (s"INSERT INTO h VALUES ($hitPoolId, $t, ?)", blob)
-        }).toList
-        val (sqls, blobs) = tuples.unzip
-        batchWriteBlob(sqls, blobs)
+      poolId(strat, learner, run, fold) match {
+        case Some(hitPoolId) => if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")(dataset)
+        else quit(s"Inconsistency: pool $hitPoolId exists, but conf. mat.s don't.")
+        case None =>
+          val poolSQL = if (strat.id < 2 && learner.id > 3) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else "SELECT 1"
+          val initialPatterns = pool.take(nclasses)
+          val rest = pool.drop(nclasses)
+          var m: Model = null
+          val tuples = (poolSQL, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
+            val t = idx + nclasses - 1
+            m = if (patt == null) learner.build(initialPatterns)
+            else learner.update(m, fast_mutable = true)(patt)
+            val cm = m.confusion(testSet)
+            val blob = shrinkToBytes(cm.flatten)
+            (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
+          }).toList
+          val (sqls, blobs) = tuples.unzip
+          batchWriteBlob(sqls, blobs)
       }
     }
 }

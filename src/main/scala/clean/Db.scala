@@ -199,7 +199,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
       statement.execute("begin")
       val rs = sqls.zip(blobs) map { case (sql, blob) =>
         val statement = connection.prepareStatement(sql)
-        statement.setBytes(1, blob)
+        if (blob != null) statement.setBytes(1, blob)
         statement.execute()
       }
       statement.execute("end")
@@ -213,7 +213,7 @@ class Db(val database: String, debug: Boolean = true) extends Log {
 
   /**
    * Several queries inside a transaction.
-   * @param sql
+   * @param sqls
    */
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
