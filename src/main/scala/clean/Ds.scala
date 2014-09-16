@@ -46,6 +46,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     if (r.isEmpty) None else Some(r.head)
   }
   lazy val nclasses = patterns.head.nclasses
+  override val context = dataset
 
   /**
    * Reads SQLite patterns in the querying order.
@@ -159,7 +160,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         case Some(hitPoolId) => if (hitsFinished(hitPoolId, pool)) log(s"Hits do pool $run.$fold já estavam gravados para $strat.$learner.")
         else quit(s"Inconsistency: pool $hitPoolId exists, but conf. mat.s don't.")
         case None =>
-          val poolSQL = if (strat.id < 2 && learner.id > 3) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else "SELECT 1"
+          val poolSQL = if (strat.id < 2 && learner.id > 0) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else "SELECT 1"
           val initialPatterns = pool.take(nclasses)
           val rest = pool.drop(nclasses)
           var m: Model = null

@@ -37,7 +37,7 @@ class MySpec extends UnitSpec with Blob {
     db.close()
   }
 
-  val d = Ds(Global.appPath)("flags-colour")
+  val d = Ds(Global.appPath, "flags-colour")
   d.open()
   val l = NB()
   val m = l.build(d.patterns.take(20))
@@ -92,7 +92,7 @@ class MySpec extends UnitSpec with Blob {
         idx -> line.replace("'", "")
       }.toMap
       source.close()
-      val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
+      val ds = Ds("/home/davi/wcs/ucipp/uci", dataset)
       ds.patterns foreach { p =>
         //weka loader reindexes nominal attributes from zero (as in p.vector), but toString recovers original values
         assertResult(arff(p.id).split(",").dropRight(1).mkString(",").take(50), s"$dataset id:${p.id}")(p.toString.split(",").dropRight(1).mkString(",").take(50))
@@ -104,7 +104,7 @@ class MySpec extends UnitSpec with Blob {
   "patterns' ids" should "survive to bina+zscore weka filters" ignore {
     //label sequence in all datasets can be used to verify correctness of wekafiltered id sequence
     datasets foreach { dataset =>
-      val ds = Ds("/home/davi/wcs/ucipp/uci")(dataset)
+      val ds = Ds("/home/davi/wcs/ucipp/uci", dataset)
       val m = ds.patterns.map(p => p.id -> p.label).toMap
       val shuffled = new Random(0).shuffle(ds.patterns)
       val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -119,7 +119,7 @@ class MySpec extends UnitSpec with Blob {
   }
 
   "weights" should "remain 1 at input and output of filters" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -130,7 +130,7 @@ class MySpec extends UnitSpec with Blob {
     assert(ds.patterns ++ bPatts ++ zbPatts forall (_.weight() == 1))
   }
   it should "raise Error if are not 1 before filters" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -145,7 +145,7 @@ class MySpec extends UnitSpec with Blob {
   }
 
   "5-fold CV" should "create different folds" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -156,7 +156,7 @@ class MySpec extends UnitSpec with Blob {
     assert(trs.map(_.sortBy(_.id)).distinct.size === trs.size)
   }
   it should "have 1 occurrence of each instance at 4 pools" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -170,7 +170,7 @@ class MySpec extends UnitSpec with Blob {
     assert(occs.map(_.sorted) === Vector.fill(ds.patterns.size)(Vector(0, 1, 1, 1, 1)))
   }
   it should "have 1 occurrence of each instance for all ts folds" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -183,7 +183,7 @@ class MySpec extends UnitSpec with Blob {
     assert(occs.map(_.sorted) === Vector.fill(ds.patterns.size)(Vector(0, 0, 0, 0, 1)))
   }
   it should "have no instance in both pool and ts" in {
-    val ds = Ds("/home/davi/wcs/als/")("flags-colour")
+    val ds = Ds("/home/davi/wcs/als/", "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -196,7 +196,7 @@ class MySpec extends UnitSpec with Blob {
     }
   }
   it should "not miss any instance" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -206,7 +206,7 @@ class MySpec extends UnitSpec with Blob {
     assert(ds.patterns.diff(tss.flatten).isEmpty)
   }
   it should "have pools with size not exceeding min+1" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -217,7 +217,7 @@ class MySpec extends UnitSpec with Blob {
     trs foreach (tr => assert(tr.size === min || tr.size === min + 1))
   }
   it should "have tss with 0.2 the original size" in {
-    val ds = Ds(Global.appPath)("flags-colour")
+    val ds = Ds(Global.appPath, "flags-colour")
     ds.open()
     val shuffled = new Random(0).shuffle(ds.patterns)
     val bf = Datasets.binarizeFilter(shuffled.take(30))
