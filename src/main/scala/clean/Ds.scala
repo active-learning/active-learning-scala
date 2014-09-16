@@ -77,25 +77,25 @@ case class Ds(path: String, debug: Boolean = false)(dataset: String) extends Db(
   }
 
   def queriesFinished(poolId: Int, pool: Seq[Pattern]) = {
-    Q match {
-      case Some(q) =>
-        val (qs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM q WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
-        if (qs != lastT + 1) quit(s"Inconsistency: $qs queries differs from last time step+1 ${lastT + 1}")
-        val sid = read(s"SELECT s FROM p WHERE id=$poolId").head.head.toInt
-        val PoolSize = pool.size
-        sid match {
-          case id if id < 2 => qs match {
-            case 0 => false
-            case PoolSize => true
-            case _ => quit(s"$qs previous agnostic queries should be ${pool.size}")
-          }
-          case _ => qs match {
+    val s = read(s"SELECT s FROM p WHERE id=$poolId").head.head.toInt
+    val PoolSize = pool.size
+    val (qs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM q WHERE p=$poolId").map(tup => tup(0) -> tup(1)).head
+    if (qs != lastT + 1) quit(s"Inconsistency: $qs queries differs from last time step+1 ${lastT + 1}")
+    s match {
+      case sid if sid < 2 => qs match {
+        case 0 => false
+        case PoolSize => true
+        case _ => quit(s"$qs previous agnostic queries should be ${pool.size}")
+      }
+      case _ =>
+        Q match {
+          case Some(q) => qs match {
             case 0 => false
             case `q` => true
             case _ => quit(s"$qs previous queries should be $Q")
           }
+          case None => false
         }
-      case None => false
     }
   }
 
