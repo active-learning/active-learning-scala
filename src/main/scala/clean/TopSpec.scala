@@ -28,7 +28,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 object TopSpec extends Lock with App {
-  lazy val datasets = Source.fromFile("juntos.txt").getLines().toList
+  lazy val datasets = Source.fromFile("a").getLines().toList
   val learnerSeed = 12
   val path = "/home/davi/testuci"
 
@@ -60,8 +60,10 @@ object TopSpec extends Lock with App {
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
-    val tr = new Random(3460).shuffle(ds.patterns).groupBy(_.label).map(_._2.head).toList
-    val ts = ds.patterns.filter(_ == tr)
+    val tr = new Random(3460).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(2)).toList.flatten
+    println(tr)
+    val ts = ds.patterns.filter(_ != tr).take(ds.nclasses * 2)
+    println(ts)
     strats(Seq()) foreach {
       strat =>
         println(s"$strat ...")
@@ -94,6 +96,23 @@ object TopSpec extends Lock with App {
           new Random(fold).shuffle(filteredTs.sortBy(_.id))
         }
 
+
+        //Q
+        ds.writeQueries(pool, RandomSampling(pool), run, fold, pool.length)
+        println("rnddsqs")
+        val rnddsqs = ds.queries(RandomSampling(pool), run, fold)
+        println("NB")
+        ds.writeHits(pool, testSet, rnddsqs, RandomSampling(pool), run, fold)(NB())
+        println("c45")
+        ds.writeHits(pool, testSet, rnddsqs, RandomSampling(pool), run, fold)(C45())
+        println("knn")
+        ds.writeHits(pool, testSet, rnddsqs, RandomSampling(pool), run, fold)(KNNBatch(5, "eucl", pool, weighted = true))
+        val Q = ds.Q.getOrElse(ds.calculaQ)
+        println(s"Q: $Q")
+        if (RandomSampling(pool).queries.sameElements(rnddsqs)) println("ok rnd qs") else println(s"rndqueries != dsrndQueries")
+
+
+
         println("sid find")
         val strategy = strats(pool).find(_.id == strat.id).get
 
@@ -101,11 +120,11 @@ object TopSpec extends Lock with App {
         println("queries")
         val queries = strategy.queries.take(ds.nclasses)
         println("write qs")
-        ds.writeQueries(pool, strategy, run, fold, ds.nclasses)
+        ds.writeQueries(pool, strategy, run, fold, Q)
         println("read qs")
         val dsQueries = ds.queries(strategy, run, fold)
         println(s"${ds.nclasses} queries should remain the same after written and read for $ds/$strategy/${strategy.learner}")
-        if(queries.sameElements(dsQueries)) println("ok") else println(s"$queries != \n$dsQueries")
+        if (queries.sameElements(dsQueries)) println("ok qs") else println(s"$queries != \n$dsQueries")
 
         println("hits")
         val hits = strategy.learner.build(queries).confusion(pool)
@@ -113,7 +132,7 @@ object TopSpec extends Lock with App {
         val dsHits = ds.getHits(strategy, strategy.learner, run, fold)
 
         println(s"${ds.nclasses} conf. mat.s should remain the same after written and read for $ds/$strategy/${strategy.learner}")
-        if(hits.sameElements(dsHits)) println("ok") else println(s"$hits != \n$dsHits")
+        if (hits.sameElements(dsHits)) println("ok") else println(s"$hits != \n$dsHits")
         println(s"$strategy ok.")
     }
     ds.close()
