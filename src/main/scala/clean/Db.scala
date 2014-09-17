@@ -31,9 +31,8 @@ import org.sqlite.SQLiteConnection
  * A escrita depende do mutex aqui implementado, mas
  * pode ser resolvida pelo SQLite via tentativas durante BUSY_WAITING.
  */
-class Db(val database: String) extends Log {
+class Db(val database: String) extends Log with Lock {
   override lazy val toString = database
-  private var available = true
   private var connection: Connection = null
   val context = database
 
@@ -48,20 +47,6 @@ class Db(val database: String) extends Log {
       case e: Throwable => e.printStackTrace()
         log(e.getMessage)
         error(s"Problems opening db connection: $database !")
-    }
-  }
-
-  def acquire() = {
-    synchronized {
-      while (!available) wait()
-      available = false
-    }
-  }
-
-  def release() = {
-    synchronized {
-      available = true
-      notify()
     }
   }
 
@@ -89,7 +74,7 @@ class Db(val database: String) extends Log {
   }
 
   def justQuit(msg: String) = {
-    log(s"Quiting: $msg")
+    log(s"Quiting: $msg", 2)
     sys.exit(1)
   }
 

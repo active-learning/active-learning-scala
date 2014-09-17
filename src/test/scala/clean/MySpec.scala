@@ -1,4 +1,5 @@
-import clean._
+package clean
+
 import ml.classifiers.NB
 import util.Datasets
 

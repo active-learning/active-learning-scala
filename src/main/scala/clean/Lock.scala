@@ -16,7 +16,28 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.scalatest._
+package clean
 
-abstract class UnitSpec extends FlatSpec with Matchers with
-OptionValues with Inside with Inspectors
+import java.io.{File, FileInputStream}
+import java.sql.{Connection, DriverManager}
+
+import org.sqlite.SQLiteConnection
+
+trait Lock {
+  private var available = true
+
+  def acquire() = {
+    synchronized {
+      while (!available) wait()
+      available = false
+    }
+  }
+
+  def release() = {
+    synchronized {
+      available = true
+      notify()
+    }
+  }
+}
+

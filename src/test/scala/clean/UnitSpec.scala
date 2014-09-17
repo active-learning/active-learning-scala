@@ -1,10 +1,8 @@
 package clean
 
-import java.util.Calendar
-
 /*
-active-learning-scala: Active Learning library for Scala
-Copyright (c) 2014 Davi Pereira dos Santos
+ active-learning-scala: Active Learning library for Scala
+ Copyright (c) 2014 Davi Pereira dos Santos
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,14 +16,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
+import org.scalatest._
 
-trait Log {
-  val context: String
-
-  def log(msg: String, level: Int = 1) = level match {
-    case 0 =>
-    case 1 => if (Global.debug) println(s"$context : $msg    ${Calendar.getInstance().getTime}")
-    case 2 => println(s"$context : $msg    ${Calendar.getInstance().getTime}")
-  }
-}
+abstract class UnitSpec extends FlatSpec with Matchers with
+OptionValues with Inside with Inspectors

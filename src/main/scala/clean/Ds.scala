@@ -49,6 +49,17 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   override val context = dataset
 
   /**
+   * Gets the list of conf. mat.s for the given strategy/learner.
+   * @param strat
+   * @param learner
+   *
+   */
+  def getHits(strat:Strategy, learner:Learner, run: Int, fold: Int)={
+    val pid = poolId(strat,learner,run,fold)
+    readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t").map { case (b, t) => stretchFromBytes(b).grouped(nclasses).map(_.toArray).toArray}
+  }
+
+  /**
    * Reads SQLite patterns in the querying order.
    * It opens a new connection, so it will not be able to open a connection under writing ops.
    */

@@ -24,7 +24,7 @@ import ml.Pattern
 import ml.classifiers._
 
 trait nonRnd extends Exp {
-  val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):n|r|f|rf", "learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
+  val arguments = List("datasets-path", "file-with-dataset-names", "parallelize(runs folds):n|r|f|rf", "learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
   val samplingSize = 500
@@ -33,11 +33,11 @@ trait nonRnd extends Exp {
   def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
     val Q = ds.Q.getOrElse(ds.quit(s"Q not found for $ds !"))
 
-    //queries (só no primeiro learner)
+    //queries (só no learner da strat: NoLearner pra Clu, 'fornecido' pra Gnos)
     ds.log("queries")
     ds.writeQueries(pool, strat, run, fold, Q)
 
-    //hits (pra cada learner)
+    //hits (pra learner fornecido)
     ds.log("fetch queries")
     val queries = ds.queries(strat, run, fold)
     ds.log("hits")
