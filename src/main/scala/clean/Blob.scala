@@ -30,16 +30,27 @@ trait Blob {
     s
   }
 
+  def confusionToBlob(m: Array[Array[Int]]) = shrinkToBytes(m.flatten)
+
   def shrinkToBytes(numbers: Seq[Int], bits: Int = 12) = {
-    val binary = numbers flatMap (n => Integer.toBinaryString(n).takeRight(bits).reverse.padTo(12, 0).reverse)
+    val binary = numbers flatMap { num =>
+      val str32bit = Integer.toBinaryString(num)
+      val str12bit = str32bit.reverse.padTo(12, 0).reverse
+      str12bit
+    }
     val n = binary.size
-    val pad32bit = binary.reverse.padTo(n + (8 - n % 8), 0).reverse
-    BaseConverter.fromBinary(pad32bit.mkString)
+    val pad8bit = binary.reverse.padTo(n + (8 - (n % 8)), 0).reverse
+    val r = BaseConverter.fromBinary(pad8bit.mkString)
+    r
   }
+
+  def blobToConfusion(b: Array[Byte], nclasses: Int) = stretchFromBytes(b).grouped(nclasses).map(_.toArray).toArray
 
   def stretchFromBytes(bytes: Array[Byte], bits: Int = 12) = {
     val a = BaseConverter.toBinary(bytes)
-    val b = a.drop(a.size % 12).grouped(12).map(_.mkString).toList
-    b.map(Integer.parseInt(_, 2))
+    val b = a.drop(a.size % 12)
+    val c = b.grouped(12).map(_.mkString).toList
+    val d = c.map(Integer.parseInt(_, 2))
+    d
   }
 }

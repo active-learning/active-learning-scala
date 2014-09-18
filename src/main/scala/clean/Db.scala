@@ -126,9 +126,8 @@ class Db(val database: String) extends Log with Lock {
     try {
       acquire()
       val statement = connection.createStatement()
-      val r = statement.executeUpdate(sql)
+      statement.executeUpdate(sql)
       statement.close()
-      //       log(s"statement.execute returned $r for $sql")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
@@ -162,9 +161,8 @@ class Db(val database: String) extends Log with Lock {
       acquire()
       val statement = connection.prepareStatement(sql)
       statement.setBytes(1, data)
-      val r = statement.execute()
+      statement.execute()
       statement.close()
-      //      log(s"writeBlob: statement.execute returned $r for $sql")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
@@ -184,14 +182,13 @@ class Db(val database: String) extends Log with Lock {
       acquire()
       val statement = connection.createStatement()
       statement.execute("begin")
-      val rs = sqls.zip(blobs) map { case (sql, blob) =>
+      sqls.zip(blobs) foreach { case (sql, blob) =>
         val statement = connection.prepareStatement(sql)
         if (blob != null) statement.setBytes(1, blob)
         statement.execute()
       }
       statement.execute("end")
       statement.close()
-      //       log(s"batchWriteBlob: statement.execute returned $rs for $sqls")(database)
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
@@ -206,15 +203,13 @@ class Db(val database: String) extends Log with Lock {
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
     sqls foreach (m => log(m))
-
     try {
       acquire()
       val statement = connection.createStatement()
       statement.execute("begin")
-      val rs = sqls map statement.executeUpdate
+      sqls foreach statement.executeUpdate
       statement.execute("end")
       statement.close()
-      //  log(s"batchWrite: statement.execute returned $rs for $sqls")()
     } catch {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)

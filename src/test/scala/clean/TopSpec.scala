@@ -27,7 +27,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-object TopSpec extends Lock with App {
+object TopSpec extends UnitSpec with Blob with Lock {
   lazy val datasets = Source.fromFile("a").getLines().toList
   val learnerSeed = 12
   val path = "/home/davi/testuci"
@@ -96,6 +96,8 @@ object TopSpec extends Lock with App {
           new Random(fold).shuffle(filteredTs.sortBy(_.id))
         }
 
+        //reset ds
+        ds.reset()
 
         //Q
         ds.writeQueries(pool, RandomSampling(pool), run, fold, pool.length)
@@ -112,11 +114,11 @@ object TopSpec extends Lock with App {
         if (RandomSampling(pool).queries.sameElements(rnddsqs)) println("ok rnd qs") else println(s"rndqueries != dsrndQueries")
 
 
+        //SpecTest needs mutex.
 
         println("sid find")
         val strategy = strats(pool).find(_.id == strat.id).get
 
-        //Spec needs this mutexes.
         println("queries")
         val queries = strategy.queries.take(ds.nclasses)
         println("write qs")

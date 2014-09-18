@@ -24,8 +24,9 @@ import scala.util.Random
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class MySpec extends UnitSpec with Blob {
-  lazy val datasets = Source.fromFile("datasets-bons.txt").getLines().mkString.split(",")
+class MySpec extends UnitSpec with Blob with Lock {
+  lazy val datasets = Source.fromFile("juntos.txt").getLines().toList
+  val path = "/home/davi/testuci"
 
   "Database" should "create a table, write and read two tuples" in {
     val db = new Db(Global.appPath + "/test.db")
@@ -43,9 +44,6 @@ class MySpec extends UnitSpec with Blob {
   val l = NB()
   val m = l.build(d.patterns.take(20))
   d.close()
-  val mat = m.confusion(d.patterns.drop(20))
-  mat(0)(0) = 4095
-  mat(d.nclasses - 1)(d.nclasses - 1) = 0
   "Dataset" should s"blob" in {
     val db = new Db(Global.appPath + "/test.db")
     db.open()
@@ -57,15 +55,23 @@ class MySpec extends UnitSpec with Blob {
     db.close()
   }
 
-  "Dataset" should s"shrink, write, read and stretch a confusion matrix (boundary cells with limit values 4095 and 0) ${mat.toList.map(_.toList)}" in {
-    val db = new Db(Global.appPath + "/test.db")
+  if (true) datasets.par foreach { d =>
+    val db = Ds(path, d)
     db.open()
-    assert(db.write("drop table if exists h") ===())
-    assert(db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )") ===())
-    assert(db.writeBlob("insert into h values (1, 32, ?)", shrinkToBytes(mat.flatten)) ===())
+    val l = NB()
+    val m = l.build(db.patterns.take(db.nclasses * 2))
+    val mat = m.confusion(db.patterns.drop(db.nclasses * 2).take(db.nclasses * 3))
+    db.write("drop table if exists h")
+    db.write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )")
+    db.writeBlob("insert into h values (1, 32, ?)", confusionToBlob(mat))
     val blob = db.readBlobs("select mat,0 from h where p=1 and t=32").head._1
-    assertResult(mat.flatten)(stretchFromBytes(blob))
+    val writtenMat = blobToConfusion(blob, db.nclasses)
     db.close()
+    acquire()
+    s"Dataset $db with ${db.nclasses} classes" should s"shrink, write, read and stretch a confusion matrix" in {
+      assertResult(mat)(writtenMat)
+    }
+    release()
   }
 
   "All dataset db files" should "have ids matching ARFF line numbers" ignore {

@@ -26,7 +26,7 @@ trait AppWithUsage extends App with Log {
   def init() {
     println(args.mkString(" "))
     if (args.size != arguments.size) {
-      println(s"Usage: java -cp you-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
+      println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
       sys.exit(1)
     }
   }
