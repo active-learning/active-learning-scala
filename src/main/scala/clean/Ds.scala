@@ -154,7 +154,8 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val numberOfPools = runs * folds * numberOfLearners
     val numberOfConfMats = if (runs == 1 && folds == 1) {
       //special case for tests (TopSpec.scala)
-      (nclasses * 2 - nclasses + 1) * numberOfLearners
+      val qtsPerClass = 4
+      (nclasses * qtsPerClass - nclasses + 1) * numberOfLearners
     } else (runs * (folds - 1)) * numberOfLearners - (nclasses - 1) * numberOfPools
     val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
     if (numberOfPools != poolIds.size) error(s"${poolIds.size} found, $numberOfPools expected!")

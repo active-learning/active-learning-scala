@@ -87,7 +87,7 @@ trait Exp extends AppWithUsage {
                 new Random(fold).shuffle(filteredTs.sortBy(_.id))
               }
 
-              //opera no ds
+              //opera no ds // && x.learner.id == strat.learner.id
               op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold)
 
               ds.log(s"$strat ok.")

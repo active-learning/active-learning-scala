@@ -48,7 +48,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
       DensityWeightedTrainingUtility(learner, pool, "eucl"),
       DensityWeightedTrainingUtility(learner, pool, "maha"),
       MahalaWeightedTrainingUtility(learner, pool, 1, 1),
-      ExpErrorReductionMargin(learner, pool, "gmeans+residual", 5)
+      ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 3)
     )
   }.flatten
 
@@ -60,9 +60,9 @@ class TopSpec extends UnitSpec with Blob with Lock {
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
-    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(2)).toList.flatten
+    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(4)).toList.flatten
     println(tr)
-    val ts = ds.patterns.filter(_ != tr).take(ds.nclasses * 2)
+    val ts = ds.patterns.filter(_ != tr).groupBy(_.label).map(_._2.take(2)).toList.flatten
     println(ts)
 
     //reset ds
@@ -111,7 +111,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
           val dsQueries = ds.queries(RandomSampling(pool), run, fold)
           //SpecTest needs mutex.
           acquire()
-          "rnd stat" should "write/read queries" in {
+          s"$dataset rnd stat" should "write/read queries" in {
             assert(RandomSampling(pool).queries.sameElements(dsQueries))
           }
           release()
@@ -140,7 +140,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
         }
 
         println("sid find")
-        val strategy = strats(pool).find(_.id == strat.id).get
+        val strategy = strats(pool).find(x => x.id == strat.id && x.learner.id == strat.learner.id).get
         println("queries")
         val queries = strategy.queries.take(ds.nclasses)
         println("write qs")
@@ -155,6 +155,11 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
         println("hits")
         val hits = strategy.learner.build(queries).confusion(pool)
+        /*pool.map(x => x.id + " " + x.label) foreach println
+        println(s"qs")
+        dsQueries.map(x => x.id + " " + x.label) foreach println
+        println(s"ts")
+        testSet.map(x => x.id + " " + x.label) foreach println*/
         ds.writeHits(pool, testSet, dsQueries, strategy, run, fold)(strategy.learner)
         val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
 

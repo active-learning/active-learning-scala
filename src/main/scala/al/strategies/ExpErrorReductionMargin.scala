@@ -40,7 +40,7 @@ case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criteri
   extends StrategyWithLearner with Sample with EntropyMeasure {
   override val toString = "Expected Error Reduction Margin s" + sample + " (" + criterion + ")"
   val abr = "EERM" + criterion.take(3)
-  lazy val id = if (sample == 300) criterionInt match {
+  lazy val id = if (sample == 300 || sample == 3) criterionInt match {
     case Ventropy => 11
     case Vaccuracy => 12
     case VgmeansResidual => 13
