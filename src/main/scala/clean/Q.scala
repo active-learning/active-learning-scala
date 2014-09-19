@@ -32,22 +32,28 @@ object Q extends Exp {
 
   def strats(pool: => Seq[Pattern], seed: Int) = List(RandomSampling(pool))
 
+  def isAlreadyDone(ds: Ds) = ds.isQCalculated
+
   def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
     //queries
     ds.log("queries")
-    ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
+    if (ds.areQueriesFinished(pool, strat, run, fold)) println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold.")
+    else ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 
     //hits
     ds.log("fetch queries")
     val queries = ds.queries(strat, run, fold)
     ds.log("hits")
     val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
-    learners foreach ds.writeHits(pool, testSet, queries, strat, run, fold)
+    learners foreach { learner =>
+      if (ds.areHitsFinished(pool, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
+      ds.writeHits(pool, testSet, queries, strat, run, fold)(learner)
+    }
   }
 
   def end(ds: Ds) {
     //Q
-    val Q = ds.Q.getOrElse(ds.calculaQ)
-    println(s"Q: $Q")
+    val Q = ds.calculaQ(runs, folds)
+    println(s"Q: $Q\n")
   }
 }

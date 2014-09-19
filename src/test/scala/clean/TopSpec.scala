@@ -27,9 +27,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-object TopSpec extends UnitSpec with Blob with Lock {
+class TopSpec extends UnitSpec with Blob with Lock {
   lazy val datasets = Source.fromFile("a").getLines().toList
-  val learnerSeed = 12
   val path = "/home/davi/testuci"
 
   def learner(pool: Seq[Pattern]) = List(
@@ -54,16 +53,21 @@ object TopSpec extends UnitSpec with Blob with Lock {
   }.flatten
 
   val run = 0
-  val fold = 4
+  val fold = 0
+  val learnerSeed = run * 10000 + fold
   datasets foreach { dataset =>
     //  datasets.par foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
-    val tr = new Random(3460).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(2)).toList.flatten
+    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(2)).toList.flatten
     println(tr)
     val ts = ds.patterns.filter(_ != tr).take(ds.nclasses * 2)
     println(ts)
+
+    //reset ds
+    ds.reset()
+
     strats(Seq()) foreach {
       strat =>
         println(s"$strat ...")
@@ -96,46 +100,69 @@ object TopSpec extends UnitSpec with Blob with Lock {
           new Random(fold).shuffle(filteredTs.sortBy(_.id))
         }
 
-        //reset ds
-        ds.reset()
+        println(s"Q test")
+        if (!ds.isQCalculated) {
+          //queries
+          println(s"queries")
+          ds.writeQueries(pool, RandomSampling(pool), run, fold, Int.MaxValue)
 
-        //Q
-        ds.writeQueries(pool, RandomSampling(pool), run, fold, pool.length)
-        println("rnddsqs")
-        val rnddsqs = ds.queries(RandomSampling(pool), run, fold)
-        println("NB")
-        ds.writeHits(pool, testSet, rnddsqs, RandomSampling(pool), run, fold)(NB())
-        println("c45")
-        ds.writeHits(pool, testSet, rnddsqs, RandomSampling(pool), run, fold)(C45())
-        println("knn")
-        ds.writeHits(pool, testSet, rnddsqs, RandomSampling(pool), run, fold)(KNNBatch(5, "eucl", pool, weighted = true))
-        val Q = ds.Q.getOrElse(ds.calculaQ)
-        println(s"Q: $Q")
-        if (RandomSampling(pool).queries.sameElements(rnddsqs)) println("ok rnd qs") else println(s"rndqueries != dsrndQueries")
+          //hits
+          println("fetch queries")
+          val dsQueries = ds.queries(RandomSampling(pool), run, fold)
+          //SpecTest needs mutex.
+          acquire()
+          "rnd stat" should "write/read queries" in {
+            assert(RandomSampling(pool).queries.sameElements(dsQueries))
+          }
+          release()
 
+          println("hits")
+          val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
+          learners foreach { learner =>
+            ds.writeHits(pool, testSet, dsQueries, RandomSampling(pool), run, fold)(learner)
+            val dsHits = ds.getCMs(RandomSampling(pool), learner, run, fold)
+            val hits = learner.build(dsQueries).confusion(pool)
+            acquire()
+            it should s"write/read $learner hits" in {
+              assert(hits.flatten.toList.sameElements(dsHits.flatten.toList))
+            }
+            release()
+          }
 
-        //SpecTest needs mutex.
+          println(s"Q")
+          ds.calculaQ(1, 1)
+          println(s"Q: ${ds.Q}")
+          acquire()
+          it should "calculate Q as |U|" in {
+            assertResult(pool.size)(ds.Q)
+          }
+          release()
+        }
 
         println("sid find")
         val strategy = strats(pool).find(_.id == strat.id).get
-
         println("queries")
         val queries = strategy.queries.take(ds.nclasses)
         println("write qs")
-        ds.writeQueries(pool, strategy, run, fold, Q)
+        ds.writeQueries(pool, strategy, run, fold, ds.Q)
         println("read qs")
         val dsQueries = ds.queries(strategy, run, fold)
-        println(s"${ds.nclasses} queries should remain the same after written and read for $ds/$strategy/${strategy.learner}")
-        if (queries.sameElements(dsQueries)) println("ok qs") else println(s"$queries != \n$dsQueries")
+        acquire()
+        s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
+          assert(queries.sameElements(dsQueries))
+        }
+        release()
 
         println("hits")
         val hits = strategy.learner.build(queries).confusion(pool)
         ds.writeHits(pool, testSet, dsQueries, strategy, run, fold)(strategy.learner)
-        val dsHits = ds.getHits(strategy, strategy.learner, run, fold)
+        val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
 
-        println(s"${ds.nclasses} conf. mat.s should remain the same after written and read for $ds/$strategy/${strategy.learner}")
-        if (hits.sameElements(dsHits)) println("ok") else println(s"$hits != \n$dsHits")
-        println(s"$strategy ok.")
+        acquire()
+        s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
+          assert(hits.sameElements(dsHits))
+        }
+        release()
     }
     ds.close()
   }

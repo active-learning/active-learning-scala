@@ -34,6 +34,8 @@ trait Exp extends AppWithUsage {
   lazy val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2).filter(!_.startsWith("#"))
   val parallelRuns: Boolean
   val parallelFolds: Boolean
+  val runs = Global.runs
+  val folds = Global.folds
 
   def strats(pool: => Seq[Pattern], seed: Int): List[Strategy]
 
@@ -41,56 +43,60 @@ trait Exp extends AppWithUsage {
 
   def end(ds: Ds)
 
+  def isAlreadyDone(ds: Ds): Boolean
+
   override def init() {
     super.init()
     datasets foreach { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
+      if (isAlreadyDone(ds)) println(s"$dataset already done!")
+      else {
+        ds.log(s"Processing ${ds.n} instances ...")
+        (if (parallelRuns) (0 until runs).par else 0 until Global.runs) foreach { run =>
+          val shuffled = new Random(run).shuffle(ds.patterns)
+          Datasets.kfoldCV(shuffled, k = folds, parallelFolds) { (tr, ts, fold, minSize) =>
+            ds.log(s"Pool $run.$fold (${tr.size} instances) ...")
+            val learnerSeed = run * 10000 + fold
+            strats(Seq(), learnerSeed) foreach { strat =>
+              ds.log(s"$strat ...")
 
-      ds.log(s"Processing ${ds.n} instances ...")
-      (if (parallelRuns) (0 until Global.runs).par else 0 until Global.runs) foreach { run =>
-        val shuffled = new Random(run).shuffle(ds.patterns)
-        Datasets.kfoldCV(shuffled, k = Global.folds, parallelFolds) { (tr, ts, fold, minSize) =>
-          ds.log(s"Pool $run.$fold (${tr.size} instances) ...")
-          val learnerSeed = run * 10000 + fold
-          strats(Seq(), learnerSeed) foreach { strat =>
-            ds.log(s"$strat ...")
+              //Ordena pool,testSet e aplica filtro se preciso.
+              val needsFilter = (strat, strat.learner) match {
+                case (_, _: ELM) => true
+                case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
+                case (_: MahalaWeightedTrainingUtility, _) => true
+                case _ => false
+              }
 
-            //Ordena pool,testSet e aplica filtro se preciso.
-            val needsFilter = (strat, strat.learner) match {
-              case (_, _: ELM) => true
-              case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
-              case (_: MahalaWeightedTrainingUtility, _) => true
-              case _ => false
+              //bina
+              lazy val binaf = Datasets.binarizeFilter(tr)
+              lazy val binarizedTr = Datasets.applyFilter(binaf)(tr)
+              lazy val binarizedTs = Datasets.applyFilter(binaf)(ts)
+
+              //tr
+              lazy val zscof = Datasets.zscoreFilter(binarizedTr)
+              lazy val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
+              else {
+                val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+                new Random(fold).shuffle(filteredTr.sortBy(_.id))
+              }
+              lazy val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
+              else {
+                val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
+                new Random(fold).shuffle(filteredTs.sortBy(_.id))
+              }
+
+              //opera no ds
+              op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold)
+
+              ds.log(s"$strat ok.")
             }
 
-            //bina
-            lazy val binaf = Datasets.binarizeFilter(tr)
-            lazy val binarizedTr = Datasets.applyFilter(binaf)(tr)
-            lazy val binarizedTs = Datasets.applyFilter(binaf)(ts)
-
-            //tr
-            lazy val zscof = Datasets.zscoreFilter(binarizedTr)
-            lazy val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
-            else {
-              val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
-              new Random(fold).shuffle(filteredTr.sortBy(_.id))
-            }
-            lazy val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
-            else {
-              val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
-              new Random(fold).shuffle(filteredTs.sortBy(_.id))
-            }
-
-            //opera no ds
-            op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold)
-
-            ds.log(s"$strat ok.")
           }
-
         }
+        end(ds)
       }
-      end(ds)
       ds.close()
     }
     log("Datasets prontos.")

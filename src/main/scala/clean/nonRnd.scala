@@ -31,11 +31,9 @@ trait nonRnd extends Exp {
   init()
 
   def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
-    val Q = ds.Q.getOrElse(ds.quit(s"Q not found for $ds !"))
-
     //queries (só no learner da strat: NoLearner pra Clu, 'fornecido' pra Gnos)
     ds.log("queries")
-    ds.writeQueries(pool, strat, run, fold, Q)
+    ds.writeQueries(pool, strat, run, fold, ds.Q)
 
     //hits (pra learner fornecido)
     ds.log("fetch queries")
@@ -47,4 +45,6 @@ trait nonRnd extends Exp {
   def end(ds: Ds) {
     ds.log("fim")
   }
+
+  def isAlreadyDone(ds: Ds) = false
 }

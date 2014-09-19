@@ -54,9 +54,47 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   lazy val nclasses = patterns.head.nclasses
   lazy val patterns = fetchPatterns("i order by id asc")
   lazy val Q = {
-    val r = read(s"select v from r where m=0 AND p=-1").map(_.head)
-    if (r.isEmpty) quit("Q not found.") else r.head.toInt
+    val r = fetchQ()
+    if (r.isEmpty) error("Q not found.") else r.head.toInt
   }
+
+  private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
+
+  /**
+   * Reads SQLite patterns in the querying order.
+   * It opens a new connection, so it will have to wait to open a connection under writing ops.
+   */
+  private def fetchPatterns(sqlTail: String) = try {
+    val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
+    println(s"Fetching patterns from $database ...")
+    val query = new InstanceQuerySQLite()
+    query.setDatabaseURL("jdbc:sqlite:////" + database)
+    query.setQuery("select i.* from " + sqlTail)
+    query.setDebug(false)
+    val instances = query.retrieveInstances()
+    instances.setClassIndex(instances.numAttributes() - 1)
+    instances.setRelationName(dataset)
+    val parent = PatternParent(instances)
+    val res = instances.zip(ids).map {
+      case (instance, idx) => Pattern(idx, instance, missed = false, parent)
+    }
+    query.close()
+    res.toVector
+  } catch {
+    case ex: Exception => error(s"${
+      ex.getStackTraceString
+    } \n Problems reading file $database: ${
+      ex.getMessage
+    }")
+  }
+
+  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) =
+    read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold") match {
+      case List() => None
+      case List(seq) => Some(seq.head.toInt)
+    }
+
+  def isQCalculated = fetchQ().nonEmpty
 
   def areQueriesFinished(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int) =
     poolId(strat, strat.learner, run, fold) match {
@@ -131,12 +169,6 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     write(s"INSERT INTO r values (0, -1, $firstTAtMaxAcc)")
   }
 
-  def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) =
-    read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold") match {
-      case List() => None
-      case List(seq) => Some(seq.head.toInt)
-    }
-
   def countQueries(strat: Strategy, run: Int, fold: Int) = {
     val pid = poolId(strat, strat.learner, run, fold).getOrElse(quit(s"Pool not found for  s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold !"))
     read(s"SELECT COUNT(1) FROM q WHERE p=$pid") match {
@@ -154,34 +186,6 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val expectedCms = numberOfQueries - nclasses + 1
     if (expectedCms != cms.size) quit(s"${cms.size} conf mats found, $expectedCms expected!")
     cms
-  }
-
-  /**
-   * Reads SQLite patterns in the querying order.
-   * It opens a new connection, so it will have to wait to open a connection under writing ops.
-   */
-  def fetchPatterns(sqlTail: String) = try {
-    val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
-    println(s"Fetching patterns from $database ...")
-    val query = new InstanceQuerySQLite()
-    query.setDatabaseURL("jdbc:sqlite:////" + database)
-    query.setQuery("select i.* from " + sqlTail)
-    query.setDebug(false)
-    val instances = query.retrieveInstances()
-    instances.setClassIndex(instances.numAttributes() - 1)
-    instances.setRelationName(dataset)
-    val parent = PatternParent(instances)
-    val res = instances.zip(ids).map {
-      case (instance, idx) => Pattern(idx, instance, missed = false, parent)
-    }
-    query.close()
-    res.toVector
-  } catch {
-    case ex: Exception => error(s"${
-      ex.getStackTraceString
-    } \n Problems reading file $database: ${
-      ex.getMessage
-    }")
   }
 
   def queries(strat: Strategy, run: Int, fold: Int) =
@@ -219,25 +223,22 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       poolId(strat, learner, run, fold) match {
         case Some(hitPoolId) => quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits.")
         case None =>
-          val insertIntoP = if (strat.id < 2 && learner.id == 0) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
+          //agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
+          val insertIntoP = if (strat.id < 2) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
           else "SELECT 1"
-          val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q.getOrElse(quit(s"Q not found for $dataset !"))
-          if (expectedQ != queries.size) quit(s"Number of ${
-            queries.size
-          } provided queries is different from $expectedQ expected!")
+
+          //para rnd e os 3 learners especiais, Q = |U|.
+          val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q
+          if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
           val (initialPatterns, rest) = queries.splitAt(nclasses)
-          var m: Model = learner.build(initialPatterns)
+          var m = learner.build(initialPatterns)
           val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map {
             case (patt, idx) =>
               val t = idx + nclasses - 1
               if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
               val cm = m.confusion(testSet)
-              val blob = shrinkToBytes(cm.flatten)
-              (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${
-                strat.id
-              } and l=${
-                learner.id
-              } and r=$run and f=$fold", blob)
+              val blob = confusionToBlob(cm)
+              (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
           }).toList
           val (sqls, blobs) = tuples.unzip
           log(tuples.mkString("\n"))
