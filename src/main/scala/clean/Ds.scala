@@ -103,19 +103,19 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         val PoolSize = pool.size
         val (qs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM q WHERE p=$pid") match {
           case List(Vector(c, m)) => c -> m
-          case List() => quit(s"Inconsistency: there is a pool $pid for no queries!")
+          case List() => error(s"Inconsistency: there is a pool $pid for no queries!")
         }
-        if (qs != lastT + 1) quit(s"Inconsistency: $qs queries differs from last timeStep+1 ${lastT + 1}")
+        if (qs != lastT + 1) error(s"Inconsistency: $qs queries differs from last timeStep+1 ${lastT + 1}")
         strat.id match {
           case x if x < 2 => qs match {
-            case 0 => quit(s"Inconsistency: there is a pool $pid for no queries!")
+            case 0 => error(s"Inconsistency: there is a pool $pid for no queries!")
             case PoolSize => true
-            case _ => quit(s"$qs previous agnostic queries should be $PoolSize")
+            case _ => error(s"$qs previous agnostic queries should be $PoolSize")
           }
           case _ => qs match {
-            case 0 => quit(s"Inconsistency: there is a pool $pid for no queries!")
+            case 0 => error(s"Inconsistency: there is a pool $pid for no queries!")
             case Q => true
-            case _ => quit(s"$qs previous queries should be $Q")
+            case _ => error(s"$qs previous queries should be $Q")
           }
         }
     }
@@ -130,38 +130,41 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           val ExpectedHitsForFullPool = pool.size - nclasses + 1
           val (hs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
             case List(Vector(c, m)) => c -> m
-            case List() => quit(s"Inconsistency: there is a pool $pid for no hits!")
+            case List() => error(s"Inconsistency: there is a pool $pid for no hits!")
           }
-          if (hs != lastT - nclasses + 2) quit(s"Inconsistency: $hs cms differs from last timeStep+1 ${lastT - nclasses + 2}")
+          if (hs != lastT - nclasses + 2) error(s"Inconsistency: $hs cms differs from last timeStep+1 ${lastT - nclasses + 2}")
           (strat.id, learner.id) match {
             case (s, l) if s < 2 && l < 4 => hs match {
-              case 0 => quit(s"Inconsistency: there is a pool $pid for no hits!")
+              case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
               case ExpectedHitsForFullPool => true
-              case _ => quit(s"$hs previous agnostic hits should be $ExpectedHitsForFullPool")
+              case _ => error(s"$hs previous agnostic hits should be $ExpectedHitsForFullPool")
             }
             case _ => hs match {
-              case 0 => quit(s"Inconsistency: there is a pool $pid for no hits!")
+              case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
               case Q => true
-              case _ => quit(s"$hs previous hits should be $Q")
+              case _ => error(s"$hs previous hits should be $Q")
             }
           }
       }
     }
 
-  def calculaQ(runs: Int = 5, folds: Int = 5) {
+  def calculaQ(runs: Int, folds: Int) {
     //get pool ids
     val numberOfLearners = 3
     val numberOfPools = runs * folds * numberOfLearners
-    val numberOfConfMats = (runs * (folds - 1)) * numberOfLearners
+    val numberOfConfMats = if (runs == 1 && folds == 1) {
+      //special case for tests (TopSpec.scala)
+      (nclasses * 2 - nclasses + 1) * numberOfLearners
+    } else (runs * (folds - 1)) * numberOfLearners - (nclasses - 1) * numberOfPools
     val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
-    if (numberOfPools != poolIds.size) quit(s"${poolIds.size} found, $numberOfPools expected!")
+    if (numberOfPools != poolIds.size) error(s"${poolIds.size} found, $numberOfPools expected!")
 
     //get conf. mats and create map hits->timeStep
     val hits_t = readBlobs(s"select mat,t from h WHERE p IN (${poolIds.mkString(",")}) ORDER BY t").map {
       case (b, t) =>
         hits(blobToConfusion(b, nclasses)) -> t
     }
-    if (numberOfConfMats != hits_t.size) quit(s"${hits_t.size} found, $numberOfConfMats expected!")
+    if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected!")
 
     //get and write smallest time step with maximum accuracy
     val maxAcc = hits_t.map(_._1).max
@@ -177,15 +180,16 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
   }
 
-  def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int) = {
-    val pid = poolId(strat, learner, run, fold)
-    val cms = readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t").map {
-      case (b, t) => blobToConfusion(b, nclasses)
-    }
-    val numberOfQueries = countQueries(strat, run, fold)
-    val expectedCms = numberOfQueries - nclasses + 1
-    if (expectedCms != cms.size) quit(s"${cms.size} conf mats found, $expectedCms expected!")
-    cms
+  def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int) = poolId(strat, learner, run, fold) match {
+    case None => error("Attempt to get hits without an existent related pid.")
+    case Some(pid) =>
+      val cms = readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t").map {
+        case (b, t) => blobToConfusion(b, nclasses)
+      }
+      val numberOfQueries = countQueries(strat, run, fold)
+      val expectedCms = numberOfQueries - nclasses + 1
+      if (expectedCms != cms.size) error(s"${cms.size} conf mats found, $expectedCms expected!")
+      cms
   }
 
   def queries(strat: Strategy, run: Int, fold: Int) =
@@ -220,29 +224,27 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     if (learner.id != strat.learner.id && strat.id > 1)
       quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
-      poolId(strat, learner, run, fold) match {
-        case Some(hitPoolId) => quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits.")
-        case None =>
-          //agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
-          val insertIntoP = if (strat.id < 2) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
-          else "SELECT 1"
-
-          //para rnd e os 3 learners especiais, Q = |U|.
-          val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q
-          if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
-          val (initialPatterns, rest) = queries.splitAt(nclasses)
-          var m = learner.build(initialPatterns)
-          val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map {
-            case (patt, idx) =>
-              val t = idx + nclasses - 1
-              if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
-              val cm = m.confusion(testSet)
-              val blob = confusionToBlob(cm)
-              (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
-          }).toList
-          val (sqls, blobs) = tuples.unzip
-          log(tuples.mkString("\n"))
-          batchWriteBlob(sqls, blobs)
+      //agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
+      val insertIntoP = poolId(strat, learner, run, fold) match {
+        case Some(pid) => if (strat.id < 2) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
+        case None => if (strat.id < 2) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else quit(s"Missing gnostic queries pid for hits.")
       }
+
+      //para rnd e os 3 learners especiais, Q = |U|.
+      val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q
+      if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
+      val (initialPatterns, rest) = queries.splitAt(nclasses)
+      var m = learner.build(initialPatterns)
+      val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map {
+        case (patt, idx) =>
+          val t = idx + nclasses - 1
+          if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
+          val cm = m.confusion(testSet)
+          val blob = confusionToBlob(cm)
+          (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
+      }).toList
+      val (sqls, blobs) = tuples.unzip
+      log(tuples.mkString("\n"))
+      batchWriteBlob(sqls, blobs)
     }
 }
