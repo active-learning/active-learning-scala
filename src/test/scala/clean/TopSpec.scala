@@ -28,27 +28,29 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 class TopSpec extends UnitSpec with Blob with Lock {
-  lazy val datasets = Source.fromFile("a").getLines().toList
+  lazy val datasets = Source.fromFile("juntos.txt").getLines().toList
   val path = "/home/davi/testuci"
 
   def learner(pool: Seq[Pattern]) = List(
-    NB(),
-    KNNBatch(5, "eucl", pool, weighted = true),
-    VFDT(),
-    ECIELM(learnerSeed),
-    EIELM(learnerSeed),
-    interaELM(learnerSeed),
-    SVMLib(learnerSeed)
+    NB()
+//    ,
+//    KNNBatch(5, "eucl", pool, weighted = true),
+//    VFDT(),
+//    ECIELM(learnerSeed),
+//    EIELM(learnerSeed),
+//    interaELM(learnerSeed),
+//    SVMLib(learnerSeed)
   )
 
   def strats(pool: => Seq[Pattern]) = learner(pool).map { learner =>
     List(
-      Margin(learner, pool),
-      new SGmultiJS(learner, pool),
-      DensityWeightedTrainingUtility(learner, pool, "eucl"),
-      DensityWeightedTrainingUtility(learner, pool, "maha"),
-      MahalaWeightedTrainingUtility(learner, pool, 1, 1),
-      ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 3)
+      Margin(learner, pool)
+//      ,
+//      new SGmultiJS(learner, pool),
+//      DensityWeightedTrainingUtility(learner, pool, "eucl"),
+//      DensityWeightedTrainingUtility(learner, pool, "maha"),
+//      MahalaWeightedTrainingUtility(learner, pool, 1, 1),
+//      ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 3)
     )
   }.flatten
 
@@ -73,7 +75,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
         //Ordena pool,testSet e aplica filtro se preciso.
         val needsFilter = (strat, strat.learner) match {
           case (_, _: ELM) => println(s"elm"); true
-          case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
+//          case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
           case (_: MahalaWeightedTrainingUtility, _) => true
           case _ => false
         }
