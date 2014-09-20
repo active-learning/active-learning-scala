@@ -22,7 +22,9 @@ import al.strategies.{StrategyAgnostic, Strategy}
 import ml.classifiers.{NoLearner, Learner}
 import ml.models.Model
 import ml.{Pattern, PatternParent}
+import util.Datasets
 import weka.experiment.InstanceQuerySQLite
+import weka.filters.Filter
 
 import scala.collection.JavaConversions._
 
@@ -154,8 +156,8 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val numberOfPools = runs * folds * numberOfLearners
     val numberOfConfMats = if (runs == 1 && folds == 1) {
       //special case for tests (TopSpec.scala)
-      val qtsPerClass = 4
-      (nclasses * qtsPerClass - nclasses + 1) * numberOfLearners
+      val singlePoolSize = nclasses * 2
+      (singlePoolSize - nclasses + 1) * numberOfLearners
     } else (runs * (folds - 1)) * numberOfLearners - (nclasses - 1) * numberOfPools
     val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
     if (numberOfPools != poolIds.size) error(s"${poolIds.size} found, $numberOfPools expected!")
@@ -170,7 +172,8 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     //get and write smallest time step with maximum accuracy
     val maxAcc = hits_t.map(_._1).max
     val firstTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
-    write(s"INSERT INTO r values (0, -1, $firstTAtMaxAcc)")
+    val qToWrite = math.max(firstTAtMaxAcc, nclasses)
+    write(s"INSERT INTO r values (0, -1, $qToWrite)")
   }
 
   def countQueries(strat: Strategy, run: Int, fold: Int) = {
@@ -193,17 +196,26 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       cms
   }
 
-  def queries(strat: Strategy, run: Int, fold: Int) =
-    fetchPatterns(s"i, q, p where i.id=q.i and p.id=p and p.s=${strat.id} and p.l=${strat.learner.id} and p.r=$run and p.f=$fold order by t asc")
+  def queries(strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+    val patts = fetchPatterns(s"i, q, p where i.id=q.i and p.id=p and p.s=${strat.id} and p.l=${strat.learner.id} and p.r=$run and p.f=$fold order by t asc")
+    if (binaf == null) patts
+    else {
+      val binaPatts = Datasets.applyFilter(binaf)(patts)
+      Datasets.applyFilter(zscof)(binaPatts)
+    }
+  }
 
-  def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) {
+  def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) = {
     poolId(strat, strat.learner, run, fold) match {
       case Some(queryPoolId) => quit(s"Pool $run.$fold já estava gravado para $strat.${strat.learner} referente às queries a gravar.")
-      case None => val poolSQL = s"INSERT INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)"
-        val sqls = poolSQL +: (strat.queries.take(q).zipWithIndex map { case (patt, t) =>
+      case None =>
+        val qs = strat.queries.take(q).toList
+        val poolSQL = s"INSERT INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)"
+        val sqls = poolSQL +: (qs.zipWithIndex map { case (patt, t) =>
           s"INSERT INTO q select id, $t, ${patt.id} from p where s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold"
         })
         batchWrite(sqls.toList)
+        qs
     }
   }
 

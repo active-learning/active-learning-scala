@@ -25,6 +25,7 @@ import ml.Pattern
 import ml.classifiers._
 import ml.neural.elm.ELM
 import util.Datasets
+import weka.filters.Filter
 
 import scala.io.Source
 import scala.util.Random
@@ -39,7 +40,7 @@ trait Exp extends AppWithUsage {
 
   def strats(pool: => Seq[Pattern], seed: Int): List[Strategy]
 
-  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int)
+  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter)
 
   def end(ds: Ds)
 
@@ -70,12 +71,12 @@ trait Exp extends AppWithUsage {
               }
 
               //bina
-              lazy val binaf = Datasets.binarizeFilter(tr)
+              val binaf = if (needsFilter) Datasets.binarizeFilter(tr) else null
               lazy val binarizedTr = Datasets.applyFilter(binaf)(tr)
               lazy val binarizedTs = Datasets.applyFilter(binaf)(ts)
 
               //tr
-              lazy val zscof = Datasets.zscoreFilter(binarizedTr)
+              val zscof = if (needsFilter) Datasets.zscoreFilter(binarizedTr) else null
               lazy val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
               else {
                 val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
@@ -87,8 +88,8 @@ trait Exp extends AppWithUsage {
                 new Random(fold).shuffle(filteredTs.sortBy(_.id))
               }
 
-              //opera no ds // && x.learner.id == strat.learner.id
-              op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold)
+              //opera no ds // find (&& x.learner.id == strat.learner.id) desnecessario
+              op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold, binaf, zscof)
 
               ds.log(s"$strat ok.")
             }

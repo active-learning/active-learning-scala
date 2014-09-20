@@ -22,6 +22,7 @@ package clean
 import al.strategies.{ClusterBased, ExpErrorReductionMargin, Strategy}
 import ml.Pattern
 import ml.classifiers._
+import weka.filters.Filter
 
 trait nonRnd extends Exp {
   val arguments = List("datasets-path", "file-with-dataset-names", "parallelize(runs folds):n|r|f|rf", "learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
@@ -30,14 +31,15 @@ trait nonRnd extends Exp {
   val samplingSize = 500
   init()
 
-  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
+  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     //queries (só no learner da strat: NoLearner pra Clu, 'fornecido' pra Gnos)
     ds.log("queries")
-    ds.writeQueries(pool, strat, run, fold, ds.Q)
+    val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {
+      println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
+      ds.queries(strat, run, fold, binaf, zscof)
+    } else ds.writeQueries(pool, strat, run, fold, ds.Q).toVector
 
     //hits (pra learner fornecido)
-    ds.log("fetch queries")
-    val queries = ds.queries(strat, run, fold)
     ds.log("hits")
     ds.writeHits(pool, testSet, queries, strat, run, fold)(learner(pool, learnerSeed))
   }

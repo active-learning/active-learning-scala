@@ -55,26 +55,24 @@ class TopSpec extends UnitSpec with Blob with Lock {
   val run = 0
   val fold = 0
   val learnerSeed = run * 10000 + fold
-  datasets foreach { dataset =>
-    //  datasets.par foreach { dataset =>
+  //  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)).dropWhile(_ != "autoUniv-au6-1000").filter(!Seq("lymphography", "statlog-german-credit").contains(_)) foreach { dataset =>
+  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)) foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
-    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(4)).toList.flatten
-    println(tr)
-    val ts = ds.patterns.filter(_ != tr).groupBy(_.label).map(_._2.take(2)).toList.flatten
-    println(ts)
+    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(2)).toList.flatten
+    val ts = ds.patterns.filter(!tr.contains(_)).groupBy(_.label).map(_._2.take(2)).toList.flatten
 
     //reset ds
     ds.reset()
 
     strats(Seq()) foreach {
       strat =>
-        println(s"$strat ...")
+        println(s"$strat/${strat.learner} ...")
 
         //Ordena pool,testSet e aplica filtro se preciso.
         val needsFilter = (strat, strat.learner) match {
-          case (_, _: ELM) => true
+          case (_, _: ELM) => println(s"elm"); true
           case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
           case (_: MahalaWeightedTrainingUtility, _) => true
           case _ => false
@@ -92,7 +90,11 @@ class TopSpec extends UnitSpec with Blob with Lock {
           val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
           new Random(fold).shuffle(filteredTr.sortBy(_.id))
         }
-
+        println(s"${pool.head.numAttributes() - tr.head.numAttributes()} [[[[[[[[[[[[[[[[[[[[[")
+        if (pool.head.numAttributes() - tr.head.numAttributes() != 0) {
+          println("mudou qtd de atts")
+          sys.exit(0)
+        }
         println("ts")
         lazy val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
         else {
@@ -108,7 +110,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
           //hits
           println("fetch queries")
-          val dsQueries = ds.queries(RandomSampling(pool), run, fold)
+          val dsQueries = ds.queries(RandomSampling(pool), run, fold, binaf, zscof)
           //SpecTest needs mutex.
           acquire()
           s"$dataset rnd stat" should "write/read queries" in {
@@ -142,11 +144,11 @@ class TopSpec extends UnitSpec with Blob with Lock {
         println("sid find")
         val strategy = strats(pool).find(x => x.id == strat.id && x.learner.id == strat.learner.id).get
         println("queries")
-        val queries = strategy.queries.take(ds.nclasses)
+        val queries = strategy.queries.take(ds.Q)
         println("write qs")
         ds.writeQueries(pool, strategy, run, fold, ds.Q)
         println("read qs")
-        val dsQueries = ds.queries(strategy, run, fold)
+        val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
         acquire()
         s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
           assert(queries.sameElements(dsQueries))
@@ -155,11 +157,15 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
         println("hits")
         val hits = strategy.learner.build(queries).confusion(pool)
-        /*pool.map(x => x.id + " " + x.label) foreach println
+
+
+        //        pool.map(x => x.id + ":" + x.label+ " ") foreach println
         println(s"qs")
-        dsQueries.map(x => x.id + " " + x.label) foreach println
+        dsQueries.map(x => x.id + ":" + x.label + " ") foreach print
         println(s"ts")
-        testSet.map(x => x.id + " " + x.label) foreach println*/
+        testSet.map(x => x.id + ":" + x.label + " ") foreach print
+
+
         ds.writeHits(pool, testSet, dsQueries, strategy, run, fold)(strategy.learner)
         val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
 

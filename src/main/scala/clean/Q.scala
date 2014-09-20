@@ -22,6 +22,7 @@ package clean
 import al.strategies.{ClusterBased, RandomSampling, Strategy}
 import ml.Pattern
 import ml.classifiers._
+import weka.filters.Filter
 
 object Q extends Exp {
   val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):r|f|rf")
@@ -34,15 +35,15 @@ object Q extends Exp {
 
   def isAlreadyDone(ds: Ds) = ds.isQCalculated
 
-  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int) = {
+  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     //queries
     ds.log("queries")
-    if (ds.areQueriesFinished(pool, strat, run, fold)) println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold.")
-    else ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
+    val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {
+      println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
+      ds.queries(strat, run, fold, binaf, zscof)
+    } else ds.writeQueries(pool, strat, run, fold, Int.MaxValue).toVector
 
     //hits
-    ds.log("fetch queries")
-    val queries = ds.queries(strat, run, fold)
     ds.log("hits")
     val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
     learners foreach { learner =>
