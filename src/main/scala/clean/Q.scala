@@ -41,14 +41,14 @@ object Q extends Exp {
     val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {
       println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
       ds.queries(strat, run, fold, binaf, zscof)
-    } else ds.writeQueries(pool, strat, run, fold, Int.MaxValue).toVector
+    } else ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
 
     //hits
     ds.log("hits")
     val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
     learners foreach { learner =>
       if (ds.areHitsFinished(pool, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
-      ds.writeHits(pool, testSet, queries, strat, run, fold)(learner)
+      ds.writeHits(pool, testSet, queries.toVector, strat, run, fold)(learner)
     }
   }
 

@@ -37,11 +37,11 @@ trait nonRnd extends Exp {
     val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {
       println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
       ds.queries(strat, run, fold, binaf, zscof)
-    } else ds.writeQueries(pool, strat, run, fold, ds.Q).toVector
+    } else ds.writeQueries(pool, strat, run, fold, ds.Q)
 
     //hits (pra learner fornecido)
     ds.log("hits")
-    ds.writeHits(pool, testSet, queries, strat, run, fold)(learner(pool, learnerSeed))
+    ds.writeHits(pool, testSet, queries.toVector, strat, run, fold)(learner(pool, learnerSeed))
   }
 
   def end(ds: Ds) {

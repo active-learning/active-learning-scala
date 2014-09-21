@@ -57,13 +57,12 @@ class TopSpec extends UnitSpec with Blob with Lock {
   val run = 0
   val fold = 0
   val learnerSeed = run * 10000 + fold
-  //  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)).dropWhile(_ != "autoUniv-au6-1000").filter(!Seq("lymphography", "statlog-german-credit").contains(_)) foreach { dataset =>
   datasets.filter(!Seq("digits2", "digits2-davi").contains(_)) foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
-    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(2)).toList.flatten
-    val ts = ds.patterns.filter(!tr.contains(_)).groupBy(_.label).map(_._2.take(2)).toList.flatten
+    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(ds.singlePoolSizeForTests / ds.nclasses)).toList.flatten
+    val ts = ds.patterns.filter(!tr.contains(_)).groupBy(_.label).map(_._2.take(ds.singlePoolSizeForTests / ds.nclasses)).toList.flatten
 
     //reset ds
     ds.reset()
@@ -81,22 +80,18 @@ class TopSpec extends UnitSpec with Blob with Lock {
         }
 
         println("bina")
-        lazy val binaf = Datasets.binarizeFilter(tr)
+        val binaf = if (needsFilter) Datasets.binarizeFilter(tr) else null
         lazy val binarizedTr = Datasets.applyFilter(binaf)(tr)
         lazy val binarizedTs = Datasets.applyFilter(binaf)(ts)
 
         println("tr")
-        lazy val zscof = Datasets.zscoreFilter(binarizedTr)
+        val zscof = if (needsFilter) Datasets.zscoreFilter(binarizedTr) else null
         lazy val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
         else {
           val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
           new Random(fold).shuffle(filteredTr.sortBy(_.id))
         }
-        println(s"${pool.head.numAttributes() - tr.head.numAttributes()} [[[[[[[[[[[[[[[[[[[[[")
-        if (pool.head.numAttributes() - tr.head.numAttributes() != 0) {
-          println("mudou qtd de atts")
-          sys.exit(0)
-        }
+
         println("ts")
         lazy val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
         else {
@@ -113,17 +108,19 @@ class TopSpec extends UnitSpec with Blob with Lock {
           //hits
           println("fetch queries")
           val dsQueries = ds.queries(RandomSampling(pool), run, fold, binaf, zscof)
-          //SpecTest needs mutex.
+
+          //SpecTest needs mutex if parallelized.
           acquire()
           s"$dataset rnd stat" should "write/read queries" in {
+            assert(RandomSampling(pool).queries.map(_.toString).sameElements(dsQueries.map(_.toString)))
             assert(RandomSampling(pool).queries.sameElements(dsQueries))
           }
           release()
 
-          println("hits")
+          println("hits for rnd")
           val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
           learners foreach { learner =>
-            ds.writeHits(pool, testSet, dsQueries, RandomSampling(pool), run, fold)(learner)
+            ds.writeHits(pool, testSet, dsQueries.toVector, RandomSampling(pool), run, fold)(learner)
             val dsHits = ds.getCMs(RandomSampling(pool), learner, run, fold)
             val hits = learner.build(dsQueries).confusion(pool)
             acquire()
@@ -153,22 +150,24 @@ class TopSpec extends UnitSpec with Blob with Lock {
         val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
         acquire()
         s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
-          assert(queries.sameElements(dsQueries))
+          assert(queries.map(x => (x.id, x, x.label)).sameElements(dsQueries.map(x => (x.id, x, x.label))))
         }
         release()
+        //
+        //        println("dsqs ================\n" + dsQueries.head.dataset().toString.lines.filter(_.contains("V4")).toList)
+        //        println("ts ------------------\n" + testSet.head.dataset().toString.lines.filter(_.contains("V4")).toList)
+        //        println(s"qs")
+        //        dsQueries.sortBy(_.id).take(5).map(x => x.id + ":" + x.label + " " + x.value(3)) foreach println
+        //        println(s"poo")
+        //        pool.sortBy(_.id).take(5).map(x => x.id + ":" + x.label + " " + x.value(3)) foreach println
+        //        println(s"ts")
+        //        testSet.sortBy(_.id).take(5).map(x => x.id + ":" + x.label + " " + x.value(3)) foreach println
+        //        if (dataset.startsWith("lung")) sys.exit(0)
 
         println("hits")
         val hits = strategy.learner.build(queries).confusion(pool)
 
-
-        //        pool.map(x => x.id + ":" + x.label+ " ") foreach println
-        println(s"qs")
-        dsQueries.map(x => x.id + ":" + x.label + " ") foreach print
-        println(s"ts")
-        testSet.map(x => x.id + ":" + x.label + " ") foreach print
-
-
-        ds.writeHits(pool, testSet, dsQueries, strategy, run, fold)(strategy.learner)
+        ds.writeHits(pool, testSet, dsQueries.toVector, strategy, run, fold)(strategy.learner)
         val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
 
         acquire()

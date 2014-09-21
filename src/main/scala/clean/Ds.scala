@@ -18,9 +18,8 @@
 
 package clean
 
-import al.strategies.{StrategyAgnostic, Strategy}
-import ml.classifiers.{NoLearner, Learner}
-import ml.models.Model
+import al.strategies.Strategy
+import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
 import util.Datasets
 import weka.experiment.InstanceQuerySQLite
@@ -32,6 +31,19 @@ import scala.collection.JavaConversions._
  * Cada instancia desta classe representa um ML dataset.
  */
 case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") with Blob {
+  override lazy val toString = dataset
+  override val context = dataset
+  lazy val n = read("select count(1) from i").head.head.toInt
+  lazy val nclasses = patterns.head.nclasses
+  lazy val patterns = fetchPatterns("i order by id asc")
+  lazy val Q = {
+    val r = fetchQ()
+    if (r.isEmpty) error("Q not found.") else r.head.toInt
+  }
+  lazy val singlePoolSizeForTests = nclasses * 2
+
+  private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
+
   def reset() {
     //query [pool timeStep instance]
     //hit [pool timeStep blobMatrix(realClass X guessedClass values)] (confusion matrix blob)
@@ -50,20 +62,9 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     write("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ")
   }
 
-  override val context = dataset
-  override lazy val toString = dataset
-  lazy val n = read("select count(1) from i").head.head.toInt
-  lazy val nclasses = patterns.head.nclasses
-  lazy val patterns = fetchPatterns("i order by id asc")
-  lazy val Q = {
-    val r = fetchQ()
-    if (r.isEmpty) error("Q not found.") else r.head.toInt
-  }
-
-  private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
-
   /**
-   * Reads SQLite patterns in the querying order.
+   * Reads all SQLite patterns according to given SQL conditions.
+   * Note that nominal attributes must have all possible values present in the resulting sample!
    * It opens a new connection, so it will have to wait to open a connection under writing ops.
    */
   private def fetchPatterns(sqlTail: String) = try {
@@ -156,8 +157,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val numberOfPools = runs * folds * numberOfLearners
     val numberOfConfMats = if (runs == 1 && folds == 1) {
       //special case for tests (TopSpec.scala)
-      val singlePoolSize = nclasses * 2
-      (singlePoolSize - nclasses + 1) * numberOfLearners
+      (singlePoolSizeForTests - nclasses + 1) * numberOfLearners
     } else (runs * (folds - 1)) * numberOfLearners - (nclasses - 1) * numberOfPools
     val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
     if (numberOfPools != poolIds.size) error(s"${poolIds.size} found, $numberOfPools expected!")
@@ -196,12 +196,29 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       cms
   }
 
+  /**
+   * Retrieve instances from disk in querying order.
+   * Apply filters previously calibrated with training set.
+   * Fetch all instances first to avoid missing nominal attribute values in dataset/"ARFF" header.
+   * @param strat
+   * @param run
+   * @param fold
+   * @param binaf
+   * @param zscof
+   * @return
+   */
   def queries(strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
-    val patts = fetchPatterns(s"i, q, p where i.id=q.i and p.id=p and p.s=${strat.id} and p.l=${strat.learner.id} and p.r=$run and p.f=$fold order by t asc")
+    val patts = read(s"SELECT i.id FROM i, q, p where i.id=q.i and p.id=p and p.s=${strat.id} and p.l=${strat.learner.id} and p.r=$run and p.f=$fold order by t asc") match {
+      case List() => quit("No queries found!")
+      case list: List[Vector[Double]] =>
+        val ids = list.map(_.head.toInt)
+        val m = (patterns map (p => p.id -> p)).toMap
+        ids map m
+    }
     if (binaf == null) patts
     else {
       val binaPatts = Datasets.applyFilter(binaf)(patts)
-      Datasets.applyFilter(zscof)(binaPatts)
+      Datasets.applyFilter(zscof)(binaPatts).toList
     }
   }
 
@@ -248,13 +265,12 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
       val (initialPatterns, rest) = queries.splitAt(nclasses)
       var m = learner.build(initialPatterns)
-      val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map {
-        case (patt, idx) =>
-          val t = idx + nclasses - 1
-          if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
-          val cm = m.confusion(testSet)
-          val blob = confusionToBlob(cm)
-          (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
+      val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
+        val t = idx + nclasses - 1
+        if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
+        val cm = m.confusion(testSet)
+        val blob = confusionToBlob(cm)
+        (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
       }).toList
       val (sqls, blobs) = tuples.unzip
       log(tuples.mkString("\n"))
