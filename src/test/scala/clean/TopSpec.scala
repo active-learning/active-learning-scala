@@ -30,7 +30,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 class TopSpec extends UnitSpec with Blob with Lock {
   lazy val datasets = Source.fromFile("juntos.txt").getLines().toList
-  val path = "/home/davi/testuci"
+  val path = "/run/shm/testuci"
 
   def learner(pool: Seq[Pattern]) = List(
     NB()
