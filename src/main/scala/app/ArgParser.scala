@@ -25,6 +25,7 @@ import ml.classifiers._
 import util.Datasets
 import weka.core.Instances
 
+import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 object ArgParser {
@@ -35,7 +36,7 @@ object ArgParser {
 
   def applyArgs(args: Array[String])(f: (String, => Option[Instances]) => Unit) {
     val path = args(0) + "/"
-    val names = args(1).split(",").toList
+    val names = Source.fromFile(args(1)).getLines().toList.filter(!_.startsWith("#")) //args(1).split(",").toList
     val par = args.length > 2 && args(2) == "y"
     (if (par) names.par else names).foreach { name =>
       lazy val lazyInsts = Datasets.arff(path + name + ".arff") match {
@@ -62,7 +63,7 @@ object ArgParser {
     if (args.length != numArgs) {
       println("____________\n" + text + "\n------------\nUsage:")
       if (numArgs == 2) println(className + " base-dir dataset1,dataset2,...,datasetn")
-      else println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf\n" +
+      else println(className + " base-dir dataset1,dataset2,...,datasetn(ou one-per-line.txt for ARFF2SQLite) parallel(datasets,runs,folds):drf\n" +
         "Parallel means 'to parallelize datasets, but serialize runs and folds.")
       sys.exit(1)
     }

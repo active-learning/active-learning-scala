@@ -30,8 +30,8 @@ hepatitis
 robot-failure-lp5
 planning-relax
 wine
-flags-colour
-flags-religion
+flags-colour-davi
+flags-religion-davi
 parkinsons
 heart-disease-processed-va
 arcene
@@ -57,7 +57,6 @@ leaf
 bupa
 ionosphere
 micro-mass-mixed-spectra
-dermatology
 autoUniv-au6-cd1-400
 user-knowledge
 flare
@@ -65,12 +64,9 @@ monks1
 monks2
 monks3
 wholesale-channel
-arrhythmia
 meta-data
 saheart
-breast-cancer-wisconsin
 autoUniv-au7-cpd1-500
-blood-transfusion-service
 connectionist-vowel-reduced
 climate-simulation-craches
 wdbc
@@ -79,13 +75,11 @@ micro-mass-pure-spectra
 systhetic-control
 balance-scale
 mammographic-mass
-credit-approval
 statlog-australian-credit
 autoUniv-au7-700
 autoUniv-au6-250-drift-au6-cd1-500
 pima-indians-diabetes
 statlog-vehicle-silhouettes
-annealing
 tic-tac-toe
 connectionist-vowel
 autoUniv-au1-1000
@@ -104,7 +98,6 @@ volcanoes-e4
 yeast-4class
 volcanoes-e3
 banknote-authentication
-contraceptive-method-choice
 wine-quality-red
 digits2-davi
 yeast
@@ -139,7 +132,6 @@ abalone-11class
 wine-quality-white-5class
 abalone-3class
 spambase
-bank-marketing
 wilt
 artificial-characters
 waveform-v1
@@ -176,3 +168,17 @@ gas-drift
 gas-drift-different-concentrations
 eeg-eye-state
 magic
+# with missing values:
+# acute-inflammations-nephritis.arff
+# acute-inflammations-urinary.arff
+# annealing.arff
+# arrhythmia.arff
+# audiology.arff
+# bank-marketing.arff
+# bank-marketing-full.arff
+# blood-transfusion-service.arff
+# breast-cancer-wisconsin.arff
+# contraceptive-method-choice.arff
+# credit-approval.arff
+# dermatology.arff
+# dresses-sales.arff
