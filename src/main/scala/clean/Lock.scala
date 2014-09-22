@@ -23,8 +23,11 @@ import java.sql.{Connection, DriverManager}
 
 import org.sqlite.SQLiteConnection
 
+import scala.util.Random
+
 trait Lock {
   private var available = true
+  lazy val rnd = new Random(System.currentTimeMillis())
 
   def acquire() = {
     synchronized {

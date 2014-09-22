@@ -6,6 +6,7 @@ import ml.classifiers._
 import ml.neural.elm.ELM
 import util.Datasets
 
+import scala.collection.mutable
 import scala.io.Source
 import scala.util.Random
 
@@ -33,31 +34,31 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
   def learner(pool: Seq[Pattern]) = List(
     NB()
-//    ,
-//    KNNBatch(5, "eucl", pool, weighted = true),
-//    VFDT(),
-//    ECIELM(learnerSeed),
-//    EIELM(learnerSeed),
-//    interaELM(learnerSeed),
-//    SVMLib(learnerSeed)
+    ,
+    KNNBatch(5, "eucl", pool, weighted = true),
+    VFDT(),
+    ECIELM(learnerSeed),
+    EIELM(learnerSeed),
+    interaELM(learnerSeed),
+    SVMLib(learnerSeed)
   )
 
   def strats(pool: => Seq[Pattern]) = learner(pool).map { learner =>
     List(
       Margin(learner, pool)
-//      ,
-//      new SGmultiJS(learner, pool),
-//      DensityWeightedTrainingUtility(learner, pool, "eucl"),
-//      DensityWeightedTrainingUtility(learner, pool, "maha"),
-//      MahalaWeightedTrainingUtility(learner, pool, 1, 1),
-//      ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 3)
+      ,
+      new SGmultiJS(learner, pool),
+      DensityWeightedTrainingUtility(learner, pool, "eucl"),
+      DensityWeightedTrainingUtility(learner, pool, "maha"),
+      MahalaWeightedTrainingUtility(learner, pool, 1, 1),
+      ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 3)
     )
   }.flatten
 
   val run = 0
   val fold = 0
   val learnerSeed = run * 10000 + fold
-  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)) foreach { dataset =>
+  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)).par foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
@@ -66,6 +67,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
     //reset ds
     ds.reset()
+    val asserts = mutable.Queue[() => Unit]()
 
     strats(Seq()) foreach {
       strat =>
@@ -74,7 +76,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
         //Ordena pool,testSet e aplica filtro se preciso.
         val needsFilter = (strat, strat.learner) match {
           case (_, _: ELM) => println(s"elm"); true
-//          case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
+          //          case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
           case (_: MahalaWeightedTrainingUtility, _) => true
           case _ => false
         }
@@ -110,34 +112,34 @@ class TopSpec extends UnitSpec with Blob with Lock {
           val dsQueries = ds.queries(RandomSampling(pool), run, fold, binaf, zscof)
 
           //SpecTest needs mutex if parallelized.
-          acquire()
-          s"$dataset rnd stat" should "write/read queries" in {
+          asserts.enqueue(() => s"$dataset rnd strat" should "write/read queries" in {
             assert(RandomSampling(pool).queries.map(_.toString).sameElements(dsQueries.map(_.toString)))
             assert(RandomSampling(pool).queries.sameElements(dsQueries))
-          }
-          release()
+          })
 
           println("hits for rnd")
           val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
           learners foreach { learner =>
             ds.writeHits(pool, testSet, dsQueries.toVector, RandomSampling(pool), run, fold)(learner)
             val dsHits = ds.getCMs(RandomSampling(pool), learner, run, fold)
-            val hits = learner.build(dsQueries).confusion(pool)
-            acquire()
-            it should s"write/read $learner hits" in {
-              assert(hits.flatten.toList.sameElements(dsHits.flatten.toList))
+            var m = learner.build(dsQueries.take(ds.nclasses))
+            val hitses = m.confusion(testSet) +: dsQueries.drop(ds.nclasses).map { pa =>
+              m = learner.update(m, true)(pa)
+              m.confusion(testSet)
             }
-            release()
+            asserts.enqueue(() =>
+              it should s"write/read $learner hits" in {
+                assertResult(hitses.flatten.flatten.toList)(dsHits.flatten.flatten.toList)
+              })
           }
 
           println(s"Q")
           ds.calculaQ(1, 1)
           println(s"Q: ${ds.Q}")
-          acquire()
-          it should "calculate Q as |U|" in {
-            assertResult(pool.size)(ds.Q)
-          }
-          release()
+          asserts.enqueue(() => it should "calculate Q as |Y| <= Q <= |U|" in {
+            assert(ds.Q <= pool.size)
+            assert(ds.nclasses <= ds.Q)
+          })
         }
 
         println("sid find")
@@ -148,11 +150,9 @@ class TopSpec extends UnitSpec with Blob with Lock {
         ds.writeQueries(pool, strategy, run, fold, ds.Q)
         println("read qs")
         val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
-        acquire()
-        s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
+        asserts.enqueue(() => s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
           assert(queries.map(x => (x.id, x, x.label)).sameElements(dsQueries.map(x => (x.id, x, x.label))))
-        }
-        release()
+        })
         //
         //        println("dsqs ================\n" + dsQueries.head.dataset().toString.lines.filter(_.contains("V4")).toList)
         //        println("ts ------------------\n" + testSet.head.dataset().toString.lines.filter(_.contains("V4")).toList)
@@ -165,17 +165,22 @@ class TopSpec extends UnitSpec with Blob with Lock {
         //        if (dataset.startsWith("lung")) sys.exit(0)
 
         println("hits")
-        val hits = strategy.learner.build(queries).confusion(pool)
+        var m = strategy.learner.build(queries.take(ds.nclasses))
+        val hitses = m.confusion(testSet) +: queries.drop(ds.nclasses).map { pa =>
+          m = strategy.learner.update(m, fast_mutable = true)(pa)
+          m.confusion(testSet)
+        }
 
         ds.writeHits(pool, testSet, dsQueries.toVector, strategy, run, fold)(strategy.learner)
         val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
 
-        acquire()
-        s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
-          assert(hits.sameElements(dsHits))
-        }
-        release()
+        asserts.enqueue(() => s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
+          assert(hitses.flatten.flatten.sameElements(dsHits.flatten.flatten))
+        })
     }
+    acquire()
+    asserts foreach (_.apply())
+    release()
     ds.close()
   }
 }
