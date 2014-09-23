@@ -58,12 +58,14 @@ class TopSpec extends UnitSpec with Blob with Lock {
   val run = 0
   val fold = 0
   val learnerSeed = run * 10000 + fold
-  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)).par foreach { dataset =>
+  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)) foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
-    val tr = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(ds.singlePoolSizeForTests / ds.nclasses)).toList.flatten
-    val ts = ds.patterns.filter(!tr.contains(_)).groupBy(_.label).map(_._2.take(ds.singlePoolSizeForTests / ds.nclasses)).toList.flatten
+    val tr0 = new Random(0).shuffle(ds.patterns).groupBy(_.label).map(_._2.take(ds.singlePoolSizeForTests / ds.nclasses)).toList.flatten
+    val ts0 = ds.patterns.filter(!tr0.contains(_)).groupBy(_.label).map(_._2.take(ds.singlePoolSizeForTests / ds.nclasses)).toList.flatten
+    val tr = if (tr0.size < ds.singlePoolSizeForTests) tr0 ++ ds.patterns.diff(tr0).take(ds.singlePoolSizeForTests - tr0.size) else tr0
+    val ts = if (ts0.size < ds.nclasses) ts0 ++ tr.take(ds.nclasses) else ts0 //to avoid small/empty testing sets
 
     //reset ds
     ds.reset()
@@ -76,17 +78,15 @@ class TopSpec extends UnitSpec with Blob with Lock {
         //Ordena pool,testSet e aplica filtro se preciso.
         val needsFilter = (strat, strat.learner) match {
           case (_, _: ELM) => println(s"elm"); true
-          //          case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
+          case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
           case (_: MahalaWeightedTrainingUtility, _) => true
           case _ => false
         }
 
-        println("bina")
         val binaf = if (needsFilter) Datasets.binarizeFilter(tr) else null
         lazy val binarizedTr = Datasets.applyFilter(binaf)(tr)
         lazy val binarizedTs = Datasets.applyFilter(binaf)(ts)
 
-        println("tr")
         val zscof = if (needsFilter) Datasets.zscoreFilter(binarizedTr) else null
         lazy val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
         else {
@@ -94,21 +94,17 @@ class TopSpec extends UnitSpec with Blob with Lock {
           new Random(fold).shuffle(filteredTr.sortBy(_.id))
         }
 
-        println("ts")
         lazy val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
         else {
           val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
           new Random(fold).shuffle(filteredTs.sortBy(_.id))
         }
 
-        println(s"Q test")
         if (!ds.isQCalculated) {
           //queries
-          println(s"queries")
           ds.writeQueries(pool, RandomSampling(pool), run, fold, Int.MaxValue)
 
           //hits
-          println("fetch queries")
           val dsQueries = ds.queries(RandomSampling(pool), run, fold, binaf, zscof)
 
           //SpecTest needs mutex if parallelized.
@@ -117,7 +113,6 @@ class TopSpec extends UnitSpec with Blob with Lock {
             assert(RandomSampling(pool).queries.sameElements(dsQueries))
           })
 
-          println("hits for rnd")
           val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
           learners foreach { learner =>
             ds.writeHits(pool, testSet, dsQueries.toVector, RandomSampling(pool), run, fold)(learner)
@@ -133,7 +128,6 @@ class TopSpec extends UnitSpec with Blob with Lock {
               })
           }
 
-          println(s"Q")
           ds.calculaQ(1, 1)
           println(s"Q: ${ds.Q}")
           asserts.enqueue(() => it should "calculate Q as |Y| <= Q <= |U|" in {
@@ -142,13 +136,9 @@ class TopSpec extends UnitSpec with Blob with Lock {
           })
         }
 
-        println("sid find")
         val strategy = strats(pool).find(x => x.id == strat.id && x.learner.id == strat.learner.id).get
-        println("queries")
         val queries = strategy.queries.take(ds.Q)
-        println("write qs")
         ds.writeQueries(pool, strategy, run, fold, ds.Q)
-        println("read qs")
         val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
         asserts.enqueue(() => s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
           assert(queries.map(x => (x.id, x, x.label)).sameElements(dsQueries.map(x => (x.id, x, x.label))))

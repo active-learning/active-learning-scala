@@ -40,7 +40,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val r = fetchQ()
     if (r.isEmpty) error("Q not found.") else r.head.toInt
   }
-  lazy val singlePoolSizeForTests = nclasses * 2
+  lazy val singlePoolSizeForTests = nclasses * 3 //less than 3 makes impossible to generate enough hits
 
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
@@ -167,7 +167,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       case (b, t) =>
         hits(blobToConfusion(b, nclasses)) -> t
     }
-    if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected!")
+    if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected (|Y|=$nclasses)!")
 
     //get and write smallest time step with maximum accuracy
     val maxAcc = hits_t.map(_._1).max
