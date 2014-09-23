@@ -69,7 +69,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
     val ts = if (ts0.size < ds.nclasses) ts0 ++ tr.take(ds.nclasses) else ts0 //to avoid small/empty testing sets
 
     //reset ds
-    ds.reset()
+    //    ds.reset()
 
     strats(Seq()) foreach {
       strat =>
