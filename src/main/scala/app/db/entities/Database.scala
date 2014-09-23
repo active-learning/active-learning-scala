@@ -269,7 +269,7 @@ trait Database extends Lock {
   def isOpen() = connection != null
 
   def close() = if (isOpen()) {
-    println(s"Closing $database ...")
+    //    println(s"Closing $database ...")
     Thread.sleep(100)
     connection.close()
     connection = null

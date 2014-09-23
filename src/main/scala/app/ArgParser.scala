@@ -111,10 +111,10 @@ object ArgParser {
   def testArgsWithText(className: String, args: Array[String], text: String) = {
     if (args.length < 4) {
       println("____________\n" + text + "\n------------\nUsage:")
-      println(className + " base-dir dataset1,dataset2,...,datasetn parallel(datasets,runs,folds):drf text")
+      println(className + " base-dir one-dataset-per-line.txt parallel(datasets,runs,folds):drf text")
       sys.exit(1)
     }
-    (args(0) + "/", args(1).split(",").toSeq, args.drop(3).mkString(" "))
+    (args(0) + "/", Source.fromFile(args(1)).getLines().toList.toSeq, args.drop(3).mkString(" "))
   }
 
   def testArgsWithTextNoPar(className: String, args: Array[String], text: String) = {

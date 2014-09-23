@@ -91,11 +91,12 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }")
   }
 
-  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) =
+  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = {
     read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold") match {
       case List() => None
       case List(seq) => Some(seq.head.toInt)
     }
+  }
 
   def isQCalculated = fetchQ().nonEmpty
 
@@ -125,17 +126,18 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   def areHitsFinished(pool: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int) =
     if (learner.id != strat.learner.id && strat.id > 1) quit(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
-    else if (!areQueriesFinished(pool, strat, run, fold)) quit(s"Queries must be finished to check hits!")
+    else if (!areQueriesFinished(pool, strat, run, fold)) error(s"Queries must be finished to check hits!")
     else {
       poolId(strat, learner, run, fold) match {
         case None => false
         case Some(pid) =>
           val ExpectedHitsForFullPool = pool.size - nclasses + 1
-          val (hs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
-            case List(Vector(c, m)) => c -> m
-            case List() => error(s"Inconsistency: there is a pool $pid for no hits!")
+          val hs = read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
+            case List(Vector(0)) => 0
+            case List(Vector(c, m)) => if (c == m - nclasses + 2) c
+            else error(s"Inconsistency: $hs cms differs from last timeStep+1 ${m - nclasses + 2}")
+            case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner")
           }
-          if (hs != lastT - nclasses + 2) error(s"Inconsistency: $hs cms differs from last timeStep+1 ${lastT - nclasses + 2}")
           (strat.id, learner.id) match {
             case (s, l) if s < 2 && l < 4 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
