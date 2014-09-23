@@ -58,7 +58,8 @@ class TopSpec extends UnitSpec with Blob with Lock {
   val run = 0
   val fold = 0
   val learnerSeed = run * 10000 + fold
-  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)) foreach { dataset =>
+  val asserts = mutable.Queue[() => Unit]()
+  datasets.filter(!Seq("digits2", "digits2-davi").contains(_)).par foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
@@ -69,7 +70,6 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
     //reset ds
     ds.reset()
-    val asserts = mutable.Queue[() => Unit]()
 
     strats(Seq()) foreach {
       strat =>
@@ -168,9 +168,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
           assert(hitses.flatten.flatten.sameElements(dsHits.flatten.flatten))
         })
     }
-    acquire()
-    asserts foreach (_.apply())
-    release()
     ds.close()
   }
+  asserts foreach (_.apply())
 }
