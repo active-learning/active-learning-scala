@@ -137,36 +137,28 @@ class TopSpec extends UnitSpec with Blob with Lock {
         }
 
         val strategy = strats(pool).find(x => x.id == strat.id && x.learner.id == strat.learner.id).get
-        val queries = strategy.queries.take(ds.Q)
-        ds.writeQueries(pool, strategy, run, fold, ds.Q)
-        val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
-        asserts.enqueue(() => s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
-          assert(queries.map(x => (x.id, x, x.label)).sameElements(dsQueries.map(x => (x.id, x, x.label))))
-        })
-        //
-        //        println("dsqs ================\n" + dsQueries.head.dataset().toString.lines.filter(_.contains("V4")).toList)
-        //        println("ts ------------------\n" + testSet.head.dataset().toString.lines.filter(_.contains("V4")).toList)
-        //        println(s"qs")
-        //        dsQueries.sortBy(_.id).take(5).map(x => x.id + ":" + x.label + " " + x.value(3)) foreach println
-        //        println(s"poo")
-        //        pool.sortBy(_.id).take(5).map(x => x.id + ":" + x.label + " " + x.value(3)) foreach println
-        //        println(s"ts")
-        //        testSet.sortBy(_.id).take(5).map(x => x.id + ":" + x.label + " " + x.value(3)) foreach println
-        //        if (dataset.startsWith("lung")) sys.exit(0)
+        if (!ds.areHitsFinished(pool, strategy, strategy.learner, run, fold)) {
+          val queries = strategy.queries.take(ds.Q)
+          if (!ds.areQueriesFinished(pool, strategy, run, fold)) ds.writeQueries(pool, strategy, run, fold, ds.Q)
+          val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
+          asserts.enqueue(() => s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
+            assert(queries.map(x => (x.id, x, x.label)).sameElements(dsQueries.map(x => (x.id, x, x.label))))
+          })
 
-        println("hits")
-        var m = strategy.learner.build(queries.take(ds.nclasses))
-        val hitses = m.confusion(testSet) +: queries.drop(ds.nclasses).map { pa =>
-          m = strategy.learner.update(m, fast_mutable = true)(pa)
-          m.confusion(testSet)
+          println("hits")
+          var m = strategy.learner.build(queries.take(ds.nclasses))
+          val hitses = m.confusion(testSet) +: queries.drop(ds.nclasses).map { pa =>
+            m = strategy.learner.update(m, fast_mutable = true)(pa)
+            m.confusion(testSet)
+          }
+
+          ds.writeHits(pool, testSet, dsQueries.toVector, strategy, run, fold)(strategy.learner)
+          val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
+
+          asserts.enqueue(() => s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
+            assert(hitses.flatten.flatten.sameElements(dsHits.flatten.flatten))
+          })
         }
-
-        ds.writeHits(pool, testSet, dsQueries.toVector, strategy, run, fold)(strategy.learner)
-        val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
-
-        asserts.enqueue(() => s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}" in {
-          assert(hitses.flatten.flatten.sameElements(dsHits.flatten.flatten))
-        })
     }
     ds.close()
   }
