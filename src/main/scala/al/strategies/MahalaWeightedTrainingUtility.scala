@@ -30,17 +30,17 @@ case class MahalaWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], a
   val id = if (alpha == 1 && beta == 1) 10 else throw new Error("Parametros inesperados para MAhalaTU.")
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
-    try {
-      val ud = maha_at_pool_for_mean(unlabeled)
-      val ld = maha_at_pool_for_mean(labeled)
-      unlabeled maxBy {
-        x =>
-          val similarityU = 1d / (1 + ud(x)) //mean includes x, but no problem since the pool is big
-        val similarityL = 1d / (1 + ld(x))
-          (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
-      }
-    } catch {
-      case ex: MatrixSingularException => error(s" MahalaWTU: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
+    //    try {
+    val ud = maha_at_pool_for_mean(unlabeled)
+    val ld = maha_at_pool_for_mean(labeled)
+    unlabeled maxBy {
+      x =>
+        val similarityU = 1d / (1 + ud(x)) //mean includes x, but no problem since the pool is big
+      val similarityL = 1d / (1 + ld(x))
+        (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
     }
+    //    } catch {
+    //      case ex: MatrixSingularException => error(s" MahalaWTU: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
+    //    }
   }
 }

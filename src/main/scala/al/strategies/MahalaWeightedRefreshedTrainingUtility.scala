@@ -44,18 +44,18 @@ case class MahalaWeightedRefreshedTrainingUtility(learner: Learner, pool: Seq[Pa
     val unlabeledSize = unlabeled.size
     val rnd = new Random(unlabeledSize)
     val (unlabeledSamp, unlabeledSampSize) = if (unlabeledSize > sample_internal) (rnd.shuffle(unlabeled).take(sample_internal), sample_internal) else (unlabeled, unlabeledSize)
-    val res = try {
-      val ud = mahalanobis_to(unlabeled)
-      val ld = mahalanobis_to(labeled)
-      unlabeled maxBy {
-        x =>
-          val similarityU = (unlabeledSamp.diff(Seq(x)) map (u => 1d / (1 + ud(x)(u)))).sum / unlabeledSampSize.toDouble
-          val similarityL = (labeled map (l => 1d / (1 + ld(x)(l)))).sum / labeledSize.toDouble
-          (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
-      }
-    } catch {
-      case ex: MatrixSingularException => error(s" MahalaWTU: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
+    //    val res = try {
+    val ud = mahalanobis_to(unlabeled)
+    val ld = mahalanobis_to(labeled)
+    unlabeled maxBy {
+      x =>
+        val similarityU = (unlabeledSamp.diff(Seq(x)) map (u => 1d / (1 + ud(x)(u)))).sum / unlabeledSampSize.toDouble
+        val similarityL = (labeled map (l => 1d / (1 + ld(x)(l)))).sum / labeledSize.toDouble
+        (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
     }
-    res
+    //    } catch {
+    //      case ex: MatrixSingularException => error(s" MahalaWTU: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
+    //    }
+    //    res
   }
 }

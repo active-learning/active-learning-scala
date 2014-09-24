@@ -50,6 +50,7 @@ trait DistanceMeasure extends Log {
   //  Por outro lado, não se trata de um pinv()
   //  lazy val CovMatrixInv =     Neural.toArray(Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix))))
   lazy val CovMatrixInv = Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix)))
+  lazy val rougherCovMatrixInv = Neural.rougherPinv(new DenseMatrix(StatisticSample.covariance(instances_matrix)))
   lazy val euclidean_ruler = new EuclideanDistance(dataset)
   lazy val minkowski_ruler = new MinkowskiDistance(dataset)
   lazy val manhattan_ruler = new ManhattanDistance(dataset)
@@ -80,8 +81,16 @@ trait DistanceMeasure extends Log {
       result.mult(difft, result2)
       Math.sqrt(result2.get(0))
     } catch {
-      case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}! Falling back to euclidean...")
-        euclidean_ruler.distance(pa, pb)
+      case _: MatrixSingularException => log("Trying with a pinv less prone to singular exceptions...")
+        try {
+          diff.mult(rougherCovMatrixInv, result)
+          val result2 = new DenseVector(1)
+          result.mult(difft, result2)
+          Math.sqrt(result2.get(0))
+        } catch {
+          case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}! Falling back to euclidean...")
+            euclidean_ruler.distance(pa, pb)
+        }
     }
   }
 

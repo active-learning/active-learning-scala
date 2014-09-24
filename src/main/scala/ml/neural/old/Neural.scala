@@ -40,7 +40,24 @@ object Neural {
    * @return (M0, pseudo-inverse) M0 is used for incremental learning (OS-ELM)
    */
   def pinv(H0: DenseMatrix) = {
-    val lumda = 0.001
+    val lumda = 0.000001
+    val m = H0.numRows
+    val n = H0.numColumns
+    val H0T: DenseMatrix = new DenseMatrix(n, m)
+    H0.transpose(H0T)
+    val H0TH0: DenseMatrix = new DenseMatrix(n, n)
+    H0T.mult(H0, H0TH0)
+    val I: DenseMatrix = Matrices.identity(n)
+    H0TH0.add(lumda, I)
+    val H0TH0_inv: DenseMatrix = I.copy
+    H0TH0.solve(I, H0TH0_inv)
+    val pseudo_inverse: DenseMatrix = new DenseMatrix(n, m)
+    H0TH0_inv.mult(H0T, pseudo_inverse)
+    pseudo_inverse
+  }
+
+  def rougherPinv(H0: DenseMatrix) = {
+    val lumda = 0.01
     val m = H0.numRows
     val n = H0.numColumns
     val H0T: DenseMatrix = new DenseMatrix(n, m)

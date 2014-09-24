@@ -35,15 +35,15 @@ case class MahalaWeighted(learner: Learner, pool: Seq[Pattern], beta: Double, de
   val id = -100
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
-    try {
-      val ud = maha_at_pool_for_mean(unlabeled)
-      unlabeled maxBy {
-        x =>
-          val similarity = 1d / (1 + ud(x)) //mean includes x, but no problem since the pool is big
-          (1 - margin(current_model)(x)) * math.pow(similarity, beta)
-      }
-    } catch {
-      case ex: MatrixSingularException => error(s" MahalaW: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
+    //    try {
+    val ud = maha_at_pool_for_mean(unlabeled)
+    unlabeled maxBy {
+      x =>
+        val similarity = 1d / (1 + ud(x)) //mean includes x, but no problem since the pool is big
+        (1 - margin(current_model)(x)) * math.pow(similarity, beta)
     }
+    //    } catch {
+    //      case ex: MatrixSingularException => error(s" MahalaW: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
+    //    }
   }
 }

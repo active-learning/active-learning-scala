@@ -30,11 +30,23 @@ trait StrategyWithMahala extends StrategyWithLearner with DistanceMeasure {
 
   private def premaha(patterns: Seq[Pattern]) = Neural.pinv(new DenseMatrix(StatisticSample.covariance((patterns map (_.array)).toArray)))
 
+  private def rougherPremaha(patterns: Seq[Pattern]) = Neural.rougherPinv(new DenseMatrix(StatisticSample.covariance((patterns map (_.array)).toArray)))
+
   /**
    * Mahalanobis distance of a point to the mean.
    */
   protected def mahalanobis_to_mean(pool_patterns: Seq[Pattern]) = {
-    val Sinv = premaha(pool_patterns)
+    val Sinv = try {
+      premaha(pool_patterns)
+    } catch {
+      case _: MatrixSingularException => log("Trying with a pinv less prone to singular exceptions...")
+        try {
+          rougherPremaha(pool_patterns)
+        } catch {
+          case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}!")
+        }
+    }
+
     (patterns_to_average: Seq[Pattern]) => {
       val patterns_matrix = (patterns_to_average map (_.array)).toArray
       val mean = StatisticSample.mean(patterns_matrix)
@@ -46,7 +58,17 @@ trait StrategyWithMahala extends StrategyWithLearner with DistanceMeasure {
    * Mahalanobis distance of a point to Y.
    */
   protected def mahalanobis_to(pool_patterns: Seq[Pattern]) = {
-    val Sinv = premaha(pool_patterns)
+    val Sinv = try {
+      premaha(pool_patterns)
+    } catch {
+      case _: MatrixSingularException => log("Trying with a pinv less prone to singular exceptions...")
+        try {
+          rougherPremaha(pool_patterns)
+        } catch {
+          case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}!")
+        }
+    }
+
     (y: Pattern) => (pa: Pattern) => mahalanobis0(y.array, Sinv)(pa)
   }
 
@@ -64,15 +86,10 @@ trait StrategyWithMahala extends StrategyWithLearner with DistanceMeasure {
       i += 1
     }
     val result = new DenseMatrix(1, pa.nattributes)
-    try {
       diff.mult(Sinv, result)
       val result2 = new DenseVector(1)
       result.mult(difft, result2)
       Math.sqrt(result2.get(0))
-    } catch {
-      case _: MatrixSingularException => //println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
-        distance_to("eucl")(pa, Pattern(823476234, mean.toList, 0d, 1d, missed = false, pa.parent, weka = true))
-    }
   }
 }
 
