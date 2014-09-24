@@ -33,27 +33,29 @@ class TopSpec extends UnitSpec with Blob with Lock {
   val path = "/run/shm/testuci"
 
   def learner(pool: Seq[Pattern]) = List(
-    //    NB()
-    //    ,
-    //    KNNBatch(5, "eucl", pool, weighted = true),
-    //    VFDT(),
-    //    ECIELM(4),
-    //    EIELM(4),
-    //    interaELM(4),
+    NB()
+    ,
+    KNNBatch(5, "eucl", pool, weighted = true),
+    VFDT(),
+    ECIELM(4),
+    EIELM(4),
+    interaELM(4)
+    ,
     SVMLib(4)
   )
 
-  def strats(pool: => Seq[Pattern]) = learner(pool).map { learner =>
-    List(
-      Margin(learner, pool)
+  def strats(pool: => Seq[Pattern]) = {
+    List[Learner => Strategy](
+      (learner: Learner) => Margin(learner, pool)
       ,
-      new SGmultiJS(learner, pool),
-      DensityWeightedTrainingUtility(learner, pool, "eucl"),
-      DensityWeightedTrainingUtility(learner, pool, "maha"),
-      MahalaWeightedTrainingUtility(learner, pool, 1, 1),
-      ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 2),
-      SVMmulti(pool, "KFF")
-    )
+      (learner: Learner) => new SGmultiJS(learner, pool),
+      (learner: Learner) => DensityWeightedTrainingUtility(learner, pool, "eucl"),
+      (learner: Learner) => DensityWeightedTrainingUtility(learner, pool, "maha"),
+      (learner: Learner) => MahalaWeightedTrainingUtility(learner, pool, 1, 1),
+      (learner: Learner) => ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 2)
+      ,
+      (learner: Learner) => SVMmulti(pool, "KFF")
+    ).map { strat => learner(pool) map strat}
   }.flatten
 
   val run = 0
