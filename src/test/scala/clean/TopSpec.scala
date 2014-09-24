@@ -29,7 +29,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 class TopSpec extends UnitSpec with Blob with Lock {
-  lazy val datasets = Source.fromFile("juntos.txt").getLines().toList.takeWhile(!_.startsWith("!"))
+  lazy val datasets = Source.fromFile("juntos.txt").getLines().toList.filter(!_.startsWith("#")).takeWhile(!_.startsWith("!")).par
   val path = "/run/shm/testuci"
 
   def learner(pool: Seq[Pattern]) = List(
@@ -40,8 +40,8 @@ class TopSpec extends UnitSpec with Blob with Lock {
     ECIELM(4),
     EIELM(4),
     interaELM(4)
-    ,
-    SVMLib(4)
+    //    ,
+    //    SVMLib(4)
   )
 
   def strats(pool: => Seq[Pattern]) = {
@@ -53,14 +53,14 @@ class TopSpec extends UnitSpec with Blob with Lock {
       (learner: Learner) => DensityWeightedTrainingUtility(learner, pool, "maha"),
       (learner: Learner) => MahalaWeightedTrainingUtility(learner, pool, 1, 1),
       (learner: Learner) => ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 2)
-      ,
-      (learner: Learner) => SVMmulti(pool, "KFF")
+      //      ,
+      //      (learner: Learner) => SVMmulti(pool, "KFF")
     ).map { strat => learner(pool) map strat}
   }.flatten
 
   val run = 0
   val asserts = mutable.Queue[() => Unit]()
-  datasets.filter(!_.startsWith("#")).par foreach { dataset =>
+  datasets foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
