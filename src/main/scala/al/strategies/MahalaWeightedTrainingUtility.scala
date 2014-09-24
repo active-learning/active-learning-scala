@@ -43,7 +43,7 @@ case class MahalaWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], a
           (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
       }
     } catch {
-      case ex: MatrixSingularException => println(" MahalaWTU: singular matrix! Defaulting to Random Sampling..."); unlabeled.head
+      case ex: MatrixSingularException => println(s" MahalaWTU: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
     }
   }
 }
