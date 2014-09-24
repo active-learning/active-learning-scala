@@ -178,7 +178,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       //get and write smallest time step with maximum accuracy
       val maxAcc = hits_t.map(_._1).max
       val firstTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
-      val qToWrite = math.max(firstTAtMaxAcc, nclasses)
+      val qToWrite = math.max(firstTAtMaxAcc, nclasses + 2)
       write(s"INSERT INTO r values (0, -1, $qToWrite)")
     }
   }
