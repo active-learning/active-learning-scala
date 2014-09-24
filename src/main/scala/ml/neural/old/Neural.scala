@@ -57,7 +57,7 @@ object Neural {
   }
 
   def rougherPinv(H0: DenseMatrix) = {
-    val lumda = 0.01
+    val lumda = 0.1
     val m = H0.numRows
     val n = H0.numColumns
     val H0T: DenseMatrix = new DenseMatrix(n, m)

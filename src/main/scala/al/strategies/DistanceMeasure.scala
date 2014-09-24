@@ -88,8 +88,7 @@ trait DistanceMeasure extends Log {
           result.mult(difft, result2)
           Math.sqrt(result2.get(0))
         } catch {
-          case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}! Falling back to euclidean...")
-            euclidean_ruler.distance(pa, pb)
+          case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}!")
         }
     }
   }
