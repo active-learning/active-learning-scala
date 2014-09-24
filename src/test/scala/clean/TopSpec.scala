@@ -33,13 +33,13 @@ class TopSpec extends UnitSpec with Blob with Lock {
   val path = "/run/shm/testuci"
 
   def learner(pool: Seq[Pattern]) = List(
-    NB()
-    ,
-    KNNBatch(5, "eucl", pool, weighted = true),
-    VFDT(),
-    ECIELM(4),
-    EIELM(4),
-    interaELM(4),
+    //    NB()
+    //    ,
+    //    KNNBatch(5, "eucl", pool, weighted = true),
+    //    VFDT(),
+    //    ECIELM(4),
+    //    EIELM(4),
+    //    interaELM(4),
     SVMLib(4)
   )
 
