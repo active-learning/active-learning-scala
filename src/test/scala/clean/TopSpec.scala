@@ -98,7 +98,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
           }
 
           acquire()
-          asserts.enqueue(() => it should s"write/read $learner hits" in {
+          asserts.enqueue(() => it should s"write/read $learner hits fold $fold" in {
             assertResult(hitses.flatten.flatten.toList)(dsHits.flatten.flatten.toList)
           })
           release()
