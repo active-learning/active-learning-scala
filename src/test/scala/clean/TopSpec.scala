@@ -29,7 +29,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 class TopSpec extends UnitSpec with Blob with Lock {
-  lazy val datasets = Source.fromFile("juntos.txt").getLines().toList
+  lazy val datasets = Source.fromFile("juntos.txt").getLines().toList.take(1000)
   val path = "/run/shm/testuci"
 
   def learner(pool: Seq[Pattern]) = List(
@@ -98,7 +98,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
           }
 
           acquire()
-          asserts.enqueue(() => it should s"write/read $learner hits fold $fold" in {
+          asserts.enqueue(() => s"$dataset rnd strat fold $fold" should s"write/read $learner hits fold $fold" in {
             assertResult(hitses.flatten.flatten.toList)(dsHits.flatten.flatten.toList)
           })
           release()
