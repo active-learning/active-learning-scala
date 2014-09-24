@@ -64,7 +64,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
     ds.log(s"Processing ${ds.n} instances ...")
 
     val doisPerClass = ds.patterns.groupBy(_.label).map(_._2.take(2)).flatten.toVector
-    val set = doisPerClass ++ ds.patterns.diff(doisPerClass).take(ds.nclasses * 3 - doisPerClass.size)
+    val set = doisPerClass ++ ds.patterns.diff(doisPerClass).take(ds.nclasses * 4 - doisPerClass.size)
 
     //reset ds
     ds.reset()
