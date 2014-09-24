@@ -171,5 +171,5 @@ class TopSpec extends UnitSpec with Blob with Lock {
     }
     ds.close()
   }
-  println(asserts.forall(_ == true) + "<-certo?")
+  println(asserts.count(_ != true) + "<-certo?")
 }
