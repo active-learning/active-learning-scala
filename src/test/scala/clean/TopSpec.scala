@@ -57,8 +57,8 @@ class TopSpec extends UnitSpec with Blob with Lock {
   }.flatten
 
   val run = 0
-  val asserts = mutable.Queue[Boolean]()
-  datasets.filter(!_.startsWith("#")) foreach { dataset =>
+  val asserts = mutable.Queue[() => Unit]()
+  datasets.filter(!_.startsWith("#")).par foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")
@@ -83,8 +83,10 @@ class TopSpec extends UnitSpec with Blob with Lock {
         val b1 = RandomSampling(pool).queries.map(_.toString).sameElements(dsQueries.map(_.toString))
         val b2 = RandomSampling(pool).queries.sameElements(dsQueries)
         acquire()
-        asserts.enqueue(b1)
-        asserts.enqueue(b2)
+        asserts.enqueue(() => s"$dataset rnd strat fold $fold" should "write/read queries" in {
+          assert(b1)
+          assert(b2)
+        })
         release()
 
         val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
@@ -100,7 +102,9 @@ class TopSpec extends UnitSpec with Blob with Lock {
           val c1 = hitses.flatten.flatten.toList
           val c2 = dsHits.flatten.flatten.toList
           acquire()
-          asserts.enqueue(c1 == c2)
+          asserts.enqueue(() => s"$dataset rnd strat fold $fold" should s"write/read $learner hits fold $fold" in {
+            assertResult(c1)(c2)
+          })
           release()
         }
       }
@@ -111,8 +115,10 @@ class TopSpec extends UnitSpec with Blob with Lock {
     val d1 = ds.Q <= set.size / 2
     val d2 = ds.nclasses <= ds.Q
     acquire()
-    asserts.enqueue(d1)
-    asserts.enqueue(d2)
+    asserts.enqueue(() => s"$dataset rnd strat" should "calculate Q as |Y| <= Q <= |U|" in {
+      assert(d1)
+      assert(d2)
+    })
     release()
 
     strats(Seq()) foreach {
@@ -149,7 +155,9 @@ class TopSpec extends UnitSpec with Blob with Lock {
             val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
             val e1 = queries.map(x => (x.id, x, x.label)).sameElements(dsQueries.map(x => (x.id, x, x.label)))
             acquire()
-            asserts.enqueue(e1)
+            asserts.enqueue(() => s"${ds.nclasses} queries" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}/fold $fold" in {
+              assert(e1)
+            })
             release()
 
             //            println("hits")
@@ -164,12 +172,14 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
             val f1 = hitses.flatten.flatten.sameElements(dsHits.flatten.flatten)
             acquire()
-            asserts.enqueue(f1)
+            asserts.enqueue(() => s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}/fold $fold" in {
+              assert(f1)
+            })
             release()
           }
         }
     }
     ds.close()
   }
-  println(asserts.count(_ != true) + "<-certo?")
+  asserts foreach (_.apply())
 }
