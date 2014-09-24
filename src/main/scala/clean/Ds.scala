@@ -40,7 +40,6 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val r = fetchQ()
     if (r.isEmpty) error("Q not found.") else r.head.toInt
   }
-  lazy val singlePoolSizeForTests = nclasses * 3 //less than 3 makes impossible to generate enough hits
 
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
@@ -91,12 +90,11 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }")
   }
 
-  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) = {
+  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) =
     read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold") match {
       case List() => None
       case List(seq) => Some(seq.head.toInt)
     }
-  }
 
   def isQCalculated = fetchQ().nonEmpty
 
@@ -132,10 +130,11 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         case None => false
         case Some(pid) =>
           val ExpectedHitsForFullPool = pool.size - nclasses + 1
+          val ExpectedHitsForNormalPool = Q - nclasses + 1
           val hs = read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
-            case List(Vector(0)) => 0
+            case List(Vector(0)) | List(Vector(0, 0)) => 0
             case List(Vector(c, m)) => if (c == m - nclasses + 2) c
-            else error(s"Inconsistency: $hs cms differs from last timeStep+1 ${m - nclasses + 2}")
+            else error(s"Inconsistency: $c cms differs from last timeStep+1 = ${m - nclasses + 2}")
             case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner")
           }
           (strat.id, learner.id) match {
@@ -144,38 +143,44 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
               case ExpectedHitsForFullPool => true
               case _ => error(s"$hs previous agnostic hits should be $ExpectedHitsForFullPool")
             }
-            case _ => hs match {
+            case (s, l) if s < 2 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
-              case Q => true
-              case _ => error(s"$hs previous hits should be $Q")
+              case ExpectedHitsForNormalPool => true
+              case _ => error(s"$hs previous hits should be $ExpectedHitsForNormalPool")
+            }
+            case (s, l) if s > 1 => hs match {
+              case 0 => false
+              case ExpectedHitsForNormalPool => true
+              case _ => error(s"$hs previous hits should be $ExpectedHitsForNormalPool")
             }
           }
       }
     }
 
-  def calculaQ(runs: Int, folds: Int) {
-    //get pool ids
-    val numberOfLearners = 3
-    val numberOfPools = runs * folds * numberOfLearners
-    val numberOfConfMats = if (runs == 1 && folds == 1) {
-      //special case for tests (TopSpec.scala)
-      (singlePoolSizeForTests - nclasses + 1) * numberOfLearners
-    } else (runs * (folds - 1)) * numberOfLearners - (nclasses - 1) * numberOfPools
-    val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
-    if (numberOfPools != poolIds.size) error(s"${poolIds.size} found, $numberOfPools expected!")
+  def calculaQ(runs: Int, folds: Int, n: Int = n) {
+    if (isQCalculated) quit("Q already calculated!")
+    else {
+      //get pool ids
+      val numberOfLearners = 3
+      val numberOfPools = runs * folds * numberOfLearners
+      println(s"$n ")
+      val numberOfConfMats = n * (runs * (folds - 1)) * numberOfLearners - (nclasses - 1) * numberOfPools
+      val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
+      if (numberOfPools != poolIds.size) error(s"${poolIds.size} found, $numberOfPools expected!")
 
-    //get conf. mats and create map hits->timeStep
-    val hits_t = readBlobs(s"select mat,t from h WHERE p IN (${poolIds.mkString(",")}) ORDER BY t").map {
-      case (b, t) =>
-        hits(blobToConfusion(b, nclasses)) -> t
+      //get conf. mats and create map hits->timeStep
+      val hits_t = readBlobs(s"select mat,t from h WHERE p IN (${poolIds.mkString(",")}) ORDER BY t").map {
+        case (b, t) =>
+          hits(blobToConfusion(b, nclasses)) -> t
+      }
+      if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected (|Y|=$nclasses)!")
+
+      //get and write smallest time step with maximum accuracy
+      val maxAcc = hits_t.map(_._1).max
+      val firstTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
+      val qToWrite = math.max(firstTAtMaxAcc, nclasses)
+      write(s"INSERT INTO r values (0, -1, $qToWrite)")
     }
-    if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected (|Y|=$nclasses)!")
-
-    //get and write smallest time step with maximum accuracy
-    val maxAcc = hits_t.map(_._1).max
-    val firstTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
-    val qToWrite = math.max(firstTAtMaxAcc, nclasses)
-    write(s"INSERT INTO r values (0, -1, $qToWrite)")
   }
 
   def countQueries(strat: Strategy, run: Int, fold: Int) = {

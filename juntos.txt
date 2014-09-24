@@ -30,8 +30,8 @@ hepatitis
 robot-failure-lp5
 planning-relax
 wine
-flags-colour-davi
-flags-religion-davi
+# flags-colour-davi classe minoritaria pequena demais pra 5 folds
+# flags-religion-davi classe minoritaria pequena demais pra 5 folds
 parkinsons
 heart-disease-processed-va
 arcene
@@ -168,7 +168,7 @@ gas-drift
 gas-drift-different-concentrations
 eeg-eye-state
 magic
-# with missing values:
+# with missing values: ----------------
 # acute-inflammations-nephritis.arff
 # acute-inflammations-urinary.arff
 # annealing.arff
