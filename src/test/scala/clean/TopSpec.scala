@@ -58,7 +58,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
   val run = 0
   val asserts = mutable.Queue[() => Unit]()
-  datasets.filter(!_.startsWith("#")) foreach { dataset =>
+  datasets.filter(!_.startsWith("#")).par foreach { dataset =>
     val ds = Ds(path, dataset)
     ds.open()
     ds.log(s"Processing ${ds.n} instances ...")

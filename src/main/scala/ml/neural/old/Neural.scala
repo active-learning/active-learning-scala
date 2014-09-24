@@ -7,28 +7,28 @@ object Neural {
   import no.uib.cipr.matrix.DenseMatrix
   import no.uib.cipr.matrix.Matrices
 
-//  sealed abstract class ActFun() {
-//    def f(x: Double): Double
-//  }
-//
-//  case class LinearOutputLayer() extends ActFun {
-//    def f(x: Double) = x
-//  }
-//
-//  case class Sigmoide() extends ActFun {
-//    def f(x: Double) = (1.0 / (1 + math.exp(-x)) - 0.5) * 2d //better to avoid numerical instability //1.0 / (1 + math.exp(-x))
-//  }
-//
-//  case class Tahn() extends ActFun {
-//    def f(x: Double) = 1.7159 * math.tanh(2 * x / 3)
-//  }
-//
-//  def patterns2matrices(insts: Seq[Pattern]) = {
-//    val instsarray = insts.toArray
-//    val transP = new DenseMatrix(instsarray.map(_.array))
-//    val transT = new DenseMatrix(instsarray.map(x => x.weighted_label_array))
-//    (transP, transT)
-//  }
+  //  sealed abstract class ActFun() {
+  //    def f(x: Double): Double
+  //  }
+  //
+  //  case class LinearOutputLayer() extends ActFun {
+  //    def f(x: Double) = x
+  //  }
+  //
+  //  case class Sigmoide() extends ActFun {
+  //    def f(x: Double) = (1.0 / (1 + math.exp(-x)) - 0.5) * 2d //better to avoid numerical instability //1.0 / (1 + math.exp(-x))
+  //  }
+  //
+  //  case class Tahn() extends ActFun {
+  //    def f(x: Double) = 1.7159 * math.tanh(2 * x / 3)
+  //  }
+  //
+  //  def patterns2matrices(insts: Seq[Pattern]) = {
+  //    val instsarray = insts.toArray
+  //    val transP = new DenseMatrix(instsarray.map(_.array))
+  //    val transT = new DenseMatrix(instsarray.map(x => x.weighted_label_array))
+  //    (transP, transT)
+  //  }
 
   /**
    * Moore-Penrose generalized inverse matrix.
@@ -36,8 +36,6 @@ object Neural {
    * Based on the Java code, which was based on Huang Matlab code.
    * Theory:Ridge regression
    * MP(A) = inv((H'*H+lumda*I))*H'
-   * @param H0
-   * @return (M0, pseudo-inverse) M0 is used for incremental learning (OS-ELM)
    */
   def pinv(H0: DenseMatrix) = {
     val lumda = 0.000001
@@ -73,14 +71,14 @@ object Neural {
     pseudo_inverse
   }
 
-//  def inv(H0: DenseMatrix) = {
-//    val I = Matrices.identity(H0.numColumns())
-//    val Ainv = I.copy()
-//    H0.solve(I, Ainv)
-//    Ainv
-//  }
-//
-//  def toArray(M: DenseMatrix) = ((0 until M.numRows) map {
-//    r => ((0 until M.numColumns) map (c => M.get(r, c))).toArray
-//  }).toArray
+  //  def inv(H0: DenseMatrix) = {
+  //    val I = Matrices.identity(H0.numColumns())
+  //    val Ainv = I.copy()
+  //    H0.solve(I, Ainv)
+  //    Ainv
+  //  }
+  //
+  //  def toArray(M: DenseMatrix) = ((0 until M.numRows) map {
+  //    r => ((0 until M.numColumns) map (c => M.get(r, c))).toArray
+  //  }).toArray
 }
