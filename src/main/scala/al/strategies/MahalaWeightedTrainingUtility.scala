@@ -19,12 +19,9 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{KNNBatch, Learner}
+import ml.classifiers.Learner
 import ml.models.Model
 import no.uib.cipr.matrix.MatrixSingularException
-import util.{ALDatasets, Datasets}
-
-import scala.util.Random
 
 case class MahalaWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
   extends StrategyWithMahala with MarginMeasure {
@@ -43,7 +40,7 @@ case class MahalaWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], a
           (1 - margin(current_model)(x)) * math.pow(similarityU, alpha) / math.pow(similarityL, beta)
       }
     } catch {
-      case ex: MatrixSingularException => println(s" MahalaWTU: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
+      case ex: MatrixSingularException => error(s" MahalaWTU: singular matrix in ${pool.head.dataset().relationName()}! Defaulting to Random Sampling..."); unlabeled.head
     }
   }
 }

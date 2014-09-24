@@ -69,15 +69,6 @@ class Db(val database: String) extends Log with Lock {
     }
   }
 
-  def error(msg: String) = {
-    throw new Error(s"Error: $msg")
-  }
-
-  def justQuit(msg: String) = {
-    log(s"Quiting: $msg", 2)
-    sys.exit(1)
-  }
-
   def quit(msg: String) = {
     close()
     justQuit(msg)

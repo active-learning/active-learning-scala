@@ -18,6 +18,7 @@
 
 package al.strategies
 
+import clean.Log
 import ml.Pattern
 import ml.classifiers.Learner
 import ml.neural.elm
@@ -27,7 +28,7 @@ import org.math.array.StatisticSample
 import util.Datasets
 import weka.core._
 
-trait DistanceMeasure {
+trait DistanceMeasure extends Log {
   val learner: Learner
   val pool: Seq[Pattern]
   val distance_name: String
@@ -79,7 +80,7 @@ trait DistanceMeasure {
       result.mult(difft, result2)
       Math.sqrt(result2.get(0))
     } catch {
-      case _: MatrixSingularException => //println("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
+      case _: MatrixSingularException => error("Singular matrix on mahalanobis calculation! Falling back to euclidean...")
         euclidean_ruler.distance(pa, pb)
     }
   }

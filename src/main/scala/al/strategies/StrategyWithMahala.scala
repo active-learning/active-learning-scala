@@ -18,6 +18,7 @@
 
 package al.strategies
 
+import clean.Log
 import ml.Pattern
 import ml.neural.old.Neural
 import no.uib.cipr.matrix.{MatrixSingularException, DenseMatrix, DenseVector}

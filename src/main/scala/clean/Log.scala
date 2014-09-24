@@ -28,4 +28,13 @@ trait Log {
     case 1 => if (Global.debug) println(s"$context : $msg    ${Calendar.getInstance().getTime}")
     case 2 => println(s"$context : $msg    ${Calendar.getInstance().getTime}")
   }
+
+  def error(msg: String) = {
+    throw new Error(s"Error: $msg")
+  }
+
+  def justQuit(msg: String) = {
+    log(s"Quiting: $msg", 2)
+    sys.exit(1)
+  }
 }

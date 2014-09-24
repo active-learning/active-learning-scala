@@ -18,6 +18,7 @@
 
 package al.strategies
 
+import clean.Log
 import ml.Pattern
 import ml.classifiers.Learner
 import util.Graphics.Plot
@@ -25,7 +26,8 @@ import util.Graphics.Plot
 /**
  * Only distinct patterns are accepted into the pool.
  */
-trait Strategy {
+trait Strategy extends Log {
+  val context = "Strategy"
   val id: Int
   val abr: String
   val learner: Learner
@@ -106,7 +108,7 @@ trait Strategy {
     if (firstof_each_class != labeled.take(nclasses)) {
       println("Expected: " + firstof_each_class)
       println("Found:" + labeled.take(nclasses).toList)
-      throw new Error(s"In dataset '${labeled.head.dataset().relationName()}': queries cannot be resumed, there should be the exact one-instance-per-class subset at the beginning.")
+      error(s"In dataset '${labeled.head.dataset().relationName()}': queries cannot be resumed, there should be the exact one-instance-per-class subset at the beginning.")
     }
     resume_queries_impl(distinct_pool.diff(labeled), labeled)
   }
@@ -115,7 +117,7 @@ trait Strategy {
     val firstof_each_class = ((0 until nclasses) map {
       c => patterns find (_.label == c) match {
         case Some(pattern) => pattern
-        case _ => throw new Error("Dataset should have at least one instance from each class per fold! Label index " + c + " not found in dataset " + patterns.head.dataset().relationName() + " !")
+        case _ => error("Dataset should have at least one instance from each class per fold! Label index " + c + " not found in dataset " + patterns.head.dataset().relationName() + " !")
       }
     }).toList
     (firstof_each_class, patterns.diff(firstof_each_class))
