@@ -34,7 +34,9 @@ import scala.util.Random
 case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
   override val toString = s"SVMmulti ($algorithm)"
   val abr = "SVM" + algorithm.take(3).toLowerCase
-  val learner = SVMLib()
+
+  def learner = SVMLib()
+
   //just to visual tests and to be referenced in db
   val id = algorithm match {
     case "SIMPLE" => 17

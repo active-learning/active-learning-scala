@@ -32,31 +32,35 @@ class TopSpec extends UnitSpec with Blob with Lock {
   lazy val datasets = Source.fromFile("juntos.txt").getLines().toList.filter(!_.startsWith("#")).takeWhile(!_.startsWith("!")).par
   val path = "/run/shm/testuci"
 
-  def learner(pool: Seq[Pattern]) = List(
-    NB()
-    ,
-    KNNBatch(5, "eucl", pool, weighted = true),
-    VFDT(),
-    ECIELM(4),
-    EIELM(4),
-    interaELM(4)
-    //    ,
-    //             SVMLib(4)
-  )
+  def strats(pool: => Seq[Pattern]) = List[Strategy](
+    Margin(NB(), pool),
+    Margin(ECIELM(), pool),
+    Margin(interaELM(), pool),
+    Margin(KNNBatch(5, "eucl", pool, weighted = true), pool),
 
-  def strats(pool: => Seq[Pattern]) = {
-    List[Learner => Strategy](
-      (learner: Learner) => Margin(learner, pool)
-      ,
-      (learner: Learner) => new SGmultiJS(learner, pool),
-      (learner: Learner) => DensityWeightedTrainingUtility(learner, pool, "eucl"),
-      (learner: Learner) => DensityWeightedTrainingUtility(learner, pool, "maha"),
-      (learner: Learner) => MahalaWeightedTrainingUtility(learner, pool, 1, 1),
-      (learner: Learner) => ExpErrorReductionMargin(learner, pool, "gmeans+residual", sample = 2)
-      //      ,
-      //      (learner: Learner) => SVMmulti(pool, "KFF")
-    ).map { strat => learner(pool) map strat}
-  }.flatten
+    new SGmultiJS(NB(), pool),
+    new SGmultiJS(ECIELM(), pool),
+    new SGmultiJS(interaELM(), pool),
+    new SGmultiJS(KNNBatch(5, "eucl", pool, weighted = true), pool),
+
+    DensityWeightedTrainingUtility(NB(), pool, "eucl"),
+    DensityWeightedTrainingUtility(ECIELM(), pool, "eucl"),
+    DensityWeightedTrainingUtility(interaELM(), pool, "eucl"),
+    DensityWeightedTrainingUtility(KNNBatch(5, "eucl", pool, weighted = true), pool, "eucl"),
+
+    DensityWeightedTrainingUtility(NB(), pool, "maha"),
+    DensityWeightedTrainingUtility(ECIELM(), pool, "maha"),
+    DensityWeightedTrainingUtility(interaELM(), pool, "maha"),
+    DensityWeightedTrainingUtility(KNNBatch(5, "eucl", pool, weighted = true), pool, "maha"),
+
+    MahalaWeightedTrainingUtility(NB(), pool, 1, 1),
+    MahalaWeightedTrainingUtility(ECIELM(), pool, 1, 1),
+    MahalaWeightedTrainingUtility(interaELM(), pool, 1, 1),
+    MahalaWeightedTrainingUtility(KNNBatch(5, "eucl", pool, weighted = true), pool, 1, 1),
+
+    ExpErrorReductionMargin(interaELM(), pool, "gmeans+residual", sample = 2)
+    //    SVMmulti(pool, "SIMPLE")
+  )
 
   val run = 0
   val asserts = mutable.Queue[() => Unit]()
@@ -66,7 +70,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
     ds.log(s"Processing ${ds.n} instances ...")
 
     val doisPerClass = ds.patterns.groupBy(_.label).map(_._2.take(2)).flatten.toVector
-    val set = doisPerClass ++ ds.patterns.diff(doisPerClass).take(ds.nclasses * 4 - doisPerClass.size)
+    val set = doisPerClass ++ ds.patterns.diff(doisPerClass).take(ds.nclasses * 6 - doisPerClass.size)
 
     //reset ds
     ds.reset()
@@ -174,15 +178,15 @@ class TopSpec extends UnitSpec with Blob with Lock {
 
             val f1 = hitses.flatten.flatten.sameElements(dsHits.flatten.flatten)
 
-            if (!f1) {
-              hitses.toList.zip(dsHits.toList).toList filter (x => !x._1.flatten.sameElements(x._2.flatten.toSeq)) foreach { x =>
-                printConfusion(x._1)
-                println("\n------------\n")
-                printConfusion(x._2)
-              }
-              println(s"------------")
-              sys.exit(0)
-            }
+            //            if (!f1) {
+            //              hitses.toList.zip(dsHits.toList).toList filter (x => !x._1.flatten.sameElements(x._2.flatten.toSeq)) foreach { x =>
+            //                printConfusion(x._1)
+            //                println("\n------------\n")
+            //                printConfusion(x._2)
+            //              }
+            //              println(s"------------")
+            //              sys.exit(0)
+            //            }
             acquire()
             asserts.enqueue(() => s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}/fold $fold" in {
               assert(f1)
