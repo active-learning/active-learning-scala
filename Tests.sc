@@ -1,5 +1,5 @@
 // worksheet não funciona pra stream !!!!!
-lazy val as = Seq({
+val as = Seq({
   println(s"a1")
   true
 }, {
@@ -7,10 +7,10 @@ lazy val as = Seq({
   false
 }, {
   println(s"a3")
-  false
-}).Stream
+  true
+})
 
-val bs = Stream({
+val bs = Seq({
   println(s"b1")
   true
 }, {
@@ -18,14 +18,17 @@ val bs = Stream({
   true
 }, {
   println(s"b3")
-  true
-}).toStream
+  false
+})
 
-val f = for {
-  a <- as
-  b <- bs
-} yield a && b
-
-as.forall(_ == true)
-//bs.forall(_ == true)
-//f.forall(_ == true)
+val f = (for {
+  a <- as.par.toStream
+  b <- bs.par.toStream
+} yield {
+  lazy val res = {
+    println(s"a&&b")
+    a && b
+  }
+  res
+})
+f.forall(_ == true)

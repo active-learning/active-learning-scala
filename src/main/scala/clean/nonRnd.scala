@@ -46,12 +46,15 @@ trait nonRnd extends Exp {
   }
 
   def isAlreadyDone(ds: Ds) = {
+    val poolSize = ds.expectedPoolSizes(folds)
     val checks = for {
-      poolSize <- ds.expectedPoolSizes(folds).toStream
-      s <- strats(Seq(), -1).toStream
-      r <- (0 until runs).toStream
-      f <- (0 until folds).toStream
-    } yield ds.areHitsFinished(poolSize, s, learner(Seq(), -1), r, f)
+      s <- strats(Seq(), -1).toStream //.par
+      r <- (0 until runs).toStream //.par
+      f <- (0 until folds).toStream //.par
+    } yield {
+      lazy val res = ds.areHitsFinished(poolSize(f), s, learner(Seq(), -1), r, f)
+      res
+    }
     checks forall (_ == true)
   }
 }
