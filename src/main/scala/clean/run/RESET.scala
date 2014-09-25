@@ -25,9 +25,9 @@ object RESET extends AppWithUsage with ArgParser {
   val arguments = superArguments.dropRight(1)
   val context = "RESETapp"
   init()
+  core()
 
-  override def init() {
-    super.init()
+  def core() {
     datasets foreach { dataset =>
       val ds = Ds(path, dataset)
       ds.open()

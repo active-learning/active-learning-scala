@@ -44,10 +44,9 @@ object Q extends Exp with ArgParser {
 
     //hits
     ds.log("hits")
-    val learners = Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45())
-    learners foreach { learner =>
+    Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()) foreach { learner =>
       if (ds.areHitsFinished(pool, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
-      ds.writeHits(pool, testSet, queries.toVector, strat, run, fold)(learner)
+      else ds.writeHits(pool, testSet, queries.toVector, strat, run, fold)(learner)
     }
   }
 
