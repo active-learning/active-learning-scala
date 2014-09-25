@@ -38,7 +38,8 @@ trait nonRnd extends Exp {
 
     //hits (pra learner fornecido)
     ds.log("hits")
-    ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner(pool, learnerSeed))
+    if (ds.areHitsFinished(pool.size, strat, learner(pool, learnerSeed), run, fold)) println(s"Hits already done for ${strat.abr}/${learner(pool, learnerSeed)} at pool $run.$fold.")
+    else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner(pool, learnerSeed))
   }
 
   def end(ds: Ds) {
