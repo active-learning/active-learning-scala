@@ -23,7 +23,7 @@ import al.strategies.Strategy
 import ml.Pattern
 import weka.filters.Filter
 
-trait nonRnd extends Exp {
+trait nonQ extends Exp {
   val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
   val samplingSize = 500
   init()

@@ -20,10 +20,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import al.strategies._
-import clean.nonRnd
+import clean.nonQ
 import ml.Pattern
 
-object fast extends nonRnd {
+object fast extends nonQ {
   val context = "agnoApp"
   init()
 

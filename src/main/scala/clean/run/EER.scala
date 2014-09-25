@@ -20,10 +20,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import al.strategies.ExpErrorReductionMargin
-import clean.nonRnd
+import clean.nonQ
 import ml.Pattern
 
-object EER extends nonRnd {
+object EER extends nonQ {
   val context = "EERapp"
   init()
 
