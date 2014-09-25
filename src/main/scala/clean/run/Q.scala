@@ -52,7 +52,7 @@ object Q extends Exp with ArgParser {
 
   def end(ds: Ds) {
     //Q
-    val Q = ds.calculaQ(runs, folds)
-    println(s"Q: $Q\n")
+    ds.calculaQ(runs, folds)
+    println(s"Q: ${ds.Q}\n")
   }
 }
