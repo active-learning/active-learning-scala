@@ -17,25 +17,13 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.run
 
-import al.strategies.{MahalaWeightedTrainingUtility, DensityWeightedTrainingUtility, Strategy}
-import clean.agno._
-import ml.Pattern
-import ml.classifiers._
-import ml.neural.elm.ELM
-import util.Datasets
+import clean.{AppWithUsage, ArgParser, Ds}
 
-import scala.io.Source
-import scala.util.Random
-
-trait RESET extends AppWithUsage {
-  val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):r|f|rf")
-  lazy val parallelRuns = args(2).contains("r")
-  lazy val parallelFolds = args(2).contains("f")
+object RESET extends AppWithUsage with ArgParser {
+  val arguments = superArguments.dropRight(1)
   val context = "RESETapp"
-  lazy val path = args(0)
-  lazy val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2).filter(!_.startsWith("#"))
   init()
 
   override def init() {
@@ -45,6 +33,7 @@ trait RESET extends AppWithUsage {
       ds.open()
       ds.reset()
       ds.log(s"$dataset resetado.", 2)
+      ds.close()
     }
     log("Datasets zerados.")
   }

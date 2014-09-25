@@ -1,6 +1,5 @@
-package clean
-
 /*
+
 active-learning-scala: Active Learning library for Scala
 Copyright (c) 2014 Davi Pereira dos Santos
 
@@ -18,20 +17,15 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-trait AppWithUsage extends App with Log with ArgParser {
-  Class.forName("org.sqlite.JDBC")
-  val superArguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):r|f|rf")
-  val arguments: List[String]
-  lazy val datasets = datasetsFromFiles(args(1))
-  lazy val path = args(0)
-  lazy val parallelRuns = args(2).contains("r")
-  lazy val parallelFolds = args(2).contains("f")
+package clean.run
 
-  def init() {
-    println(args.mkString(" "))
-    if (args.size != arguments.size) {
-      println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
-      sys.exit(1)
-    }
-  }
+import al.strategies.ClusterBased
+import clean.nonRnd
+import ml.Pattern
+
+object agno extends nonRnd {
+  val context = "agnoApp"
+  init()
+
+  def strats(pool: Seq[Pattern], learnerSeed: Int) = List(ClusterBased(pool))
 }

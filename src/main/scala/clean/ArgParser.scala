@@ -19,12 +19,18 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies.ClusterBased
-import ml.Pattern
+import scala.io.Source
 
-object agno extends nonRnd {
-  val context = "agnoApp"
-  init()
-
-  def strats(pool: => Seq[Pattern], learnerSeed: Int) = List(ClusterBased(pool))
+trait ArgParser {
+  /**
+   * Concatenates lines from all comma separated file names.
+   * @param arg
+   * @return
+   */
+  def datasetsFromFiles(arg: String) =
+    arg.split(",").flatMap { x =>
+      Source.fromFile(x).getLines().takeWhile(!_.startsWith("!")).filter { y =>
+        y.length > 2 && !y.startsWith("#")
+      }
+    }
 }

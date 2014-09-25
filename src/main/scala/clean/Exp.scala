@@ -20,27 +20,20 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean
 
 import al.strategies.{MahalaWeightedTrainingUtility, DensityWeightedTrainingUtility, Strategy}
-import clean.agno._
 import ml.Pattern
 import ml.classifiers._
 import ml.neural.elm.ELM
 import util.Datasets
 import weka.filters.Filter
-
-import scala.io.Source
 import scala.util.Random
 
-trait Exp extends AppWithUsage {
-  lazy val path = args(0)
-  lazy val datasets = Source.fromFile(args(1)).getLines().filter(_.length > 2).filter(!_.startsWith("#"))
-  val parallelRuns: Boolean
-  val parallelFolds: Boolean
+trait Exp extends AppWithUsage with ArgParser {
   val runs = Global.runs
   val folds = Global.folds
 
-  def strats(pool: => Seq[Pattern], seed: Int): List[Strategy]
+  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
 
-  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter)
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter)
 
   def end(ds: Ds)
 
@@ -66,7 +59,7 @@ trait Exp extends AppWithUsage {
               val needsFilter = (strat, strat.learner) match {
                 case (_, _: ELM) => true
                 case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
-                case (_: MahalaWeightedTrainingUtility, _) => true
+                case (MahalaWeightedTrainingUtility(_, _, _, _, _), _) => true
                 case _ => false
               }
 
@@ -77,12 +70,14 @@ trait Exp extends AppWithUsage {
 
               //tr
               val zscof = if (needsFilter) Datasets.zscoreFilter(binarizedTr) else null
-              lazy val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
+              val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
               else {
                 val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
                 new Random(fold).shuffle(filteredTr.sortBy(_.id))
               }
-              lazy val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
+
+              //ts
+              val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
               else {
                 val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
                 new Random(fold).shuffle(filteredTs.sortBy(_.id))
@@ -108,12 +103,12 @@ trait Exp extends AppWithUsage {
     case "5nn" => KNNBatch(5, "eucl", pool, weighted = true)
     case "c45" => C45()
     case "vfdt" => VFDT()
-    case "CI" => CIELM(learnerSeed)
-    case "ECI" => ECIELM(learnerSeed)
-    case "I" => IELM(learnerSeed)
-    case "EI" => EIELM(learnerSeed)
+    case "ci" => CIELM(learnerSeed)
+    case "eci" => ECIELM(learnerSeed)
+    case "i" => IELM(learnerSeed)
+    case "ei" => EIELM(learnerSeed)
     case "intera" => interaELM(learnerSeed)
-    case "SVM" => SVMLib(learnerSeed)
+    case "svm" => SVMLib(learnerSeed)
 
     //      case "NBz" => NB("")
     //      case "C45z" => C45("")

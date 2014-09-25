@@ -17,17 +17,17 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.run
 
-import al.strategies.{ExpErrorReductionMargin, Strategy}
+import al.strategies.ExpErrorReductionMargin
+import clean.nonRnd
 import ml.Pattern
-import ml.classifiers._
 
 object EER extends nonRnd {
   val context = "EERapp"
   init()
 
-  def strats(pool: => Seq[Pattern], learnerSeed: Int) = List(
+  def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
     ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "entropy", samplingSize),
     ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "gmeans+residual", samplingSize),
     ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "accuracy", samplingSize)

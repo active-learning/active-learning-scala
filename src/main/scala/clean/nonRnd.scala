@@ -19,19 +19,16 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies.{ClusterBased, ExpErrorReductionMargin, Strategy}
+import al.strategies.Strategy
 import ml.Pattern
-import ml.classifiers._
 import weka.filters.Filter
 
 trait nonRnd extends Exp {
-  val arguments = List("datasets-path", "file-with-dataset-names", "parallelize(runs folds):n|r|f|rf", "learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
-  lazy val parallelRuns = args(2).contains("r")
-  lazy val parallelFolds = args(2).contains("f")
+  val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
   val samplingSize = 500
   init()
 
-  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     //queries (só no learner da strat: NoLearner pra Clu, 'fornecido' pra Gnos)
     ds.log("queries")
     val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {

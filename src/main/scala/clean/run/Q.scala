@@ -17,25 +17,24 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.run
 
-import al.strategies.{ClusterBased, RandomSampling, Strategy}
+import al.strategies.{RandomSampling, Strategy}
+import clean.{ArgParser, Ds, Exp}
 import ml.Pattern
 import ml.classifiers._
 import weka.filters.Filter
 
-object Q extends Exp {
-  val arguments = List("datasets-path", "file-with-dataset-names", "paralleliz(runs folds):r|f|rf")
-  lazy val parallelRuns = args(2).contains("r")
-  lazy val parallelFolds = args(2).contains("f")
+object Q extends Exp with ArgParser {
+  val arguments = superArguments
   val context = "Qapp"
   init()
 
-  def strats(pool: => Seq[Pattern], seed: Int) = List(RandomSampling(pool))
+  def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))
 
   def isAlreadyDone(ds: Ds) = ds.isQCalculated
 
-  def op(strat: Strategy, ds: Ds, pool: => Seq[Pattern], learnerSeed: Int, testSet: => Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     //queries
     ds.log("queries")
     val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {
