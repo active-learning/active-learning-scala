@@ -41,7 +41,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
     EIELM(4),
     interaELM(4)
     //    ,
-    //    SVMLib(4)
+    //             SVMLib(4)
   )
 
   def strats(pool: => Seq[Pattern]) = {
@@ -173,6 +173,16 @@ class TopSpec extends UnitSpec with Blob with Lock {
             val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
 
             val f1 = hitses.flatten.flatten.sameElements(dsHits.flatten.flatten)
+
+            if (!f1) {
+              hitses.toList.zip(dsHits.toList).toList filter (x => !x._1.flatten.sameElements(x._2.flatten.toSeq)) foreach { x =>
+                printConfusion(x._1)
+                println("\n------------\n")
+                printConfusion(x._2)
+              }
+              println(s"------------")
+              sys.exit(0)
+            }
             acquire()
             asserts.enqueue(() => s"${ds.nclasses} conf. mat.s" should s"remain the same after written and read for $ds/$strategy/${strategy.learner}/fold $fold" in {
               assert(f1)

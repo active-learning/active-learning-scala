@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.SVMLib
+import ml.classifiers.{NB, SVMLib}
 import svmal.SVMStrategymulti
 import util.{ALDatasets, Datasets}
 

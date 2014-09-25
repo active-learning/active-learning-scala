@@ -30,7 +30,8 @@ trait Strategy extends Log {
   val context = "Strategy"
   val id: Int
   val abr: String
-  val learner: Learner
+
+  def learner: Learner
   val pool: Seq[Pattern]
   lazy val distinct_pool = if (pool.distinct != pool) {
     println("The pool cannot have repeated instances!")
