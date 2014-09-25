@@ -53,4 +53,12 @@ trait Blob {
     val d = c.map(Integer.parseInt(_, 2))
     d
   }
+
+  def printConfusion(m: Array[Array[Int]]) {
+    m foreach { r =>
+      r.foreach(c => print(s"$c "))
+      println
+    }
+    println
+  }
 }
