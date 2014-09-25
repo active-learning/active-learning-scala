@@ -24,7 +24,7 @@ import clean.nonQ
 import ml.Pattern
 
 object fast extends nonQ {
-  val context = "agnoApp"
+  val context = "fastApp"
   init()
 
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
