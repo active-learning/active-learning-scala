@@ -31,19 +31,27 @@ trait nonRnd extends Exp {
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     //queries (só no learner da strat: NoLearner pra Clu, 'fornecido' pra Gnos)
     ds.log("queries")
-    val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {
+    val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold)) {
       println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
       ds.queries(strat, run, fold, binaf, zscof)
-    } else ds.writeQueries(pool, strat, run, fold, ds.Q)
+    } else ds.writeQueries(strat, run, fold, ds.Q)
 
     //hits (pra learner fornecido)
     ds.log("hits")
-    ds.writeHits(pool, testSet, queries.toVector, strat, run, fold)(learner(pool, learnerSeed))
+    ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner(pool, learnerSeed))
   }
 
   def end(ds: Ds) {
     ds.log("fim")
   }
 
-  def isAlreadyDone(ds: Ds) = false
+  def isAlreadyDone(ds: Ds) = {
+    val checks = for {
+      poolSize <- ds.expectedPoolSizes(folds).toStream
+      s <- strats(Seq(), -1).toStream
+      r <- (0 until runs).toStream
+      f <- (0 until folds).toStream
+    } yield ds.areHitsFinished(poolSize, s, learner(Seq(), -1), r, f)
+    checks forall (_ == true)
+  }
 }

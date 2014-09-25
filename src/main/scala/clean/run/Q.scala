@@ -37,16 +37,16 @@ object Q extends Exp with ArgParser {
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     //queries
     ds.log("queries")
-    val queries = if (ds.areQueriesFinished(pool, strat, run, fold)) {
+    val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold)) {
       println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
       ds.queries(strat, run, fold, binaf, zscof)
-    } else ds.writeQueries(pool, strat, run, fold, Int.MaxValue)
+    } else ds.writeQueries(strat, run, fold, Int.MaxValue)
 
     //hits
     ds.log("hits")
     Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()) foreach { learner =>
-      if (ds.areHitsFinished(pool, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
-      else ds.writeHits(pool, testSet, queries.toVector, strat, run, fold)(learner)
+      if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
+      else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
     }
   }
 

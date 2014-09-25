@@ -98,11 +98,11 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   def isQCalculated = fetchQ().nonEmpty
 
-  def areQueriesFinished(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int) =
+  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int) =
     poolId(strat, strat.learner, run, fold) match {
       case None => false
       case Some(pid) =>
-        val PoolSize = pool.size
+        val PoolSize = poolSize
         val (qs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM q WHERE p=$pid") match {
           case List(Vector(c, m)) => c -> m
           case List() => error(s"Inconsistency: there is a pool $pid for no queries!")
@@ -122,14 +122,14 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         }
     }
 
-  def areHitsFinished(pool: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int) =
+  def areHitsFinished(poolSize: Int, strat: Strategy, learner: Learner, run: Int, fold: Int) =
     if (learner.id != strat.learner.id && strat.id > 1) quit(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
-    else if (!areQueriesFinished(pool, strat, run, fold)) error(s"Queries must be finished to check hits!")
+    else if (!areQueriesFinished(poolSize, strat, run, fold)) error(s"Queries must be finished to check hits!")
     else {
       poolId(strat, learner, run, fold) match {
         case None => false
         case Some(pid) =>
-          val ExpectedHitsForFullPool = pool.size - nclasses + 1
+          val ExpectedHitsForFullPool = poolSize - nclasses + 1
           val ExpectedHitsForNormalPool = Q - nclasses + 1
           val hs = read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
             case List(Vector(0)) | List(Vector(0, 0)) => 0
@@ -229,7 +229,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
   }
 
-  def writeQueries(pool: Seq[Pattern], strat: Strategy, run: Int, fold: Int, q: Int) = {
+  def writeQueries(strat: Strategy, run: Int, fold: Int, q: Int) = {
     poolId(strat, strat.learner, run, fold) match {
       case Some(queryPoolId) => quit(s"Pool $run.$fold já estava gravado para $strat.${strat.learner} referente às queries a gravar.")
       case None =>
@@ -257,7 +257,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
    * @param learner
    * @return
    */
-  def writeHits(pool: Seq[Pattern], testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
+  def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
     if (learner.id != strat.learner.id && strat.id > 1)
       quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
@@ -268,7 +268,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       }
 
       //para rnd e os 3 learners especiais, Q = |U|.
-      val expectedQ = if (strat.id == 0 && learner.id < 4) pool.size else Q
+      val expectedQ = if (strat.id == 0 && learner.id < 4) poolSize else Q
       if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
       val (initialPatterns, rest) = queries.splitAt(nclasses)
       var m = learner.build(initialPatterns)
