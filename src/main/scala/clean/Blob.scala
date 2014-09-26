@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait Blob {
-  def hits(m: Array[Array[Int]]) = {
+  def contaAcertos(m: Array[Array[Int]]) = {
     val n = m.size
     var i = 0
     var s = 0

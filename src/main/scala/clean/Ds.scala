@@ -58,7 +58,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) );")
     write("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT, UNIQUE (s, l, r, f) ON CONFLICT ROLLBACK ); ")
     write("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ")
-    write("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ")
+    //    write("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ")
   }
 
   /**
@@ -130,7 +130,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         case None => false
         case Some(pid) =>
           val ExpectedHitsForFullPool = poolSize - nclasses + 1
-          val ExpectedHitsForNormalPool = Q - nclasses + 1
+          lazy val ExpectedHitsForNormalPool = Q - nclasses + 1
           val hs = read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
             case List(Vector(0)) | List(Vector(0, 0)) => 0
             case List(Vector(c, m)) => if (c == m - nclasses + 2) c
@@ -171,7 +171,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       //get conf. mats and create map hits->timeStep
       val hits_t = readBlobs(s"select mat,t from h WHERE p IN (${poolIds.mkString(",")}) ORDER BY t").map {
         case (b, t) =>
-          hits(blobToConfusion(b, nclasses)) -> t
+          contaAcertos(blobToConfusion(b, nclasses)) -> t
       }
       if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected (|Y|=$nclasses)!")
 
