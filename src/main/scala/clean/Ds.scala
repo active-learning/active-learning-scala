@@ -68,7 +68,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
    */
   private def fetchPatterns(sqlTail: String) = try {
     val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
-    println(s"Fetching patterns from $database ...")
+    log(s"Fetching patterns...")
     val query = new InstanceQuerySQLite()
     query.setDatabaseURL("jdbc:sqlite:////" + database)
     query.setQuery("select i.* from " + sqlTail)

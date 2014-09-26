@@ -22,7 +22,6 @@ package clean.run
 import al.strategies.{RandomSampling, Strategy}
 import clean.{Ds, Exp}
 import ml.Pattern
-import ml.classifiers._
 import weka.filters.Filter
 
 object printPoolSizes extends Exp {
@@ -39,6 +38,6 @@ object printPoolSizes extends Exp {
   }
 
   def end(ds: Ds) {
-    println()
+    println(s"<-$ds")
   }
 }
