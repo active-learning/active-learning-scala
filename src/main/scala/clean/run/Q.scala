@@ -20,12 +20,12 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import al.strategies.{RandomSampling, Strategy}
-import clean.{ArgParser, Ds, Exp}
+import clean.{Ds, Exp}
 import ml.Pattern
 import ml.classifiers._
 import weka.filters.Filter
 
-object Q extends Exp with ArgParser {
+object Q extends Exp {
   val arguments = superArguments
   val context = "Qapp"
   init()

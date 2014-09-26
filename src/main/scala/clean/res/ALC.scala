@@ -17,24 +17,13 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean.run
+package clean.res
 
-import clean.{AppWithUsage, ArgParser, Ds}
+import clean.Res
 
-object RESET extends AppWithUsage {
-  val arguments = superArguments.dropRight(1)
-  val context = "RESETapp"
+object ALC extends Res {
+  val context = "ALCres"
   init()
-  core()
 
-  def core() {
-    datasets foreach { dataset =>
-      val ds = Ds(path, dataset)
-      ds.open()
-      ds.reset()
-      ds.log(s"$dataset resetado.", 2)
-      ds.close()
-    }
-    log("Datasets zerados.")
-  }
+  def calculate(cms: List[Array[Array[Int]]]) = ???
 }

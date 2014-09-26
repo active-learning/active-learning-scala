@@ -27,9 +27,10 @@ import util.Datasets
 import weka.filters.Filter
 import scala.util.Random
 
-trait Exp extends AppWithUsage with ArgParser {
+trait Exp extends AppWithUsage {
   val runs = Global.runs
   val folds = Global.folds
+  val samplingSize = 500
 
   def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
 
@@ -95,7 +96,7 @@ trait Exp extends AppWithUsage with ArgParser {
       }
       ds.close()
     }
-    log("Datasets prontos.")
+    log("Datasets prontos.", 2)
   }
 
   def learner(pool: Seq[Pattern], learnerSeed: Int) = args(3) match {
