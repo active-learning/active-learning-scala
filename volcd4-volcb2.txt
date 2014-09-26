@@ -1,0 +1,10 @@
+volcanoes-d4
+volcanoes-d1
+volcanoes-d2
+volcanoes-d3
+volcanoes-b5
+volcanoes-b6
+volcanoes-b1
+volcanoes-b4
+volcanoes-b3
+volcanoes-b2
