@@ -289,10 +289,6 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val resto = n % folds
     val foldSizes = Array.fill(folds)(parteIgual)
     0 until resto foreach (i => foldSizes(i) += 1)
-    println(s"${foldSizes.toList}")
-
-    val poolSizes = foldSizes map (n - _)
-    error(s"${poolSizes.toList}")
-    poolSizes
+    foldSizes map (n - _)
   }
 }
