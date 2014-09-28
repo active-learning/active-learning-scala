@@ -25,7 +25,7 @@ import weka.filters.Filter
 
 import scala.collection.mutable
 
-trait Res extends Exp with Blob with Lock {
+trait Res extends Exp with Blob with Lock with LearnerTrait {
   val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
   val measures = mutable.Queue[Double]()
 

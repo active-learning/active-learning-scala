@@ -100,7 +100,9 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int) =
     poolId(strat, strat.learner, run, fold) match {
-      case None => false
+      case None =>
+        log(s"No queries: no pid found for $strat ${strat.learner} $run.$fold .")
+        false
       case Some(pid) =>
         val PoolSize = poolSize
         val (qs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM q WHERE p=$pid") match {
@@ -124,7 +126,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   def areHitsFinished(poolSize: Int, strat: Strategy, learner: Learner, run: Int, fold: Int) =
     if (learner.id != strat.learner.id && strat.id > 1) quit(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
-    else if (!areQueriesFinished(poolSize, strat, run, fold)) error(s"Queries must be finished to check hits!")
+    else if (!areQueriesFinished(poolSize, strat, run, fold)) error(s"Queries must be finished to check hits! |U|=$poolSize")
     else {
       poolId(strat, learner, run, fold) match {
         case None => false

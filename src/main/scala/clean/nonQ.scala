@@ -23,7 +23,7 @@ import al.strategies.Strategy
 import ml.Pattern
 import weka.filters.Filter
 
-trait nonQ extends Exp {
+trait nonQ extends Exp with LearnerTrait {
   val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {

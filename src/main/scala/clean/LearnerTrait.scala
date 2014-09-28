@@ -25,7 +25,7 @@ import ml.classifiers._
 trait LearnerTrait {
   val learnerStr: String
 
-  def learner(pool: Seq[Pattern], learnerSeed: Int): ml.classifiers.Learner = learnerStr match {
+  def learner(pool: Seq[Pattern], learnerSeed: Int): Learner = learnerStr match {
     case "nb" => NB()
     case "5nn" => KNNBatch(5, "eucl", pool, weighted = true)
     case "c45" => C45()

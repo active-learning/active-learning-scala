@@ -98,31 +98,4 @@ trait Exp extends AppWithUsage {
     }
     log("Datasets prontos.", 2)
   }
-
-  def learner(pool: Seq[Pattern], learnerSeed: Int) = args(3) match {
-    case "nb" => NB()
-    case "5nn" => KNNBatch(5, "eucl", pool, weighted = true)
-    case "c45" => C45()
-    case "vfdt" => VFDT()
-    case "ci" => CIELM(learnerSeed)
-    case "eci" => ECIELM(learnerSeed)
-    case "i" => IELM(learnerSeed)
-    case "ei" => EIELM(learnerSeed)
-    case "intera" => interaELM(learnerSeed)
-    case "svm" => SVMLib(learnerSeed)
-
-    //      case "NBz" => NB("")
-    //      case "C45z" => C45("")
-    //      case "VFDTz" => VFDT("")
-    //      case "LASVM" => LASVM()
-    //      case "1NNc" => KNNBatch(1, "cheb", pool)
-    //      case "1NNe" => KNNBatch(1, "eucl", pool)
-    //      case "1NNm" => KNNBatch(1, "manh", pool)
-    //      case "3NNc" => KNNBatch(3, "cheb", pool)
-    //      case "3NNe" => KNNBatch(3, "eucl", pool, "", weighted = true)
-    //      case "3NNm" => KNNBatch(3, "manh", pool)
-    //      case "5NNc" => KNNBatch(5, "cheb", pool)
-    //      case "5NNm" => KNNBatch(5, "manh", pool)
-    //    case "Varios" => NoLearner()
-  }
 }
