@@ -32,7 +32,7 @@ object RESET extends AppWithUsage {
       val ds = Ds(path, dataset)
       ds.open()
       ds.reset()
-      ds.log(s"$dataset resetado.", 2)
+      ds.log(s"$dataset resetado.", 20)
       ds.close()
     }
     log("Datasets zerados.")
