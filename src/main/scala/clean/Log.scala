@@ -34,7 +34,7 @@ trait Log {
   }
 
   def justQuit(msg: String) = {
-    log(s"Quiting: $msg", 2)
+    log(s"Quiting: $msg", 20)
     sys.exit(1)
   }
 }
