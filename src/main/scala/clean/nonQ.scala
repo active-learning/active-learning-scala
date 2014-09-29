@@ -51,9 +51,10 @@ trait nonQ extends Exp with LearnerTrait {
       r <- (0 until runs).toStream //.par
       f <- (0 until folds).toStream //.par
     } yield {
-      lazy val res = ds.areHitsFinished(poolSize(f), s, learner(Seq(), -1), r, f)
+      lazy val res = ds.areQueriesFinished(poolSize(f), s, r, f) && ds.areHitsFinished(poolSize(f), s, learner(Seq(), -1), r, f)
       res
     }
+    //    log(checks.mkString("\n"))
     checks forall (_ == true)
   }
 }

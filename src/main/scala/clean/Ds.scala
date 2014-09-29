@@ -101,7 +101,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int) =
     poolId(strat, strat.learner, run, fold) match {
       case None =>
-        log(s"No queries: no pid found for $strat ${strat.learner} $run.$fold .")
+        log(s"No queries: no pid found for $strat/${strat.learner} $run.$fold .")
         false
       case Some(pid) =>
         val PoolSize = poolSize
@@ -111,10 +111,10 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         }
         if (qs != lastT + 1) error(s"Inconsistency: $qs queries differs from last timeStep+1 ${lastT + 1}")
         strat.id match {
-          case x if x < 2 => qs match {
+          case x if x == 0 => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries!")
             case PoolSize => true
-            case _ => error(s"$qs previous agnostic queries should be $PoolSize")
+            case _ => error(s"$qs previous rnd queries should be $PoolSize")
           }
           case _ => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries!")
@@ -140,17 +140,17 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
             case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner")
           }
           (strat.id, learner.id) match {
-            case (s, l) if s < 2 && l < 4 => hs match {
+            case (s, l) if s == 0 && l < 4 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
               case ExpectedHitsForFullPool => true
-              case _ => error(s"$hs previous agnostic hits should be $ExpectedHitsForFullPool")
+              case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForFullPool")
             }
-            case (s, l) if s < 2 => hs match {
+            case (s, l) if s == 0 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
               case ExpectedHitsForNormalPool => true
-              case _ => error(s"$hs previous hits should be $ExpectedHitsForNormalPool")
+              case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool")
             }
-            case (s, l) if s > 1 => hs match {
+            case (s, l) if s > 0 => hs match {
               case 0 => false
               case ExpectedHitsForNormalPool => true
               case _ => error(s"$hs previous hits should be $ExpectedHitsForNormalPool")
@@ -263,10 +263,12 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     if (learner.id != strat.learner.id && strat.id > 1)
       quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
-      //agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
+      //Apenas agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
       val insertIntoP = poolId(strat, learner, run, fold) match {
         case Some(pid) => if (strat.id < 2) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
-        case None => if (strat.id < 2) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)" else quit(s"Missing gnostic queries pid for hits.")
+        case None =>
+          if (strat.id < 2) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
+          else quit(s"Missing gnostic queries pid for hits.")
       }
 
       //para rnd e os 3 learners especiais, Q = |U|.
