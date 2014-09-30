@@ -74,6 +74,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
       val set = doisPerClass ++ ds.patterns.diff(doisPerClass).take(ds.nclasses * 6 - doisPerClass.size)
 
       //reset ds
+      ???
       ds.reset()
 
       if (!ds.isQCalculated) {

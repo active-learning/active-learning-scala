@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import clean.{AppWithUsage, ArgParser, Ds}
+import clean.{AppWithUsage, Ds}
 
 object RESET extends AppWithUsage {
   val arguments = superArguments.dropRight(1)
