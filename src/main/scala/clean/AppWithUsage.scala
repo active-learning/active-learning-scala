@@ -28,6 +28,26 @@ trait AppWithUsage extends App with Log with ArgParser {
   lazy val parallelRuns = args(3).contains("r")
   lazy val parallelFolds = args(3).contains("f")
   lazy val learnerStr = args(4)
+  var running = true
+  val memlimit = Global.memlimit
+
+  def memoryMonitor() = {
+    running = true
+    new Thread(new Runnable() {
+      def run() {
+        while (running) {
+          1 to 50 takeWhile { _ =>
+            Thread.sleep(100)
+            running
+          }
+          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
+            running = false
+            justQuit(s"Limite de $memlimit MB de memoria atingido.")
+          }
+        }
+      }
+    })
+  }
 
   def init() {
     Global.debug = debugIntensity
@@ -36,5 +56,6 @@ trait AppWithUsage extends App with Log with ArgParser {
       println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
       sys.exit(1)
     }
+    memoryMonitor()
   }
 }

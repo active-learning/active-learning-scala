@@ -22,7 +22,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-  var debug = 10
+  val memlimit = 26000
+
+  var debug = 20
   lazy val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
   lazy val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
   val appPath = new File(".").getCanonicalPath + "/"
