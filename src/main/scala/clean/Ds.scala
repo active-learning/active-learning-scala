@@ -272,7 +272,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       }
 
       //para rnd e os 3 learners especiais, Q = |U|.
-      val expectedQ = if (strat.id == 0 && learner.id < 4) poolSize else Q
+      val expectedQ = if (strat.id == 0) poolSize else Q
       if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
       val (initialPatterns, rest) = queries.splitAt(nclasses)
       var m = learner.build(initialPatterns)
