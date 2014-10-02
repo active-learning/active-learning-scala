@@ -91,9 +91,9 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
     DensityWeightedTrainingUtility(learner(pool, learnerSeed), pool, "maha"),
     DensityWeightedTrainingUtility(learner(pool, learnerSeed), pool, "manh"),
     MahalaWeightedTrainingUtility(learner(pool, learnerSeed), pool, 1, 1),
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "entropy", samplingSize),
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "gmeans+residual", samplingSize),
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "accuracy", samplingSize),
+    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "entropy"),
+    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "gmeans+residual"),
+    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "accuracy"),
     new SGmulti(learner(pool, learnerSeed), pool, "consensus"),
     new SGmulti(learner(pool, learnerSeed), pool, "majority"),
     new SGmultiJS(learner(pool, learnerSeed), pool)

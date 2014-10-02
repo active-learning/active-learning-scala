@@ -19,18 +19,17 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies.{MahalaWeightedTrainingUtility, DensityWeightedTrainingUtility, Strategy}
+import al.strategies.{DensityWeightedTrainingUtility, MahalaWeightedTrainingUtility, Strategy}
 import ml.Pattern
-import ml.classifiers._
 import ml.neural.elm.ELM
 import util.Datasets
 import weka.filters.Filter
+
 import scala.util.Random
 
 trait Exp extends AppWithUsage {
   val runs = Global.runs
   val folds = Global.folds
-  val samplingSize = 500
 
   def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
 
