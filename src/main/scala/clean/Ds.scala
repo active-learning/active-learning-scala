@@ -276,11 +276,11 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           else quit(s"Missing gnostic queries pid for hits.")
       }
 
-      //para rnd e quaisquer learners, Q = |U|.
+      //para rnd e quaisquer learners, |queries| = |U|.
       val expectedQ = if (strat.id == 0) poolSize else Q
       if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
 
-      //para rnd com learners especiais pega |U|, senão Q
+      //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
       val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else Q
       val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
 
