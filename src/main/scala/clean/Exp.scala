@@ -36,7 +36,7 @@ trait Exp extends AppWithUsage {
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter)
 
-  def end(ds: Ds)
+  def datasetClosing(ds: Ds)
 
   def isAlreadyDone(ds: Ds): Boolean
 
@@ -92,7 +92,7 @@ trait Exp extends AppWithUsage {
 
           }
         }
-        end(ds)
+        datasetClosing(ds)
       }
       ds.close()
     }

@@ -19,6 +19,7 @@
 package clean
 
 import al.strategies.Strategy
+import clean.res.Measure
 import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
 import util.Datasets
@@ -30,7 +31,7 @@ import scala.collection.JavaConversions._
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") with Blob {
+case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") with Blob with CM {
   override lazy val toString = dataset
   override val context = dataset
   lazy val n = read("select count(1) from i").head.head.toInt
@@ -271,7 +272,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           else quit(s"Missing gnostic queries pid for hits.")
       }
 
-      //para rnd e os 3 learners especiais, Q = |U|.
+      //para rnd e quaisquer learners, Q = |U|.
       val expectedQ = if (strat.id == 0) poolSize else Q
       if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
       val (initialPatterns, rest) = queries.splitAt(nclasses)
@@ -294,5 +295,18 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val foldSizes = Array.fill(folds)(parteIgual)
     0 until resto foreach (i => foldSizes(i) += 1)
     foldSizes map (n - _)
+  }
+
+  def getMeasure(measure: Measure, strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
+    val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
+    read(s"select v from r where p=$pid and m=${measure.id}") match {
+      case List() => None
+      case List(seq) => Some(seq.head.toInt)
+    }
+  }
+
+  def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
+    val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
+    write(s"insert into r values (${measure.id}, $pid, $value)")
   }
 }

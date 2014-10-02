@@ -1,5 +1,6 @@
-/*
+package clean
 
+/*
 active-learning-scala: Active Learning library for Scala
 Copyright (c) 2014 Davi Pereira dos Santos
 
@@ -17,23 +18,39 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean.res
-
-import clean.{Ds, CM, Res}
-
-object ALC extends Res with CM {
-  lazy val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm", "medida:alca|alcg")
-  val context = "ALCres"
-  lazy val measure = args.last match {
-    case "alca" => ALCacc()
-    case "alcg" => ALCgmeans()
+trait CM {
+  def printConfusion(m: Array[Array[Int]]) {
+    m foreach { r =>
+      r.foreach(c => print(s"$c "))
+      println
+    }
+    println
   }
-  init()
 
-  def calculate(cms: List[Array[Array[Int]]], total: Int) = measure.calc(cms, total)
+  def contaAcertos(m: Array[Array[Int]]) = {
+    val n = m.size
+    var i = 0
+    var s = 0
+    while (i < n) {
+      s += m(i)(i)
+      i += 1
+    }
+    s
+  }
 
-  override def datasetClosing(ds: Ds): Unit = {
-    super.datasetClosing(ds)
-    //    values.
+  def contaTotal(m: Array[Array[Int]]) = {
+    val n = m.size
+    var i = 0
+    var j = 0
+    var s = 0
+    while (i < n) {
+      j = 0
+      while (j < n) {
+        s += m(i)(j)
+        j += 1
+      }
+      i += 1
+    }
+    s
   }
 }

@@ -37,7 +37,7 @@ object printPoolSizes extends Exp {
     print(s"$run.$fold:${pool.size} ")
   }
 
-  def end(ds: Ds) {
+  def datasetClosing(ds: Ds) {
     println(s"<-$ds")
   }
 }

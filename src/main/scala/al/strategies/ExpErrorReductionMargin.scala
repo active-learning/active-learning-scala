@@ -44,7 +44,7 @@ case class ExpErrorReductionMargin(learner: Learner, pool: Seq[Pattern], criteri
     case Ventropy => 11
     case Vaccuracy => 12
     case VgmeansResidual => 13
-  } else throw new Error("Parametros inesperados para EERMargin.")
+  } else throw new Error(s"Parametros inesperados para EERMargin: sample:$sample")
 
   //Strategy with empty pool exists only to provide its name.
   val Ventropy = 0

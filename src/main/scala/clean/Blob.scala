@@ -19,17 +19,6 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait Blob {
-  def contaAcertos(m: Array[Array[Int]]) = {
-    val n = m.size
-    var i = 0
-    var s = 0
-    while (i < n) {
-      s += m(i)(i)
-      i += 1
-    }
-    s
-  }
-
   def confusionToBlob(m: Array[Array[Int]]) = shrinkToBytes(m.flatten)
 
   def shrinkToBytes(numbers: Seq[Int], bits: Int = 12) = {
@@ -52,13 +41,5 @@ trait Blob {
     val c = b.grouped(12).map(_.mkString).toList
     val d = c.map(Integer.parseInt(_, 2))
     d
-  }
-
-  def printConfusion(m: Array[Array[Int]]) {
-    m foreach { r =>
-      r.foreach(c => print(s"$c "))
-      println
-    }
-    println
   }
 }

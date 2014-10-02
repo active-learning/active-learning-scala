@@ -50,7 +50,7 @@ object Q extends Exp {
     }
   }
 
-  def end(ds: Ds) {
+  def datasetClosing(ds: Ds) {
     //Q
     ds.calculaQ(runs, folds)
     println(s"Q: ${ds.Q}\n")

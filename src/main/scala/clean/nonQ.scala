@@ -40,7 +40,7 @@ trait nonQ extends Exp with LearnerTrait {
     else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner(pool, learnerSeed))
   }
 
-  def end(ds: Ds) {
+  def datasetClosing(ds: Ds) {
     ds.log("fim")
   }
 
@@ -56,5 +56,8 @@ trait nonQ extends Exp with LearnerTrait {
     }
     //    log(checks.mkString("\n"))
     checks forall (_ == true)
+  }
+
+  def datasetFinished() {
   }
 }

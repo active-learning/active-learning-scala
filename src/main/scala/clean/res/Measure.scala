@@ -19,50 +19,81 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.res
 
-import al.strategies.{RandomSampling, Strategy}
-import clean.{Res, ArgParser, Ds, Exp}
-import ml.Pattern
-import ml.classifiers._
-import weka.filters.Filter
+import clean.CM
 
 /**
  * Q measure id = 0
  */
 trait Measure {
   val id: Int
+
+  def calc(cms: List[Array[Array[Int]]], total: Int): Double
 }
 
-case class ALCacc() extends Measure {
+case class ALCacc() extends Measure with CM {
   val id = 1
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    val acertos = cms.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
+    acertos.toDouble / total
+  }
 }
 
 case class ALCgmeans() extends Measure {
   val id = 2
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class ALCaccSD() extends Measure {
   val id = 3
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class ALCgmeansSD() extends Measure {
   val id = 4
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 
 case class costToReachPassiveacc() extends Measure {
   val id = 5
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class costToReachPassivegmeans() extends Measure {
   val id = 6
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class costToReachPassiveaccSD() extends Measure {
   val id = 7
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class costToReachPassivegmeansSD() extends Measure {
   val id = 8
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 
@@ -71,24 +102,48 @@ case class costToReachPassivegmeansSD() extends Measure {
  */
 case class timeToQuery() extends Measure {
   val id = 9
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class timeToQuerySD() extends Measure {
   val id = 10
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class accAtQ() extends Measure {
   val id = 11
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class gmeansAtQ() extends Measure {
   val id = 12
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class accAtQSD() extends Measure {
   val id = 13
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
 
 case class gmeansAtQSD() extends Measure {
   val id = 14
+
+  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+    ???
+  }
 }
