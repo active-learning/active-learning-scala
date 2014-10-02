@@ -48,9 +48,9 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
         case (sid, lid) if sid == 0 && lid > 3 || sid > 0 => ds.Q - ds.nclasses + 1
       }
       if (cms.size != qtdCMsEstimado)
-        justQuit(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${learner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+        error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${learner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
       if (qtdCMsEstimado != expected)
-        justQuit(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${learner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+        error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${learner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
       val v = calculate(cms, total)
       ds.putMeasureValue(measure, v, strat, learner(pool, 42), run, fold)
       acquire()

@@ -149,7 +149,12 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
             case (s, l) if s == 0 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
               case ExpectedHitsForNormalPool => true
-              case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool")
+              case _ =>
+                if (l > 3 && hs == ExpectedHitsForFullPool) {
+                  write(s"delete from h where t>${Q - 1}")
+                  quit(s"apagando excesso")
+                }
+                error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner")
             }
             case (s, l) if s > 0 => hs match {
               case 0 => false
@@ -275,7 +280,12 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       //para rnd e quaisquer learners, Q = |U|.
       val expectedQ = if (strat.id == 0) poolSize else Q
       if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
-      val (initialPatterns, rest) = queries.splitAt(nclasses)
+
+      //para rnd com learners especiais pega |U|, senão Q
+      val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else Q
+      val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
+
+      //gera hits e sql strs
       var m = learner.build(initialPatterns)
       val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
         val t = idx + nclasses - 1

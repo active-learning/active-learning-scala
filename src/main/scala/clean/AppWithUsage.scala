@@ -42,7 +42,7 @@ trait AppWithUsage extends App with Log with ArgParser {
           }
           if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
             running = false
-            justQuit(s"Limite de $memlimit MB de memoria atingido.")
+            error(s"Limite de $memlimit MB de memoria atingido.")
           }
         }
       }
