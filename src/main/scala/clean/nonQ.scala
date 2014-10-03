@@ -36,8 +36,8 @@ trait nonQ extends Exp with LearnerTrait {
 
     //hits (pra learner fornecido)
     ds.log("hits")
-    if (ds.areHitsFinished(pool.size, strat, learner(pool, learnerSeed), run, fold)) println(s"Hits already done for ${strat.abr}/${learner(pool, learnerSeed)} at pool $run.$fold.")
-    else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner(pool, learnerSeed))
+    if (ds.areHitsFinished(pool.size, strat, fixedLearner(pool, learnerSeed), run, fold)) println(s"Hits already done for ${strat.abr}/${fixedLearner(pool, learnerSeed)} at pool $run.$fold.")
+    else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(fixedLearner(pool, learnerSeed))
   }
 
   def datasetClosing(ds: Ds) {
@@ -51,7 +51,7 @@ trait nonQ extends Exp with LearnerTrait {
       r <- (0 until runs).toStream //.par
       f <- (0 until folds).toStream //.par
     } yield {
-      lazy val res = ds.areQueriesFinished(poolSize(f), s, r, f) && ds.areHitsFinished(poolSize(f), s, learner(Seq(), -1), r, f)
+      lazy val res = ds.areQueriesFinished(poolSize(f), s, r, f) && ds.areHitsFinished(poolSize(f), s, fixedLearner(Seq(), -1), r, f)
       res
     }
     //    log(checks.mkString("\n"))
@@ -62,7 +62,7 @@ trait nonQ extends Exp with LearnerTrait {
   }
 
 
-  def end(): Unit ={
+  def end(): Unit = {
   }
 
 }

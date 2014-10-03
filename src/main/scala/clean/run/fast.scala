@@ -30,17 +30,17 @@ object fast extends nonQ {
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
     RandomSampling(pool),
     ClusterBased(pool),
-    Uncertainty(learner(pool, learnerSeed), pool),
-    Entropy(learner(pool, learnerSeed), pool),
-    Margin(learner(pool, learnerSeed), pool),
-    DensityWeighted(learner(pool, learnerSeed), pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner(pool, learnerSeed), pool, "cheb"),
-    DensityWeightedTrainingUtility(learner(pool, learnerSeed), pool, "eucl"),
-    DensityWeightedTrainingUtility(learner(pool, learnerSeed), pool, "maha"),
-    DensityWeightedTrainingUtility(learner(pool, learnerSeed), pool, "manh"),
-    MahalaWeightedTrainingUtility(learner(pool, learnerSeed), pool, 1, 1),
-    new SGmulti(learner(pool, learnerSeed), pool, "consensus"),
-    new SGmulti(learner(pool, learnerSeed), pool, "majority"),
-    new SGmultiJS(learner(pool, learnerSeed), pool)
+    Uncertainty(fixedLearner(pool, learnerSeed), pool),
+    Entropy(fixedLearner(pool, learnerSeed), pool),
+    Margin(fixedLearner(pool, learnerSeed), pool),
+    DensityWeighted(fixedLearner(pool, learnerSeed), pool, 1, "eucl"),
+    DensityWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, "cheb"),
+    DensityWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, "eucl"),
+    DensityWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, "maha"),
+    DensityWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, "manh"),
+    MahalaWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, 1, 1),
+    new SGmulti(fixedLearner(pool, learnerSeed), pool, "consensus"),
+    new SGmulti(fixedLearner(pool, learnerSeed), pool, "majority"),
+    new SGmultiJS(fixedLearner(pool, learnerSeed), pool)
   )
 }

@@ -28,8 +28,8 @@ object EER extends nonQ {
   init()
 
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "entropy"),
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "gmeans+residual"),
-    ExpErrorReductionMargin(learner(pool, learnerSeed), pool, "accuracy")
+    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "entropy"),
+    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "gmeans+residual"),
+    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "accuracy")
   )
 }
