@@ -42,7 +42,8 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
   def datasetFinished(ds: Ds) {
   }
 
-  def isAlreadyDone(ds: Ds) = {
+  def isAlreadyDone(ds: Ds) = if (!ds.isQCalculated) false
+  else {
     val checks = for {
       s <- strats(Seq(), -1).toStream //.par
       l <- learners(learnersStr).toStream
@@ -50,7 +51,8 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
       f <- (0 until folds).toStream //.par
     } yield {
       lazy val res = ds.getMeasure(measure, s, l, r, f) match {
-        case Some(_) => true
+        case Some(x) => println(s"$x")
+          true
         case None => false
       }
       res

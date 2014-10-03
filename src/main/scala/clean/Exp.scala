@@ -108,7 +108,7 @@ trait Exp extends AppWithUsage {
       res1
     }
     end(res.toMap)
-    log("Datasets prontos.", 20)
+    justQuit("Datasets prontos.")
   }
 
   def end(res: Map[String, Boolean])

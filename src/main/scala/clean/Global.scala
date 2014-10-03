@@ -22,7 +22,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-  val memlimit = 26000
+  val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
 
   var debug = 20
   lazy val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
