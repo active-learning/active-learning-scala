@@ -17,58 +17,38 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.tex
 
 import al.strategies._
+import clean._
+import clean.res.{ALCacc, ALCgmeans, Measure}
 import ml.Pattern
 import weka.filters.Filter
 
 import scala.collection.mutable
 
-trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
-  val values = mutable.Map[(Int, Int, Int), Double]()
-
-  def calculate(cms: List[Array[Array[Int]]], total: Int): Double
+/**
+ * Lists in a tex table datasets with the measure already calculated for all given learners.
+ */
+object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "medida:alca|alcg")
+  val context = "datasetstabtex"
+  val feitos = init()
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
-    if (!ds.isQCalculated) log(s"Q was not found for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
-    else if (!ds.areQueriesFinished(pool.size, strat, run, fold)) log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
-    else if (!ds.areHitsFinished(pool.size, strat, fixedLearner(pool, learnerSeed), run, fold)) log(s"Conf. matrices were not finished for ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!", 20)
-    else {
-      val cms = ds.getCMs(strat, fixedLearner(pool, learnerSeed), run, fold)
-      val total = cms.foldLeft(0) { (sum, cm) =>
-        println(s"$sum ${contaTotal(cm)} ${testSet.size.toDouble}")
-        sum + contaTotal(cm)
-      }
-      val qtdCMsEstimado = total / testSet.size.toDouble
-      val expected = (strat.id, fixedLearner(Seq(), -1).id) match {
-        case (sid, lid) if sid == 0 && lid < 4 => pool.size - ds.nclasses + 1
-        case (sid, lid) if sid == 0 && lid > 3 || sid > 0 => ds.Q - ds.nclasses + 1
-      }
-      if (cms.size != qtdCMsEstimado)
-        error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
-      if (qtdCMsEstimado != expected)
-        error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
-      val v = calculate(cms, total)
-      ds.putMeasureValue(measure, v, strat, fixedLearner(pool, 42), run, fold)
-      acquire()
-      values += (strat.id, run, fold) -> v
-      release()
-    }
   }
 
   def datasetFinished(ds: Ds) {
-    if (values.size != strats(Seq(), -1).size * runs * folds) ds.error(s"${values.size} values should be ${strats(Seq(), -1).size * runs * folds}!")
-    else ds.log("fim")
   }
 
   def isAlreadyDone(ds: Ds) = {
     val checks = for {
       s <- strats(Seq(), -1).toStream //.par
+      l <- learners(learnersStr).toStream
       r <- (0 until runs).toStream //.par
       f <- (0 until folds).toStream //.par
     } yield {
-      lazy val res = ds.getMeasure(measure, s, fixedLearner(Seq(), -1), r, f) match {
+      lazy val res = ds.getMeasure(measure, s, l, r, f) match {
         case Some(_) => true
         case None => false
       }
@@ -78,6 +58,7 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
   }
 
   def end(res: Map[String, Boolean]): Unit = {
+    res.toList.sortBy(_._2).map(_._1) foreach println
   }
 
   def strats(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List(
@@ -97,13 +78,13 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
     ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "accuracy"),
     new SGmulti(fixedLearner(pool, learnerSeed), pool, "consensus"),
     new SGmulti(fixedLearner(pool, learnerSeed), pool, "majority"),
-    new SGmultiJS(fixedLearner(pool, learnerSeed), pool)
-    //    ,
-    //      SVMmulti(pool, "SELF_CONF"),
-    //    SVMmulti(pool, "KFF"),
-    //    SVMmulti(pool, "BALANCED_EE"),
-    //    SVMmulti(pool, "SIMPLE")
+    new SGmultiJS(fixedLearner(pool, learnerSeed), pool),
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
   )
+
 }
 
 

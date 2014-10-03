@@ -24,16 +24,12 @@ import clean.{Ds, CM, Res}
 object ALC extends Res with CM {
   lazy val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm", "medida:alca|alcg")
   val context = "ALCres"
-  lazy val measure = args.last match {
-    case "alca" => ALCacc()
-    case "alcg" => ALCgmeans()
-  }
   init()
 
   def calculate(cms: List[Array[Array[Int]]], total: Int) = measure.calc(cms, total)
 
-  override def datasetClosing(ds: Ds): Unit = {
-    super.datasetClosing(ds)
+  override def datasetFinished(ds: Ds): Unit = {
+    super.datasetFinished(ds)
     //    values.
   }
 }

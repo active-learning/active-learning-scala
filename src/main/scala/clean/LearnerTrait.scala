@@ -19,15 +19,18 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
+import al.strategies._
 import ml.Pattern
 import ml.classifiers._
 
 trait LearnerTrait {
   val learnerStr: String
 
-  def fixedLearner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1): Learner = str2learner(learnerStr, pool, learnerSeed)
+  def learners(learnersStr: Seq[String]) = learnersStr map str2learner()
 
-  def str2learner(str: String, pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = str match {
+  def fixedLearner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1): Learner = str2learner(pool, learnerSeed)(learnerStr)
+
+  def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
     case "nb" => NB()
     case "5nn" => KNNBatch(5, "eucl", pool, weighted = true)
     case "c45" => C45()

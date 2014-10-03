@@ -27,28 +27,28 @@ import weka.filters.Filter
 import scala.collection.mutable
 
 object grpByQ extends Exp {
-   val arguments = superArguments
-   val context = "grpByQ"
-  val m=mutable.Map[String,(Int,Int)]()
-   init()
+  val arguments = superArguments
+  val context = "grpByQ"
+  val m = mutable.Map[String, (Int, Int)]()
+  init()
 
-   def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))
+  def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))
 
-   def isAlreadyDone(ds: Ds) = false
+  def isAlreadyDone(ds: Ds) = false
 
-   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
-   }
+  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+  }
 
-   def datasetClosing(ds: Ds) {
-     if (ds.isQCalculated) {
-       m += ds.dataset -> (ds.Q, ds.n)
-     println(s"${ds.Q} ${ds.n} $ds")
-     }
-   }
+  def datasetFinished(ds: Ds) {
+    if (ds.isQCalculated) {
+      m += ds.dataset ->(ds.Q, ds.n)
+      println(s"${ds.Q} ${ds.n} $ds")
+    }
+  }
 
-  def end(): Unit ={
+  def end(res: Map[String, Boolean]): Unit = {
     m.toList.sortBy(_._2) foreach println
     println(s"")
     m.toList.sortBy(_._2).map(_._1) foreach println
   }
- }
+}

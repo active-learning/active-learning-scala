@@ -20,6 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean
 
 import al.strategies.{DensityWeightedTrainingUtility, MahalaWeightedTrainingUtility, Strategy}
+import clean.res.{ALCgmeans, ALCacc}
 import ml.Pattern
 import ml.neural.elm.ELM
 import util.Datasets
@@ -35,18 +36,23 @@ trait Exp extends AppWithUsage {
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter)
 
-  def datasetClosing(ds: Ds)
+  def datasetFinished(ds: Ds)
 
   def isAlreadyDone(ds: Ds): Boolean
 
-  override def init() {
+  /**
+   * returns whether dataset was already done
+   */
+  override def init() = {
     super.init()
     memoryMonitor()
-    datasets foreach { dataset =>
+    val res = datasets map { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
-      if (isAlreadyDone(ds)) println(s"$dataset already done!")
-      else {
+      val res1 = if (isAlreadyDone(ds)) {
+        println(s"$dataset already done!")
+        ds.dataset -> true
+      } else {
         ds.log(s"Processing ${ds.n} instances ...")
         (if (parallelRuns) (0 until runs).par else 0 until Global.runs) foreach { run =>
           val shuffled = new Random(run).shuffle(ds.patterns)
@@ -92,13 +98,15 @@ trait Exp extends AppWithUsage {
 
           }
         }
-        datasetClosing(ds)
+        datasetFinished(ds)
+        ds.dataset -> false
       }
       ds.close()
+      res1
     }
-    end()
+    end(res.toMap)
     log("Datasets prontos.", 20)
   }
 
-  def end()
+  def end(res: Map[String, Boolean])
 }

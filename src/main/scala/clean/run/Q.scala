@@ -50,12 +50,12 @@ object Q extends Exp {
     }
   }
 
-  def datasetClosing(ds: Ds) {
+  def datasetFinished(ds: Ds) {
     //Q
     ds.calculaQ(runs, folds)
     println(s"Q: ${ds.Q}\n")
   }
 
-  def end(): Unit ={
+  def end(res: Map[String, Boolean]): Unit = {
   }
 }

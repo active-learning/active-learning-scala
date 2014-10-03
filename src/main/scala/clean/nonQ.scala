@@ -40,7 +40,7 @@ trait nonQ extends Exp with LearnerTrait {
     else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(fixedLearner(pool, learnerSeed))
   }
 
-  def datasetClosing(ds: Ds) {
+  def datasetFinished(ds: Ds) {
     ds.log("fim")
   }
 
@@ -62,7 +62,7 @@ trait nonQ extends Exp with LearnerTrait {
   }
 
 
-  def end(): Unit = {
+  def end(res: Map[String, Boolean]): Unit = {
   }
 
 }
