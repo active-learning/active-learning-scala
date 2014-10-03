@@ -20,7 +20,6 @@ package al.strategies
 
 import ml.classifiers.Learner
 import ml.Pattern
-import no.uib.cipr.matrix.MatrixSingularException
 import ml.models.Model
 import scala.util.Random
 
@@ -37,7 +36,7 @@ case class MahalaWeightedRefreshedTrainingUtility(learner: Learner, pool: Seq[Pa
   extends StrategyWithMahala with MarginMeasure with Sample {
   override val toString = "Mahala Weighted Refreshed TU a" + alpha + " b" + beta + " s" + sample
   val abr = "DWTUMR"
-  val id = -102
+  val id = -3102
 
   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern = {
     val labeledSize = labeled.size
