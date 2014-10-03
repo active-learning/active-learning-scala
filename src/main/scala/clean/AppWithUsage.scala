@@ -46,7 +46,7 @@ trait AppWithUsage extends App with Log with ArgParser {
           }
         }
       }
-    })
+    }).run()
   }
 
   def init() {
