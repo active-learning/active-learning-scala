@@ -153,6 +153,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
               case ExpectedHitsForFullPool if l == 4 =>
                 write(s"delete from h where t>${Q - 1} and p=$pid")
                 log(s"apagando excesso de vfdts", 20)
+                true
 
               case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner")
             }
