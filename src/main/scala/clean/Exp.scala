@@ -41,7 +41,7 @@ trait Exp extends AppWithUsage {
 
   override def init() {
     super.init()
-    //    memoryMonitor()
+    memoryMonitor()
     datasets foreach { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
