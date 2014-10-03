@@ -56,6 +56,5 @@ trait AppWithUsage extends App with Log with ArgParser {
       println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
       sys.exit(1)
     }
-    memoryMonitor()
   }
 }
