@@ -42,9 +42,5 @@ object fast extends nonQ {
     new SGmulti(learner(pool, learnerSeed), pool, "consensus"),
     new SGmulti(learner(pool, learnerSeed), pool, "majority"),
     new SGmultiJS(learner(pool, learnerSeed), pool)
-    //      SVMmulti(pool, "SELF_CONF"),
-    //    SVMmulti(pool, "KFF"),
-    //    SVMmulti(pool, "BALANCED_EE"),
-    //    SVMmulti(pool, "SIMPLE")
   )
 }

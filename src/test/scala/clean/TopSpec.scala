@@ -60,7 +60,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
       MahalaWeightedTrainingUtility(KNNBatch(5, "eucl", pool, weighted = true), pool, 1, 1)
 
       //    ExpErrorReductionMargin(interaELM(), pool, "gmeans+residual", sample = 2)
-      //    SVMmulti(pool, "SIMPLE")
+      //          SVMmulti(pool, "SIMPLE") //SVMLib == undeterminism (http://weka.wikispaces.com/LibSVM)
     )
 
     val run = 0
