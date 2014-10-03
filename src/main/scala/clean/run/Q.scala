@@ -28,6 +28,7 @@ import weka.filters.Filter
 object Q extends Exp {
   val arguments = superArguments
   val context = "Qapp"
+  val ignoreNotDone = false
   init()
 
   def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))

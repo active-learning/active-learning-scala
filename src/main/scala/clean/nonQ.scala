@@ -25,6 +25,7 @@ import weka.filters.Filter
 
 trait nonQ extends Exp with LearnerTrait {
   val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm")
+  val ignoreNotDone = false
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     //queries (só no learner da strat: NoLearner pra Clu, 'fornecido' pra Gnos)

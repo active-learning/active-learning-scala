@@ -27,6 +27,7 @@ import weka.filters.Filter
 object printPoolSizes extends Exp {
   val arguments = superArguments
   val context = "printPoolSizesapp"
+  val ignoreNotDone = false
   init()
 
   def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))

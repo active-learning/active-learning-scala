@@ -27,6 +27,7 @@ import scala.collection.mutable
 
 trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
   val values = mutable.Map[(Int, Int, Int), Double]()
+  val ignoreNotDone = false
 
   def calculate(cms: List[Array[Array[Int]]], total: Int): Double
 
