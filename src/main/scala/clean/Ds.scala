@@ -150,9 +150,9 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
               case ExpectedHitsForNormalPool => true
 
-              //              case ExpectedHitsForFullPool if l == 4 =>
-              //                write(s"delete from h where t>${Q - 1} and p=$pid")
-              //                quit(s"apagando excesso de vfdts")
+              case ExpectedHitsForFullPool if l == 4 =>
+                write(s"delete from h where t>${Q - 1} and p=$pid")
+                log(s"apagando excesso de vfdts", 20)
 
               case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner")
             }
