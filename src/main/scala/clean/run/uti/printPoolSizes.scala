@@ -17,7 +17,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean.run
+package clean.run.uti
 
 import al.strategies.{RandomSampling, Strategy}
 import clean.{Ds, Exp}
@@ -39,5 +39,8 @@ object printPoolSizes extends Exp {
 
   def datasetClosing(ds: Ds) {
     println(s"<-$ds")
+  }
+
+  def end(): Unit ={
   }
 }

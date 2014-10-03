@@ -55,4 +55,7 @@ object Q extends Exp {
     ds.calculaQ(runs, folds)
     println(s"Q: ${ds.Q}\n")
   }
+
+  def end(): Unit ={
+  }
 }
