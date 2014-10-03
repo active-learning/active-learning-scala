@@ -60,4 +60,9 @@ trait nonQ extends Exp with LearnerTrait {
 
   def datasetFinished() {
   }
+
+
+  def end(): Unit ={
+  }
+
 }

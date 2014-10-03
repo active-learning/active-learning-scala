@@ -103,6 +103,9 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
     //    SVMmulti(pool, "BALANCED_EE"),
     //    SVMmulti(pool, "SIMPLE")
   )
+
+  def end(): Unit ={
+  }
 }
 
 
