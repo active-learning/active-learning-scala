@@ -36,25 +36,29 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
     else if (!ds.areQueriesFinished(pool.size, strat, run, fold)) log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
     else if (!ds.areHitsFinished(pool.size, strat, fixedLearner(pool, learnerSeed), run, fold)) log(s"Conf. matrices were not finished for ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!", 20)
     else {
-      val cms = ds.getCMs(strat, fixedLearner(pool, learnerSeed), run, fold)
-      val total = cms.foldLeft(0) { (sum, cm) =>
-        println(s"$sum ${contaTotal(cm)} ${testSet.size.toDouble}")
-        sum + contaTotal(cm)
+      ds.getMeasure(measure, strat, fixedLearner(Seq(), -1), run, fold) match {
+        case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+        case None =>
+          val cms = ds.getCMs(strat, fixedLearner(pool, learnerSeed), run, fold)
+          val total = cms.foldLeft(0) { (sum, cm) =>
+            //        println(s"$sum ${contaTotal(cm)} ${testSet.size.toDouble}")
+            sum + contaTotal(cm)
+          }
+          val qtdCMsEstimado = total / testSet.size.toDouble
+          val expected = (strat.id, fixedLearner(Seq(), -1).id) match {
+            case (sid, lid) if sid == 0 && lid < 4 => pool.size - ds.nclasses + 1
+            case (sid, lid) if sid == 0 && lid > 3 || sid > 0 => ds.Q - ds.nclasses + 1
+          }
+          if (cms.size != qtdCMsEstimado)
+            error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+          if (qtdCMsEstimado != expected)
+            error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+          val v = calculate(cms, total)
+          ds.putMeasureValue(measure, v, strat, fixedLearner(), run, fold)
+          acquire()
+          values += (strat.id, run, fold) -> v
+          release()
       }
-      val qtdCMsEstimado = total / testSet.size.toDouble
-      val expected = (strat.id, fixedLearner(Seq(), -1).id) match {
-        case (sid, lid) if sid == 0 && lid < 4 => pool.size - ds.nclasses + 1
-        case (sid, lid) if sid == 0 && lid > 3 || sid > 0 => ds.Q - ds.nclasses + 1
-      }
-      if (cms.size != qtdCMsEstimado)
-        error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
-      if (qtdCMsEstimado != expected)
-        error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
-      val v = calculate(cms, total)
-      ds.putMeasureValue(measure, v, strat, fixedLearner(pool, 42), run, fold)
-      acquire()
-      values += (strat.id, run, fold) -> v
-      release()
     }
   }
 
