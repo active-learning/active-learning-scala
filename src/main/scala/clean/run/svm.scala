@@ -23,7 +23,12 @@ import al.strategies.SVMmulti
 import clean.nonQ
 import ml.Pattern
 
+/**
+ * SVM strats precisam ser separadas porque só vão aceitar um learner: SVMLib().
+ * Ele atrapalharia fast() quando fosse desejado NB() para as outras strats.
+ */
 object svm extends nonQ {
+  override val arguments = superArguments
   val context = "SVMapp"
   init()
 
