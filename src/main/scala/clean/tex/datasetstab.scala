@@ -51,7 +51,7 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
       f <- (0 until folds).toStream //.par
     } yield {
       lazy val res = ds.getMeasure(measure, s, l, r, f) match {
-        case Some(x) => println(s"$x")
+        case Some(x) => // println(s"$x")
           true
         case None => false
       }
@@ -61,7 +61,7 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
   }
 
   def end(res: Map[String, Boolean]): Unit = {
-    res.toList.sortBy(_._2).map(_._1) foreach println
+    res.filter(_ == true) foreach println
   }
 
   def strats(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List(
