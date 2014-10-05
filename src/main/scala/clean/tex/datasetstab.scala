@@ -61,7 +61,7 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
   }
 
   def end(res: Map[String, Boolean]): Unit = {
-    res.filter(_ == true) foreach println
+    res.filter(_._2 == true) foreach println
   }
 
   def strats(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List(
