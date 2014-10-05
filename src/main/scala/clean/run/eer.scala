@@ -23,7 +23,7 @@ import al.strategies.ExpErrorReductionMargin
 import clean.nonQ
 import ml.Pattern
 
-object EER extends nonQ {
+object eer extends nonQ {
   val context = "EERapp"
   init()
 
