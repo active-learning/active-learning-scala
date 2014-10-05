@@ -30,7 +30,7 @@ trait AppWithUsage extends App with Log with ArgParser {
   lazy val parallelRuns = args(3).contains("r")
   lazy val parallelFolds = args(3).contains("f")
   lazy val learnerStr = if (args.size < 5) "learner-undefined" else args(4)
-  lazy val learnersStr = if (args.size < 5) "learners-undefined" else args(4).split(",")
+  lazy val learnersStr = if (args.size < 5) Array("learners-undefined") else args(4).split(",")
   lazy val measure = args.last match {
     case "alca" => ALCacc()
     case "alcg" => ALCgmeans()
