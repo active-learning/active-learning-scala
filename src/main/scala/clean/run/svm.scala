@@ -30,6 +30,7 @@ import ml.Pattern
 object svm extends nonQ {
   override val arguments = superArguments
   val context = "SVMapp"
+  override lazy val learnerStr = "svm"
   init()
 
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
