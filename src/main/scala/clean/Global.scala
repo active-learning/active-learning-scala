@@ -22,6 +22,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
+  var running = true
+
   val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
 
   var debug = 20

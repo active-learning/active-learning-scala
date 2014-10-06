@@ -127,12 +127,11 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         }
     }
 
-  def areHitsFinished(poolSize: Int, strat: Strategy, learner: Learner, run: Int, fold: Int) = {
-    val learner1 = if (strat.id >= 17 && strat.id <= 20) SVMLib() else learner
-    if (learner1.id != strat.learner.id && strat.id > 1) quit(s"areHitsFinished: Provided learner $learner1 is different from gnostic strategy's learner $strat.${strat.learner}")
+  def areHitsFinished(poolSize: Int, strat: Strategy, learner: Learner, run: Int, fold: Int) =
+    if (learner.id != strat.learner.id && strat.id > 1) quit(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else if (!areQueriesFinished(poolSize, strat, run, fold)) error(s"Queries must be finished to check hits! |U|=$poolSize")
     else {
-      poolId(strat, learner1, run, fold) match {
+      poolId(strat, learner, run, fold) match {
         case None => false
         case Some(pid) =>
           val ExpectedHitsForFullPool = poolSize - nclasses + 1
@@ -141,9 +140,9 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
             case List(Vector(0)) | List(Vector(0, 0)) => 0
             case List(Vector(c, m)) => if (c == m - nclasses + 2) c
             else error(s"Inconsistency: $c cms differs from last timeStep+1 = ${m - nclasses + 2}")
-            case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner1")
+            case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner")
           }
-          (strat.id, learner1.id) match {
+          (strat.id, learner.id) match {
             case (s, l) if s == 0 && l < 4 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
               case ExpectedHitsForFullPool => true
@@ -158,7 +157,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
                 log(s"apagando excesso de vfdts", 20)
                 true
 
-              case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner1")
+              case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner")
             }
             case (s, l) if s > 0 => hs match {
               case 0 => false
@@ -168,7 +167,6 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           }
       }
     }
-  }
 
   def calculaQ(runs: Int, folds: Int, n: Int = n) {
     if (isQCalculated) quit("Q already calculated!")
@@ -261,7 +259,6 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
    * Primeira conf mat é referente à mat. de conf. do primeiro build, i.e. t = |Y| - 1.
    * Outra forma de ver é que as primeiras |Y| queries geram a primeira mat. de conf.
    * Strat.learner deve ser igual a learner, em strats gnósticas.
-   * @param pool
    * @param testSet
    * @param queries
    * @param strat

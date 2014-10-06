@@ -35,20 +35,19 @@ trait AppWithUsage extends App with Log with ArgParser {
     case "alca" => ALCacc()
     case "alcg" => ALCgmeans()
   }
-  var running = true
   val memlimit = Global.memlimit
 
   def memoryMonitor() = {
-    running = true
+    Global.running = true
     new Thread(new Runnable() {
       def run() {
-        while (running) {
-          1 to 50 takeWhile { _ =>
-            Thread.sleep(100)
-            running
+        while (Global.running) {
+          1 to 250 takeWhile { _ =>
+            Thread.sleep(20)
+            Global.running
           }
           if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
-            running = false
+            Global.running = false
             error(s"Limite de $memlimit MB de memoria atingido.")
           }
         }

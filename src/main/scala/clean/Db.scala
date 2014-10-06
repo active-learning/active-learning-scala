@@ -69,6 +69,11 @@ class Db(val database: String) extends Log with Lock {
     }
   }
 
+  override def error(msg: String) = {
+    if (connection != null && !connection.isClosed) close()
+    super.error(msg)
+  }
+
   def quit(msg: String) = {
     close()
     justQuit(msg)
@@ -209,7 +214,7 @@ class Db(val database: String) extends Log with Lock {
 
   def close() {
     log(s"Connection to $database closed.")
-    connection.close()
+    if (!connection.isClosed) connection.close()
   }
 }
 

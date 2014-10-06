@@ -34,7 +34,7 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     if (!ds.isQCalculated) log(s"Q was not found for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
     else if (!ds.areQueriesFinished(pool.size, strat, run, fold)) log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
-    else if (!ds.areHitsFinished(pool.size, strat, fixedLearner(pool, learnerSeed), run, fold)) log(s"Conf. matrices were not finished for ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!", 20)
+    else if (!ds.areHitsFinished(pool.size, strat, fixedLearner(pool, learnerSeed), run, fold)) log(s"Conf. matrices were not finished for ${strat.abr}/${fixedLearner(Seq(), -1)}/svm? at pool $run.$fold!", 20)
     else {
       ds.getMeasure(measure, strat, fixedLearner(Seq(), -1), run, fold) match {
         case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
