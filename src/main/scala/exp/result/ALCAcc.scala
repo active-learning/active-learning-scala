@@ -22,7 +22,7 @@ import app.ArgParser
 import app.db.entities.Dataset
 import ml.classifiers.Learner
 
-object ALCAcc extends Res {
+object ALCAcc extends ResOld {
   val desc = s"Version ${ArgParser.version} \nCalcula ALCs e coloca na tabela 'res'."
   lazy val medida = "ALCDaAcc"
   val readOnly = false

@@ -20,7 +20,7 @@ package exp.tex
 
 import app.ArgParser
 import app.db.entities.Dataset
-import exp.result.Res
+import exp.result.ResOld
 import util.{StatTests, Stat, FriedmanNemenyiTest}
 
 import scala.collection.mutable

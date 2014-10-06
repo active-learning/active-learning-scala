@@ -27,7 +27,7 @@ import ml.classifiers.Learner
 
 import scala.collection.mutable
 
-trait Res extends App with ClassName {
+trait ResOld extends App with ClassName {
   lazy val (path, datasetNames, learner) = ArgParser.testArgsWithLearner(className, args, desc)
   lazy val parallel = {
     learner //<- just to unlazy argsTest and avoid OutOfBounds Exc here

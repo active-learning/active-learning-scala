@@ -91,8 +91,10 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }")
   }
 
-  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int) =
-    read(s"SELECT id FROM p WHERE s=${strat.id} and l=${learner.id} and r=$run and f=$fold") match {
+  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int): Option[Int] = poolId(strat.id, learner, run, fold)
+
+  private def poolId(idStrat: Int, learner: Learner, run: Int, fold: Int) =
+    read(s"SELECT id FROM p WHERE s=$idStrat and l=${learner.id} and r=$run and f=$fold") match {
       case List() => None
       case List(seq) => Some(seq.head.toInt)
     }
@@ -316,8 +318,12 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
   }
 
+  def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
+    val pid = poolId(sid, learner, run, fold).getOrElse(quit(s"Pool ${(sid, learner, run, fold)} not found!"))
+    s"insert into r values (${measure.id}, $pid, $value)"
+  }
+
   def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
-    val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
-    write(s"insert into r values (${measure.id}, $pid, $value)")
+    write(measureToSQL(measure, value, strategy.id, learner, run, fold))
   }
 }

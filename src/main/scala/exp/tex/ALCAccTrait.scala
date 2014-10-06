@@ -19,13 +19,13 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package exp.tex
 
 import app.db.entities.Dataset
-import exp.result.Res
+import exp.result.ResOld
 import ml.classifiers.Learner
 import util.{Stat, StatTests}
 
 import scala.collection.mutable
 
-trait ALCAccTrait extends Res {
+trait ALCAccTrait extends ResOld {
   val desc: String
   lazy val medida = "ALCDaAcc"
   val readOnly = true

@@ -20,13 +20,13 @@ package exp.meta
 
 import app.ArgParser
 import app.db.entities.Dataset
-import exp.result.Res
+import exp.result.ResOld
 import ml.classifiers.{KNNBatch, NB, Learner}
 import util.{StatTests, Stat}
 
 import scala.collection.mutable
 
-object DecisionTree extends Res {
+object DecisionTree extends ResOld {
   val desc = s"Version ${ArgParser.version} \n Identifica vencedores em cada base para servirem de rótulo num metadataset com metaatributos que será gerado. Learner will be ignored."
   lazy val medida = "ALCDaAcc"
   val readOnly = true

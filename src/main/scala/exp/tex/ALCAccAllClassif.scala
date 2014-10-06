@@ -20,7 +20,7 @@ package exp.tex
 
 import app.ArgParser
 import app.db.entities.Dataset
-import exp.result.Res
+import exp.result.ResOld
 import ml.classifiers.{VFDT, KNNBatch, NB}
 import util.{StatTests, Stat, FriedmanNemenyiTest}
 

@@ -54,7 +54,6 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
           if (qtdCMsEstimado != expected)
             error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
           val v = calculate(cms, total)
-          ds.putMeasureValue(measure, v, strat, fixedLearner(), run, fold)
           acquire()
           values += (strat.id, run, fold) -> v
           release()
@@ -63,8 +62,12 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
   }
 
   def datasetFinished(ds: Ds) {
-    if (values.size != strats(Seq(), -1).size * runs * folds) ds.error(s"${values.size} values should be ${strats(Seq(), -1).size * runs * folds}!")
-    else ds.log("fim")
+    if (values.size != strats(Seq(), -1).size * runs * folds) ds.error(s"Not all strategies were complete: ${values.size} values should be ${strats(Seq(), -1).size * runs * folds}!")
+    else {
+      val sqls = values map { case ((s, r, f), v) => ds.measureToSQL(measure, v, s, fixedLearner(), r, f)}
+      ds.batchWrite(sqls.toList)
+      ds.log("fim deste")
+    }
   }
 
   def isAlreadyDone(ds: Ds) = {
@@ -97,9 +100,9 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
     DensityWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, "maha"),
     DensityWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, "manh"),
     MahalaWeightedTrainingUtility(fixedLearner(pool, learnerSeed), pool, 1, 1),
-    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "entropy"),
-    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "gmeans+residual"),
-    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "accuracy"),
+    //    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "entropy"),
+    //    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "gmeans+residual"),
+    //    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "accuracy"),
     new SGmulti(fixedLearner(pool, learnerSeed), pool, "consensus"),
     new SGmulti(fixedLearner(pool, learnerSeed), pool, "majority"),
     new SGmultiJS(fixedLearner(pool, learnerSeed), pool)

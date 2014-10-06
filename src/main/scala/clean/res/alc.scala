@@ -21,7 +21,7 @@ package clean.res
 
 import clean.{Ds, CM, Res}
 
-object ALC extends Res with CM {
+object alc extends Res with CM {
   lazy val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm", "medida:alca|alcg")
   val context = "ALCres"
   init()
