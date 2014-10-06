@@ -21,6 +21,7 @@ package clean
 
 import al.strategies._
 import ml.Pattern
+import ml.classifiers.SVMLib
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -32,27 +33,28 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
   def calculate(cms: List[Array[Array[Int]]], total: Int): Double
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+    val learner = if (strat.id >= 17 && strat.id <= 20) SVMLib() else fixedLearner()
     if (!ds.isQCalculated) log(s"Q was not found for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
     else if (!ds.areQueriesFinished(pool.size, strat, run, fold)) log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
-    else if (!ds.areHitsFinished(pool.size, strat, fixedLearner(pool, learnerSeed), run, fold)) log(s"Conf. matrices were not finished for ${strat.abr}/${fixedLearner(Seq(), -1)}/svm? at pool $run.$fold!", 20)
+    else if (!ds.areHitsFinished(pool.size, strat, learner, run, fold)) log(s"Conf. matrices were not finished for ${strat.abr}/${learner}/svm? at pool $run.$fold!", 20)
     else {
-      ds.getMeasure(measure, strat, fixedLearner(Seq(), -1), run, fold) match {
+      ds.getMeasure(measure, strat, learner, run, fold) match {
         case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
         case None =>
-          val cms = ds.getCMs(strat, fixedLearner(pool, learnerSeed), run, fold)
+          val cms = ds.getCMs(strat, learner, run, fold)
           val total = cms.foldLeft(0) { (sum, cm) =>
             //        println(s"$sum ${contaTotal(cm)} ${testSet.size.toDouble}")
             sum + contaTotal(cm)
           }
           val qtdCMsEstimado = total / testSet.size.toDouble
-          val expected = (strat.id, fixedLearner(Seq(), -1).id) match {
+          val expected = (strat.id, learner.id) match {
             case (sid, lid) if sid == 0 && lid < 4 => pool.size - ds.nclasses + 1
             case (sid, lid) if sid == 0 && lid > 3 || sid > 0 => ds.Q - ds.nclasses + 1
           }
           if (cms.size != qtdCMsEstimado)
-            error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+            error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${learner} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
           if (qtdCMsEstimado != expected)
-            error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${fixedLearner(Seq(), -1)} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+            error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${learner} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
           val v = calculate(cms, total)
           acquire()
           values += (strat.id, run, fold) -> v
@@ -64,7 +66,10 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
   def datasetFinished(ds: Ds) {
     if (values.size != strats(Seq(), -1).size * runs * folds) ds.error(s"Not all strategies were complete: ${values.size} values should be ${strats(Seq(), -1).size * runs * folds}!")
     else {
-      val sqls = values map { case ((s, r, f), v) => ds.measureToSQL(measure, v, s, fixedLearner(), r, f)}
+      val sqls = values map { case ((s, r, f), v) =>
+        val learner = if (s >= 17 && s <= 20) SVMLib() else fixedLearner()
+        ds.measureToSQL(measure, v, s, learner, r, f)
+      }
       ds.batchWrite(sqls.toList)
       ds.log("fim deste")
     }
@@ -76,7 +81,8 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
       r <- (0 until runs).toStream //.par
       f <- (0 until folds).toStream //.par
     } yield {
-      lazy val res = ds.getMeasure(measure, s, fixedLearner(Seq(), -1), r, f) match {
+      val learner = if (s.id >= 17 && s.id <= 20) SVMLib() else fixedLearner()
+      lazy val res = ds.getMeasure(measure, s, learner, r, f) match {
         case Some(_) => true
         case None => false
       }
