@@ -105,12 +105,11 @@ trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
     //    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "accuracy"),
     new SGmulti(fixedLearner(pool, learnerSeed), pool, "consensus"),
     new SGmulti(fixedLearner(pool, learnerSeed), pool, "majority"),
-    new SGmultiJS(fixedLearner(pool, learnerSeed), pool)
-    //    ,
-    //      SVMmulti(pool, "SELF_CONF"),
-    //    SVMmulti(pool, "KFF"),
-    //    SVMmulti(pool, "BALANCED_EE"),
-    //    SVMmulti(pool, "SIMPLE")
+    new SGmultiJS(fixedLearner(pool, learnerSeed), pool),
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
   )
 }
 
