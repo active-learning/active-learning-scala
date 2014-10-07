@@ -17,9 +17,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.run
 
-import al.strategies.{SVMmulti, StrategyAgnostic, Strategy}
+import al.strategies.{Strategy, StrategyAgnostic}
+import clean.{Ds, Exp, LearnerTrait, StratsTrait}
 import ml.Pattern
 import weka.filters.Filter
 
@@ -44,7 +45,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
         case st: StrategyAgnostic =>
           allLearners(pool, learnerSeed) foreach { learner =>
             ds.log(s"Agn hits [$st $learner] at pool $run.$fold.")
-            if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/${learner} at pool $run.$fold.")
+            if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
             else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
           }
         case st =>

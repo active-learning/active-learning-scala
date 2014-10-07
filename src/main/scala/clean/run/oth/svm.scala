@@ -17,19 +17,26 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean.run
+package clean.run.oth
 
-import al.strategies.ExpErrorReductionMargin
+import al.strategies.SVMmulti
 import clean.nonQ
 import ml.Pattern
 
-object eer extends nonQ {
-  val context = "EERapp"
+/**
+ * SVM strats precisam ser separadas porque só vão aceitar um learner: SVMLib().
+ * Ele atrapalharia fast() quando fosse desejado NB() para as outras strats.
+ */
+object svm extends nonQ {
+  override val arguments = superArguments
+  val context = "SVMapp"
+  override lazy val learnerStr = "svm"
   run()
 
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
-    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "entropy"),
-    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "gmeans+residual"),
-    ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "accuracy")
+    SVMmulti(pool, "SELF_CONF"),
+    SVMmulti(pool, "KFF"),
+    SVMmulti(pool, "BALANCED_EE"),
+    SVMmulti(pool, "SIMPLE")
   )
 }
