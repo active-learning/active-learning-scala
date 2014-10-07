@@ -45,8 +45,8 @@ object res extends Exp with Blob with Lock with LearnerTrait with CM {
       ds.getMeasure(measure, strat, learner, run, fold) match {
         case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
         case None =>
-          val cms = ds.getCMs(strat, learner, run, fold).take(ds.Q)
-          if (cms.size != ds.Q) error(s"Couldn't take ${ds.Q} queries, ${cms.size} only.")
+          val cms = ds.getCMs(strat, learner, run, fold).take(ds.Q - ds.nclasses + 1)
+          if (cms.size != ds.Q - ds.nclasses + 1) error(s"Couldn't take ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
           val total = cms.foldLeft(0) { (sum, cm) =>
             sum + contaTotal(cm)
           }
