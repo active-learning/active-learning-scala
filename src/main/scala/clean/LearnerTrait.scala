@@ -55,4 +55,17 @@ trait LearnerTrait {
     //      case "5NNm" => KNNBatch(5, "manh", pool)
     //    case "Varios" => NoLearner()
   }
+
+  def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
+    NB(),
+    KNNBatch(5, "eucl", pool, weighted = true),
+    C45(),
+    VFDT(),
+    CIELM(learnerSeed)
+    , ECIELM(learnerSeed)
+    , IELM(learnerSeed)
+    , EIELM(learnerSeed)
+    , interaELM(learnerSeed)
+    , SVMLib(learnerSeed)
+  )
 }
