@@ -17,20 +17,24 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.res
 
 import al.strategies._
+import clean._
 import ml.Pattern
 import ml.classifiers.SVMLib
 import weka.filters.Filter
 
 import scala.collection.mutable
 
-trait Res extends Exp with Blob with Lock with LearnerTrait with CM {
+object res extends Exp with Blob with Lock with LearnerTrait with CM {
+  lazy val arguments = superArguments ++ List("learner:nb|5nn|c45|vfdt|ci|eci|i|ei|in|svm", "medida:alca|alcg")
+  val context = "res"
   val values = mutable.Map[(Int, Int, Int), Double]()
   val ignoreNotDone = false
+  init()
 
-  def calculate(cms: List[Array[Array[Int]]], total: Int): Double
+  def calculate(cms: List[Array[Array[Int]]], total: Int) = measure.calc(cms, total)
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
     val learner = if (strat.id >= 17 && strat.id <= 20) SVMLib() else fixedLearner()

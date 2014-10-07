@@ -19,8 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies.{DensityWeightedTrainingUtility, MahalaWeightedTrainingUtility, Strategy}
-import clean.res.{ALCgmeans, ALCacc}
+import al.strategies._
 import ml.Pattern
 import ml.neural.elm.ELM
 import util.Datasets

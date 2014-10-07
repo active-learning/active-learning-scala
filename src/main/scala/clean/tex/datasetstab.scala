@@ -21,8 +21,8 @@ package clean.tex
 
 import al.strategies._
 import clean._
-import clean.res.{ALCacc, ALCgmeans, Measure}
 import ml.Pattern
+import ml.classifiers.SVMLib
 import weka.filters.Filter
 
 /**
@@ -42,16 +42,19 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
 
   def isAlreadyDone(ds: Ds) = if (!ds.isQCalculated) false
   else {
+    val poolSize = ds.expectedPoolSizes(folds)
     val checks = for {
       s <- strats(Seq(), -1).toStream //.par
       l <- learners(learnersStr).toStream
       r <- (0 until runs).toStream //.par
       f <- (0 until folds).toStream //.par
     } yield {
-      lazy val res = ds.getMeasure(measure, s, l, r, f) match {
-        case Some(x) => // println(s"$x")
-          true
-        case None => false
+      val learner = if (s.id >= 17 && s.id <= 20) SVMLib() else l
+      lazy val res = {
+        ds.areQueriesFinished(poolSize(f), s, r, f) && ds.areHitsFinished(poolSize(f), s, learner, r, f) && (ds.getMeasure(measure, s, learner, r, f) match {
+          case Some(x) => true
+          case None => false
+        })
       }
       res
     }
@@ -59,7 +62,7 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
   }
 
   def end(res: Map[String, Boolean]): Unit = {
-    res.filter(_._2 == true) foreach println
+    res.filter(_._2 == true).map(_._1) foreach println
   }
 
   def strats(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List(

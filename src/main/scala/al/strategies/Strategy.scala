@@ -30,8 +30,6 @@ trait Strategy extends Log {
   val context = "Strategy"
   val id: Int
   val abr: String
-
-  def learner: Learner
   val pool: Seq[Pattern]
   lazy val distinct_pool = if (pool.distinct != pool) {
     println("The pool cannot have repeated instances!")
@@ -42,6 +40,8 @@ trait Strategy extends Log {
   val delay: Double = .005
   lazy val plot = new Plot
   lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
+
+  def learner: Learner
 
   /**
    * Returns a stream of queries.

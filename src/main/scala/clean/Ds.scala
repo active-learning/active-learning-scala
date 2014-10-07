@@ -18,9 +18,9 @@
 
 package clean
 
-import al.strategies.Strategy
+import al.strategies._
 import clean.res.Measure
-import ml.classifiers.{SVMLib, Learner}
+import ml.classifiers.{Learner, NoLearner}
 import ml.{Pattern, PatternParent}
 import util.Datasets
 import weka.experiment.InstanceQuerySQLite
@@ -318,11 +318,34 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   }
 
   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
-    val pid = poolId(sid, learner, run, fold).getOrElse(quit(s"Pool ${(sid, learner, run, fold)} not found!"))
+    val pid = poolId(sid, learner, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
     s"insert into r values (${measure.id}, $pid, $value)"
   }
 
   def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
     write(measureToSQL(measure, value, strategy.id, learner, run, fold))
   }
+
+  lazy val abr = Seq(RandomSampling(Seq()),
+    ClusterBased(Seq()),
+    Uncertainty(NoLearner(), Seq()),
+    Entropy(NoLearner(), Seq()),
+    Margin(NoLearner(), Seq()),
+    DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), "eucl"),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), "maha"),
+    DensityWeightedTrainingUtility(NoLearner(), Seq(), "manh"),
+    MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
+    ExpErrorReductionMargin(NoLearner(), Seq(), "entropy"),
+    ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual"),
+    ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy"),
+    new SGmulti(NoLearner(), Seq(), "consensus"),
+    new SGmulti(NoLearner(), Seq(), "majority"),
+    new SGmultiJS(NoLearner(), Seq()),
+    SVMmulti(Seq(), "SELF_CONF"),
+    SVMmulti(Seq(), "KFF"),
+    SVMmulti(Seq(), "BALANCED_EE"),
+    SVMmulti(Seq(), "SIMPLE")
+  ).map(s => s.id -> s.abr).toMap
 }
