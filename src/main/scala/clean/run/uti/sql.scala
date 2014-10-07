@@ -17,7 +17,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean.tex
+package clean.run.uti
 
 import clean.{AppWithUsage, Ds}
 
@@ -31,10 +31,8 @@ object sql extends AppWithUsage {
     datasets foreach { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
-      if (sql.startsWith("insert")) {
-        println(s"${ds.read(sql)}")
-      }
-      else ds.write(sql)
+      if (sql.startsWith("insert") || sql.startsWith("update") || sql.startsWith("delete")) ds.write(sql)
+      else println(s"${ds.read(sql)}")
       ds.close()
     }
     justQuit("Datasets prontos.")
