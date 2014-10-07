@@ -277,7 +277,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
    */
   def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
     if (learner.id != strat.learner.id && strat.id > 1)
-      quit(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
+      error(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
       //Apenas agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
       val insertIntoP = poolId(strat, learner, run, fold) match {

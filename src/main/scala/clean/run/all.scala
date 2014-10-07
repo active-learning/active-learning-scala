@@ -44,13 +44,13 @@ object all extends Exp with LearnerTrait with StratsTrait {
       strat match {
         case st: StrategyAgnostic =>
           allLearners(pool, learnerSeed) foreach { learner =>
-            ds.log(s"Agn hits [$st $learner] at pool $run.$fold.")
+            ds.log(s"Agn hits [$st $learner] at pool $run.$fold.", 20)
             if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
             else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
           }
         case st =>
           //hits (pra learner fornecido)
-          ds.log(s"gn hits [$st ${st.learner}] at pool $run.$fold.")
+          ds.log(s"gn hits [$st ${st.learner}] at pool $run.$fold.", 20)
           if (ds.areHitsFinished(pool.size, strat, strat.learner, run, fold)) println(s"Hits already done for ${strat.abr}/${strat.learner} at pool $run.$fold.")
           else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(strat.learner)
       }
