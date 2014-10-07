@@ -45,7 +45,7 @@ object res extends Exp with Blob with Lock with LearnerTrait with CM {
       ds.getMeasure(measure, strat, learner, run, fold) match {
         case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
         case None =>
-          val cms = ds.getCMs(strat, learner, run, fold)
+          val cms = ds.getCMs(strat, learner, run, fold).take(ds.Q)
           val total = cms.foldLeft(0) { (sum, cm) =>
             //        println(s"$sum ${contaTotal(cm)} ${testSet.size.toDouble}")
             sum + contaTotal(cm)

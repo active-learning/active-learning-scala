@@ -28,8 +28,6 @@ import weka.filters.Filter
 import scala.util.Random
 
 trait Exp extends AppWithUsage {
-  val runs = Global.runs
-  val folds = Global.folds
   val ignoreNotDone: Boolean
 
   def strats(pool: Seq[Pattern], seed: Int): List[Strategy]

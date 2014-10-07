@@ -202,6 +202,14 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
   }
 
+  /**
+   * Get all CMs, usually Q, sometimes |U|.
+   * @param strat
+   * @param learner
+   * @param run
+   * @param fold
+   * @return
+   */
   def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int) = poolId(strat, learner, run, fold) match {
     case None => error("Attempt to get hits without an existent related pid.")
     case Some(pid) =>
@@ -313,7 +321,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
     read(s"select v from r where p=$pid and m=${measure.id}") match {
       case List() => None
-      case List(seq) => Some(seq.head.toInt)
+      case List(seq) => Some(seq.head)
     }
   }
 
