@@ -25,7 +25,7 @@ import ml.Pattern
 
 object eer extends nonQ {
   val context = "EERapp"
-  init()
+  run()
 
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
     ExpErrorReductionMargin(fixedLearner(pool, learnerSeed), pool, "entropy"),

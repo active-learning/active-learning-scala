@@ -41,8 +41,8 @@ trait Exp extends AppWithUsage {
   /**
    * returns whether dataset was already done
    */
-  override def init() = {
-    super.init()
+  override def run() = {
+    super.run()
     memoryMonitor()
     val res = datasets map { dataset =>
       val ds = Ds(path, dataset)

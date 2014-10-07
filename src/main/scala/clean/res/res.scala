@@ -32,7 +32,7 @@ object res extends Exp with Blob with Lock with LearnerTrait with CM {
   val context = "res"
   val values = mutable.Map[(Int, Int, Int), Double]()
   val ignoreNotDone = false
-  init()
+  run()
 
   def calculate(cms: List[Array[Array[Int]]], total: Int) = measure.calc(cms, total)
 

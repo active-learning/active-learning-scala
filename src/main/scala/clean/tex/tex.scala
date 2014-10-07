@@ -28,10 +28,10 @@ import util.{Stat, StatTests}
 object tex extends AppWithUsage with LearnerTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "medida:alca|alcg")
   val context = "tex"
-  init()
+  run()
 
-  override def init() = {
-    super.init()
+  override def run() = {
+    super.run()
     val res = datasets map { dataset =>
       val ds = Ds(path, dataset)
       ds.open()

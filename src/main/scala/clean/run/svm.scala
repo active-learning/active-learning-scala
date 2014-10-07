@@ -31,7 +31,7 @@ object svm extends nonQ {
   override val arguments = superArguments
   val context = "SVMapp"
   override lazy val learnerStr = "svm"
-  init()
+  run()
 
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
     SVMmulti(pool, "SELF_CONF"),

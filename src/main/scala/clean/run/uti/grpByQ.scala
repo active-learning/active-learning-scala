@@ -31,7 +31,7 @@ object grpByQ extends Exp {
   val context = "grpByQ"
   val m = mutable.Map[String, (Int, Int)]()
   val ignoreNotDone = false
-  init()
+  run()
 
   def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))
 

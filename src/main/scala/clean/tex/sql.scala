@@ -17,24 +17,26 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean.run
+package clean.tex
 
 import clean.{AppWithUsage, Ds}
 
-object RESET extends AppWithUsage {
-  val arguments = superArguments.dropRight(1)
-  val context = "RESETapp"
+object sql extends AppWithUsage {
+  lazy val arguments = superArguments ++ List("sql")
+  val context = "sql"
   run()
-  core()
 
-  def core() {
+  override def run() = {
+    super.run()
     datasets foreach { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
-      ds.reset()
-      ds.log(s"$dataset resetado.", 20)
+      if (sql.startsWith("insert")) {
+        println(s"${ds.read(sql)}")
+      }
+      else ds.write(sql)
       ds.close()
     }
-    log("Datasets zerados.")
+    justQuit("Datasets prontos.")
   }
 }

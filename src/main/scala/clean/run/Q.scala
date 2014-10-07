@@ -29,7 +29,7 @@ object Q extends Exp {
   val arguments = superArguments
   val context = "Qapp"
   val ignoreNotDone = false
-  init()
+  run()
 
   def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))
 

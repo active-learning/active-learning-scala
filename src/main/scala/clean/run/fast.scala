@@ -25,7 +25,7 @@ import ml.Pattern
 
 object fast extends nonQ {
   val context = "fastApp"
-  init()
+  run()
 
   def strats(pool: Seq[Pattern], learnerSeed: Int) = List(
     RandomSampling(pool),

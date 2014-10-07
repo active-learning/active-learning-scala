@@ -32,7 +32,7 @@ object datasetstab extends Exp with Blob with Lock with LearnerTrait with CM {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "medida:alca|alcg")
   val context = "datasetstabtex"
   val ignoreNotDone = true
-  val feitos = init()
+  val feitos = run()
 
   def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
   }
