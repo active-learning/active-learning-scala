@@ -208,8 +208,8 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       val cms = readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t").map {
         case (b, t) => blobToConfusion(b, nclasses)
       }
-      val numberOfQueries = countQueries(strat, run, fold)
-      val expectedCms = numberOfQueries - nclasses + 1
+      val numberOfQueriesNeeded = if (strat.id == 0 && learner.id < 4) countQueries(strat, run, fold) else Q
+      val expectedCms = numberOfQueriesNeeded - nclasses + 1
       if (expectedCms != cms.size) error(s"${cms.size} conf mats found, $expectedCms expected!")
       cms
   }
