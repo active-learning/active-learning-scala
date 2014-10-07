@@ -68,6 +68,7 @@ trait Exp extends AppWithUsage {
                   case (MahalaWeightedTrainingUtility(_, _, _, _, _), _) => true
                   case _ => false
                 }
+                log(s"${if (needsFilter) "A" else "Not a"}pplying filter, because it is $strat")
 
                 //bina
                 val binaf = if (needsFilter) Datasets.binarizeFilter(tr) else null
