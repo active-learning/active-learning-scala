@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import al.strategies.{Strategy, StrategyAgnostic}
+import al.strategies.{SVMmulti, Strategy, StrategyAgnostic}
 import clean.{Ds, Exp, LearnerTrait, StratsTrait}
 import ml.Pattern
 import weka.filters.Filter
@@ -49,7 +49,6 @@ object all extends Exp with LearnerTrait with StratsTrait {
             else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
           }
         case st =>
-          //hits (pra learner fornecido)
           ds.log(s"gn hits [$st ${st.learner}] at pool $run.$fold.", 20)
           if (ds.areHitsFinished(pool.size, strat, strat.learner, run, fold)) println(s"Hits already done for ${strat.abr}/${strat.learner} at pool $run.$fold.")
           else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(strat.learner)
@@ -63,14 +62,26 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
   def isAlreadyDone(ds: Ds) = {
     val poolSize = ds.expectedPoolSizes(folds)
-    val checks = for {
-      s <- strats(Seq(), -1).toStream //.par
-      l <- allLearners().toStream //.par
-      r <- (0 until runs).toStream //.par
-      f <- (0 until folds).toStream //.par
-    } yield {
-      lazy val res = ds.areQueriesFinished(poolSize(f), s, r, f) && ds.areHitsFinished(poolSize(f), s, l, r, f)
-      res
+    val checks = strats(Seq(), -1).toStream flatMap {
+      case s@(_: StrategyAgnostic) =>
+        for {
+          r <- (0 until runs).toStream
+          f <- (0 until folds).toStream
+        } yield {
+          lazy val res0 = ds.areQueriesFinished(poolSize(f), s, r, f) && allLearners().toStream.forall { l =>
+            lazy val res = ds.areHitsFinished(poolSize(f), s, l, r, f)
+            res
+          }
+          res0
+        }
+      case s =>
+        for {
+          r <- (0 until runs).toStream
+          f <- (0 until folds).toStream
+        } yield {
+          lazy val res = ds.areQueriesFinished(poolSize(f), s, r, f) && ds.areHitsFinished(poolSize(f), s, s.learner, r, f)
+          res
+        }
     }
     checks forall (_ == true)
   }

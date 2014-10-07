@@ -128,7 +128,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
 
   def areHitsFinished(poolSize: Int, strat: Strategy, learner: Learner, run: Int, fold: Int) =
-    if (learner.id != strat.learner.id && strat.id > 1) quit(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
+    if (learner.id != strat.learner.id && strat.id > 1) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else if (!areQueriesFinished(poolSize, strat, run, fold)) error(s"Queries must be finished to check hits! |U|=$poolSize")
     else {
       poolId(strat, learner, run, fold) match {
