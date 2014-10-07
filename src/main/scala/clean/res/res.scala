@@ -46,19 +46,19 @@ object res extends Exp with Blob with Lock with LearnerTrait with CM {
         case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
         case None =>
           val cms = ds.getCMs(strat, learner, run, fold).take(ds.Q)
+          if (cms.size != ds.Q) error(s"Couldn't take ${ds.Q} queries, ${cms.size} only.")
           val total = cms.foldLeft(0) { (sum, cm) =>
-            //        println(s"$sum ${contaTotal(cm)} ${testSet.size.toDouble}")
             sum + contaTotal(cm)
           }
-          val qtdCMsEstimado = total / testSet.size.toDouble
-          val expected = (strat.id, learner.id) match {
-            case (sid, lid) if sid == 0 && lid < 4 => pool.size - ds.nclasses + 1
-            case (sid, lid) if sid == 0 && lid > 3 || sid > 0 => ds.Q - ds.nclasses + 1
-          }
-          if (cms.size != qtdCMsEstimado)
-            error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${learner} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
-          if (qtdCMsEstimado != expected)
-            error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${learner} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+          //          val qtdCMsEstimado = total / testSet.size.toDouble
+          //          val expected = (strat.id, learner.id) match {
+          //            case (sid, lid) if sid == 0 && lid < 4 => pool.size - ds.nclasses + 1
+          //            case (sid, lid) if sid == 0 && lid > 3 || sid > 0 => ds.Q - ds.nclasses + 1
+          //          }
+          //          if (cms.size != qtdCMsEstimado)
+          //            error(s"Total ${cms.size} de CMs difere de $qtdCMsEstimado estimado para ${strat.abr}/${learner} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
+          //          if (qtdCMsEstimado != expected)
+          //            error(s"Total $qtdCMsEstimado de CMs difere de $expected esperado para ${strat.abr}/${learner} at pool $run.$fold!\n Q:${ds.Q} CMs:${cms.size} |cm|:${cms.head.size} |U|:${pool.size} |testset|:${testSet.size}")
           val v = calculate(cms, total)
           acquire()
           values += (strat.id, run, fold) -> v
