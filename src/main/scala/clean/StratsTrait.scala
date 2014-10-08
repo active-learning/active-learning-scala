@@ -27,26 +27,28 @@ trait StratsTrait {
   def stratsFilterFreeSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
     RandomSampling(pool),
     ClusterBased(pool),
-    SVMmulti(pool, "SELF_CONF"),
-    SVMmulti(pool, "KFF"),
-    SVMmulti(pool, "BALANCED_EE"),
-    SVMmulti(pool, "SIMPLE")
+    SVMmulti(pool, "SELF_CONF")
+    //    ,
+    //    SVMmulti(pool, "KFF"),
+    //    SVMmulti(pool, "BALANCED_EE"),
+    //    SVMmulti(pool, "SIMPLE")
   )
 
   def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-    Uncertainty(learner, pool),
+    //    Uncertainty(learner, pool),
     Entropy(learner, pool),
     Margin(learner, pool),
-    DensityWeighted(learner, pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner, pool, "cheb"),
+    //    DensityWeighted(learner, pool, 1, "eucl"),
+    //    DensityWeightedTrainingUtility(learner, pool, "cheb"),
     DensityWeightedTrainingUtility(learner, pool, "eucl"),
-    DensityWeightedTrainingUtility(learner, pool, "manh"),
+    //    DensityWeightedTrainingUtility(learner, pool, "manh"),
     ExpErrorReductionMargin(learner, pool, "entropy"),
-    ExpErrorReductionMargin(learner, pool, "gmeans+residual"),
-    ExpErrorReductionMargin(learner, pool, "accuracy"),
-    new SGmulti(learner, pool, "consensus"),
-    new SGmulti(learner, pool, "majority"),
-    new SGmultiJS(learner, pool)
+    //    ExpErrorReductionMargin(learner, pool, "gmeans+residual"),
+    //    ExpErrorReductionMargin(learner, pool, "accuracy"),
+    new SGmulti(learner, pool, "consensus")
+    //    ,
+    //    new SGmulti(learner, pool, "majority"),
+    //    new SGmultiJS(learner, pool)
   )
 
   def stratsFilterDependentComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](

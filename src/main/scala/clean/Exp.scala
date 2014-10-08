@@ -19,10 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import al.strategies._
 import ml.Pattern
-import ml.classifiers.Learner
-import ml.neural.elm.ELM
 import util.Datasets
 import weka.filters.Filter
 
@@ -64,11 +61,11 @@ trait Exp extends AppWithUsage {
               val pool = new Random(fold).shuffle(tr.sortBy(_.id))
               val (fpool, binaf, zscof) = filterTr(tr, fold)
 
-                //ts
-                val testSet = new Random(fold).shuffle(ts.sortBy(_.id))
+              //ts
+              val testSet = new Random(fold).shuffle(ts.sortBy(_.id))
               val ftestSet = filterTs(ts, fold, binaf, zscof)
 
-                //opera no ds // find (&& x.learner.id == strat.learner.id) desnecessario
+              //opera no ds // find (&& x.learner.id == strat.learner.id) desnecessario
               op(ds, pool, testSet, fpool, ftestSet, learnerSeed, run, fold, binaf, zscof)
             }
           }
@@ -84,18 +81,6 @@ trait Exp extends AppWithUsage {
   }
 
   def end(res: Map[String, Boolean])
-
-  //  def needsFilter(strat: Strategy, learner: Learner) = {
-  //    //Ordena pool,testSet e aplica filtro se preciso. Aqui é possível avaliar strat e learner.
-  //    val res = (strat, learner) match {
-  //      case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
-  //      case (MahalaWeightedTrainingUtility(_, _, _, _, _), _) => true
-  //      case (_, _: ELM) => true
-  //      case _ => false
-  //    }
-  //    log(s"${if (res) "A" else "Not a"}pplying filter, because it is $strat .")
-  //    res
-  //  }
 
   def filterTr(tr: Seq[Pattern], fold: Int) = {
     //bina

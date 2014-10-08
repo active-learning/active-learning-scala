@@ -59,16 +59,18 @@ trait LearnerTrait {
   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
     NB(),
     KNNBatch(5, "eucl", pool, weighted = true),
-    C45(),
-    VFDT(),
-    SVMLib(learnerSeed)
+    VFDT()
+    //    ,
+    //    SVMLib(learnerSeed),
+    //      C45()
   )
 
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-    CIELM(learnerSeed)
-    , ECIELM(learnerSeed)
-    , IELM(learnerSeed)
-    , EIELM(learnerSeed)
-    , interaELM(learnerSeed)
+    IELM(learnerSeed),
+    interaELM(learnerSeed)
+    //  ,
+    //      CIELM(learnerSeed)
+    //    , ECIELM(learnerSeed)
+    //    , EIELM(learnerSeed)
   )
 }

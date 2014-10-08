@@ -22,6 +22,7 @@ package clean.run
 import al.strategies.{Strategy, StrategyAgnostic}
 import clean.{Ds, Exp, LearnerTrait, StratsTrait}
 import ml.Pattern
+import ml.classifiers.SVMLib
 import weka.filters.Filter
 
 object all extends Exp with LearnerTrait with StratsTrait {
@@ -43,15 +44,22 @@ object all extends Exp with LearnerTrait with StratsTrait {
         } else ds.writeQueries(strat, run, fold, ds.Q)
         val fqueries = ds.queries(fstrat, run, fold, binaf, zscof)
         //hits
-        learnersFilterFree(pool, learnerSeed) foreach { learner =>
-          ds.log(s"AgnSVM hits [$strat $learner] at pool $run.$fold.", 20)
+        if (strat.id >= 17 && strat.id <= 20) {
+          val learner = SVMLib()
+          ds.log(s"SVM hits [$strat $learner] at pool $run.$fold.", 20)
           if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
           else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
-        }
-        learnersFilterDependent(learnerSeed) foreach { flearner =>
-          ds.log(s"AgnSVMf hits [$fstrat $flearner] at pool $run.$fold.", 20)
-          if (ds.areHitsFinished(fpool.size, fstrat, flearner, run, fold)) println(s"Hits already done for ${fstrat.abr}/$flearner at pool $run.$fold.")
-          else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold)(flearner)
+        } else {
+          learnersFilterFree(pool, learnerSeed) foreach { learner =>
+            ds.log(s"Agn hits [$strat $learner] at pool $run.$fold.", 20)
+            if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
+            else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
+          }
+          learnersFilterDependent(learnerSeed) foreach { flearner =>
+            ds.log(s"Agnf hits [$fstrat $flearner] at pool $run.$fold.", 20)
+            if (ds.areHitsFinished(fpool.size, fstrat, flearner, run, fold)) println(s"Hits already done for ${fstrat.abr}/$flearner at pool $run.$fold.")
+            else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold)(flearner)
+          }
         }
         ds.log(s"$strat ok.")
       }
