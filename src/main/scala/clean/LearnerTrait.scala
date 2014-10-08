@@ -56,16 +56,19 @@ trait LearnerTrait {
     //    case "Varios" => NoLearner()
   }
 
-  def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
+  def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
     NB(),
     KNNBatch(5, "eucl", pool, weighted = true),
     C45(),
     VFDT(),
+    SVMLib(learnerSeed)
+  )
+
+  def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
     CIELM(learnerSeed)
     , ECIELM(learnerSeed)
     , IELM(learnerSeed)
     , EIELM(learnerSeed)
     , interaELM(learnerSeed)
-    , SVMLib(learnerSeed)
   )
 }

@@ -21,6 +21,7 @@ package clean
 
 import al.strategies._
 import ml.Pattern
+import ml.classifiers.Learner
 import ml.neural.elm.ELM
 import util.Datasets
 import weka.filters.Filter
@@ -30,9 +31,9 @@ import scala.util.Random
 trait Exp extends AppWithUsage {
   val ignoreNotDone: Boolean
 
-  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
+  //  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter)
+  def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter)
 
   def datasetFinished(ds: Ds)
 
@@ -58,44 +59,17 @@ trait Exp extends AppWithUsage {
             Datasets.kfoldCV(shuffled, k = folds, parallelFolds) { (tr, ts, fold, minSize) =>
               ds.log(s"Pool $run.$fold (${tr.size} instances) ...")
               val learnerSeed = run * 10000 + fold
-              strats(Seq(), learnerSeed) foreach { strat =>
-                ds.log(s"$strat ...")
 
-                //Ordena pool,testSet e aplica filtro se preciso.
-                val needsFilter = (strat, strat.learner) match {
-                  case (_, _: ELM) => true
-                  case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
-                  case (MahalaWeightedTrainingUtility(_, _, _, _, _), _) => true
-                  case _ => false
-                }
-                log(s"${if (needsFilter) "A" else "Not a"}pplying filter, because it is $strat")
-
-                //bina
-                val binaf = if (needsFilter) Datasets.binarizeFilter(tr) else null
-                lazy val binarizedTr = Datasets.applyFilter(binaf)(tr)
-                lazy val binarizedTs = Datasets.applyFilter(binaf)(ts)
-
-                //tr
-                val zscof = if (needsFilter) Datasets.zscoreFilter(binarizedTr) else null
-                val pool = if (!needsFilter) new Random(fold).shuffle(tr.sortBy(_.id))
-                else {
-                  val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
-                  new Random(fold).shuffle(filteredTr.sortBy(_.id))
-                }
+              //Ordena pool e testSet e cria filtros.
+              val pool = new Random(fold).shuffle(tr.sortBy(_.id))
+              val (fpool, binaf, zscof) = filterTr(tr, fold)
 
                 //ts
-                val testSet = if (!needsFilter) new Random(fold).shuffle(ts.sortBy(_.id))
-                else {
-                  val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
-                  new Random(fold).shuffle(filteredTs.sortBy(_.id))
-                }
+                val testSet = new Random(fold).shuffle(ts.sortBy(_.id))
+              val ftestSet = filterTs(ts, fold, binaf, zscof)
 
                 //opera no ds // find (&& x.learner.id == strat.learner.id) desnecessario
-                op(strats(pool, learnerSeed).find(_.id == strat.id).get, ds, pool, learnerSeed, testSet, run, fold, binaf, zscof)
-
-                ds.log(s"$strat ok.")
-              }
-
+              op(ds, pool, testSet, fpool, ftestSet, learnerSeed, run, fold, binaf, zscof)
             }
           }
           datasetFinished(ds)
@@ -110,4 +84,41 @@ trait Exp extends AppWithUsage {
   }
 
   def end(res: Map[String, Boolean])
+
+  //  def needsFilter(strat: Strategy, learner: Learner) = {
+  //    //Ordena pool,testSet e aplica filtro se preciso. Aqui é possível avaliar strat e learner.
+  //    val res = (strat, learner) match {
+  //      case (DensityWeightedTrainingUtility(_, _, "maha", _, _, _), _) => true
+  //      case (MahalaWeightedTrainingUtility(_, _, _, _, _), _) => true
+  //      case (_, _: ELM) => true
+  //      case _ => false
+  //    }
+  //    log(s"${if (res) "A" else "Not a"}pplying filter, because it is $strat .")
+  //    res
+  //  }
+
+  def filterTr(tr: Seq[Pattern], fold: Int) = {
+    //bina
+    val binaf = Datasets.binarizeFilter(tr)
+    val binarizedTr = Datasets.applyFilter(binaf)(tr)
+
+    //tr
+    val zscof = Datasets.zscoreFilter(binarizedTr)
+    val pool = {
+      val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+      new Random(fold).shuffle(filteredTr.sortBy(_.id))
+    }
+
+    (pool, binaf, zscof)
+  }
+
+  def filterTs(ts: Seq[Pattern], fold: Int, binaf: Filter, zscof: Filter) = {
+    //ts
+    val binarizedTs = Datasets.applyFilter(binaf)(ts)
+    val testSet = {
+      val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
+      new Random(fold).shuffle(filteredTs.sortBy(_.id))
+    }
+    testSet
+  }
 }

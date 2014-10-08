@@ -36,7 +36,10 @@ object res extends Exp with Blob with Lock with LearnerTrait with CM {
 
   def calculate(cms: List[Array[Array[Int]]], total: Int) = measure.calc(cms, total)
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+  def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+    ???
+    val strat = RandomSampling(Seq())
+    ???
     val learner = if (strat.id >= 17 && strat.id <= 20) SVMLib() else fixedLearner()
     if (!ds.isQCalculated) log(s"Q was not found for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
     else if (!ds.areQueriesFinished(pool.size, strat, run, fold)) log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)

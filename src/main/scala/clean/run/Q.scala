@@ -35,12 +35,20 @@ object Q extends Exp {
 
   def isAlreadyDone(ds: Ds) = ds.isQCalculated
 
-  def op(strat: Strategy, ds: Ds, pool: Seq[Pattern], learnerSeed: Int, testSet: Seq[Pattern], run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+  def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+    ???
+    val tr = Seq()
+    val ts = Seq()
+    val strat = RandomSampling(tr)
+    ???
+    val pool = tr
+    val testSet = ts
+
     //queries
     ds.log("queries")
     val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold)) {
       println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
-      ds.queries(strat, run, fold, binaf, zscof)
+      ds.queries(strat, run, fold, null, null)
     } else ds.writeQueries(strat, run, fold, Int.MaxValue)
 
     //hits

@@ -24,7 +24,7 @@ import ml.Pattern
 import ml.classifiers.Learner
 
 trait StratsTrait {
-  def agnosticAndSVMStrats(pool: Seq[Pattern]) = List[Strategy](
+  def stratsFilterFreeSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
     RandomSampling(pool),
     ClusterBased(pool),
     SVMmulti(pool, "SELF_CONF"),
@@ -33,21 +33,24 @@ trait StratsTrait {
     SVMmulti(pool, "SIMPLE")
   )
 
-  def learnerDependentStrats(pool: Seq[Pattern], learner: Learner) = List[Strategy](
+  def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
     Uncertainty(learner, pool),
     Entropy(learner, pool),
     Margin(learner, pool),
     DensityWeighted(learner, pool, 1, "eucl"),
     DensityWeightedTrainingUtility(learner, pool, "cheb"),
     DensityWeightedTrainingUtility(learner, pool, "eucl"),
-    DensityWeightedTrainingUtility(learner, pool, "maha"),
     DensityWeightedTrainingUtility(learner, pool, "manh"),
-    MahalaWeightedTrainingUtility(learner, pool, 1, 1),
     ExpErrorReductionMargin(learner, pool, "entropy"),
     ExpErrorReductionMargin(learner, pool, "gmeans+residual"),
     ExpErrorReductionMargin(learner, pool, "accuracy"),
     new SGmulti(learner, pool, "consensus"),
     new SGmulti(learner, pool, "majority"),
     new SGmultiJS(learner, pool)
+  )
+
+  def stratsFilterDependentComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
+    DensityWeightedTrainingUtility(learner, pool, "maha"),
+    MahalaWeightedTrainingUtility(learner, pool, 1, 1)
   )
 }

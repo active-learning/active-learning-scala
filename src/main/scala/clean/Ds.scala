@@ -335,7 +335,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   }
 
   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
-    val pid = poolId(sid, learner, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
+    val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
     s"insert into r values (${measure.id}, $pid, $value)"
   }
 
