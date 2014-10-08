@@ -29,7 +29,7 @@ import scala.collection.mutable
 
 object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
   val context = "meaApp"
-  val arguments = superArguments
+  val arguments = superArguments ++ List("medida:alca|alcg")
   val ignoreNotDone = false
   val sqls = mutable.Queue[String]()
   run()
@@ -54,6 +54,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
   }
 
   def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int)(learner: Learner): Unit = {
+    log(s"$strat $learner $run $fold")
     if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) error(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
     else ds.getMeasure(measure, strat, learner, run, fold) match {
       case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
@@ -73,6 +74,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
   def datasetFinished(ds: Ds) {
     ds.batchWrite(sqls.toList)
     ds.log("fim deste")
+    sqls.clear()
   }
 
   def isAlreadyDone(ds: Ds) = {
