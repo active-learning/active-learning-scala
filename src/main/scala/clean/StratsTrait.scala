@@ -26,12 +26,13 @@ import ml.classifiers.Learner
 trait StratsTrait {
   def stratsFilterFreeSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
     RandomSampling(pool),
-    ClusterBased(pool),
-    SVMmulti(pool, "SELF_CONF")
+    ClusterBased(pool)
+    ,
+    //    SVMmulti(pool, "SELF_CONF")
     //    ,
     //    SVMmulti(pool, "KFF"),
     //    SVMmulti(pool, "BALANCED_EE"),
-    //    SVMmulti(pool, "SIMPLE")
+    SVMmulti(pool, "SIMPLE")
   )
 
   def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
