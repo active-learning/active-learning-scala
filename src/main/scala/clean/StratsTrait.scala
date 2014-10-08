@@ -21,9 +21,15 @@ package clean
 
 import al.strategies._
 import ml.Pattern
-import ml.classifiers.Learner
+import ml.classifiers.{NoLearner, Learner}
 
 trait StratsTrait {
+  def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsFilterFreeSemLearnerExterno(pool) ++ stratsFilterFreeComLearnerExterno(pool, learner) ++ stratsFilterDependentComLearnerExterno(pool, learner)
+
+  def stratcomLearnerExterno(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsFilterFreeComLearnerExterno(pool, learner) ++ stratsFilterDependentComLearnerExterno(pool, learner)
+
+  def stratsemLearnerExterno(pool: Seq[Pattern] = Seq()) = stratsFilterFreeSemLearnerExterno(pool)
+
   def stratsFilterFreeSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
     RandomSampling(pool),
     ClusterBased(pool)

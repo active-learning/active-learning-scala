@@ -20,14 +20,14 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import al.strategies._
-import clean.{LearnerTrait, AppWithUsage, Ds}
+import clean.{StratsTrait, LearnerTrait, AppWithUsage, Ds}
 import ml.Pattern
 import ml.classifiers.Learner
 import util.{Stat, StatTests}
 
-object tex extends AppWithUsage with LearnerTrait {
+object tab extends AppWithUsage with LearnerTrait with StratsTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "medida:alca|alcg")
-  val context = "tex"
+  val context = "tabtex"
   run()
 
   override def run() = {
@@ -37,7 +37,7 @@ object tex extends AppWithUsage with LearnerTrait {
       ds.open()
       val ms = for {
         l <- learners(learnersStr)
-        s <- strats(l)
+        s <- allStrats()
       } yield {
         val vs = for {
           r <- 0 until runs
@@ -57,29 +57,4 @@ object tex extends AppWithUsage with LearnerTrait {
     StatTests.extensiveTable2(res.toSeq, (1 to res.head._2.size).toVector.map(_.toString), "nome", "meas")
     justQuit("Datasets prontos.")
   }
-
-  def strats(learner: Learner, pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List(
-    RandomSampling(pool),
-    ClusterBased(pool),
-    Uncertainty(learner, pool),
-    Entropy(learner, pool),
-    Margin(learner, pool),
-    DensityWeighted(learner, pool, 1, "eucl"),
-    DensityWeightedTrainingUtility(learner, pool, "cheb"),
-    DensityWeightedTrainingUtility(learner, pool, "eucl"),
-    DensityWeightedTrainingUtility(learner, pool, "maha"),
-    DensityWeightedTrainingUtility(learner, pool, "manh"),
-    MahalaWeightedTrainingUtility(learner, pool, 1, 1),
-    ExpErrorReductionMargin(learner, pool, "entropy"),
-    ExpErrorReductionMargin(learner, pool, "gmeans+residual"),
-    ExpErrorReductionMargin(learner, pool, "accuracy"),
-    new SGmulti(learner, pool, "consensus"),
-    new SGmulti(learner, pool, "majority"),
-    new SGmultiJS(learner, pool)
-    //    ,
-    //    SVMmulti(pool, "SELF_CONF"),
-    //    SVMmulti(pool, "KFF"),
-    //    SVMmulti(pool, "BALANCED_EE"),
-    //    SVMmulti(pool, "SIMPLE")
-  )
 }
