@@ -91,20 +91,29 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }")
   }
 
-  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int): Option[Int] = poolId(strat.id, learner, run, fold)
+  private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int): Option[Int] = poolId(strat.id, learner.id, run, fold)
 
-  private def poolId(idStrat: Int, learner: Learner, run: Int, fold: Int) =
-    read(s"SELECT id FROM p WHERE s=$idStrat and l=${learner.id} and r=$run and f=$fold") match {
+  //  private def poolId(idStrat: Int, learner: Learner, run: Int, fold: Int) =
+  //    read(s"SELECT id FROM p WHERE s=$idStrat and l=${learner.id} and r=$run and f=$fold") match {
+  //      case List() => None
+  //      case List(seq) => Some(seq.head.toInt)
+  //    }
+  //
+  private def poolId(idStrat: Int, lid: Int, run: Int, fold: Int) =
+    read(s"SELECT id FROM p WHERE s=$idStrat and l=$lid and r=$run and f=$fold") match {
       case List() => None
       case List(seq) => Some(seq.head.toInt)
     }
 
   def isQCalculated = fetchQ().nonEmpty
 
-  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int) =
-    poolId(strat, strat.learner, run, fold) match {
+  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int): Boolean =
+    areQueriesFinished(poolSize, strat.id, strat.learner.id, run, fold)
+
+  def areQueriesFinished(poolSize: Int, sid: Int, lid: Int, run: Int, fold: Int): Boolean =
+    poolId(sid, lid, run, fold) match {
       case None =>
-        log(s"No queries: no pid found for $strat/${strat.learner} $run.$fold .")
+        log(s"No queries: no pid found for $sid/$lid $run.$fold .")
         false
       case Some(pid) =>
         val PoolSize = poolSize
@@ -113,7 +122,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           case List() => error(s"Inconsistency: there is a pool $pid for no queries!")
         }
         if (qs != lastT + 1) error(s"Inconsistency: $qs queries differs from last timeStep+1 ${lastT + 1}")
-        strat.id match {
+        sid match {
           case x if x == 0 => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries!")
             case PoolSize => true
