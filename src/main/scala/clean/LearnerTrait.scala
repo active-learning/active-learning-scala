@@ -31,6 +31,7 @@ trait LearnerTrait {
 
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
     case "nb" => NB()
+    case "nbb" => NBBatch()
     case "5nn" => KNNBatch(5, "eucl", pool, weighted = true)
     case "c45" => C45()
     case "vfdt" => VFDT()
@@ -39,6 +40,7 @@ trait LearnerTrait {
     case "i" => IELM(learnerSeed)
     case "ei" => EIELM(learnerSeed)
     case "intera" => interaELM(learnerSeed)
+    case "nintera" => ninteraELM(learnerSeed)
     case "svm" => SVMLib(learnerSeed)
 
     //      case "NBz" => NB("")
@@ -59,16 +61,18 @@ trait LearnerTrait {
   def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    NB(),
-    KNNBatch(5, "eucl", pool, weighted = true),
-    VFDT(),
-    SVMLib(learnerSeed)
-    //      C45()
+    //    NB(),
+    //    KNNBatch(5, "eucl", pool, weighted = true),
+    //    VFDT(),
+    //    SVMLib(learnerSeed),
+    C45()
+    ,
+    NBBatch()
   )
 
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-    IELM(learnerSeed),
-    interaELM(learnerSeed),
+    //    IELM(learnerSeed),
+    //    interaELM(learnerSeed),
     ninteraELM(learnerSeed)
     //  ,
     //      CIELM(learnerSeed)
