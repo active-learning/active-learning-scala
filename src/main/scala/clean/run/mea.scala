@@ -40,13 +40,13 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
     if (!ds.isQCalculated) error(s"Q is not calculated!")
     else {
       stratsemLearnerExterno() foreach { strat =>
-        if (!ds.areQueriesFinished(pool.size, strat, run, fold)) error(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+        if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
         else if (strat.id >= 17 && strat.id <= 20) storeSQL(pool.size, ds, strat, run, fold)(SVMLib())
         else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold)
       }
       allLearners() foreach { learner =>
         stratcomLearnerExterno(learner) foreach { strat =>
-          if (!ds.areQueriesFinished(pool.size, strat, run, fold)) error(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+          if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
           else storeSQL(pool.size, ds, strat, run, fold)(learner)
         }
       }
@@ -55,12 +55,12 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
 
   def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int)(learner: Learner): Unit = {
     log(s"$strat $learner $run $fold")
-    if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) error(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
+    if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) justQuit(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
     else ds.getMeasure(measure, strat, learner, run, fold) match {
       case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
       case None =>
         val cms = ds.getCMs(strat, learner, run, fold).take(ds.Q - ds.nclasses + 1)
-        if (cms.size != ds.Q - ds.nclasses + 1) error(s"Couldn't take ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
+        if (cms.size != ds.Q - ds.nclasses + 1) ds.quit(s"Couldn't take ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
         val total = cms.foldLeft(0) { (sum, cm) =>
           sum + contaTotal(cm)
         }

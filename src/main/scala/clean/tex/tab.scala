@@ -31,6 +31,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
   run()
 
   override def run() = {
+    ???
     super.run()
     val res = datasets map { dataset =>
       val ds = Ds(path, dataset)
