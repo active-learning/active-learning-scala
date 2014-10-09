@@ -24,7 +24,7 @@ import ml.Pattern
 import ml.classifiers.{NoLearner, Learner}
 
 trait StratsTrait {
-  def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsFilterFreeSemLearnerExterno(pool) ++ stratsFilterFreeComLearnerExterno(pool, learner) ++ stratsFilterDependentComLearnerExterno(pool, learner)
+  def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)
 
   def stratcomLearnerExterno(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsFilterFreeComLearnerExterno(pool, learner) ++ stratsFilterDependentComLearnerExterno(pool, learner)
 

@@ -19,43 +19,62 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import al.strategies._
-import clean.{StratsTrait, LearnerTrait, AppWithUsage, Ds}
-import ml.Pattern
-import ml.classifiers.Learner
+import clean.{AppWithUsage, Ds, LearnerTrait, StratsTrait}
+import ml.classifiers.SVMLib
 import util.{Stat, StatTests}
+
+import scala.collection.mutable
 
 object tab extends AppWithUsage with LearnerTrait with StratsTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "medida:alca|alcg")
   val context = "tabtex"
+  val sl = mutable.LinkedHashSet[String]()
   run()
 
   override def run() = {
-    ???
     super.run()
     val res = datasets map { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
       val ms = for {
-        l <- learners(learnersStr)
         s <- allStrats()
       } yield {
-        val vs = for {
-          r <- 0 until runs
-          f <- 0 until folds
-        } yield {
-          ds.getMeasure(measure, s, l, r, f) match {
-            case Some(v) => v
-            case None => justQuit(s"No measure for ${(measure, s, l, r, f)}!")
+        if (s.id >= 17 && s.id <= 20) {
+          val learner = SVMLib()
+          sl += s"${s.abr} ${learner.toString.take(2)}"
+          val vs = for {
+            r <- 0 until runs
+            f <- 0 until folds
+          } yield {
+            ds.getMeasure(measure, s, learner, r, f) match {
+              case Some(v) => v
+              case None => ds.quit(s"No measure for ${(measure, s, learner, r, f)}!")
+            }
+          }
+          Seq(Stat.media_desvioPadrao(vs.toVector))
+        } else {
+          learners(learnersStr) map { l =>
+            sl += s"${s.abr} ${l.toString.take(2)}"
+            val vs = for {
+              r <- 0 until runs
+              f <- 0 until folds
+            } yield {
+              ds.getMeasure(measure, s, l, r, f) match {
+                case Some(v) => v
+                case None => ds.quit(s"No measure for ${(measure, s, l, r, f)}!")
+              }
+            }
+            Stat.media_desvioPadrao(vs.toVector)
           }
         }
-        //        s.id + " " + l.id
-        Stat.media_desvioPadrao(vs.toVector)
       }
       ds.close()
-      ds.dataset -> ms
+      ds.dataset -> ms.flatten
     }
-    StatTests.extensiveTable2(res.toSeq, (1 to res.head._2.size).toVector.map(_.toString), "nome", "meas")
+    println(s"")
+    println(s"")
+    println(s"")
+    StatTests.extensiveTable2(res.toSeq.map(x => x._1.take(3) + x._1.takeRight(3) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
     justQuit("Datasets prontos.")
   }
 }
