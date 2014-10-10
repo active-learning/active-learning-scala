@@ -21,7 +21,7 @@ import scala.collection.mutable
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object StatTests {
-  def f(x: Double) = "%4.3f".format(x)
+  def f(x: Double) = if (0 <= x && x <= 1) "%4.3f".format(x) else if (x == -1) "" else x.toInt.toString
 
   /**
    * Takes a map DatasetName -> strategyMeasuresTheHigherTheBetter
@@ -87,13 +87,18 @@ object StatTests {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l0), i) =>
       val l = l0 map (x => (x._1 * 1000).round / 1000d -> (x._2 * 1000).round / 1000d)
-      val max = l.maxBy(_._1)._1
-      val dmax = l.maxBy(_._2)._2
+      val max = l.map(_._1).filter(x => x >= 0 && x <= 1).max
+      val Dmax = l.map(_._2).filter(x => x >= 0 && x <= 1).max
+      val Dmin = l.map(_._2).filter(x => x >= 0 && x <= 1).min
       val vals = l.map { case (x1f, x2f) =>
         val x1 = f(x1f)
         val x2 = f(x2f)
         val str = if (x1f == max) s"\\textcolor{blue}{\\textbf{$x1}}" else s"$x1" // \\usepackage[usenames,dvipsnames]{color}
-        str + "/" + (if (x2f == dmax) s"\\textcolor{red}{\\textbf{$x2}}" else s"$x2")
+        str + (if (x1f != -1 && x2f != -1) "/" else "") + (x2f match {
+          case Dmin => s"\\textcolor{green}{\\textbf{$x2}}"
+          case Dmax => s"\\textcolor{red}{\\textbf{$x2}}"
+          case _ => s"$x2"
+        })
       }.mkString(" & ")
       s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
     }.mkString("\n")

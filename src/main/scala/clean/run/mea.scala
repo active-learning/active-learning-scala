@@ -34,7 +34,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
   val sqls = mutable.Queue[String]()
   run()
 
-  def calculate(cms: List[Array[Array[Int]]], total: Int) = measure.calc(cms, total)
+  def calculate(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = measure.calc(ds, cms, tsSize)
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
     if (!ds.isQCalculated) error(s"Q is not calculated!")
@@ -61,10 +61,12 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
       case None =>
         val cms = ds.getCMs(strat, learner, run, fold).take(ds.Q - ds.nclasses + 1)
         if (cms.size != ds.Q - ds.nclasses + 1) ds.quit(s"Couldn't take ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
-        val total = cms.foldLeft(0) { (sum, cm) =>
+        val total = cms.values.foldLeft(0) { (sum, cm) =>
           sum + contaTotal(cm)
         }
-        val v = calculate(cms, total)
+        val tsSize = contaTotal(cms.head._2)
+        if (total.toDouble / tsSize != cms.size) ds.error("problems!")
+        val v = calculate(ds, cms, tsSize)
         acquire()
         sqls += ds.measureToSQL(measure, v, strat.id, learner, run, fold)
         release()

@@ -1,6 +1,6 @@
 package clean
 
-import clean.res.{ALCgmeans, ALCacc}
+import clean.res.{accAtQ, ALCgmeans, ALCacc}
 
 /*
 active-learning-scala: Active Learning library for Scala
@@ -37,6 +37,7 @@ trait AppWithUsage extends App with Log with ArgParser {
   lazy val measure = args.last match {
     case "alca" => ALCacc()
     case "alcg" => ALCgmeans()
+    case "aatq" => accAtQ()
   }
   val memlimit = Global.memlimit
 

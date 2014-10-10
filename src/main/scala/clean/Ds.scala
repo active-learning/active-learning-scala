@@ -27,6 +27,7 @@ import weka.experiment.InstanceQuerySQLite
 import weka.filters.Filter
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 /**
  * Cada instancia desta classe representa um ML dataset.
@@ -41,6 +42,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val r = fetchQ()
     if (r.isEmpty) error("Q not found.") else r.head.toInt
   }
+  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
@@ -222,8 +224,9 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int) = poolId(strat, learner, run, fold) match {
     case None => error("Attempt to get hits without an existent related pid.")
     case Some(pid) =>
-      val cms = readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t").map {
-        case (b, t) => blobToConfusion(b, nclasses)
+      val cms = mutable.LinkedHashMap[Int, Array[Array[Int]]]()
+      readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t") foreach {
+        case (b, t) => cms += t -> blobToConfusion(b, nclasses)
       }
       val numberOfQueriesNeeded = if (strat.id == 0 && learner.id < 4) countQueries(strat, run, fold) else Q
       val expectedCms = numberOfQueriesNeeded - nclasses + 1
