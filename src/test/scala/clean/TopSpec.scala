@@ -108,7 +108,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
             }
 
             val c1 = hitses.flatten.flatten.toList
-            val c2 = dsHits.flatten.flatten.toList
+            val c2 = dsHits.values.flatten.flatten.toList
             acquire()
             asserts.enqueue(() => s"$dataset rnd strat fold $fold" should s"write/read $learner hits fold $fold" in {
               assertResult(c1)(c2)
@@ -178,7 +178,7 @@ class TopSpec extends UnitSpec with Blob with Lock {
               ds.writeHits(pool.size, testSet, dsQueries.toVector, strategy, run, fold)(strategy.learner)
               val dsHits = ds.getCMs(strategy, strategy.learner, run, fold)
 
-              val f1 = hitses.flatten.flatten.sameElements(dsHits.flatten.flatten)
+              val f1 = hitses.flatten.flatten.sameElements(dsHits.values.flatten.flatten)
 
               //            if (!f1) {
               //              hitses.toList.zip(dsHits.toList).toList filter (x => !x._1.flatten.sameElements(x._2.flatten.toSeq)) foreach { x =>

@@ -36,6 +36,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
     val res = datasets map { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
+      sl += s"Q/N"
+      sl += s"\\%maj"
       val ms = for {
         s <- allStrats()
       } yield {
@@ -68,8 +70,9 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
           }
         }
       }
+      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj * 100, -1d)) ++ ms.flatten)
       ds.close()
-      ds.dataset -> ms.flatten
+      res
     }
     println(s"")
     println(s"")

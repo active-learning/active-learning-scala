@@ -19,7 +19,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.res
 
-import clean.CM
+import clean.{Ds, CM}
+
+import scala.collection.mutable
 
 /**
  * Q measure id = 0
@@ -27,71 +29,71 @@ import clean.CM
 trait Measure {
   val id: Int
 
-  def calc(cms: List[Array[Array[Int]]], total: Int): Double
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
 
 case class ALCacc() extends Measure with CM {
   val id = 1
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
-    val acertos = cms.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
-    acertos.toDouble / total
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+    val acertos = cms.values.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
+    acertos.toDouble / (tsSize * cms.size)
   }
 }
 
-case class ALCgmeans() extends Measure {
+case class ALCgmeans() extends Measure() {
   val id = 2
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class ALCaccSD() extends Measure {
+case class ALCaccSD() extends Measure() {
   val id = 3
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class ALCgmeansSD() extends Measure {
+case class ALCgmeansSD() extends Measure() {
   val id = 4
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
 
-case class costToReachPassiveacc() extends Measure {
+case class costToReachPassiveacc() extends Measure() {
   val id = 5
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class costToReachPassivegmeans() extends Measure {
+case class costToReachPassivegmeans() extends Measure() {
   val id = 6
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class costToReachPassiveaccSD() extends Measure {
+case class costToReachPassiveaccSD() extends Measure() {
   val id = 7
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class costToReachPassivegmeansSD() extends Measure {
+case class costToReachPassivegmeansSD() extends Measure() {
   val id = 8
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
@@ -100,50 +102,53 @@ case class costToReachPassivegmeansSD() extends Measure {
 /**
  * timeToQuery will need extra exp and db table.
  */
-case class timeToQuery() extends Measure {
+case class timeToQuery() extends Measure() {
   val id = 9
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class timeToQuerySD() extends Measure {
+case class timeToQuerySD() extends Measure() {
   val id = 10
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class accAtQ() extends Measure {
+case class accAtQ() extends Measure() with CM {
   val id = 11
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
-    ???
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+    if (ds.Q - ds.nclasses + 1 != cms.size) ds.error(s"${ds.Q - ds.nclasses + 1} differs from ${cms.size}")
+    if (cms.last._1 != ds.Q - 1) ds.error(s"${cms.last._1} differs from ${ds.Q - 1}")
+    val acertos = contaAcertos(cms.last._2)
+    acertos.toDouble / tsSize
   }
 }
 
-case class gmeansAtQ() extends Measure {
+case class gmeansAtQ() extends Measure() {
   val id = 12
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class accAtQSD() extends Measure {
+case class accAtQSD() extends Measure() {
   val id = 13
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
 
-case class gmeansAtQSD() extends Measure {
+case class gmeansAtQSD() extends Measure() {
   val id = 14
 
-  def calc(cms: List[Array[Array[Int]]], total: Int) = {
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
   }
 }
