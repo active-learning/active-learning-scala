@@ -64,16 +64,17 @@ trait LearnerTrait {
     //    NB(),
     //    KNNBatch(5, "eucl", pool, weighted = true),
     //    VFDT(),
-    //    SVMLib(learnerSeed),
-    C45()
-    ,
-    NBBatch()
+    SVMLib(learnerSeed)
+    //    ,
+    //    C45()
+    //    ,
+    //    NBBatch()
   )
 
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
     //    IELM(learnerSeed),
     //    interaELM(learnerSeed),
-    ninteraELM(learnerSeed)
+    //    ninteraELM(learnerSeed)
     //  ,
     //      CIELM(learnerSeed)
     //    , ECIELM(learnerSeed)
