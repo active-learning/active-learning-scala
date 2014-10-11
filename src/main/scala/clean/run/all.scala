@@ -32,8 +32,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
   run()
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-    if (!ds.isQCalculated) error(s"Q is not calculated!")
-    else {
+    if (!ds.isQCalculated) ds.calculaQ(runs, folds)
       //rnd clu svm / lff lfd
       stratsFilterFreeSemLearnerExterno(pool).zip(stratsFilterFreeSemLearnerExterno(fpool)) foreach { case (strat, fstrat) =>
         ds.log(s"$strat ...")
@@ -115,7 +114,6 @@ object all extends Exp with LearnerTrait with StratsTrait {
           else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold)(flearner)
           ds.log(s"$fstrat ok.")
         }
-      }
     }
   }
 

@@ -204,11 +204,17 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       }
       if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected (|Y|=$nclasses)!")
 
-      //get and write smallest time step with maximum accuracy
+      //get and write highest time step with maximum accuracy
       val maxAcc = hits_t.map(_._1).max
-      val firstTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
-      val qToWrite = math.max(firstTAtMaxAcc, nclasses + 2)
+      val lastTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).last._2
+      val qToWrite = math.max(lastTAtMaxAcc, nclasses + 2)
       write(s"INSERT INTO r values (0, -1, $qToWrite)")
+
+      //      //get and write smallest time step with maximum accuracy
+      //      val maxAcc = hits_t.map(_._1).max
+      //      val firstTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
+      //      val qToWrite = math.max(firstTAtMaxAcc, nclasses + 2)
+      //      write(s"INSERT INTO r values (0, -1, $qToWrite)")
     }
   }
 
