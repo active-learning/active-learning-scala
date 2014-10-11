@@ -37,7 +37,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
   def calculate(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = measure.calc(ds, cms, tsSize)
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-    if (!ds.isQCalculated) error(s"Q is not calculated!")
+    if (!ds.isQCalculated) ds.error(s"Q is not calculated!")
     else {
       stratsemLearnerExterno() foreach { strat =>
         if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
@@ -55,7 +55,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
 
   def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int)(learner: Learner): Unit = {
     log(s"$strat $learner $run $fold")
-    if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) justQuit(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
+    if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) ds.quit(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
     else ds.getMeasure(measure, strat, learner, run, fold) match {
       case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
       case None =>
