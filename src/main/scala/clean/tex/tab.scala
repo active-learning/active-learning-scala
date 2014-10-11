@@ -37,7 +37,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       val ds = Ds(path, dataset)
       ds.open()
       sl += s"Q/N"
-      sl += s"\\%maj"
+      //      sl += s"maj"
+      //      sl += s"pas"
       val ms = for {
         s <- allStrats()
       } yield {
@@ -48,7 +49,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
             r <- 0 until runs
             f <- 0 until folds
           } yield {
-            ds.getMeasure(measure, s, learner, r, f) match {
+            if (measure.id == 0) -1
+            else ds.getMeasure(measure, s, learner, r, f) match {
               case Some(v) => v
               case None => ds.quit(s"No measure for ${(measure, s, learner, r, f)}!")
             }
@@ -61,7 +63,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
               r <- 0 until runs
               f <- 0 until folds
             } yield {
-              ds.getMeasure(measure, s, l, r, f) match {
+              if (measure.id == 0) -1
+              else ds.getMeasure(measure, s, l, r, f) match {
                 case Some(v) => v
                 case None => ds.quit(s"No measure for ${(measure, s, l, r, f)}!")
               }
@@ -70,7 +73,9 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
           }
         }
       }
-      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj * 100, -1d)) ++ ms.flatten)
+      //      val (pasv, pasd) = ds.passiveAcc(SVMLib())
+      //      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj, -1d), (pasv, pasd)) ++ ms.flatten)
+      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)
       ds.close()
       res
     }

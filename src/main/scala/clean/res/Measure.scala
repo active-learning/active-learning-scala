@@ -32,6 +32,12 @@ trait Measure {
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
 
+case class Q() extends Measure() {
+  val id = 0
+
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = ds.Q
+}
+
 case class ALCacc() extends Measure with CM {
   val id = 1
 

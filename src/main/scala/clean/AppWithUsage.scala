@@ -1,6 +1,6 @@
 package clean
 
-import clean.res.{accAtQ, ALCgmeans, ALCacc}
+import clean.res.{Q, accAtQ, ALCgmeans, ALCacc}
 
 /*
 active-learning-scala: Active Learning library for Scala
@@ -35,6 +35,7 @@ trait AppWithUsage extends App with Log with ArgParser {
   lazy val learnerStr = if (args.size < 5) "learner-undefined" else args(4)
   lazy val learnersStr = if (args.size < 5) Array("learners-undefined") else args(4).split(",")
   lazy val measure = args.last match {
+    case "q" => Q()
     case "alca" => ALCacc()
     case "alcg" => ALCgmeans()
     case "aatq" => accAtQ()

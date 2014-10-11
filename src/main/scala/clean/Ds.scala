@@ -20,9 +20,9 @@ package clean
 
 import al.strategies._
 import clean.res.Measure
-import ml.classifiers.{Learner, NoLearner}
+import ml.classifiers.{SVMLib, Learner, NoLearner}
 import ml.{Pattern, PatternParent}
-import util.Datasets
+import util.{Stat, Datasets}
 import weka.experiment.InstanceQuerySQLite
 import weka.filters.Filter
 
@@ -43,6 +43,13 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     if (r.isEmpty) error("Q not found.") else r.head.toInt
   }
   lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
+
+  def passiveAcc(learner: Learner) = {
+    val accs = Datasets.kfoldCV(patterns, 5, parallel = true) { (tr, ts, r, m) =>
+      learner.build(tr).accuracy(ts)
+    }
+    Stat.media_desvioPadrao(accs.toVector)
+  }
 
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
