@@ -39,7 +39,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
         ds.log(s"$strat ...")
         //queries
         val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold)) {
-          println(s"agnSVM Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
+          println(s"agn and SVM Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
           ds.queries(strat, run, fold, null, null)
         } else ds.writeQueries(strat, run, fold, ds.Q)
         val fqueries = ds.queries(fstrat, run, fold, binaf, zscof)
