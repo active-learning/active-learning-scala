@@ -31,7 +31,7 @@ object sql extends AppWithUsage {
     datasets foreach { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
-      if (sql.startsWith("insert") || sql.startsWith("update") || sql.startsWith("delete")) ds.write(sql)
+      if (sql.startsWith("insert") || sql.startsWith("update") || sql.startsWith("delete") || sql.startsWith("vacuum") || sql.startsWith(".pragma")) ds.write(sql)
       else println(s"${ds.read(sql)}")
       ds.close()
     }
