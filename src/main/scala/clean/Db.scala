@@ -150,6 +150,26 @@ class Db(val database: String) extends Log with Lock {
     } finally release()
   }
 
+  def readBlobs4(sql: String) = {
+    test(sql)
+    log(s"[$sql]")
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      val queue = collection.mutable.Queue[(Array[Byte], Int, Int, Int)]()
+      while (resultSet.next()) {
+        val bytes = resultSet.getBytes(1)
+        queue.enqueue((bytes, resultSet.getInt(2), resultSet.getInt(3), resultSet.getInt(4)))
+      }
+      resultSet.close()
+      statement.close()
+      queue.toList
+    } catch {
+      case e: Throwable => e.printStackTrace()
+        error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
+    } finally release()
+  }
+
   def writeBlob(sql: String, data: Array[Byte]) {
     test(sql)
     log(s"[$sql]")

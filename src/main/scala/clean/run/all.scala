@@ -19,23 +19,18 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import al.strategies.{Strategy, StrategyAgnostic}
 import clean._
 import ml.Pattern
 import ml.classifiers.SVMLib
 import weka.filters.Filter
 
-object all extends Exp with LearnerTrait with StratsTrait with Lock {
+object all extends Exp with LearnerTrait with StratsTrait {
   val context = "allApp"
   val arguments = superArguments
   val ignoreNotDone = false
   run()
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-    acquire()
-    if (!ds.isQCalculated) ds.calculaQ(runs, folds)
-    release()
-
     //rnd clu svm / lff lfd
     stratsFilterFreeSemLearnerExterno(pool).zip(stratsFilterFreeSemLearnerExterno(fpool)) foreach { case (strat, fstrat) =>
       ds.log(s"$strat ...")
