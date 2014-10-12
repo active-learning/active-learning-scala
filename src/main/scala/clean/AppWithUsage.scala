@@ -1,6 +1,7 @@
 package clean
 
-import clean.res.{Q, accAtQ, ALCgmeans, ALCacc}
+import clean.res._
+import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.AttributedQName
 
 /*
 active-learning-scala: Active Learning library for Scala
@@ -39,6 +40,7 @@ trait AppWithUsage extends App with Log with ArgParser {
     case "alca" => ALCacc()
     case "alcg" => ALCgmeans()
     case "aatq" => accAtQ()
+    case "gatq" => gmeansAtQ()
   }
   val memlimit = Global.memlimit
 

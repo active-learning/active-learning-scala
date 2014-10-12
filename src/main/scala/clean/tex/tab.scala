@@ -82,7 +82,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
     println(s"")
     println(s"")
     println(s"")
-    val tbs = res.grouped(61)
+    val tbs = res.sortBy(_._2.head._1) grouped (61)
     tbs foreach { case res0 =>
       StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(3) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
     }
