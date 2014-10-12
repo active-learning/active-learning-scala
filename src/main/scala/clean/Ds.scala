@@ -186,35 +186,27 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       }
     }
 
+  /**
+   * Q = moda dos 25 ts de accmax do melhor classificador
+   */
   def calculaQ(runs: Int, folds: Int, n: Int = n) {
     if (isQCalculated) quit("Q already calculated!")
     else {
-      //get pool ids
-      val numberOfLearners = 3
-      val numberOfPools = runs * folds * numberOfLearners
-      println(s"$n ")
-      val numberOfConfMats = n * (runs * (folds - 1)) * numberOfLearners - (nclasses - 1) * numberOfPools
-      val poolIds = read("SELECT id FROM p WHERE s=0 AND l IN (1,2,3)").map(_.head)
-      if (numberOfPools != poolIds.size) error(s"${poolIds.size} found, $numberOfPools expected!")
-
-      //get conf. mats and create map hits->timeStep
-      val hits_t = readBlobs(s"select mat,t from h WHERE p IN (${poolIds.mkString(",")}) ORDER BY t").map {
-        case (b, t) =>
-          contaAcertos(blobToConfusion(b, nclasses)) -> t
+      val mediana_selectedMax_s = 1 to 3 map { l =>
+        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
+          (r, f) ->(contaAcertos(blobToConfusion(b, nclasses)), t)
+        }.groupBy(_._1).map(_._2.map(_._2))
+        val t_max_s = grpByPool.map { pool =>
+          val max = pool.maxBy(_._1)._1
+          val maxs = pool.filter(_._1 == max)
+          val t = maxs.minBy(_._2)._2
+          (t, max)
+        }.toSeq
+        t_max_s.sortBy(_._1).get(t_max_s.size / 2)
       }
-      if (numberOfConfMats != hits_t.size) error(s"${hits_t.size} found, $numberOfConfMats expected (|Y|=$nclasses)!")
 
-      //get and write highest time step with maximum accuracy
-      val maxAcc = hits_t.map(_._1).max
-      val lastTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).last._2
-      val qToWrite = math.max(lastTAtMaxAcc, nclasses + 2)
-      write(s"INSERT INTO r values (0, -1, $qToWrite)")
-
-      //      //get and write smallest time step with maximum accuracy
-      //      val maxAcc = hits_t.map(_._1).max
-      //      val firstTAtMaxAcc = hits_t.filter(_._1 == maxAcc).sortBy(_._2).head._2
-      //      val qToWrite = math.max(firstTAtMaxAcc, nclasses + 2)
-      //      write(s"INSERT INTO r values (0, -1, $qToWrite)")
+      //seleciona mediana do melhor learner
+      mediana_selectedMax_s.maxBy(_._2)._1
     }
   }
 
