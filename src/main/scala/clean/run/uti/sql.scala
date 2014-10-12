@@ -31,8 +31,10 @@ object sql extends AppWithUsage {
     datasets foreach { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
-      if (sql.startsWith("insert") || sql.startsWith("update") || sql.startsWith("delete") || sql.startsWith("vacuum") || sql.startsWith(".pragma")) ds.write(sql)
-      else println(s"${ds.read(sql)}")
+      sql.split(";").foreach { sq =>
+        if (sq.startsWith("insert") || sq.startsWith("update") || sq.startsWith("delete") || sq.startsWith("vacuum") || sq.startsWith(".pragma")) ds.write(sq)
+        else println(s"${ds.read(sq)}")
+      }
       ds.close()
     }
     justQuit("Datasets prontos.")
