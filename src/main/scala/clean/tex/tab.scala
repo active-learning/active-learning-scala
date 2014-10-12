@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.{AppWithUsage, Ds, LearnerTrait, StratsTrait}
-import ml.classifiers.SVMLib
+import ml.classifiers.{NB, SVMLib}
 import util.{Stat, StatTests}
 
 import scala.collection.mutable
@@ -37,8 +37,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       val ds = Ds(path, dataset)
       ds.open()
       sl += s"Q/N"
-      //      sl += s"maj"
-      //      sl += s"pas"
+      sl += s"maj"
+      sl += s"pas"
       val ms = for {
         s <- allStrats()
       } yield {
@@ -73,16 +73,19 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
           }
         }
       }
-      //      val (pasv, pasd) = ds.passiveAcc(SVMLib())
-      //      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj, -1d), (pasv, pasd)) ++ ms.flatten)
-      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)
+      val (pasv, pasd) = ds.passiveAcc(NB())
+      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj, -1d), (pasv, pasd)) ++ ms.flatten)
+      //      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)
       ds.close()
       res
     }
     println(s"")
     println(s"")
     println(s"")
-    StatTests.extensiveTable2(res.toSeq.map(x => x._1.take(3) + x._1.takeRight(3) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+    val tbs = res.grouped(61)
+    tbs foreach { case res0 =>
+      StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(3) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+    }
     justQuit("Datasets prontos.")
   }
 }

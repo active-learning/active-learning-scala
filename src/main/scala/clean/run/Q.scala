@@ -36,26 +36,18 @@ object Q extends Exp {
   def isAlreadyDone(ds: Ds) = ds.isQCalculated
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-    ???
-    val tr = Seq()
-    val ts = Seq()
-    val strat = RandomSampling(tr)
-    ???
-    val pool = tr
-    val testSet = ts
-
     //queries
     ds.log("queries")
-    val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold)) {
-      println(s"Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
-      ds.queries(strat, run, fold, null, null)
-    } else ds.writeQueries(strat, run, fold, Int.MaxValue)
+    val queries = if (ds.areQueriesFinished(pool.size, RandomSampling(pool), run, fold)) {
+      println(s"Queries already done for rnd at pool $run.$fold. Retrieving from disk.")
+      ds.queries(RandomSampling(pool), run, fold, null, null)
+    } else ds.writeQueries(RandomSampling(pool), run, fold, Int.MaxValue)
 
     //hits
     ds.log("hits")
     Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()) foreach { learner =>
-      if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
-      else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
+      if (ds.areHitsFinished(pool.size, RandomSampling(pool), learner, run, fold)) println(s"Hits already done for rnd/$learner at pool $run.$fold.")
+      else ds.writeHits(pool.size, testSet, queries.toVector, RandomSampling(pool), run, fold)(learner)
     }
   }
 

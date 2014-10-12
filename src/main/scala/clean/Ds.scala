@@ -133,14 +133,14 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         if (qs != lastT + 1) error(s"Inconsistency: $qs queries differs from last timeStep+1 ${lastT + 1}")
         sid match {
           case x if x == 0 => qs match {
-            case 0 => error(s"Inconsistency: there is a pool $pid for no queries!")
+            case 0 => error(s"Inconsistency: there is a pool $pid for no queries! l:$lid")
             case PoolSize => true
-            case _ => error(s"$qs previous rnd queries should be $PoolSize")
+            case _ => error(s"$qs previous rnd queries should be $PoolSize.  l:$lid")
           }
           case _ => qs match {
-            case 0 => error(s"Inconsistency: there is a pool $pid for no queries!")
+            case 0 => error(s"Inconsistency: there is a pool $pid for no queries!  l:$lid  s:$sid")
             case Q => true
-            case _ => error(s"$qs previous queries should be $Q")
+            case _ => error(s"$qs previous queries should be $Q. s:$sid l:$lid")
           }
         }
     }
