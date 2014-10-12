@@ -206,7 +206,10 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       }
 
       //seleciona mediana do melhor learner
-      mediana_selectedMax_s.maxBy(_._2)._1
+      val medBestLearner = mediana_selectedMax_s.maxBy(_._2)._1
+
+      val qToWrite = math.max(medBestLearner, nclasses + 2)
+      write(s"INSERT INTO r values (0, -1, $qToWrite)")
     }
   }
 
