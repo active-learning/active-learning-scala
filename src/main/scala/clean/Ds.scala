@@ -187,7 +187,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
 
   /**
-   * Q = moda dos 25 ts de accmax do melhor classificador
+   * Q = moda dos 25 ts de accmax do pior classificador, i. e., aquele que gasta mais queries.
    */
   def calculaQ(runs: Int, folds: Int, n: Int = n) {
     if (isQCalculated) quit("Q already calculated!")
@@ -205,10 +205,13 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         t_max_s.sortBy(_._1).get(t_max_s.size / 2)
       }
 
-      //seleciona mediana do melhor learner
-      val medBestLearner = mediana_selectedMax_s.maxBy(_._2)._1
+      //seleciona mediana do learner mais lento
+      val medSlowestLearner = mediana_selectedMax_s.map(_._1).max
 
-      val qToWrite = math.max(medBestLearner, nclasses + 2)
+      //      //seleciona mediana do melhor learner
+      //      val medBestLearner = mediana_selectedMax_s.maxBy(_._2)._1
+      //
+      val qToWrite = math.max(medSlowestLearner, nclasses + 2)
       write(s"INSERT INTO r values (0, -1, $qToWrite)")
     }
   }
