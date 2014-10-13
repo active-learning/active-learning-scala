@@ -41,7 +41,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
     else {
       stratsemLearnerExterno() foreach { strat =>
         if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-        else if (strat.id >= 17 && strat.id <= 20) storeSQL(pool.size, ds, strat, run, fold, testSet.size)(SVMLib())
+        else if (strat.id >= 17 && strat.id <= 20 || strat.id == 21) storeSQL(pool.size, ds, strat, run, fold, testSet.size)(strat.learner)
         else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size)
       }
       allLearners() foreach { learner =>
