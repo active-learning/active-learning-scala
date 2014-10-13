@@ -40,8 +40,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       sl += s"Q/N"
       val ms = for {
         s <- Seq(measure.id match {
-          case 11 => PassiveAcc(NB(), Seq())
-          case 12 => PassiveGme(NB(), Seq())
+          case 11 | 1 => PassiveAcc(NB(), Seq())
+          case 12 | 2 => PassiveGme(NB(), Seq())
         }) ++ allStrats()
       } yield {
 
