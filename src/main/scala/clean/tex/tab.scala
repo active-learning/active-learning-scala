@@ -42,8 +42,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       val ms = for {
         s <- allStrats()
       } yield {
-        if (s.id >= 17 && s.id <= 20) {
-          val learner = SVMLib()
+        if (s.id >= 17 && s.id <= 20 || s.id == 21) {
+          val learner = s.learner
           sl += s"${s.abr} ${learner.toString.take(2)}"
           val vs = for {
             r <- 0 until runs
