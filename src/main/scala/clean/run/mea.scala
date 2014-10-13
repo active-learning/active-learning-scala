@@ -41,31 +41,28 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
     else {
       stratsemLearnerExterno() foreach { strat =>
         if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-        else if (strat.id >= 17 && strat.id <= 20) storeSQL(pool.size, ds, strat, run, fold)(SVMLib())
-        else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold)
+        else if (strat.id >= 17 && strat.id <= 20) storeSQL(pool.size, ds, strat, run, fold, testSet.size)(SVMLib())
+        else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size)
       }
       allLearners() foreach { learner =>
         stratcomLearnerExterno(learner) foreach { strat =>
           if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-          else storeSQL(pool.size, ds, strat, run, fold)(learner)
+          else storeSQL(pool.size, ds, strat, run, fold, testSet.size)(learner)
         }
       }
     }
   }
 
-  def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int)(learner: Learner): Unit = {
+  def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int, testSetSize: Int)(learner: Learner): Unit = {
     log(s"$strat $learner $run $fold")
     if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) ds.quit(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
     else ds.getMeasure(measure, strat, learner, run, fold) match {
       case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
       case None =>
-        val cms = ds.getCMs(strat, learner, run, fold).take(ds.Q - ds.nclasses + 1)
-        if (cms.size != ds.Q - ds.nclasses + 1) ds.quit(s"Couldn't take ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
-        val total = cms.values.foldLeft(0) { (sum, cm) =>
-          sum + contaTotal(cm)
-        }
+        val cms = ds.getCMs(strat, learner, run, fold)
+        if (cms.size < ds.Q - ds.nclasses + 1) ds.quit(s"Couldn't take at least ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
         val tsSize = contaTotal(cms.head._2)
-        if (total.toDouble / tsSize != cms.size) ds.error("problems!")
+        if (testSetSize != tsSize) ds.quit("Hits differs from testSetSize!")
         val v = calculate(ds, cms, tsSize)
         acquire()
         sqls += ds.measureToSQL(measure, v, strat.id, learner, run, fold)

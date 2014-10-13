@@ -20,6 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.res
 
 import clean.{CM, Ds}
+import ml.classifiers.{Learner, NB}
 
 import scala.collection.mutable
 
@@ -30,10 +31,10 @@ trait Measure extends CM {
   val id: Int
   val context = "MeaTrait"
 
-  def check(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]]) = {
-    if (ds.Q - ds.nclasses + 1 != cms.size) ds.error(s"${ds.Q - ds.nclasses + 1} differs from ${cms.size}")
-    if (cms.last._1 != ds.Q - 1) ds.error(s"${cms.last._1} differs from ${ds.Q - 1}")
-  }
+  //  def check(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]]) = {
+  //    if (ds.Q - ds.nclasses + 1 != cms.size) ds.error(s"${ds.Q - ds.nclasses + 1} differs from ${cms.size}")
+  //    if (cms.last._1 != ds.Q - 1) ds.error(s"${cms.last._1} differs from ${ds.Q - 1}")
+  //  }
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
@@ -48,9 +49,8 @@ case class ALCacc() extends Measure {
   val id = 1
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    check(ds, cms)
-    val acertos = cms.values.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
-    acertos.toDouble / (tsSize * cms.size)
+    val acertos = cms.take(ds.Q - ds.nclasses + 1).values.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
+    acertos.toDouble / (tsSize * (ds.Q - ds.nclasses + 1))
   }
 }
 
@@ -135,8 +135,7 @@ case class accAtQ() extends Measure() {
   val id = 11
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    check(ds, cms)
-    val acertos = contaAcertos(cms.last._2)
+    val acertos = contaAcertos(cms.take(ds.Q - ds.nclasses + 1).last._2)
     acertos.toDouble / tsSize
   }
 }
@@ -145,8 +144,7 @@ case class gmeansAtQ() extends Measure() {
   val id = 12
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    check(ds, cms)
-    gmeans(cms.last._2)
+    gmeans(cms.take(ds.Q - ds.nclasses + 1).last._2)
   }
 }
 
@@ -163,5 +161,21 @@ case class gmeansAtQSD() extends Measure() {
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     ???
+  }
+}
+
+case class passiveAcc() extends Measure() {
+  val id = 15
+
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+    acc(cms.last._2)
+  }
+}
+
+case class passiveGme() extends Measure() {
+  val id = 16
+
+  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+    gmeans(cms.last._2)
   }
 }

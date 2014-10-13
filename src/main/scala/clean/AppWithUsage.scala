@@ -41,6 +41,8 @@ trait AppWithUsage extends App with Log with ArgParser {
     case "alcg" => ALCgmeans()
     case "aatq" => accAtQ()
     case "gatq" => gmeansAtQ()
+    case "pa" => passiveAcc()
+    case "pg" => passiveGme()
   }
   val memlimit = Global.memlimit
 

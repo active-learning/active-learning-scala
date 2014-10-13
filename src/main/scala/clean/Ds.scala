@@ -45,12 +45,17 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   }
   //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
-  def passiveAcc(learner: Learner, r: Int, f: Int) = {
-    if (learner.id > 5) error(s"$learner needs filter; filtered passAcc not implemented!")
-    val shuffled = new Random(r).shuffle(patterns)
-    val ps = Datasets.kfoldCV(shuffled, Global.folds, parallel = true) { (tr, ts, f, m) => f -> (tr -> ts)}.toMap
-    learner.build(ps(f)._1).accuracy(ps(f)._2)
-  }
+  //  def passiveAcc(learner: Learner, r: Int, f: Int) = {
+  //    if (learner.id > 3) {
+  //      error(s"$learner doesn't !")
+  //      if (learner.id > 5) error(s"$learner needs filter; filtered passAcc not implemented!")
+  //      val shuffled = new Random(r).shuffle(patterns)
+  //      val ps = Datasets.kfoldCV(shuffled, Global.folds, parallel = true) { (tr, ts, f, m) => f -> (tr -> ts)}.toMap
+  //      learner.build(ps(f)._1).accuracy(ps(f)._2)
+  //    }
+  //    val cm = getCMs(RandomSampling(Seq()), learner, r, f).last._2
+  //    acc(cm)
+  //  }
 
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
