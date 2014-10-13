@@ -40,7 +40,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
       } else ds.writeQueries(strat, run, fold, ds.Q)
       val fqueries = ds.queries(fstrat, run, fold, binaf, zscof)
       //hits
-      if (strat.id >= 17 && strat.id <= 20 || strat.id == 21) {
+      if (strat.id >= 17 && strat.id <= 21) {
         val learner = strat.learner
         ds.log(s"SVM/Maj hits [$strat $learner] at pool $run.$fold.", 20)
         if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
