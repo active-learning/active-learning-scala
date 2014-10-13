@@ -37,8 +37,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       val ds = Ds(path, dataset)
       ds.open()
       sl += s"Q/N"
-      sl += s"maj"
-      sl += s"pas"
+      //      sl += s"maj"
+      //      sl += s"pas"
       val ms = for {
         s <- allStrats()
       } yield {
@@ -73,9 +73,9 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
           }
         }
       }
-      val (pasv, pasd) = ds.passiveAcc(NB())
-      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj, -1d), (pasv, pasd)) ++ ms.flatten)
-      //      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)
+      //      val (pasv, pasd) = ds.passiveAcc(NB())
+      //      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj, -1d), (pasv, pasd)) ++ ms.flatten)
+      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)
       ds.close()
       res
     }

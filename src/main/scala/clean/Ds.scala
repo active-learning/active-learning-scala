@@ -28,6 +28,7 @@ import weka.filters.Filter
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.util.Random
 
 /**
  * Cada instancia desta classe representa um ML dataset.
@@ -42,13 +43,13 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val r = fetchQ()
     if (r.isEmpty) error("Q not found.") else r.head.toInt
   }
-  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
+  //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
-  def passiveAcc(learner: Learner) = {
-    val accs = Datasets.kfoldCV(patterns, 5, parallel = true) { (tr, ts, r, m) =>
-      learner.build(tr).accuracy(ts)
-    }
-    Stat.media_desvioPadrao(accs.toVector)
+  def passiveAcc(learner: Learner, r: Int, f: Int) = {
+    if (learner.id > 5) error(s"$learner needs filter; filtered passAcc not implemented!")
+    val shuffled = new Random(r).shuffle(patterns)
+    val ps = Datasets.kfoldCV(shuffled, Global.folds, parallel = true) { (tr, ts, f, m) => f -> (tr -> ts)}.toMap
+    learner.build(ps(f)._1).accuracy(ps(f)._2)
   }
 
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
