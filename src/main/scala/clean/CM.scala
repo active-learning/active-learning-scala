@@ -38,6 +38,8 @@ trait CM extends Log {
     s
   }
 
+  def acc(m: Array[Array[Int]]) = contaAcertos(m).toDouble / contaTotal(m)
+
   def contaTotal(m: Array[Array[Int]]) = {
     val n = m.size
     var i = 0
