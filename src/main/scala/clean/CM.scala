@@ -53,4 +53,10 @@ trait CM {
     }
     s
   }
+
+  def accPorClasse(m: Array[Array[Int]]) = {
+    m.zipWithIndex map { case (li, idx) =>
+      li(idx).toDouble / li.sum
+    }
+  }
 }

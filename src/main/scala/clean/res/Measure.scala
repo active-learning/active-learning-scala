@@ -19,15 +19,20 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.res
 
-import clean.{Ds, CM}
+import clean.{CM, Ds}
 
 import scala.collection.mutable
 
 /**
  * Q measure id = 0
  */
-trait Measure {
+trait Measure extends CM {
   val id: Int
+
+  def check(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]]) = {
+    if (ds.Q - ds.nclasses + 1 != cms.size) ds.error(s"${ds.Q - ds.nclasses + 1} differs from ${cms.size}")
+    if (cms.last._1 != ds.Q - 1) ds.error(s"${cms.last._1} differs from ${ds.Q - 1}")
+  }
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
@@ -38,10 +43,11 @@ case class Q() extends Measure() {
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = ds.Q
 }
 
-case class ALCacc() extends Measure with CM {
+case class ALCacc() extends Measure {
   val id = 1
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+    check(ds, cms)
     val acertos = cms.values.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
     acertos.toDouble / (tsSize * cms.size)
   }
@@ -124,12 +130,11 @@ case class timeToQuerySD() extends Measure() {
   }
 }
 
-case class accAtQ() extends Measure() with CM {
+case class accAtQ() extends Measure() {
   val id = 11
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    if (ds.Q - ds.nclasses + 1 != cms.size) ds.error(s"${ds.Q - ds.nclasses + 1} differs from ${cms.size}")
-    if (cms.last._1 != ds.Q - 1) ds.error(s"${cms.last._1} differs from ${ds.Q - 1}")
+    check(ds, cms)
     val acertos = contaAcertos(cms.last._2)
     acertos.toDouble / tsSize
   }
@@ -139,7 +144,8 @@ case class gmeansAtQ() extends Measure() {
   val id = 12
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    ???
+    check(ds, cms)
+    accPorClasse(cms.last._2).product
   }
 }
 

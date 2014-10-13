@@ -225,7 +225,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   }
 
   /**
-   * Get all CMs, usually Q, sometimes |U|.
+   * Get the list of CMs sorted by time, usually Q, sometimes |U|.
    * @param strat
    * @param learner
    * @param run
