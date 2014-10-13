@@ -39,7 +39,10 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       ds.open()
       sl += s"Q/N"
       val ms = for {
-        s <- Seq(PassiveAcc(NB(), Seq()), PassiveGme(NB(), Seq())) ++ allStrats()
+        s <- Seq(measure.id match {
+          case 11 => PassiveAcc(NB(), Seq())
+          case 12 => PassiveGme(NB(), Seq())
+        }) ++ allStrats()
       } yield {
 
         if (s.id == 22 || s.id == 23) {
@@ -52,7 +55,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
             if (measure.id == 0) -1
             else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
               case Some(v) => v
-              case None => ds.quit(s"No measure for ${(s.mea, s, learner, r, f)}!")
+              case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
             }
           }
           Seq(Stat.media_desvioPadrao(vs.toVector))
@@ -67,7 +70,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
             if (measure.id == 0) -1
             else ds.getMeasure(measure, s, learner, r, f) match {
               case Some(v) => v
-              case None => ds.quit(s"No measure for ${(measure, s, learner, r, f)}!")
+              case None => ds.quit(s"No svm/maj measure for ${(measure, s, learner, r, f)}!")
             }
           }
           Seq(Stat.media_desvioPadrao(vs.toVector))

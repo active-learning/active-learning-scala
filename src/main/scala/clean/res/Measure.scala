@@ -58,7 +58,8 @@ case class ALCgmeans() extends Measure() {
   val id = 2
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    ???
+    val tot = cms.take(ds.Q - ds.nclasses + 1).values.foldLeft(0d)((gmtot, cm) => gmtot + gmeans(cm))
+    tot.toDouble / (ds.Q - ds.nclasses + 1)
   }
 }
 
