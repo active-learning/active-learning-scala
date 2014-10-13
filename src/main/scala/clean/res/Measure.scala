@@ -28,6 +28,7 @@ import scala.collection.mutable
  */
 trait Measure extends CM {
   val id: Int
+  val context = "MeaTrait"
 
   def check(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]]) = {
     if (ds.Q - ds.nclasses + 1 != cms.size) ds.error(s"${ds.Q - ds.nclasses + 1} differs from ${cms.size}")
@@ -145,7 +146,7 @@ case class gmeansAtQ() extends Measure() {
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     check(ds, cms)
-    accPorClasse(cms.last._2).product
+    math.pow(accPorClasse(cms.last._2).map(x => math.min(1, x + 0.00001)).product, 1 / cms.head._2.head.size)
   }
 }
 
