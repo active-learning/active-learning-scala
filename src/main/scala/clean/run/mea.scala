@@ -19,10 +19,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import al.strategies.{Strategy, StrategyAgnostic}
+import al.strategies.Strategy
 import clean._
 import ml.Pattern
-import ml.classifiers.{Learner, SVMLib}
+import ml.classifiers.Learner
 import weka.filters.Filter
 
 import scala.collection.mutable

@@ -21,7 +21,6 @@ package clean.run
 
 import clean._
 import ml.Pattern
-import ml.classifiers.{Maj, SVMLib}
 import weka.filters.Filter
 
 object all extends Exp with LearnerTrait with StratsTrait {

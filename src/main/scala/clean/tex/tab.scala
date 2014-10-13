@@ -20,7 +20,6 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.{AppWithUsage, Ds, LearnerTrait, StratsTrait}
-import ml.classifiers.{NB, SVMLib}
 import util.{Stat, StatTests}
 
 import scala.collection.mutable
