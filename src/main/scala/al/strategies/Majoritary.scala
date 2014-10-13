@@ -19,22 +19,27 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{Learner, NB}
-import ml.models.Model
-import util.Datasets
+import ml.classifiers.Maj
 
-import scala.util.Random
-
-case class Majoritary(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
-  extends Strategy {
+case class Majoritary(pool: Seq[Pattern], debug: Boolean = false)
+  extends StrategyAgnostic {
   override val toString = "Majoritary"
   val abr = "Maj"
   val id = 21
 
   def learner = Maj()
 
-  def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+  protected def next(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     unlabeled.head
+  }
+
+  protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
+    plot.zera()
+    for (p <- distinct_pool) plot.bola(p.x, p.y, p.label.toInt, 9)
+    for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 9)
+    if (selected != null) plot.bola(selected.x, selected.y, -1, 15)
+    plot.mostra()
+    Thread.sleep((delay * 1000).round.toInt)
   }
 }
 

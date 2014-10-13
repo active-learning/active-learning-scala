@@ -21,7 +21,7 @@ package clean.run
 
 import clean._
 import ml.Pattern
-import ml.classifiers.SVMLib
+import ml.classifiers.{Maj, SVMLib}
 import weka.filters.Filter
 
 object all extends Exp with LearnerTrait with StratsTrait {
@@ -31,12 +31,12 @@ object all extends Exp with LearnerTrait with StratsTrait {
   run()
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-    //rnd clu svm / lff lfd
+    //rnd clu svm maj / lff lfd
     stratsFilterFreeSemLearnerExterno(pool).zip(stratsFilterFreeSemLearnerExterno(fpool)) foreach { case (strat, fstrat) =>
       ds.log(s"$strat ...")
       //queries
       val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold)) {
-        println(s"agn and SVM Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
+        println(s"agn, SVM and maj Queries already done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
         ds.queries(strat, run, fold, null, null)
       } else ds.writeQueries(strat, run, fold, ds.Q)
       val fqueries = ds.queries(fstrat, run, fold, binaf, zscof)
@@ -44,6 +44,11 @@ object all extends Exp with LearnerTrait with StratsTrait {
       if (strat.id >= 17 && strat.id <= 20) {
         val learner = SVMLib()
         ds.log(s"SVM hits [$strat $learner] at pool $run.$fold.", 20)
+        if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
+        else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
+      } else if (strat.id == 21) {
+        val learner = Maj()
+        ds.log(s"Maj hits [$strat $learner] at pool $run.$fold.", 20)
         if (ds.areHitsFinished(pool.size, strat, learner, run, fold)) println(s"Hits already done for ${strat.abr}/$learner at pool $run.$fold.")
         else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold)(learner)
       } else {
