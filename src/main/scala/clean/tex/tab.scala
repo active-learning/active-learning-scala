@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import al.strategies.Passive
+import al.strategies.{PassiveGme, RandomSampling, PassiveAcc}
 import clean.{AppWithUsage, Ds, LearnerTrait, StratsTrait}
 import ml.classifiers.NB
 import util.{Stat, StatTests}
@@ -38,11 +38,26 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       val ds = Ds(path, dataset)
       ds.open()
       sl += s"Q/N"
-      //      sl += s"maj"
       val ms = for {
-        s <- Passive(NB(), Seq()) +: allStrats()
+        s <- Seq(PassiveAcc(NB(), Seq()), PassiveGme(NB(), Seq())) ++ allStrats()
       } yield {
-        if (s.id >= 17 && s.id <= 22) {
+
+        if (s.id == 22 || s.id == 23) {
+          val learner = s.learner
+          sl += s"${s.abr} ${learner.toString.take(2)}"
+          val vs = for {
+            r <- 0 until runs
+            f <- 0 until folds
+          } yield {
+            if (measure.id == 0) -1
+            else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
+              case Some(v) => v
+              case None => ds.quit(s"No measure for ${(s.mea, s, learner, r, f)}!")
+            }
+          }
+          Seq(Stat.media_desvioPadrao(vs.toVector))
+
+        } else if (s.id >= 17 && s.id <= 21) {
           val learner = s.learner
           sl += s"${s.abr} ${learner.toString.take(2)}"
           val vs = for {
@@ -57,6 +72,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
           }
           Seq(Stat.media_desvioPadrao(vs.toVector))
         } else {
+
           learners(learnersStr) map { l =>
             sl += s"${s.abr} ${l.toString.take(2)}"
             val vs = for {

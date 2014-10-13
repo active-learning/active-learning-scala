@@ -72,6 +72,10 @@ trait LearnerTrait {
     //    NBBatch()
   )
 
+  def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
+    NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
+  )
+
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
     //    IELM(learnerSeed),
     //    interaELM(learnerSeed),

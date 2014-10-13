@@ -23,7 +23,7 @@ import ml.classifiers.Learner
 import ml.models.Model
 
 trait StrategyWithLearner extends Strategy {
-  val learner: Learner
+  def learner: Learner
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val current_model = learner.build(labeled)

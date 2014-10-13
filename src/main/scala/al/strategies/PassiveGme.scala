@@ -18,19 +18,21 @@
 
 package al.strategies
 
+import clean.res.{passiveGme, passiveAcc}
 import ml.Pattern
-import ml.classifiers.Maj
+import ml.classifiers.Learner
 import ml.models.Model
 
-case class Majoritary(pool: Seq[Pattern], debug: Boolean = false)
+case class PassiveGme(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyWithLearner {
-  override val toString = "Majoritary"
-  val abr = "Maj"
-  val id = 21
+  override val toString = "PassiveGme"
+  val abr = "Pasg"
+  val id = 23
+  override val mea = passiveGme()
+  if (learner.id > 3 || learner.id == 0) error("Passive needs learner with full queries: C45, NB or 5NN.")
 
-  def learner = Maj()
-
-  protected def next(model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+  def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+    error("Passive cannot generate queries!")
     unlabeled.head
   }
 }
