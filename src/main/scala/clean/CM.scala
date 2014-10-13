@@ -18,7 +18,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-trait CM {
+trait CM extends Log {
   def printConfusion(m: Array[Array[Int]]) {
     m foreach { r =>
       r.foreach(c => print(s"$c "))
@@ -55,9 +55,10 @@ trait CM {
   }
 
   def accPorClasse(m: Array[Array[Int]]) = {
-    println(m.map(_.toList).toList)
     m.zipWithIndex map { case (li, idx) =>
-      li(idx).toDouble / li.sum
+      val s = li.sum.toDouble
+      if (s == 0) justQuit("accPorClasse: Pelo menos uma classe não aparece no conjunto de teste!")
+      li(idx) / s
     }
   }
 }

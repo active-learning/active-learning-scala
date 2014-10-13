@@ -1,5 +1,5 @@
 heart-disease-reprocessed-hungarian
 movement-libras-10
-ecoli
+#ecoli
 volcanoes-a1
 systhetic-control
