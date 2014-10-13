@@ -61,8 +61,8 @@ trait LearnerTrait {
   def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    //    NB()
-    //,
+    NB()
+    ,
     //    KNNBatch(5, "eucl", pool, weighted = true),
     //    VFDT(),
     SVMLib(learnerSeed)
