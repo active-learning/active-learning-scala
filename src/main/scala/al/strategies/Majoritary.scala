@@ -25,16 +25,16 @@ import util.Datasets
 
 import scala.util.Random
 
-case class Passive(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
-  extends StrategyWithLearner {
-  override val toString = "Passive"
-  val abr = "Pas"
+case class Majoritary(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
+  extends Strategy {
+  override val toString = "Majoritary"
+  val abr = "Maj"
   val id = 21
 
+  def learner = Maj()
+
   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    ???
-    val selected = unlabeled minBy (pa => current_model.distribution(pa).max)
-    selected
+    unlabeled.head
   }
 }
 
