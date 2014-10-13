@@ -54,6 +54,8 @@ trait CM extends Log {
     s
   }
 
+  def gmeans(cms: Array[Array[Int]]) = math.pow(accPorClasse(cms).map(x => math.min(1, x + 0.00001)).product, 1d / cms.head.size)
+
   def accPorClasse(m: Array[Array[Int]]) = {
     m.zipWithIndex map { case (li, idx) =>
       val s = li.sum.toDouble
