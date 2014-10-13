@@ -146,7 +146,7 @@ case class gmeansAtQ() extends Measure() {
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
     check(ds, cms)
-    math.pow(accPorClasse(cms.last._2).map(x => math.min(1, x + 0.00001)).product, 1 / cms.head._2.head.size)
+    math.pow(accPorClasse(cms.last._2).map(x => math.min(1, x + 0.00001)).product, 1d / cms.head._2.head.size)
   }
 }
 
