@@ -19,7 +19,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import al.strategies.Passive
 import clean.{AppWithUsage, Ds, LearnerTrait, StratsTrait}
+import ml.classifiers.NB
 import util.{Stat, StatTests}
 
 import scala.collection.mutable
@@ -37,11 +39,10 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       ds.open()
       sl += s"Q/N"
       //      sl += s"maj"
-      //      sl += s"pas"
       val ms = for {
-        s <- allStrats()
+        s <- Passive(NB(), Seq()) +: allStrats()
       } yield {
-        if (s.id >= 17 && s.id <= 20 || s.id == 21) {
+        if (s.id >= 17 && s.id <= 22) {
           val learner = s.learner
           sl += s"${s.abr} ${learner.toString.take(2)}"
           val vs = for {
@@ -72,8 +73,6 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
           }
         }
       }
-      //      val (pasv, pasd) = ds.passiveAcc(NB())
-      //      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble), (ds.maj, -1d), (pasv, pasd)) ++ ms.flatten)
       val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)
       ds.close()
       res
