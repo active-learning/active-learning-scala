@@ -192,25 +192,35 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   def calculaQ(runs: Int, folds: Int, n: Int = n) {
     if (isQCalculated) quit("Q already calculated!")
     else {
-      val mediana_selectedMax_s = 1 to 3 map { l =>
+      val medianaGme_s = 1 to 3 map { l =>
         val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
-          (r, f) ->(contaAcertos(blobToConfusion(b, nclasses)), t)
+          (r, f) ->(gmeans(blobToConfusion(b, nclasses)), t)
         }.groupBy(_._1).map(_._2.map(_._2))
         val t_max_s = grpByPool.map { pool =>
           val max = pool.maxBy(_._1)._1
-          val maxs = pool.filter(_._1 == max)
+          val maxs = pool.filter(x => x._1 >= max - 0.001)
           val t = maxs.minBy(_._2)._2
           (t, max)
         }.toSeq
         t_max_s.sortBy(_._1).get(t_max_s.size / 2)
       }
 
-      //seleciona mediana do learner mais lento
-      val medSlowestLearner = mediana_selectedMax_s.map(_._1).max
+      val medianaAcc_s = 1 to 3 map { l =>
+        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
+          (r, f) ->(contaAcertos(blobToConfusion(b, nclasses)), t)
+        }.groupBy(_._1).map(_._2.map(_._2))
+        val t_max_s = grpByPool.map { pool =>
+          val max = pool.maxBy(_._1)._1
+          val maxs = pool.filter(x => x._1 >= max - 1)
+          val t = maxs.minBy(_._2)._2
+          (t, max)
+        }.toSeq
+        t_max_s.sortBy(_._1).get(t_max_s.size / 2)
+      }
 
-      //      //seleciona mediana do melhor learner
-      //      val medBestLearner = mediana_selectedMax_s.maxBy(_._2)._1
-      //
+      //seleciona mediana do learner mais lento (e do mais lento dentre gme e acc)
+      val medSlowestLearner = (medianaGme_s ++ medianaAcc_s).map(_._1).max
+
       val qToWrite = math.max(medSlowestLearner, nclasses + 2)
       write(s"INSERT INTO r values (0, -1, $qToWrite)")
     }
