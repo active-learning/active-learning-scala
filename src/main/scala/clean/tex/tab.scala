@@ -47,49 +47,55 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
 
         if (s.id == 22 || s.id == 23) {
           val learner = s.learner
-          sl += s"${s.abr} ${learner.toString.take(2)}"
-          val vs = for {
-            r <- 0 until runs
-            f <- 0 until folds
-          } yield {
-            if (measure.id == 0) -1
-            else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
-              case Some(v) => v
-              case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
-            }
-          }
-          Seq(Stat.media_desvioPadrao(vs.toVector))
-
-        } else if (s.id >= 17 && s.id <= 21) {
-          val learner = s.learner
-          sl += s"${s.abr} ${learner.toString.take(2)}"
-          val vs = for {
-            r <- 0 until runs
-            f <- 0 until folds
-          } yield {
-            if (measure.id == 0) -1
-            else ds.getMeasure(measure, s, learner, r, f) match {
-              case Some(v) => v
-              case None => ds.quit(s"No svm/maj measure for ${(measure, s, learner, r, f)}!")
-            }
-          }
-          Seq(Stat.media_desvioPadrao(vs.toVector))
-        } else {
-
-          learners(learnersStr) map { l =>
-            sl += s"${s.abr} ${l.toString.take(2)}"
+          if (ds.isMeasureComplete(measure, s.id, learner.id)) {
+            sl += s"${s.abr} ${learner.toString.take(2)}"
             val vs = for {
               r <- 0 until runs
               f <- 0 until folds
             } yield {
               if (measure.id == 0) -1
-              else ds.getMeasure(measure, s, l, r, f) match {
+              else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
                 case Some(v) => v
-                case None => ds.quit(s"No measure for ${(measure, s, l, r, f)}!")
+                case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
               }
             }
-            Stat.media_desvioPadrao(vs.toVector)
-          }
+            Seq(Stat.media_desvioPadrao(vs.toVector))
+          } else Seq()
+
+        } else if (s.id >= 17 && s.id <= 21) {
+          val learner = s.learner
+          if (ds.isMeasureComplete(measure, s.id, learner.id)) {
+            sl += s"${s.abr} ${learner.toString.take(2)}"
+            val vs = for {
+              r <- 0 until runs
+              f <- 0 until folds
+            } yield {
+              if (measure.id == 0) -1
+              else ds.getMeasure(measure, s, learner, r, f) match {
+                case Some(v) => v
+                case None => ds.quit(s"No svm/maj measure for ${(measure, s, learner, r, f)}!")
+              }
+            }
+            Seq(Stat.media_desvioPadrao(vs.toVector))
+          } else Seq()
+        } else {
+
+          (learners(learnersStr) map { learner =>
+            if (ds.isMeasureComplete(measure, s.id, learner.id)) {
+              sl += s"${s.abr} ${learner.toString.take(2)}"
+              val vs = for {
+                r <- 0 until runs
+                f <- 0 until folds
+              } yield {
+                if (measure.id == 0) -1
+                else ds.getMeasure(measure, s, learner, r, f) match {
+                  case Some(v) => v
+                  case None => ds.quit(s"No measure for ${(measure, s, learner, r, f)}!")
+                }
+              }
+              Seq(Stat.media_desvioPadrao(vs.toVector))
+            } else Seq()
+          }).flatten
         }
       }
       val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)

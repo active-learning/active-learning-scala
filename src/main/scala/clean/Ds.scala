@@ -366,6 +366,22 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
   }
 
+  def pids(sid: Int, lid: Int) = read(s"SELECT id FROM p WHERE s=$sid and l=$lid") match {
+    case List() => None
+    case l => Some(l.map(_.head.toInt))
+  }
+
+  def isMeasureComplete(measure: Measure, sid: Int, lid: Int) = {
+    val Nrpools = Global.runs * Global.folds
+    pids(sid, lid) match {
+      case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id}") match {
+        case Nrpools => true
+        case _ => false
+      }
+      case _ => false
+    }
+  }
+
   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
     val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
     s"insert into r values (${measure.id}, $pid, $value)"
