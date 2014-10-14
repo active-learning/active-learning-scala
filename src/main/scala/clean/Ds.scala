@@ -375,7 +375,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val Nrpools = Global.runs * Global.folds
     pids(sid, lid) match {
       case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id}") match {
-        case Nrpools => true
+        case List(Vector(Nrpools)) => true
         case _ => false
       }
       case _ => false
