@@ -38,18 +38,24 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
     if (!ds.isQCalculated) ds.error(s"Q is not calculated!")
-    else if (measure.id == 15 || measure.id == 16) {
-      specialLearners(Seq()) foreach storeSQL(pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size)
-    } else {
-      stratsemLearnerExterno() foreach { strat =>
-        if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-        else if (strat.id >= 17 && strat.id <= 21) storeSQL(pool.size, ds, strat, run, fold, testSet.size)(strat.learner)
-        else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size)
-      }
-      allLearners() foreach { learner =>
-        stratcomLearnerExterno(learner) foreach { strat =>
-          if (!ds.areQueriesFinished(pool.size, strat, run, fold)) ds.quit(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-          else storeSQL(pool.size, ds, strat, run, fold, testSet.size)(learner)
+    else if (!sqls.contains("cancel")) {
+      if (measure.id == 15 || measure.id == 16) {
+        specialLearners(Seq()) foreach storeSQL(pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size)
+      } else {
+        stratsemLearnerExterno() foreach { strat =>
+          if (!ds.areQueriesFinished(pool.size, strat, run, fold)) {
+            ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+            sqls += "cancel"
+          } else if (strat.id >= 17 && strat.id <= 21) storeSQL(pool.size, ds, strat, run, fold, testSet.size)(strat.learner)
+          else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size)
+        }
+        allLearners() foreach { learner =>
+          stratcomLearnerExterno(learner) foreach { strat =>
+            if (!ds.areQueriesFinished(pool.size, strat, run, fold)) {
+              ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+              sqls += "cancel"
+            } else storeSQL(pool.size, ds, strat, run, fold, testSet.size)(learner)
+          }
         }
       }
     }
@@ -57,8 +63,10 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
 
   def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int, testSetSize: Int)(learner: Learner): Unit = {
     log(s"$strat $learner $run $fold")
-    if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) ds.quit(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
-    else ds.getMeasure(measure, strat, learner, run, fold) match {
+    if (!ds.areHitsFinished(poolSize, strat, learner, run, fold)) {
+      ds.log(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
+      sqls += "cancel"
+    } else ds.getMeasure(measure, strat, learner, run, fold) match {
       case Some(_) => log(s"Measure $measure already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
       case None =>
         val cms = ds.getCMs(strat, learner, run, fold)
@@ -73,27 +81,13 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM {
   }
 
   def datasetFinished(ds: Ds) {
-    ds.batchWrite(sqls.toList)
+    if (sqls.contains("cancel")) ds.log("Refused to measure on incomplete dataset results.", 20)
+    else ds.batchWrite(sqls.toList)
     ds.log("fim deste")
     sqls.clear()
   }
 
-  def isAlreadyDone(ds: Ds) = {
-    //    val checks = for {
-    //      s <- strats(Seq(), -1).toStream //.par
-    //      r <- (0 until runs).toStream //.par
-    //      f <- (0 until folds).toStream //.par
-    //    } yield {
-    //      val learner = if (s.id >= 17 && s.id <= 20) SVMLib() else fixedLearner()
-    //      lazy val res = ds.getMeasure(measure, s, learner, r, f) match {
-    //        case Some(_) => true
-    //        case None => false
-    //      }
-    //      res
-    //    }
-    //    checks forall (_ == true)
-    false
-  }
+  def isAlreadyDone(ds: Ds) = false //ds.isMeasureComplete(measure, s.id, learner.id)
 
   def end(res: Map[String, Boolean]): Unit = {
   }
