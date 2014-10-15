@@ -33,7 +33,6 @@ case class PassiveAcc(learner: Learner, pool: Seq[Pattern], debug: Boolean = fal
 
   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     error("Passive cannot generate queries!")
-    unlabeled.head
   }
 }
 

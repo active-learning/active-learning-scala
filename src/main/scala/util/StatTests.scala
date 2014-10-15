@@ -87,29 +87,38 @@ object StatTests {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l0), i) =>
       val l = l0 map (x => (x._1 * 1000).round / 1000d -> (x._2 * 1000).round / 1000d)
-      val vals = try {
-        val max = l.map(_._1).filter(x => x >= 0 && x <= 1).max
-        val Dmax = l.map(_._2).filter(x => x >= 0 && x <= 1).max
-        val Dmin = l.map(_._2).filter(x => x >= 0 && x <= 1).min
-        l.map { case (x1f, x2f) =>
-          val x1 = f(x1f)
-          val x2 = f(x2f)
-          val str = if (x1f == max) s"\\textcolor{blue}{\\textbf{$x1}}" else s"$x1" // \\usepackage[usenames,dvipsnames]{color}
-          str + (if (x1f != -1 && x2f != -1) "/" else "") + (x2f match {
-            case Dmin => s"\\textcolor{green}{\\textbf{$x2}}"
-            case Dmax => s"\\textcolor{red}{\\textbf{$x2}}"
-            case _ => s"$x2"
-          })
-        }.mkString(" & ")
-      } catch {
-        case e: Throwable => println(e.getMessage)
-          measures foreach println
-          println(s"")
-          sys.exit(1)
+      if (l.contains((-1, -1))) ""
+      else {
+        val vals = try {
+          val max = l.map(_._1).filter(x => x >= 0 && x <= 1).max
+          val Dmax = l.map(_._2).filter(x => x >= 0 && x <= 1).max
+          val Dmin = l.map(_._2).filter(x => x >= 0 && x <= 1).min
+          val (in, fi) = if (l.count(_._1 == max) > 1) ("\\underline{", "}") else ("", "")
+          val (indx, fidx) = if (l.count(_._2 == Dmax) > 1) ("\\underline{", "}") else ("", "")
+          val (indn, fidn) = if (l.count(_._2 == Dmin) > 1) ("\\underline{", "}") else ("", "")
+          l.map { case (x1f, x2f) =>
+            val x1 = f(x1f)
+            val x2 = f(x2f)
+            val str = if (x1f == max) s"\\textcolor{blue}{$in\\textbf{$x1}$fi}" else s"$x1" // \\usepackage[usenames,dvipsnames]{color}
+            str + (if (x1f != -1 && x2f != -1) "/" else "") + (x2f match {
+              case Dmin => s"\\textcolor{green}{$indn\\textbf{$x2}$fidn}"
+              case Dmax => s"\\textcolor{red}{$indx\\textbf{$x2}$fidx}"
+              case _ => s"$x2"
+            })
+          }.mkString(" & ")
+        } catch {
+          case e: Throwable =>
+            measures foreach println
+            println(s"")
+            l foreach println
+            println(s"")
+            e.printStackTrace()
+            sys.exit(1)
+        }
+        s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
       }
-      s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
-    }.mkString("\n")
-    table(core, nstrats, strategies, tableName, measure, language)
+    }.filter(_.nonEmpty).mkString("\n")
+    if (core.nonEmpty) table(core, nstrats, strategies, tableName, measure, language)
   }
 
   /**

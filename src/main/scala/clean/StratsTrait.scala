@@ -31,9 +31,9 @@ trait StratsTrait {
   def stratsemLearnerExterno(pool: Seq[Pattern] = Seq()) = stratsFilterFreeSemLearnerExterno(pool)
 
   def stratsFilterFreeSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
+    Majoritary(pool),
     RandomSampling(pool),
-    ClusterBased(pool),
-    Majoritary(pool)
+    ClusterBased(pool)
     ,
     SVMmulti(pool, "SELF_CONF")
     //    ,

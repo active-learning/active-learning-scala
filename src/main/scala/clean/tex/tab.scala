@@ -37,7 +37,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
     val res = datasets map { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
-      sl += s"Q/N"
+      sl += "Q/$|\\mathcal{U}|$"
       val ms = for {
         s <- Seq(measure.id match {
           case 11 | 1 => PassiveAcc(NB(), Seq())
@@ -47,7 +47,6 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
 
         if (s.id == 22 || s.id == 23) {
           val learner = s.learner
-          if (ds.isMeasureComplete(measure, s.id, learner.id)) {
             sl += s"${s.abr} ${learner.toString.take(2)}"
             val vs = for {
               r <- 0 until runs
@@ -60,7 +59,6 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
               }
             }
             Seq(Stat.media_desvioPadrao(vs.toVector))
-          } else Seq()
 
         } else if (s.id >= 17 && s.id <= 21) {
           val learner = s.learner
@@ -98,14 +96,14 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
           }).flatten
         }
       }
-      val res = ds.dataset -> (Seq((ds.Q.toDouble, ds.n.toDouble)) ++ ms.flatten)
+      val res = ds.dataset -> (Seq((ds.Q.toDouble, (ds.n.toDouble * 0.8).round.toDouble)) ++ ms.flatten)
       ds.close()
       res
     }
     println(s"")
     println(s"")
     println(s"")
-    val tbs = res.filter(_._2.nonEmpty).sortBy(_._2.head._1) grouped (61)
+    val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).filter(!_._2.contains((-1d, -1d))).sortBy(_._2.head._1) grouped 50
     tbs foreach { case res0 =>
       StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(3) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
     }
