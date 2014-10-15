@@ -52,11 +52,12 @@ object StatTests {
       sys.exit(1)
     }
     val caption = language match {
-      case "pt" => s"$measure para os Q exemplos consultados. O maior valor(e desvio padrão) de cada base está em \\textcolor{blue}{\\textbf{negrito azul}}(\\textcolor{red}{\\textbf{negrito vermelho}})." +
-        s"Valores de vencedores isolados estão sublinhados."
-      case "en" => s"$measure for the first Q queried instances. Highest value(and std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. Values for unique winners are underlined."
+      case "pt" => s"$measure para os Q exemplos consultados. Os maiores valores de medida e desvio padrão de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}}." +
+        s"Valores isolados estão sublinhados. Melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}."
+      case "en" => s"$measure for the first Q queried instances. Highest value(and std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined. Best (lowest) std. values are in \\textcolor{darkgreen}{green}."
     }
-    println( """\begin{table}[h]
+    println( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
+\begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}
 \begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + """\\ \hline """)
@@ -88,7 +89,7 @@ object StatTests {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l0), i) =>
       val l = l0 map (x => (x._1 * 1000).round / 1000d -> (x._2 * 1000).round / 1000d)
-      if (l.contains((-1, -1))) ""
+      if (l.contains((-2342341, -1))) ""
       else {
         val vals = try {
           val max = l.map(_._1).filter(x => x >= 0 && x <= 1).max
@@ -97,12 +98,12 @@ object StatTests {
           val (in, fi) = if (l.count(_._1 == max) == 1) ("\\underline{", "}") else ("", "")
           val (indx, fidx) = if (l.count(_._2 == Dmax) == 1) ("\\underline{", "}") else ("", "")
           val (indn, fidn) = if (l.count(_._2 == Dmin) == 1) ("\\underline{", "}") else ("", "")
-          l.map { case (x1f, x2f) =>
+          l.zip(strategies).map { case ((x1f, x2f), s) =>
             val x1 = f(x1f)
             val x2 = f(x2f)
             val str = if (x1f == max) s"\\textcolor{blue}{$in\\textbf{$x1}$fi}" else s"$x1" // \\usepackage[usenames,dvipsnames]{color}
             str + (if (x1f != -1 && x2f != -1) "/" else "") + (x2f match {
-              case Dmin => s"\\textcolor{green}{$indn\\textbf{$x2}$fidn}"
+              case Dmin => s"\\textcolor{darkgreen}{$indn\\textbf{$x2}$fidn}"
               case Dmax => s"\\textcolor{red}{$indx\\textbf{$x2}$fidx}"
               case _ => s"$x2"
             })

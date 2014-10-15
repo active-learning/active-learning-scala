@@ -24,7 +24,7 @@ import ml.models.Model
 
 case class Majoritary(pool: Seq[Pattern], debug: Boolean = false)
   extends StrategyWithLearner {
-  override val toString = "Majoritary"
+  override val toString = "Random Samplingj"
   val abr = "Rndj"
   val id = 21
 

@@ -48,7 +48,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
 
         if (s.id == 22 || s.id == 23) {
           val learner = s.learner
-          sl += s"${s.abr} ${learner.toString.take(2)}"
+          sl += s"${s.abr} ${learner.toString.take(3)}"
           val vs = for {
             r <- 0 until runs
             f <- 0 until folds
@@ -64,7 +64,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
         } else if (s.id >= 17 && s.id <= 21) {
           val learner = s.learner
           if (ds.isMeasureComplete(measure, s.id, learner.id)) {
-            sl += s"${s.abr} ${learner.toString.take(2)}"
+            sl += s"${s.abr} ${learner.toString.take(3)}"
             val vs = for {
               r <- 0 until runs
               f <- 0 until folds
@@ -75,13 +75,14 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
                 case None => ds.quit(s"No svm/maj measure for ${(measure, s, learner, r, f)}!")
               }
             }
-            Seq(Stat.media_desvioPadrao(vs.toVector))
+            val (va, d) = Stat.media_desvioPadrao(vs.toVector)
+            Seq(if (s.id == 21) (va, -1d) else (va, d))
           } else Seq()
         } else {
 
           (learners(learnersStr) map { learner =>
             if (ds.isMeasureComplete(measure, s.id, learner.id)) {
-              sl += s"${s.abr} ${learner.toString.take(2)}"
+              sl += s"${s.abr} ${learner.toString.take(3)}"
               val vs = for {
                 r <- 0 until runs
                 f <- 0 until folds
@@ -104,7 +105,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
     println(s"")
     println(s"")
     println(s"")
-    val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).filter(!_._2.contains((-1d, -1d))).sortBy(_._2.head._1) grouped 50
+    val tbs = res.filter(_._2.size >= 2).map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).sortBy(_._2.head._1) grouped 50
     tbs foreach { case res0 =>
       StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(3) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
     }
