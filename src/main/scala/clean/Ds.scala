@@ -108,12 +108,6 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int): Option[Int] = poolId(strat.id, learner.id, run, fold)
 
-  //  private def poolId(idStrat: Int, learner: Learner, run: Int, fold: Int) =
-  //    read(s"SELECT id FROM p WHERE s=$idStrat and l=${learner.id} and r=$run and f=$fold") match {
-  //      case List() => None
-  //      case List(seq) => Some(seq.head.toInt)
-  //    }
-  //
   private def poolId(idStrat: Int, lid: Int, run: Int, fold: Int) =
     read(s"SELECT id FROM p WHERE s=$idStrat and l=$lid and r=$run and f=$fold") match {
       case List() => None
