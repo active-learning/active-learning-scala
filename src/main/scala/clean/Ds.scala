@@ -116,10 +116,8 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   def isQCalculated = fetchQ().nonEmpty
 
-  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int): Boolean =
-    areQueriesFinished(poolSize, strat.id, strat.learner.id, run, fold)
-
-  def areQueriesFinished(poolSize: Int, sid: Int, lid: Int, run: Int, fold: Int): Boolean =
+  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int): Boolean = {
+    val (sid, lid) = (strat.id, strat.learner.id)
     poolId(sid, lid, run, fold) match {
       case None =>
         log(s"No queries: no pid found for $sid/$lid $run.$fold .")
@@ -127,7 +125,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       case Some(pid) =>
         val PoolSize = poolSize
         val (qs, lastT) = read(s"SELECT COUNT(1),max(t+0) FROM q WHERE p=$pid") match {
-          case List(Vector(c, m)) => c -> m
+          case List(Vector(c, m)) => c.toInt -> m.toInt
           case List() => error(s"Inconsistency: there is a pool $pid for no queries!")
         }
         if (qs != lastT + 1) error(s"Inconsistency: $qs queries differs from last timeStep+1 ${lastT + 1}")
@@ -139,11 +137,22 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           }
           case _ => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries!  l:$lid  s:$sid")
-            case Q => true
-            case _ => error(s"$qs previous queries should be $Q. s:$sid l:$lid")
+            case q if q >= Q => true
+            case q =>
+              log(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. Completing it...", 20)
+              val qrs = queries(strat, run, fold, null, null)
+              val newqrs = strat.resume_queries(qrs).take(Q - q)
+              quit(s"Total of new queries: ${newqrs.size + q}")
+              val sqls = newqrs.zipWithIndex map { case (patt, t0) =>
+                val t = t0 + lastT + 1
+                s"INSERT INTO q values ($pid, $t, ${patt.id})"
+              }
+              batchWrite(sqls.toList)
+              sqls.size + q == Q
           }
         }
     }
+  }
 
   def areHitsFinished(poolSize: Int, strat: Strategy, learner: Learner, run: Int, fold: Int) =
     if (learner.id != strat.learner.id && strat.id > 1) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
