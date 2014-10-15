@@ -39,26 +39,27 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait {
       ds.open()
       sl += "Q/$|\\mathcal{U}|$"
       val ms = for {
-        s <- Seq(measure.id match {
-          case 11 | 1 => PassiveAcc(NB(), Seq())
-          case 12 | 2 => PassiveGme(NB(), Seq())
+        s <- (measure.id match {
+          case 11 => Seq(PassiveAcc(NB(), Seq()))
+          case 12 => Seq(PassiveGme(NB(), Seq()))
+          case _ => Seq()
         }) ++ allStrats()
       } yield {
 
         if (s.id == 22 || s.id == 23) {
           val learner = s.learner
-            sl += s"${s.abr} ${learner.toString.take(2)}"
-            val vs = for {
-              r <- 0 until runs
-              f <- 0 until folds
-            } yield {
-              if (measure.id == 0) -1
-              else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
-                case Some(v) => v
-                case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
-              }
+          sl += s"${s.abr} ${learner.toString.take(2)}"
+          val vs = for {
+            r <- 0 until runs
+            f <- 0 until folds
+          } yield {
+            if (measure.id == 0) -1
+            else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
+              case Some(v) => v
+              case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
             }
-            Seq(Stat.media_desvioPadrao(vs.toVector))
+          }
+          Seq(Stat.media_desvioPadrao(vs.toVector))
 
         } else if (s.id >= 17 && s.id <= 21) {
           val learner = s.learner

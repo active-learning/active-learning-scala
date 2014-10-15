@@ -52,8 +52,9 @@ object StatTests {
       sys.exit(1)
     }
     val caption = language match {
-      case "pt" => s"$measure para os Q exemplos consultados. O maior valor de cada base está em \\textbf{negrito}."
-      case "en" => s"$measure for the first Q queried instances. Highest value for each dataset is in \\textbf{bold} face."
+      case "pt" => s"$measure para os Q exemplos consultados. O maior valor(e desvio padrão) de cada base está em \\textcolor{blue}{\\textbf{negrito azul}}(\\textcolor{red}{\\textbf{negrito vermelho}})." +
+        s"Valores de vencedores isolados estão sublinhados."
+      case "en" => s"$measure for the first Q queried instances. Highest value(and std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. Values for unique winners are underlined."
     }
     println( """\begin{table}[h]
 \caption{""" + caption + """}
@@ -93,9 +94,9 @@ object StatTests {
           val max = l.map(_._1).filter(x => x >= 0 && x <= 1).max
           val Dmax = l.map(_._2).filter(x => x >= 0 && x <= 1).max
           val Dmin = l.map(_._2).filter(x => x >= 0 && x <= 1).min
-          val (in, fi) = if (l.count(_._1 == max) > 1) ("\\underline{", "}") else ("", "")
-          val (indx, fidx) = if (l.count(_._2 == Dmax) > 1) ("\\underline{", "}") else ("", "")
-          val (indn, fidn) = if (l.count(_._2 == Dmin) > 1) ("\\underline{", "}") else ("", "")
+          val (in, fi) = if (l.count(_._1 == max) == 1) ("\\underline{", "}") else ("", "")
+          val (indx, fidx) = if (l.count(_._2 == Dmax) == 1) ("\\underline{", "}") else ("", "")
+          val (indn, fidn) = if (l.count(_._2 == Dmin) == 1) ("\\underline{", "}") else ("", "")
           l.map { case (x1f, x2f) =>
             val x1 = f(x1f)
             val x2 = f(x2f)
