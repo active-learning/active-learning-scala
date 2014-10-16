@@ -157,7 +157,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean) =
     if (learner.id != strat.learner.id && strat.id > 1) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
-    else if (!areQueriesFinished(poolSize, strat, run, fold, binaf, zscof, completeIt = false)) error(s"Queries must be finished to check hits! |U|=$poolSize")
+    else if (!areQueriesFinished(poolSize, strat, run, fold, null, null, completeIt = false)) error(s"Queries must be finished to check hits! |U|=$poolSize")
     else {
       poolId(strat, learner, run, fold) match {
         case None => false
@@ -202,8 +202,27 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
             }
             case (s, l) if s > 0 => hs match {
               case 0 => false
-              case ExpectedHitsForNormalPool => true
-              case _ => error(s"$hs previous hits should be $ExpectedHitsForNormalPool")
+              case nhs if nhs >= ExpectedHitsForNormalPool => true
+              case nhs => if (completeIt) {
+                log(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Completing...")
+                //gera hits e sql strs
+                val usedQueries = hs + nclasses - 1
+                val lastUsedT = usedQueries - 1
+                val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(Q).splitAt(usedQueries)
+                if (usedPatterns.size != usedQueries) error("Problems taking hit-used queries.")
+                var m = learner.build(usedPatterns)
+                val tuples = ((null +: rest).zipWithIndex map { case (patt, idx) =>
+                  val t = idx + lastUsedT + 1
+                  if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
+                  val cm = m.confusion(testSet)
+                  val blob = confusionToBlob(cm)
+                  (s"INSERT INTO h values ($pid, $t, ?)", blob)
+                }).toList
+                val (sqls, blobs) = tuples.unzip
+                log(tuples.mkString("\n"))
+                batchWriteBlob(sqls, blobs)
+                sqls.size + hs == Q
+              } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Not completing...")
             }
           }
       }
