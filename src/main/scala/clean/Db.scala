@@ -81,7 +81,7 @@ class Db(val database: String) extends Log with Lock {
 
   def read(sql: String) = {
     test(sql)
-    log(s"[$sql]")
+    log(s"[$sql]", 20)
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
@@ -118,7 +118,7 @@ class Db(val database: String) extends Log with Lock {
 
   def write(sql: String) {
     test(sql)
-    log(s"[$sql]")
+    log(s"[$sql]", 20)
     try {
       acquire()
       val statement = connection.createStatement()
@@ -132,7 +132,7 @@ class Db(val database: String) extends Log with Lock {
 
   def readBlobs(sql: String) = {
     test(sql)
-    log(s"[$sql]")
+    log(s"[$sql]", 20)
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
@@ -152,7 +152,7 @@ class Db(val database: String) extends Log with Lock {
 
   def readBlobs4(sql: String) = {
     test(sql)
-    log(s"[$sql]")
+    log(s"[$sql]", 20)
     try {
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery(sql)
@@ -172,7 +172,7 @@ class Db(val database: String) extends Log with Lock {
 
   def writeBlob(sql: String, data: Array[Byte]) {
     test(sql)
-    log(s"[$sql]")
+    log(s"[$sql]", 20)
     try {
       acquire()
       val statement = connection.prepareStatement(sql)
@@ -191,8 +191,8 @@ class Db(val database: String) extends Log with Lock {
    */
   def batchWriteBlob(sqls: List[String], blobs: List[Array[Byte]]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    log("batch write blob ...")
-    log(sqls.mkString("\n"))
+    log("batch write blob ...", 20)
+    log(sqls.mkString("\n"), 20)
 
     try {
       acquire()
@@ -209,7 +209,7 @@ class Db(val database: String) extends Log with Lock {
       case e: Throwable => e.printStackTrace()
         error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
     } finally release()
-    log("batch write blob finished.")
+    log("batch write blob finished.", 20)
   }
 
   /**
@@ -218,7 +218,7 @@ class Db(val database: String) extends Log with Lock {
    */
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    sqls foreach (m => log(m))
+    sqls foreach (m => log(m, 20))
     try {
       acquire()
       val statement = connection.createStatement()
