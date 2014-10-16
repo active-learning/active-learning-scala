@@ -368,7 +368,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
       //para rnd e quaisquer learners, |queries| = |U|.
       val expectedQ = if (strat.id == 0) poolSize else Q
-      if (expectedQ != queries.size) quit(s"Number of ${queries.size} provided queries for hits is different from $expectedQ expected!")
+      if (expectedQ > queries.size) quit(s"Number of ${queries.size} provided queries for hits is lesser than $expectedQ expected!")
 
       //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
       val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else Q
