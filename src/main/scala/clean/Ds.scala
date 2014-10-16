@@ -195,7 +195,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
                   (s"INSERT INTO h values ($pid, $t, ?)", blob)
                 }).toList
                 val (sqls, blobs) = tuples.unzip
-                log(tuples.mkString("\n"))
+                log(tuples.mkString("\n"), 20)
                 batchWriteBlob(sqls, blobs)
                 sqls.size + hs == Q
               } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Not completing...")
@@ -219,7 +219,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
                   (s"INSERT INTO h values ($pid, $t, ?)", blob)
                 }).toList
                 val (sqls, blobs) = tuples.unzip
-                log(tuples.mkString("\n"))
+                log(tuples.mkString("\n"), 20)
                 batchWriteBlob(sqls, blobs)
                 sqls.size + hs == Q
               } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Not completing...")
@@ -385,7 +385,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
       }).toList
       val (sqls, blobs) = tuples.unzip
-      log(tuples.mkString("\n"))
+      log(tuples.mkString("\n"), 20)
       batchWriteBlob(sqls, blobs)
     }
 
