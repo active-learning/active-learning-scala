@@ -69,7 +69,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       ds.quit(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
       sqls += "cancel"
     } else ds.getMeasure(meas, strat, learner, run, fold) match {
-      case Some(_) => log(s"Measure $meas already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!", 20)
+      case Some(_) => log(s"Measure $meas already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
       case None =>
         val cms = ds.getCMs(strat, learner, run, fold)
         if (cms.size < ds.Q - ds.nclasses + 1) ds.quit(s"Couldn't take at least ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
