@@ -23,7 +23,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 trait Log {
   val context: String
 
-  def log(msg: String, level: Int = Global.debug) {
+  def log(msg: String, level: Int = 10) {
     if (Global.debug > 0) level match {
       case x if x >= Global.debug => println(s"$context : $msg    ${Calendar.getInstance().getTime}")
       case x =>
