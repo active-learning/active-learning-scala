@@ -116,7 +116,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
 
   def isQCalculated = fetchQ().nonEmpty
 
-  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int): Boolean = {
+  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean): Boolean = {
     val (sid, lid) = (strat.id, strat.learner.id)
     poolId(sid, lid, run, fold) match {
       case None =>
@@ -138,37 +138,38 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
           case _ => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries!  l:$lid  s:$sid")
             case q if q >= Q => true
-            case q =>
+            case q => if (completeIt) {
               log(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. Completing it...", 20)
-              val qrs = queries(strat, run, fold, null, null)
+              val qrs = queries(strat, run, fold, binaf, zscof)
               val newqrs = strat.resume_queries(qrs).take(Q - q)
-              quit(s"Total of new queries: ${newqrs.size + q}")
+              if (newqrs.size + q != Q) quit(s"wrong new total of queries: ${newqrs.size + q}")
               val sqls = newqrs.zipWithIndex map { case (patt, t0) =>
                 val t = t0 + lastT + 1
                 s"INSERT INTO q values ($pid, $t, ${patt.id})"
               }
               batchWrite(sqls.toList)
               sqls.size + q == Q
+            } else quit(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. Not completing it...")
           }
         }
     }
   }
 
-  def areHitsFinished(poolSize: Int, strat: Strategy, learner: Learner, run: Int, fold: Int) =
+  def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean) =
     if (learner.id != strat.learner.id && strat.id > 1) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
-    else if (!areQueriesFinished(poolSize, strat, run, fold)) error(s"Queries must be finished to check hits! |U|=$poolSize")
+    else if (!areQueriesFinished(poolSize, strat, run, fold, binaf, zscof, completeIt = false)) error(s"Queries must be finished to check hits! |U|=$poolSize")
     else {
       poolId(strat, learner, run, fold) match {
         case None => false
         case Some(pid) =>
           val ExpectedHitsForFullPool = poolSize - nclasses + 1
           lazy val ExpectedHitsForNormalPool = Q - nclasses + 1
-          val hs = read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
-            case List(Vector(0)) | List(Vector(0, 0)) => 0
+          val hs = (read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
+            case List(Vector(0)) | List(Vector(0, 0)) => 0d
             case List(Vector(c, m)) => if (c == m - nclasses + 2) c
             else error(s"Inconsistency: $c cms differs from last timeStep+1 = ${m - nclasses + 2}")
             case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner")
-          }
+          }).toInt
           (strat.id, learner.id) match {
             case (s, l) if s == 0 && l < 4 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
@@ -177,14 +178,27 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
             }
             case (s, l) if s == 0 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
-              case ExpectedHitsForNormalPool => true
-
-              case ExpectedHitsForFullPool if l == 4 =>
-                write(s"delete from h where t>${Q - 1} and p=$pid")
-                log(s"apagando excesso de vfdts", 20)
-                true
-
-              case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner")
+              case nhs if nhs >= ExpectedHitsForNormalPool => true
+              case nhs => if (completeIt) {
+                log(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Completing...")
+                //gera hits e sql strs
+                val usedQueries = hs + nclasses - 1
+                val lastUsedT = usedQueries - 1
+                val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(Q).splitAt(usedQueries)
+                if (usedPatterns.size != usedQueries) error("Problems taking hit-used queries.")
+                var m = learner.build(usedPatterns)
+                val tuples = ((null +: rest).zipWithIndex map { case (patt, idx) =>
+                  val t = idx + lastUsedT + 1
+                  if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
+                  val cm = m.confusion(testSet)
+                  val blob = confusionToBlob(cm)
+                  (s"INSERT INTO h values ($pid, $t, ?)", blob)
+                }).toList
+                val (sqls, blobs) = tuples.unzip
+                log(tuples.mkString("\n"))
+                batchWriteBlob(sqls, blobs)
+                sqls.size + hs == Q
+              } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Not completing...")
             }
             case (s, l) if s > 0 => hs match {
               case 0 => false
@@ -338,6 +352,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
       val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else Q
       val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
+      if (qtdQueriesToTake != initialPatterns.size) error("Problems picking initialPatterns for hits.")
 
       //gera hits e sql strs
       var m = learner.build(initialPatterns)

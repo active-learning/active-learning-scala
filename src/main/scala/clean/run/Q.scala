@@ -38,7 +38,7 @@ object Q extends Exp {
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
     //queries
     ds.log("queries")
-    val queries = if (ds.areQueriesFinished(pool.size, RandomSampling(pool), run, fold)) {
+    val queries = if (ds.areQueriesFinished(pool.size, RandomSampling(pool), run, fold, null, null, completeIt = false)) {
       ds.log(s"Queries already done for rnd at pool $run.$fold. Retrieving from disk.")
       ds.queries(RandomSampling(pool), run, fold, null, null)
     } else ds.writeQueries(RandomSampling(pool), run, fold, Int.MaxValue)
@@ -46,7 +46,7 @@ object Q extends Exp {
     //hits
     ds.log("hits")
     Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()) foreach { learner =>
-      if (ds.areHitsFinished(pool.size, RandomSampling(pool), learner, run, fold)) ds.log(s"Hits already done for rnd/$learner at pool $run.$fold.")
+      if (ds.areHitsFinished(pool.size, testSet, RandomSampling(pool), learner, run, fold, null, null, completeIt = false)) ds.log(s"Hits done for rnd/$learner at pool $run.$fold.")
       else ds.writeHits(pool.size, testSet, queries.toVector, RandomSampling(pool), run, fold)(learner)
     }
   }

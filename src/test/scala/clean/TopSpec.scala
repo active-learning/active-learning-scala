@@ -157,8 +157,8 @@ class TopSpec extends UnitSpec with Blob with Lock {
             }
 
             val strategy = strats(pool).find(x => x.id == strat.id && x.learner.id == strat.learner.id).get
-            if (!ds.areQueriesFinished(pool.size, strategy, run, fold)) ds.writeQueries(strategy, run, fold, ds.Q)
-            if (!ds.areHitsFinished(pool.size, strategy, strategy.learner, run, fold)) {
+            if (!ds.areQueriesFinished(pool.size, strategy, run, fold, null, null, completeIt = false)) ds.writeQueries(strategy, run, fold, ds.Q)
+            if (!ds.areHitsFinished(pool.size, Seq(), strategy, strategy.learner, run, fold, null, null, completeIt = false)) {
               val queries = strategy.queries.take(ds.Q)
               val dsQueries = ds.queries(strategy, run, fold, binaf, zscof)
               val e1 = queries.map(x => (x.id, x, x.label)).sameElements(dsQueries.map(x => (x.id, x, x.label)))
