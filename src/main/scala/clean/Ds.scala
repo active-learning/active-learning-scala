@@ -297,7 +297,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
       }
       val numberOfQueriesNeeded = if (strat.id == 0 && learner.id < 4) countQueries(strat, run, fold) else Q
       val expectedCms = numberOfQueriesNeeded - nclasses + 1
-      if (expectedCms != cms.size) error(s"${cms.size} conf mats found, $expectedCms expected!")
+      if (expectedCms > cms.size) error(s"${cms.size} conf mats found, at least $expectedCms expected!")
       cms
   }
 
