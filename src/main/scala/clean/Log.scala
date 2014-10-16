@@ -25,7 +25,7 @@ trait Log {
 
   def log(msg: String, level: Int = Global.debug) {
     if (Global.debug > 0) level match {
-      case x if x <= Global.debug => println(s"$context : $msg    ${Calendar.getInstance().getTime}")
+      case x if x >= Global.debug => println(s"$context : $msg    ${Calendar.getInstance().getTime}")
       case x =>
     }
   }
