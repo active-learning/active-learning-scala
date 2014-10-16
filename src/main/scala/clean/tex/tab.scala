@@ -27,7 +27,7 @@ import util.{Stat, StatTests}
 import scala.collection.mutable
 
 object tab extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "medida:alca|alcg")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
   val context = "tabtex"
   val sl = mutable.LinkedHashSet[String]()
   run()
