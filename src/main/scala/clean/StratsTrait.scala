@@ -34,11 +34,11 @@ trait StratsTrait {
     Majoritary(pool),
     RandomSampling(pool),
     ClusterBased(pool)
-    , SVMmulti(pool, "SELF_CONF")
+    //    , SVMmulti(pool, "SELF_CONF") //EER
     //    ,
-    //    SVMmulti(pool, "KFF"),
-    //    SVMmulti(pool, "BALANCED_EE"),
-    //    SVMmulti(pool, "SIMPLE")
+    //    SVMmulti(pool, "KFF"), // exploration
+    , SVMmulti(pool, "BALANCED_EE") //SIMPLE + KFF
+    //    SVMmulti(pool, "SIMPLE") // exploitation="uncertainty"
   )
 
   def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -48,15 +48,13 @@ trait StratsTrait {
     //,
     //    DensityWeighted(learner, pool, 1, "eucl"),
     //    DensityWeightedTrainingUtility(learner, pool, "cheb"),
-    ///////////// DensityWeightedTrainingUtility(learner, pool, "eucl"),
+    , DensityWeightedTrainingUtility(learner, pool, "eucl")
     //    DensityWeightedTrainingUtility(learner, pool, "manh"),
-    ////////////// ExpErrorReductionMargin(learner, pool, "entropy"),
-    //    ExpErrorReductionMargin(learner, pool, "gmeans+residual"),
+    , ExpErrorReductionMargin(learner, pool, "entropy")
+    , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
     //    ExpErrorReductionMargin(learner, pool, "accuracy"),
-    //    ,
-    //    new SGmulti(learner, pool, "consensus")
-    //    ,
-    //////////////new SGmulti(learner, pool, "majority")
+    , new SGmulti(learner, pool, "consensus")
+    , new SGmulti(learner, pool, "majority")
     //    new SGmultiJS(learner, pool)
   )
 

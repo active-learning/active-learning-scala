@@ -60,7 +60,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
                   case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
                 }
               }
-              Seq(Stat.media_desvioPadrao(vs.toVector))
+              Seq((Stat.media_desvioPadrao(vs.map(_ * 100).toVector)._1, -1d))
             }).flatten
           } else if (s.id >= 17 && s.id <= 21) {
             val learner = s.learner
