@@ -149,7 +149,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
               }
               batchWrite(sqls.toList)
               sqls.size + q == Q
-            } else quit(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. Not completing it...")
+            } else quit(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. |U|=$poolSize. Not completing it...")
           }
         }
     }

@@ -45,7 +45,7 @@ object StatTests {
 
   private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") {
     if (nstrats != strategies.size) {
-      println(s"Inconsistency #measures-in-the-first-row != strategies.size: $nstrats != ${strategies.size}")
+      println(s"Inconsistency #measures-in-the-first-row != strategies.size: $nstrats != ${strategies.size}: $strategies")
       sys.exit(1)
     }
     val caption = language match {

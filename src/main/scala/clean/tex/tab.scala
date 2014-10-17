@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import al.strategies.{PassiveGme, RandomSampling, PassiveAcc}
+import al.strategies.{PassiveAcc, PassiveGme, RandomSampling}
 import clean._
 import ml.classifiers.NB
 import util.{Stat, StatTests}
@@ -29,13 +29,13 @@ import scala.collection.mutable
 object tab extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
   val context = "tabtex"
-  val sl = mutable.LinkedHashSet[String]()
   run()
 
   override def run() = {
     super.run()
     allMeasures.dropRight(2) foreach { measure =>
-      val res = datasets map { dataset =>
+      val sl = mutable.LinkedHashSet[String]()
+      val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
         val ds = Ds(path, dataset)
         ds.open()
         sl += "Q/$|\\mathcal{U}|$"
@@ -108,7 +108,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
       println(s"")
 
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).sortBy(_._1) grouped 50
-      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))) grouped 50
+      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).sortBy(_._2.head._1) grouped 50
       tbs foreach { case res0 =>
         StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)

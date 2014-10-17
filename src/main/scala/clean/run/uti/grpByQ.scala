@@ -20,13 +20,13 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run.uti
 
 import al.strategies.RandomSampling
-import clean.{Ds, Exp}
+import clean.{Lock, Ds, Exp}
 import ml.Pattern
 import weka.filters.Filter
 
 import scala.collection.mutable
 
-object grpByQ extends Exp {
+object grpByQ extends Exp with Lock {
   val arguments = superArguments
   val context = "grpByQ"
   val m = mutable.Map[String, (Int, Int)]()
@@ -42,7 +42,9 @@ object grpByQ extends Exp {
 
   def datasetFinished(ds: Ds) {
     if (ds.isQCalculated) {
+      acquire()
       m += ds.dataset ->(ds.Q, (ds.n * 4) / 5)
+      release()
     }
   }
 
@@ -50,7 +52,7 @@ object grpByQ extends Exp {
     println(s"")
     println(s"")
     m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 6} map (_._2) foreach { g =>
-      g.foreach (x => println(x._1))
+      g.foreach(x => println(x._1))
       println(s"")
     }
   }
