@@ -47,15 +47,10 @@ object grpByQ extends Exp {
   }
 
   def end(res: Map[String, Boolean]): Unit = {
-    m.toList.sortBy(_._2).grouped(10) foreach { g =>
-      g foreach println
-      println(s"")
-    }
     println(s"")
     println(s"")
-    println(s"")
-    m.toList.sortBy(_._2).map(_._1).grouped(10) foreach { g =>
-      g foreach println
+    m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 10} map (_._2) foreach { g =>
+      g.foreach (x => println(x._1))
       println(s"")
     }
   }
