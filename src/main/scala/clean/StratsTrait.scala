@@ -34,8 +34,8 @@ trait StratsTrait {
     Majoritary(pool),
     RandomSampling(pool),
     ClusterBased(pool)
-    ,
-    SVMmulti(pool, "SELF_CONF")
+    //    ,
+    //    SVMmulti(pool, "SELF_CONF")
     //    ,
     //    SVMmulti(pool, "KFF"),
     //    SVMmulti(pool, "BALANCED_EE"),
@@ -54,8 +54,8 @@ trait StratsTrait {
     ////////////// ExpErrorReductionMargin(learner, pool, "entropy"),
     //    ExpErrorReductionMargin(learner, pool, "gmeans+residual"),
     //    ExpErrorReductionMargin(learner, pool, "accuracy"),
-    ,
-    new SGmulti(learner, pool, "consensus")
+    //    ,
+    //    new SGmulti(learner, pool, "consensus")
     //    ,
     //////////////new SGmulti(learner, pool, "majority")
     //    new SGmultiJS(learner, pool)
