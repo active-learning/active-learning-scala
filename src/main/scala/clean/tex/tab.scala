@@ -34,7 +34,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
 
   override def run() = {
     super.run()
-    allMeasures foreach { measure =>
+    allMeasures.dropRight(2) foreach { measure =>
       val res = datasets map { dataset =>
         val ds = Ds(path, dataset)
         ds.open()
@@ -49,7 +49,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
 
           if (s.id == 22 || s.id == 23) {
             val learner = s.learner
-            sl += s"${s.abr} ${learner.toString.take(3)}"
+            sl += s"${s.abr} ${learner.toString.take(4)}"
             val vs = for {
               r <- 0 until runs
               f <- 0 until folds
@@ -65,7 +65,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
           } else if (s.id >= 17 && s.id <= 21) {
             val learner = s.learner
             if (ds.isMeasureComplete(measure, s.id, learner.id)) {
-              sl += s"${s.abr} ${learner.toString.take(3)}"
+              sl += s"${s.abr} ${learner.toString.take(4)}"
               val vs = for {
                 r <- 0 until runs
                 f <- 0 until folds
@@ -83,7 +83,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
 
             (learners(learnersStr) map { learner =>
               if (ds.isMeasureComplete(measure, s.id, learner.id)) {
-                sl += s"${s.abr} ${learner.toString.take(3)}"
+                sl += s"${s.abr} ${learner.toString.take(4)}"
                 val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
@@ -106,11 +106,13 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
       println(s"")
       println(s"")
       println(s"")
-      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).sortBy(_._1) grouped 50
-      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).sortBy(_._2.head._1) grouped 50
+
+      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).sortBy(_._1) grouped 50
+      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).sortBy(_._2.head._1) grouped 50
       tbs foreach { case res0 =>
         StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
       }
+      sl.clear()
     }
   }
 }

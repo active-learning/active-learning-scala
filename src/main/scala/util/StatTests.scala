@@ -89,9 +89,9 @@ object StatTests {
       if (l.contains((-2342341, -1))) ""
       else {
         val vals = try {
-          val max = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(0d)).max
-          val Dmax = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(0d)).max
-          val Dmin = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(0d)).min
+          val max = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
+          val Dmax = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
+          val Dmin = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d)).min
           val (in, fi) = if (l.count(_._1 == max) == 1) ("\\underline{", "}") else ("", "")
           val (indx, fidx) = if (l.count(_._2 == Dmax) == 1) ("\\underline{", "}") else ("", "")
           val (indn, fidn) = if (l.count(_._2 == Dmin) == 1) ("\\underline{", "}") else ("", "")
