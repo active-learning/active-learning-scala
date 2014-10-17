@@ -1,0 +1,9 @@
+phoneme
+texture
+first-order-theorem
+optdigits
+musk
+ringnorm
+twonorm
+mushroom
+volcanoes-b2
