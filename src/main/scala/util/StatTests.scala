@@ -50,7 +50,7 @@ object StatTests {
     }
     val caption = language match {
       case "pt" => s"$measure para os Q exemplos consultados. Os maiores valores de medida e desvio padrão de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}}." +
-        s"Valores isolados estão sublinhados. Melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}."
+        s"Valores isolados estão sublinhados. Melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor."
       case "en" => s"$measure for the first Q queried instances. Highest value(and std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined. Best (lowest) std. values are in \\textcolor{darkgreen}{green}."
     }
     println( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
@@ -95,15 +95,21 @@ object StatTests {
           val (in, fi) = if (l.count(_._1 == max) == 1) ("\\underline{", "}") else ("", "")
           val (indx, fidx) = if (l.count(_._2 == Dmax) == 1) ("\\underline{", "}") else ("", "")
           val (indn, fidn) = if (l.count(_._2 == Dmin) == 1) ("\\underline{", "}") else ("", "")
+
+          val max2 = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).sorted.reverse(1)
+          val Dmin2 = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d)).sorted.toList(1)
+          val (in2, fi2) = if (l.count(_._1 == max2) == 1) ("\\textbf{", "}") else ("", "")
+          val (indn2, fidn2) = if (l.count(_._2 == Dmin2) == 1) ("\\textbf{", "}") else ("", "")
+
           l.zip(strategies).map { case ((x1f, x2f), s) =>
             val x1 = f(x1f)
             val x2 = f(x2f)
-            val str = if (x1f == max) s"\\textcolor{blue}{$in\\textbf{$x1}$fi}" else s"$x1" // \\usepackage[usenames,dvipsnames]{color}
-            str + (if (x1f != -1 && x2f != -1) "/" else "") + (x2f match {
+            val str = (if (x1f == max2) in2 else "") + (if (x1f == max) s"\\textcolor{blue}{$in\\textbf{$x1}$fi}" else s"$x1") + (if (x1f == max2) fi2 else "") // \\usepackage[usenames,dvipsnames]{color}
+            str + (if (x1f != -1 && x2f != -1) "/" else "") + (if (x1f == max2) indn2 else "") + (x2f match {
               case Dmin => s"\\textcolor{darkgreen}{$indn\\textbf{$x2}$fidn}"
               case Dmax => s"\\textcolor{red}{$indx\\textbf{$x2}$fidx}"
               case _ => s"$x2"
-            })
+            }) + (if (x1f == max2) fidn2 else "")
           }.mkString(" & ")
         } catch {
           case e: Throwable =>
