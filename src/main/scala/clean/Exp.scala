@@ -42,7 +42,7 @@ trait Exp extends AppWithUsage {
   override def run() = {
     super.run()
     memoryMonitor()
-    val res = datasets map { dataset =>
+    val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
       val res1 = if (isAlreadyDone(ds)) {
@@ -76,7 +76,7 @@ trait Exp extends AppWithUsage {
       ds.close()
       res1
     }
-    end(res.toMap)
+    end(res.toList.toMap)
     justQuit("Datasets prontos.")
   }
 

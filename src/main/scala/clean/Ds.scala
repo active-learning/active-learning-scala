@@ -243,7 +243,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         val t_max_s = grpByPool.map { pool =>
           //max gmeans no pool
           val max = pool.maxBy(_._1)._1
-          val maxs = pool.filter(x => x._1 >= max * 0.999)
+          val maxs = pool.filter(x => x._1 >= max * 0.99)
           //primeiro t em que atinje max
           val t = maxs.minBy(_._2)._2
           (t, max)
@@ -258,14 +258,14 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         }.groupBy(_._1).map(_._2.map(_._2))
         val t_max_s = grpByPool.map { pool =>
           val max = pool.maxBy(_._1)._1
-          val maxs = pool.filter(x => x._1 >= max * 0.999)
+          val maxs = pool.filter(x => x._1 >= max * 0.99)
           val t = maxs.minBy(_._2)._2
           (t, max)
         }.toSeq
         t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
       }
 
-      val slowestAvg = math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)
+      val slowestAvg = math.min(500, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
 
       val qToWrite = math.max(slowestAvg, nclasses + 2)
       write(s"INSERT INTO r values (0, -1, $qToWrite)")
