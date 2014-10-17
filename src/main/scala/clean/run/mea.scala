@@ -30,7 +30,7 @@ import scala.collection.mutable
 
 object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with MeasuresTrait {
   val context = "meaApp"
-  val arguments = superArguments ++ Seq("completeQsHs?:y|n")
+  val arguments = superArguments
   val ignoreNotDone = false
   val sqls = mutable.Queue[String]()
   run()
