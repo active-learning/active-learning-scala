@@ -41,21 +41,21 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
     if (!ds.isQCalculated) ds.error(s"Q is not calculated!")
     else allMeasures foreach { meas => if (!sqls.contains("cancel")) {
       if (meas.id == 15 || meas.id == 16) {
-        specialLearners(Seq()) foreach storeSQL(testSet, pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size, meas)
+        specialLearners(Seq()) foreach storeSQL(pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size, meas)
       } else {
-        stratsemLearnerExterno(pool) foreach { strat =>
-          if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt)) {
+        stratsemLearnerExterno() foreach { strat =>
+          if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false)) {
             ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
             //            sqls += "cancel"
-          } else if (strat.id >= 17 && strat.id <= 21) storeSQL(testSet, pool.size, ds, strat, run, fold, testSet.size, meas)(strat.learner)
-          else allLearners() foreach storeSQL(testSet, pool.size, ds, strat, run, fold, testSet.size, meas)
+          } else if (strat.id >= 17 && strat.id <= 21) storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(strat.learner)
+          else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)
         }
         allLearners() foreach { learner =>
-          stratcomLearnerExterno(learner, pool) foreach { strat =>
-            if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt)) {
+          stratcomLearnerExterno(learner) foreach { strat =>
+            if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false)) {
               ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
               //              sqls += "cancel"
-            } else storeSQL(testSet, pool.size, ds, strat, run, fold, testSet.size, meas)(learner)
+            } else storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(learner)
           }
         }
       }
@@ -63,9 +63,9 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
     }
   }
 
-  def storeSQL(testSet: Seq[Pattern], poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int, testSetSize: Int, meas: Measure)(learner: Learner): Unit = {
+  def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int, testSetSize: Int, meas: Measure)(learner: Learner): Unit = {
     log(s"$strat $learner $run $fold")
-    if (!ds.areHitsFinished(poolSize, testSet, strat, learner, run, fold, null, null, completeIt)) {
+    if (!ds.areHitsFinished(poolSize, Seq(), strat, learner, run, fold, null, null, completeIt = false)) {
       ds.log(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
       //      sqls += "cancel"
     } else ds.getMeasure(meas, strat, learner, run, fold) match {

@@ -30,7 +30,6 @@ trait AppWithUsage extends App with Log with ArgParser {
   lazy val debugIntensity = if (args.isEmpty) 20 else args(0).toInt
   lazy val path = args(1)
   lazy val sql = args(4)
-  lazy val completeIt = args(4).contains("y")
   lazy val datasets = datasetsFromFiles(args(2))
   lazy val parallelRuns = args(3).contains("r")
   lazy val parallelFolds = args(3).contains("f")
