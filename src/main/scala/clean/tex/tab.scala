@@ -78,7 +78,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
               }
               val (va, d) = Stat.media_desvioPadrao(vs.toVector)
               Seq(if (s.id == 21) (va, -1d) else (va, d))
-            } else Seq()
+            } else Seq((-1d, -1d))
           } else {
 
             (learners(learnersStr) map { learner =>
@@ -95,7 +95,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
                   }
                 }
                 Seq(Stat.media_desvioPadrao(vs.toVector))
-              } else Seq()
+              } else Seq((-1d, -1d))
             }).flatten
           }
         }
