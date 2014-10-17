@@ -54,7 +54,7 @@ object Q extends Exp {
   def datasetFinished(ds: Ds) {
     //Q
     ds.calculaQ(runs, folds)
-    ds.log(s"Q: ${ds.Q}\n")
+    ds.log(s"Q: ${ds.Q}\n", 20)
   }
 
   def end(res: Map[String, Boolean]): Unit = {
