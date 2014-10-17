@@ -43,7 +43,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       if (meas.id == 15 || meas.id == 16) {
         specialLearners(Seq()) foreach storeSQL(testSet, pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size, meas)
       } else {
-        stratsemLearnerExterno() foreach { strat =>
+        stratsemLearnerExterno(pool) foreach { strat =>
           if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt)) {
             ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
             //            sqls += "cancel"
@@ -51,7 +51,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
           else allLearners() foreach storeSQL(testSet, pool.size, ds, strat, run, fold, testSet.size, meas)
         }
         allLearners() foreach { learner =>
-          stratcomLearnerExterno(learner) foreach { strat =>
+          stratcomLearnerExterno(learner, pool) foreach { strat =>
             if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt)) {
               ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
               //              sqls += "cancel"
