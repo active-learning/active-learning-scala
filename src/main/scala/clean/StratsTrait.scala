@@ -34,8 +34,7 @@ trait StratsTrait {
     Majoritary(pool),
     RandomSampling(pool),
     ClusterBased(pool)
-    //    ,
-    //    SVMmulti(pool, "SELF_CONF")
+    , SVMmulti(pool, "SELF_CONF")
     //    ,
     //    SVMmulti(pool, "KFF"),
     //    SVMmulti(pool, "BALANCED_EE"),
@@ -44,7 +43,7 @@ trait StratsTrait {
 
   def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
     //    Uncertainty(learner, pool),
-    //    Entropy(learner, pool),
+    Entropy(learner, pool),
     Margin(learner, pool)
     //,
     //    DensityWeighted(learner, pool, 1, "eucl"),

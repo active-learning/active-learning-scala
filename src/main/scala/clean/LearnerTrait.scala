@@ -29,6 +29,36 @@ trait LearnerTrait {
 
   def fixedLearner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1): Learner = str2learner(pool, learnerSeed)(learnerStr)
 
+  def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
+
+  def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
+    NB()
+    ,
+    KNNBatch(5, "eucl", pool, weighted = true),
+    //    VFDT(),
+    //    ,
+    SVMLib(learnerSeed)
+    //        ,
+    //    C45()
+    //    ,
+    //    NBBatch()
+  )
+
+  def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
+    NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
+  )
+
+  def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
+    IELM(learnerSeed)
+    //    ,
+    //    interaELM(learnerSeed),
+    //    ninteraELM(learnerSeed)
+    //  ,
+    //      CIELM(learnerSeed)
+    //    , ECIELM(learnerSeed)
+    //    , EIELM(learnerSeed)
+  )
+
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
     case "nb" => NB()
     case "nbb" => NBBatch()
@@ -57,33 +87,4 @@ trait LearnerTrait {
     //      case "5NNm" => KNNBatch(5, "manh", pool)
     //    case "Varios" => NoLearner()
   }
-
-  def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
-
-  def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    NB()
-    //    KNNBatch(5, "eucl", pool, weighted = true),
-    //    VFDT(),
-    //    ,
-    //    SVMLib(learnerSeed)
-    //    ,
-    //    C45()
-    //    ,
-    //    NBBatch()
-  )
-
-  def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
-    NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
-  )
-
-  def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-    //    IELM(learnerSeed)
-    //    ,
-    //    interaELM(learnerSeed),
-    //    ninteraELM(learnerSeed)
-    //  ,
-    //      CIELM(learnerSeed)
-    //    , ECIELM(learnerSeed)
-    //    , EIELM(learnerSeed)
-  )
 }
