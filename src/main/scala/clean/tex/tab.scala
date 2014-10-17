@@ -21,7 +21,7 @@ package clean.tex
 
 import al.strategies.{PassiveAcc, PassiveGme, RandomSampling}
 import clean._
-import ml.classifiers.{NoLearner, NB}
+import ml.classifiers.NB
 import util.{Stat, StatTests}
 
 import scala.collection.mutable
@@ -41,8 +41,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
         sl += "Q/$|\\mathcal{U}|$"
         val ms = for {
           s <- (measure.id match {
-            case 11 => Seq(PassiveAcc(NoLearner(), Seq()))
-            case 12 => Seq(PassiveGme(NoLearner(), Seq()))
+            case 11 => Seq(PassiveAcc(NB(), Seq()))
+            case 12 => Seq(PassiveGme(NB(), Seq()))
             case _ => Seq()
           }) ++ allStrats()
         } yield {
