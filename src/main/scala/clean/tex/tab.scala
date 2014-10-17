@@ -21,7 +21,7 @@ package clean.tex
 
 import al.strategies.{PassiveAcc, PassiveGme, RandomSampling}
 import clean._
-import ml.classifiers.NB
+import ml.classifiers.{NoLearner, NB}
 import util.{Stat, StatTests}
 
 import scala.collection.mutable
@@ -41,31 +41,31 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
         sl += "Q/$|\\mathcal{U}|$"
         val ms = for {
           s <- (measure.id match {
-            case 11 => Seq(PassiveAcc(NB(), Seq()))
-            case 12 => Seq(PassiveGme(NB(), Seq()))
+            case 11 => Seq(PassiveAcc(NoLearner(), Seq()))
+            case 12 => Seq(PassiveGme(NoLearner(), Seq()))
             case _ => Seq()
           }) ++ allStrats()
         } yield {
 
           if (s.id == 22 || s.id == 23) {
-            val learner = s.learner
-            sl += s"${s.abr} ${learner.toString.take(4)}"
-            val vs = for {
-              r <- 0 until runs
-              f <- 0 until folds
-            } yield {
-              if (measure.id == 0) -1
-              else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
-                case Some(v) => v
-                case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
+            (specialLearners() map { learner =>
+              sl += s"${s.abr} ${learner.toString.take(4)}"
+              val vs = for {
+                r <- 0 until runs
+                f <- 0 until folds
+              } yield {
+                if (measure.id == 0) -1d
+                else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
+                  case Some(v) => v
+                  case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
+                }
               }
-            }
-            Seq(Stat.media_desvioPadrao(vs.toVector))
-
+              Seq(Stat.media_desvioPadrao(vs.toVector))
+            }).flatten
           } else if (s.id >= 17 && s.id <= 21) {
             val learner = s.learner
+            sl += s"${s.abr} ${learner.toString.take(4)}"
             if (ds.isMeasureComplete(measure, s.id, learner.id)) {
-              sl += s"${s.abr} ${learner.toString.take(4)}"
               val vs = for {
                 r <- 0 until runs
                 f <- 0 until folds
@@ -82,8 +82,8 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
           } else {
 
             (learners(learnersStr) map { learner =>
+              sl += s"${s.abr} ${learner.toString.take(4)}"
               if (ds.isMeasureComplete(measure, s.id, learner.id)) {
-                sl += s"${s.abr} ${learner.toString.take(4)}"
                 val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
