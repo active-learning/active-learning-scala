@@ -149,7 +149,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
               }
               batchWrite(sqls.toList)
               sqls.size + q == Q
-            } else quit(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. |U|=$poolSize. Not completing it...")
+            } else quit(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. |U|=$poolSize. But not allowed to complete it...")
           }
         }
     }
@@ -198,7 +198,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
                 log(tuples.mkString("\n"), 20)
                 batchWriteBlob(sqls, blobs)
                 sqls.size + hs == Q
-              } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Not completing...")
+              } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...")
             }
             case (s, l) if s > 0 => hs match {
               case 0 => false
@@ -222,7 +222,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
                 log(tuples.mkString("\n"), 20)
                 batchWriteBlob(sqls, blobs)
                 sqls.size + hs == Q
-              } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Not completing...")
+              } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete...")
             }
           }
       }
