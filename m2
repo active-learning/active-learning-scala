@@ -1,0 +1,11 @@
+hayes-roth
+iris
+voting
+vertebra-column-2c
+wdbc
+banknote-authentication
+cardiotocography-10class
+volcanoes-a3
+multiple-features
+wine-quality-white-5class
+texture

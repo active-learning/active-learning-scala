@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run.uti
 
+import java.io.FileWriter
+
 import al.strategies.RandomSampling
 import clean.{Lock, Ds, Exp}
 import ml.Pattern
@@ -51,9 +53,11 @@ object grpByQ extends Exp with Lock {
   def end(res: Map[String, Boolean]): Unit = {
     println(s"")
     println(s"")
-    m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 6} map (_._2) foreach { g =>
-      g.foreach(x => println(x._1))
-      println(s"")
+    val bla = m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 10} map (_._2)
+    bla.zipWithIndex foreach { case (g, i) =>
+      val fw = new FileWriter(s"m$i")
+      g.foreach(x => fw.write(x._1 + "\n"))
+      fw.close()
     }
   }
 }
