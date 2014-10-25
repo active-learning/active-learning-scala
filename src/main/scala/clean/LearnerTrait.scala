@@ -31,21 +31,21 @@ trait LearnerTrait {
 
   def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
+  def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
+    NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
+  )
+
   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
     NB()
-    ,
-    KNNBatch(5, "eucl", pool, weighted = true),
+    //    ,
+    //    KNNBatch(5, "eucl", pool, weighted = true),
     //    VFDT(),
     //    ,
-    SVMLib(learnerSeed)
+    //    SVMLib(learnerSeed)
     //        ,
     //    C45()
     //    ,
     //    NBBatch()
-  )
-
-  def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
-    NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
   )
 
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
