@@ -144,20 +144,20 @@ object all extends Exp with LearnerTrait with StratsTrait with Lock with CM with
   def calculate(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int, meas: Measure) = meas.calc(ds, cms, tsSize)
 
   def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int, testSetSize: Int, meas: Measure)(learner: Learner): Unit = {
-    log(s"$strat $learner $run $fold")
-    if (!ds.areHitsFinished(poolSize, Seq(), strat, learner, run, fold, null, null, completeIt = false)) ds.log(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
-    else ds.getMeasure(meas, strat, learner, run, fold) match {
-      case Some(_) => log(s"Measure $meas already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-      case None =>
-        val cms = ds.getCMs(strat, learner, run, fold)
-        if (cms.size < ds.Q - ds.nclasses + 1) ds.quit(s"Couldn't take at least ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
-        val tsSize = contaTotal(cms.head._2)
-        if (testSetSize != tsSize) ds.quit("Hits differs from testSetSize!")
-        val v = calculate(ds, cms, tsSize, meas)
-        acquire()
-        ds.putMeasureValue(meas, v, strat, learner, run, fold)
-        release()
-    }
+    //    log(s"$strat $learner $run $fold")
+    //    if (!ds.areHitsFinished(poolSize, Seq(), strat, learner, run, fold, null, null, completeIt = false)) ds.log(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
+    //    else ds.getMeasure(meas, strat, learner, run, fold) match {
+    //      case Some(_) => log(s"Measure $meas already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+    //      case None =>
+    //        val cms = ds.getCMs(strat, learner, run, fold)
+    //        if (cms.size < ds.Q - ds.nclasses + 1) ds.quit(s"Couldn't take at least ${ds.Q - ds.nclasses + 1} queries, ${cms.size} only.")
+    //        val tsSize = contaTotal(cms.head._2)
+    //        if (testSetSize != tsSize) ds.quit("Hits differs from testSetSize!")
+    //        val v = calculate(ds, cms, tsSize, meas)
+    //        acquire()
+    //        ds.putMeasureValue(meas, v, strat, learner, run, fold)
+    //        release()
+    //    }
   }
 
   def datasetFinished(ds: Ds) {
