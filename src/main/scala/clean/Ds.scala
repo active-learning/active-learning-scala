@@ -265,7 +265,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
       }
 
-      val slowestAvg = math.min(500, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
+      val slowestAvg = math.min(200, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
 
       val qToWrite = math.max(slowestAvg, nclasses + 2)
       write(s"INSERT INTO r values (0, -1, $qToWrite)")
