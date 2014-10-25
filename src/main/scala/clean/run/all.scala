@@ -32,7 +32,6 @@ object all extends Exp with LearnerTrait with StratsTrait with Lock with CM with
   val context = "allApp"
   val arguments = superArguments
   val ignoreNotDone = false
-  val sqls = mutable.Queue[String]()
   run()
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
@@ -156,15 +155,12 @@ object all extends Exp with LearnerTrait with StratsTrait with Lock with CM with
         if (testSetSize != tsSize) ds.quit("Hits differs from testSetSize!")
         val v = calculate(ds, cms, tsSize, meas)
         acquire()
-        sqls += ds.measureToSQL(meas, v, strat.id, learner, run, fold)
+        ds.putMeasureValue(meas, v, strat, learner, run, fold)
         release()
     }
   }
 
   def datasetFinished(ds: Ds) {
-    ds.batchWrite(sqls.toList)
-    ds.log("fim deste")
-    sqls.clear()
   }
 
   def isAlreadyDone(ds: Ds) = false
