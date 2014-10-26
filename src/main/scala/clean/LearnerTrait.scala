@@ -44,8 +44,8 @@ trait LearnerTrait {
     //    SVMLib(learnerSeed)
     //        ,
     //    C45()
-    //    ,
-    //    NBBatch()
+    ,
+    NBBatch()
   )
 
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
