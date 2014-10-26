@@ -40,8 +40,8 @@ trait LearnerTrait {
     ,
     KNNBatch(5, "eucl", pool, weighted = true)
     //    VFDT(),
-    //    ,
-    //    SVMLib(learnerSeed)
+    ,
+    SVMLib(learnerSeed)
     //        ,
     //    C45()
     ,

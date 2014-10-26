@@ -54,7 +54,7 @@ trait StratsTrait {
     //    , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
     //    ExpErrorReductionMargin(learner, pool, "accuracy"),
     , new SGmulti(learner, pool, "consensus")
-    //    , new SGmulti(learner, pool, "majority")
+    , new SGmulti(learner, pool, "majority")
     //    new SGmultiJS(learner, pool)
   )
 
