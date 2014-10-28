@@ -86,8 +86,6 @@ object StatTests {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l0), i) =>
       val l = l0 map (x => (x._1 * 1000).round / 1000d -> (x._2 * 1000).round / 1000d)
-      if (l.contains((-2342341, -1))) ""
-      else {
         val vals = try {
           val max = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
           val Dmax = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
@@ -96,8 +94,8 @@ object StatTests {
           val (indx, fidx) = if (l.count(_._2 == Dmax) == 1) ("\\underline{", "}") else ("", "")
           val (indn, fidn) = if (l.count(_._2 == Dmin) == 1) ("\\underline{", "}") else ("", "")
 
-          val max2 = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).sorted.reverse(1)
-          val Dmin2 = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d)).sorted.toList(1)
+          val max2 = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d, -10d)).sorted.reverse(1)
+          val Dmin2 = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d, 10d)).sorted.toList(1)
           val (in2, fi2) = if (l.count(_._1 == max2) == 1) ("\\textbf{", "}") else ("", "")
           val (indn2, fidn2) = if (l.count(_._2 == Dmin2) == 1) ("\\textbf{", "}") else ("", "")
 
@@ -121,7 +119,6 @@ object StatTests {
             sys.exit(1)
         }
         s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
-      }
     }.filter(_.nonEmpty).mkString("\n")
     if (core.nonEmpty) table(core, nstrats, strategies, tableName, measure, language)
   }

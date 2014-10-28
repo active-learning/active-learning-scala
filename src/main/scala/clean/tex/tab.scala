@@ -57,7 +57,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
                 if (measure.id == 0) -1d
                 else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
                   case Some(v) => v
-                  case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
+                  case None => -1d //ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}(${(s.mea.id, s.id, learner.id, r, f)})!")
                 }
               }
               Seq((Stat.media_desvioPadrao(vs.map(_ * 100).toVector)._1, -1d))

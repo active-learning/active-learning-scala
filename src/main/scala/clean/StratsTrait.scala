@@ -51,7 +51,7 @@ trait StratsTrait {
     , DensityWeightedTrainingUtility(learner, pool, "eucl")
     //    DensityWeightedTrainingUtility(learner, pool, "manh"),
     //    , ExpErrorReductionMargin(learner, pool, "entropy")
-    //    , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
+    , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
     //    ExpErrorReductionMargin(learner, pool, "accuracy"),
     , new SGmulti(learner, pool, "consensus")
     , new SGmulti(learner, pool, "majority")
