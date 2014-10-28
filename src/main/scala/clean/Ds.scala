@@ -57,6 +57,14 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   //    acc(cm)
   //  }
 
+  /**
+   * not exact because of fixed learner strats.
+   * @param strats
+   * @param learners
+   * @return
+   */
+  def progress(strats: Seq[Int], learners: Seq[Int]) = read(s"select count(0) from r,p where p.id=p and p.s in (${strats.mkString(",")}) and p.l in (${learners.mkString(",")})").head.head / (strats.size * learners.size * Global.runs * Global.folds)
+
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
   def reset() {
