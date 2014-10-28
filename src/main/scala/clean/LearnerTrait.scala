@@ -41,7 +41,7 @@ trait LearnerTrait {
     //    VFDT(),
     , SVMLib(learnerSeed)
     // ,   C45()
-    , NBBatch()
+    //    , NBBatch() //perde demais no gmeans e nao é primeiro na acc
   )
 
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
