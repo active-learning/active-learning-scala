@@ -31,14 +31,13 @@ trait StratsTrait {
   def stratsemLearnerExterno(pool: Seq[Pattern] = Seq()) = stratsFilterFreeSemLearnerExterno(pool)
 
   def stratsFilterFreeSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
-    Majoritary(pool),
-    RandomSampling(pool),
-    ClusterBased(pool)
+    Majoritary(pool)
+    , RandomSampling(pool)
+    , ClusterBased(pool)
+    , SVMmulti(pool, "BALANCED_EE") //SIMPLE + KFF
+    //    ,SVMmulti(pool, "SIMPLE") // exploitation="uncertainty"
+    //    ,SVMmulti(pool, "KFF") // exploration
     //    , SVMmulti(pool, "SELF_CONF") //EER
-    //    ,
-    //    SVMmulti(pool, "KFF"), // exploration
-    //    , SVMmulti(pool, "BALANCED_EE") //SIMPLE + KFF
-    //    SVMmulti(pool, "SIMPLE") // exploitation="uncertainty"
   )
 
   def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
