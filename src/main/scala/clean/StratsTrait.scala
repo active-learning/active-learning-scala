@@ -42,8 +42,8 @@ trait StratsTrait {
 
   def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
     //    Uncertainty(learner, pool),
-    Entropy(learner, pool),
-    Margin(learner, pool)
+    Entropy(learner, pool)
+    , Margin(learner, pool)
     //,
     //    DensityWeighted(learner, pool, 1, "eucl"),
     //    DensityWeightedTrainingUtility(learner, pool, "cheb"),

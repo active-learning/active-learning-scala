@@ -60,7 +60,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
                   case None => -1d //ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}(${(s.mea.id, s.id, learner.id, r, f)})!")
                 }
               }
-              Seq((Stat.media_desvioPadrao(vs.map(_ * 100).toVector)._1, -1d))
+              Seq((Stat.media_desvioPadrao(vs.toVector)._1 * 100).round.toDouble -> -1d)
             }).flatten
           } else if (s.id >= 17 && s.id <= 21) {
             val learner = s.learner
@@ -109,7 +109,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
 
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
-      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._2.head._1) grouped 50
+      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 50
       tbs foreach { case res0 =>
         StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
       }
