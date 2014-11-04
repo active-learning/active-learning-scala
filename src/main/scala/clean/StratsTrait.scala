@@ -58,7 +58,7 @@ trait StratsTrait {
   )
 
   def stratsFilterDependentComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-    DensityWeightedTrainingUtility(learner, pool, "maha"),
-    MahalaWeightedTrainingUtility(learner, pool, 1, 1)
+    //    DensityWeightedTrainingUtility(learner, pool, "maha"),
+    //    MahalaWeightedTrainingUtility(learner, pool, 1, 1)
   )
 }

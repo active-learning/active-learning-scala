@@ -237,14 +237,17 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     }
 
   /**
-   * old: Q = mediana dos 25 ts de accmax do pior classificador, i. e., aquele que gasta mais queries.
-   * old: Q = maior t de todos pools de todos learners de acc e gme.
-   *
-   */
+  q = primeiro t em que atinje max num dado pool
+      mG = [(medianaG dos 25 qs p/ NB) + (medianaG dos 25 qs p/ C4.5) + (medianaG dos 25 qs p/ 5NN)] / 3
+      mA = [(medianaA dos 25 qs p/ NB) + (medianaA dos 25 qs p/ C4.5) + (medianaA dos 25 qs p/ 5NN)] / 3
+      m = maior(mG, mA) >= 50
+      Qcalculado = m <= 100
+      Q = Qcalculado >= |Y| + 2
+    */
   def calculaQ(runs: Int, folds: Int, n: Int = n) {
     if (isQCalculated) quit("Q already calculated!")
     else {
-      val medianaTGme_s = 1 to 3 map { l =>
+      lazy val medianaTGme_s = 1 to 3 map { l =>
         val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
           (r, f) ->(gmeans(blobToConfusion(b, nclasses)), t)
         }.groupBy(_._1).map(_._2.map(_._2))
@@ -260,7 +263,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
       }
 
-      val medianaTAcc_s = 1 to 3 map { l =>
+      lazy val medianaTAcc_s = 1 to 3 map { l =>
         val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
           (r, f) ->(acc(blobToConfusion(b, nclasses)), t)
         }.groupBy(_._1).map(_._2.map(_._2))
@@ -273,9 +276,10 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
         t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
       }
 
-      val slowestAvg = math.min(200, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
+      val Qcalculado = 50
+      //      val Qcalculado = math.min(100, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
 
-      val qToWrite = math.max(slowestAvg, nclasses + 2)
+      val qToWrite = math.max(Qcalculado, nclasses + 2)
       write(s"INSERT INTO r values (0, -1, $qToWrite)")
     }
   }
