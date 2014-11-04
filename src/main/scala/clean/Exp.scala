@@ -41,7 +41,7 @@ trait Exp extends AppWithUsage {
    */
   override def run() = {
     super.run()
-    memoryMonitor()
+    //    memoryMonitor()
     val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
       val ds = Ds(path, dataset)
       ds.open()
