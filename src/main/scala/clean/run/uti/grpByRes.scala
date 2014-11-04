@@ -56,9 +56,10 @@ object grpByRes extends Exp with Lock {
     println(s"")
     val bla = m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 20} map (_._2)
     bla.zipWithIndex foreach { case (g, i) =>
-      val fw = new FileWriter(s"p$i")
-      g.foreach(x => fw.write(x._1 + "\n"))
-      fw.close()
+      println(g.map(_._1).mkString(","))
+      //      val fw = new FileWriter(s"p$i")
+      //      g.foreach(x => fw.write(x._1 + "\n"))
+      //      fw.close()
     }
   }
 }
