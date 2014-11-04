@@ -23,14 +23,14 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 trait AppWithUsage extends App with Log with ArgParser {
   Class.forName("org.sqlite.JDBC")
-  val superArguments = List("debug-verbosity:-1,0,1,2,...,20", "datasets-path", "files-with-dataset-names:file1,file2", "paralleliz(runs folds):r|f|rf|d")
+  val superArguments = List("debug-verbosity:-1,0,1,2,...,20", "datasets-path", "files-with-dataset-names-or-dataset-names:file1,file2|#d1,d2,d3", "paralleliz(runs folds):r|f|rf|d")
   val arguments: List[String]
   lazy val runs = Global.runs
   lazy val folds = Global.folds
   lazy val debugIntensity = if (args.isEmpty) 20 else args(0).toInt
   lazy val path = args(1)
   lazy val sql = args(4)
-  lazy val datasets = datasetsFromFiles(args(2))
+  lazy val datasets = if (args(2).startsWith("#")) args(2).drop(1).split(',') else datasetsFromFiles(args(2))
   lazy val parallelRuns = args(3).contains("r")
   lazy val parallelFolds = args(3).contains("f")
   lazy val parallelDatasets = args(3).contains("d")
