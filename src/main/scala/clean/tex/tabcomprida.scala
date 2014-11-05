@@ -81,5 +81,4 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
       }
     }
   }
-
 }

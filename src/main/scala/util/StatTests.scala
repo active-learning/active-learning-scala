@@ -34,8 +34,17 @@ object StatTests {
    * Winners per row (dataset or pool).
    */
   def winners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
+    val ranked = FriedmanTest.CD(measures.map(_._2.map(-_).toArray).toArray, true)
+    strategies.zipWithIndex.filter { case (s, i) =>
+      ranked.contains(i)
+    }.map(_._1)
+  }
+
+  /**
+   * Losers per row (dataset or pool).
+   */
+  def losers(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
     val ranked = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
-    println(ranked)
     strategies.zipWithIndex.filter { case (s, i) =>
       ranked.contains(i)
     }.map(_._1)
@@ -86,39 +95,39 @@ object StatTests {
     val nstrats = measures.head._2.length
     val core = measures.zipWithIndex.map { case ((d, l0), i) =>
       val l = l0 map (x => (x._1 * 1000).round / 1000d -> (x._2 * 1000).round / 1000d)
-        val vals = try {
-          val max = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
-          val Dmax = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
-          val Dmin = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d)).min
-          val (in, fi) = if (l.count(_._1 == max) == 1) ("\\underline{", "}") else ("", "")
-          val (indx, fidx) = if (l.count(_._2 == Dmax) == 1) ("\\underline{", "}") else ("", "")
-          val (indn, fidn) = if (l.count(_._2 == Dmin) == 1) ("\\underline{", "}") else ("", "")
+      val vals = try {
+        val max = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
+        val Dmax = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(-10d)).max
+        val Dmin = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d)).min
+        val (in, fi) = if (l.count(_._1 == max) == 1) ("\\underline{", "}") else ("", "")
+        val (indx, fidx) = if (l.count(_._2 == Dmax) == 1) ("\\underline{", "}") else ("", "")
+        val (indn, fidn) = if (l.count(_._2 == Dmin) == 1) ("\\underline{", "}") else ("", "")
 
-          val max2 = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d, -10d)).sorted.reverse(1)
-          val Dmin2 = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d, 10d)).sorted.toList(1)
-          val (in2, fi2) = if (l.count(_._1 == max2) == 1) ("\\textbf{", "}") else ("", "")
-          val (indn2, fidn2) = if (l.count(_._2 == Dmin2) == 1) ("\\textbf{", "}") else ("", "")
+        val max2 = (l.map(_._1).filter(x => x >= 0 && x <= 1) ++ Seq(-10d, -10d)).sorted.reverse(1)
+        val Dmin2 = (l.map(_._2).filter(x => x >= 0 && x <= 1) ++ Seq(10d, 10d)).sorted.toList(1)
+        val (in2, fi2) = if (l.count(_._1 == max2) == 1) ("\\textbf{", "}") else ("", "")
+        val (indn2, fidn2) = if (l.count(_._2 == Dmin2) == 1) ("\\textbf{", "}") else ("", "")
 
-          l.zip(strategies).map { case ((x1f, x2f), s) =>
-            val x1 = f(x1f)
-            val x2 = f(x2f)
-            val str = (if (x1f == max2) in2 else "") + (if (x1f == max) s"\\textcolor{blue}{$in\\textbf{$x1}$fi}" else s"$x1") + (if (x1f == max2) fi2 else "") // \\usepackage[usenames,dvipsnames]{color}
-            str + (if (x1f != -1 && x2f != -1) "/" else "") + (if (x1f == max2) indn2 else "") + (x2f match {
-              case Dmin => s"\\textcolor{darkgreen}{$indn\\textbf{$x2}$fidn}"
-              case Dmax => s"\\textcolor{red}{$indx\\textbf{$x2}$fidx}"
-              case _ => s"$x2"
-            }) + (if (x1f == max2) fidn2 else "")
-          }.mkString(" & ")
-        } catch {
-          case e: Throwable =>
-            measures foreach println
-            println(s"")
-            l foreach println
-            println(s"")
-            e.printStackTrace()
-            sys.exit(1)
-        }
-        s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
+        l.zip(strategies).map { case ((x1f, x2f), s) =>
+          val x1 = f(x1f)
+          val x2 = f(x2f)
+          val str = (if (x1f == max2) in2 else "") + (if (x1f == max) s"\\textcolor{blue}{$in\\textbf{$x1}$fi}" else s"$x1") + (if (x1f == max2) fi2 else "") // \\usepackage[usenames,dvipsnames]{color}
+          str + (if (x1f != -1 && x2f != -1) "/" else "") + (if (x1f == max2) indn2 else "") + (x2f match {
+            case Dmin => s"\\textcolor{darkgreen}{$indn\\textbf{$x2}$fidn}"
+            case Dmax => s"\\textcolor{red}{$indx\\textbf{$x2}$fidx}"
+            case _ => s"$x2"
+          }) + (if (x1f == max2) fidn2 else "")
+        }.mkString(" & ")
+      } catch {
+        case e: Throwable =>
+          measures foreach println
+          println(s"")
+          l foreach println
+          println(s"")
+          e.printStackTrace()
+          sys.exit(1)
+      }
+      s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
     }.filter(_.nonEmpty).mkString("\n")
     if (core.nonEmpty) table(core, nstrats, strategies, tableName, measure, language)
   }
@@ -170,8 +179,8 @@ object FriedmanNemenyiTest extends App {
   )
   val m = m0 //map (x=> x._1 -> (x._2 ++ x._2.map(_ -0.09)))
   //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4","e1", "e2", "e3", "e4")), "teste", "ALC")
-  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
-  StatTests.winners(m, Vector("e1", "e2", "e3", "e4", "e5"))
+  //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
+  println("winners:" + StatTests.winners(m, Vector("e1", "e2", "e3", "e4", "e5")))
   //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
-  m0 foreach (x => println(x._2.mkString(" ")))
+  //  m0 foreach (x => println(x._2.mkString(" ")))
 }
