@@ -40,7 +40,7 @@ trait LearnerTrait {
     , KNNBatch(5, "eucl", pool, weighted = true)
     , VFDT()
     , SVMLib(learnerSeed)
-    //    , C45()
+    , C45()
     //    , NBBatch() //perde demais no gmeans e nao é primeiro na acc
   )
 
