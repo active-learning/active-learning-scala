@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean
 
-import ml.Pattern
+import ml.{classifiers, Pattern}
 import ml.classifiers._
 
 trait LearnerTrait {
@@ -47,10 +47,9 @@ trait LearnerTrait {
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
     IELM(learnerSeed)
     //    ,
-    //    interaELM(learnerSeed),
-    //    ninteraELM(learnerSeed)
-    //  ,
-    //      CIELM(learnerSeed)
+    //        interaELM(learnerSeed),
+    , ninteraELM(learnerSeed)
+    , CIELM(learnerSeed)
     //    , ECIELM(learnerSeed)
     //    , EIELM(learnerSeed)
   )

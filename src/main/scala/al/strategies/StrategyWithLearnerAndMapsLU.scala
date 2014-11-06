@@ -22,38 +22,38 @@ import ml.Pattern
 import ml.classifiers.Learner
 import ml.models.Model
 
-trait StrategyWithLearnerAndMaps extends Strategy with DistanceMeasure {
+trait StrategyWithLearnerAndMapsLU extends Strategy with DistanceMeasure {
   val learner: Learner
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val initial_mapU = unlabeled.map(x => x -> unlabeled.diff(Seq(x)).map(u => 1d / (1 + d(x, u))).sum).toMap
-    val initial_mapL = unlabeled.map(x => x -> labeled.map(l => 1d / (1 + d(x, l))).sum).toMap
-
+    val initial_mapsL = labeled.groupBy(_.label) map { case (label, patts) =>
+      unlabeled.map(x => x -> patts.map(l => 1d / (1 + d(x, l))).sum).toMap
+    }
     val current_model = learner.build(labeled)
-
-    //        var current_model = learner.build(labeled.take(3))
-    //        labeled.drop(3) foreach (x => current_model = learner.update(current_model)(x))
-
-    queries_rec(initial_mapU, initial_mapL, current_model, unlabeled, labeled)
+    queries_rec(initial_mapU, initial_mapsL.toSeq, current_model, unlabeled, labeled)
   }
 
-  private def queries_rec(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
+  private def queries_rec(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
     if (unlabeled.isEmpty) Stream.Empty
     else {
       if (debug) visual_test(null, unlabeled, labeled)
-      val selected = next(mapU, mapL, current_model, unlabeled, labeled)
+      val selected = next(mapU, mapsL, current_model, unlabeled, labeled)
 
-      //isso está certo, pois ambos são o conjunto U, só muda o peso do selected de um pro outro
+      //isso está certo, pois ambos são o conjunto U, só muda o peso do selected de um pro outro.
       lazy val newU = (mapU - selected) transform { case (pa, si) => si - 1d / (1 + d(selected, pa))}
-      lazy val newL = (mapL - selected) transform { case (pa, si) => si + 1d / (1 + d(selected, pa))}
+      lazy val newsL = mapsL map { mapL =>
+        if (mapL.contains(selected)) (mapL - selected) transform { case (pa, si) => si + 1d / (1 + d(selected, pa))}
+        else mapL
+      }
 
       val new_model = learner.update(current_model, fast_mutable = true)(selected)
       if (debug) visual_test(selected, unlabeled, labeled)
-      selected #:: queries_rec(newU, newL, new_model, unlabeled.diff(Seq(selected)), labeled :+ selected)
+      selected #:: queries_rec(newU, newsL, new_model, unlabeled.diff(Seq(selected)), labeled :+ selected)
     }
   }
 
-  protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern
+  protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern
 
   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
     val current_model = learner.build(labeled)
