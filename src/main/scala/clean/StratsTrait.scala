@@ -48,6 +48,8 @@ trait StratsTrait {
     //    DensityWeighted(learner, pool, 1, "eucl"),
     //    DensityWeightedTrainingUtility(learner, pool, "cheb"),
     , DensityWeightedTrainingUtility(learner, pool, "eucl")
+    , DensityWeightedLabelUtility(learner, pool, "eucl")
+    , DensityWeightedLocalUtility(learner, pool, "eucl")
     //    DensityWeightedTrainingUtility(learner, pool, "manh"),
     , ExpErrorReductionMargin(learner, pool, "entropy")
     , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
@@ -58,7 +60,9 @@ trait StratsTrait {
   )
 
   def stratsFilterDependentComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-    DensityWeightedTrainingUtility(learner, pool, "maha"),
-    MahalaWeightedTrainingUtility(learner, pool, 1, 1)
+    DensityWeightedTrainingUtility(learner, pool, "maha")
+    //      ,DensityWeightedLabelUtility(learner, pool, "maha")
+    //      ,DensityWeightedLocalUtility(learner, pool, "maha")
+    //    MahalaWeightedTrainingUtility(learner, pool, 1, 1)
   )
 }

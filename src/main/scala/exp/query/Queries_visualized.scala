@@ -27,9 +27,9 @@ import util.{ALDatasets, Datasets, Tempo}
 import scala.util.Random
 
 object Queries_visualized extends App {
-  //  val arff = "/home/davi/unversioned/experimentos/fourclusters.arff"
-  //  val data = new Random(0).shuffle(Datasets.arff(bina = true)(arff).right.get)
-  val data = new Random(0).shuffle(ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("banana").right.get).take(2000)
+  val arff = "/home/davi/unversioned/experimentos/fourclusters.arff"
+  val data = new Random(0).shuffle(Datasets.arff(arff).right.get)
+  //  val data = new Random(0).shuffle(ALDatasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci/")("banana").right.get).take(2000)
   val train = data.take(1000)
   val test = data.drop(1000)
 
@@ -56,12 +56,15 @@ object Queries_visualized extends App {
   //            C45()
   //    KNN(5, "eucl", data)
 
+  val ts = test
   //    NBBatch()
   //  NB()
   //  RF(0, 5)
   val e =
-    SVMmulti(train, "SELF_CONF", debug = true)
-  val ts = test
+    DensityWeightedLabelUtility(c, train, "eucl", debug = true)
+  //    DensityWeightedLocalUtility(c, train, "eucl", debug = true)
+  //    DensityWeightedTrainingUtility(c, train, "maha", debug = true)
+  //    SVMmulti(train, "SELF_CONF", debug = true)
   //      SVMmulti(train, "KFF", debug = true)
   //    SVMmulti(train, "BALANCED_EE", debug = true)
   //    SVMmulti(train, "SIMPLE", debug = true)
@@ -69,15 +72,15 @@ object Queries_visualized extends App {
   //        Margin(c, train, debug = true)
   //            Entropy(c, train, debug = true)
   //    Uncertainty(c, train, debug = true) //212 10:199
-  //  RandomSampling(train, true)
-  //    SGmulti(c, train, "consensus", debug = true) //143 10:146 ponto fraco: talvez seja mais sensível ao peso dos exemplos de fundo
+  //    RandomSampling(train, true)
+  //      SGmulti(c, train, "consensus", debug = true) //143 10:146 ponto fraco: talvez seja mais sensível ao peso dos exemplos de fundo
   //    SGmultiJS(c, train, debug = true) //149 ponto fraco: não consulta quando concordam na dúvida
   //                       SGmultiMargin(c, train, debug = true) //168 ponto fraco: concentra demais as consultas na fronteira de decisão
   //                     DensityWeightedTrainingUtility(c, train, 1,1, "maha", debug = true)
   //           QBCJS(c, train, debug = true) //2:168 10:143
   //           QBCJSMargin(c, train, debug = true) //2:168 10:168
   //      DensityWeighted(c, train, 1d, "eucl", debug = true)
-  //    MahalaWeightedTrainingUtility(c, train, 1d, 1d, debug = true)
+  //      MahalaWeightedTrainingUtility(c, train, 1d, 1d, debug = true)
   //           MahalaWeightedRefreshedTrainingUtility(c, train, 1d, 1d, 200, debug = true)
   //               MahalaWeighted(c, train, 1d, debug = true)
   //           MahalaWeightedRefreshed(c, train, 1d, 100, debug = true)
@@ -92,10 +95,12 @@ object Queries_visualized extends App {
   var model: Model = null
 
   def c =
+    KNNBatch(5, "eucl", train, weighted = true)
+
   //      MLP(20,0)
   //  CARTBag(0,20)
   //  C45Bag(0,10)
-    RIPPER()
+  //    RIPPER()
 
   Tempo.start
   for ((q, i) <- e.queries.zipWithIndex) {
@@ -105,7 +110,7 @@ object Queries_visualized extends App {
     } else {
       model = cc.update(model)(q)
       val acc = model.accuracy(test)
-      println(i + " " + acc)
+      println(" " + acc)
       if (acc > 7) {
         //0.82
         Tempo.print_stop

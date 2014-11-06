@@ -48,8 +48,8 @@ trait LearnerTrait {
     IELM(learnerSeed)
     //    ,
     //        interaELM(learnerSeed),
-    , ninteraELM(learnerSeed)
-    , CIELM(learnerSeed)
+    //    , ninteraELM(learnerSeed)
+    //    , CIELM(learnerSeed)
     //    , ECIELM(learnerSeed)
     //    , EIELM(learnerSeed)
   )
