@@ -22,13 +22,17 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-  val mysqlPass = Source.fromFile("/tmp/mysql.txt").getLines().toList(1)
+  lazy val mysqlPass = {
+    val l = Source.fromFile("/tmp/mysql.txt").getLines().toList
+    if (l.size == 1) ""
+    else Source.fromFile("/tmp/mysql.txt").getLines().toList(1)
+  }
 
-  val mysqlPort = Source.fromFile("/tmp/mysql.txt").getLines().toList.head
+  lazy val mysqlPort = Source.fromFile("/tmp/mysql.txt").getLines().toList.head
 
   var running = true
 
-  val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
+  lazy val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
 
   var debug = 20
   lazy val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt

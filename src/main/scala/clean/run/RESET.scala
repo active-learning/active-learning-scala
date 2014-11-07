@@ -29,7 +29,7 @@ object RESET extends AppWithUsage {
 
   def core() {
     datasets foreach { dataset =>
-      val ds = Ds(path, dataset)
+      val ds = Ds(dataset)
       ds.open()
       ds.reset()
       ds.log(s"$dataset resetado.", 20)

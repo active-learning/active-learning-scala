@@ -37,7 +37,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
     allMeasures.dropRight(2) foreach { measure =>
       val sl = mutable.LinkedHashSet[String]()
       val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
-        val ds = Ds(path, dataset)
+        val ds = Ds(dataset)
         ds.open()
         sl += "Q/$|\\mathcal{U}|$"
         val ms = for {

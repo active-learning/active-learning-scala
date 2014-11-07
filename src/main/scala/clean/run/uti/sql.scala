@@ -29,7 +29,7 @@ object sql extends AppWithUsage {
   override def run() = {
     super.run()
     datasets foreach { dataset =>
-      val ds = Ds(path, dataset)
+      val ds = Ds(dataset)
       ds.open()
       sql.split(";").foreach { s =>
         val sq = s.trim

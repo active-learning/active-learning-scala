@@ -22,12 +22,7 @@ import java.sql.{Statement, SQLException, Connection, DriverManager}
 
 
 /**
- * Cada instancia desta classe representa uma conexao a
- * um arquivo db.
- * Uma vez aberta, a conexao aceita consultas simultaneas de leitura
- * que sao resolvidas pelo SQLite.
- * A escrita depende do mutex aqui implementado, mas
- * pode ser resolvida pelo SQLite via tentativas durante BUSY_WAITING.
+ * Cada instancia desta classe representa uma conexao.
  */
 class Db(val database: String) extends Log with Lock {
   override lazy val toString = database

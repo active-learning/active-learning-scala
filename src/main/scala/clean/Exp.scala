@@ -43,7 +43,7 @@ trait Exp extends AppWithUsage {
     super.run()
     //    memoryMonitor()
     val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
-      val ds = Ds(path, dataset)
+      val ds = Ds(dataset)
       ds.open()
       val res1 = if (isAlreadyDone(ds)) {
         println(s"$dataset already done!")

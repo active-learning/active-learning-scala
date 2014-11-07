@@ -40,7 +40,7 @@ class MySpec extends UnitSpec with Blob with Lock {
       db.close()
     }
 
-    val d = Ds(Global.appPath, "flags-colour")
+    val d = Ds("flags-colour")
     d.open()
     val l = NB()
     val m = l.build(d.patterns.take(20))
@@ -57,7 +57,7 @@ class MySpec extends UnitSpec with Blob with Lock {
     }
 
     if (false) datasets foreach { d =>
-      val db = Ds(path, d)
+      val db = Ds(d)
       db.open()
       val l = NB()
       val m = l.build(db.patterns.take(db.nclasses * 2))
@@ -85,7 +85,7 @@ class MySpec extends UnitSpec with Blob with Lock {
       //    }.toMap
       source.close()
       s"$dataset file" should "have ids matching ARFF line numbers" in {
-        val ds = Ds(path, dataset)
+        val ds = Ds(dataset)
         ds.open()
         //      acquire()
         val acertos = ds.patterns map { p =>
@@ -104,7 +104,7 @@ class MySpec extends UnitSpec with Blob with Lock {
     "patterns' ids" should "survive to bina+zscore weka filters" in {
       //label sequence in all datasets can be used to verify correctness of wekafiltered id sequence
       datasets foreach { dataset =>
-        val ds = Ds(path, dataset)
+        val ds = Ds(dataset)
         ds.open()
         val m = ds.patterns.map(p => p.id -> p.label).toMap
         val shuffled = new Random(0).shuffle(ds.patterns)
@@ -122,7 +122,7 @@ class MySpec extends UnitSpec with Blob with Lock {
     }
 
     "weights" should "remain 1 at input and output of filters" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val shuffled = new Random(0).shuffle(ds.patterns)
       val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -133,7 +133,7 @@ class MySpec extends UnitSpec with Blob with Lock {
       assert(ds.patterns ++ bPatts ++ zbPatts forall (_.weight() == 1))
     }
     it should "raise Error if are not 1 before filters" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val shuffled = new Random(0).shuffle(ds.patterns)
       val bf = Datasets.binarizeFilter(shuffled.take(30))
@@ -148,14 +148,14 @@ class MySpec extends UnitSpec with Blob with Lock {
     }
 
     "5-fold CV" should "create different folds" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
       assert(trs.map(_.sortBy(_.id)).distinct.size === trs.size)
       ds.close()
     }
     it should "have 1 occurrence of each instance at 4 pools" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
       val occs = ds.patterns map { p =>
@@ -165,7 +165,7 @@ class MySpec extends UnitSpec with Blob with Lock {
       ds.close()
     }
     it should "have 1 occurrence of each instance for all ts folds" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
       val occs = ds.patterns map { p =>
@@ -175,7 +175,7 @@ class MySpec extends UnitSpec with Blob with Lock {
       ds.close()
     }
     it should "have no instance in both pool and ts" in {
-      val ds = Ds(path, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
       val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
@@ -185,14 +185,14 @@ class MySpec extends UnitSpec with Blob with Lock {
       ds.close()
     }
     it should "not miss any instance" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
       assert(ds.patterns.diff(tss.flatten).isEmpty)
       ds.close()
     }
     it should "have pools with size not exceeding min+1" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val trs = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => tr}.toVector
       val min = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => min}.head
@@ -200,7 +200,7 @@ class MySpec extends UnitSpec with Blob with Lock {
       ds.close()
     }
     it should "have tss with 0.2 the original size" in {
-      val ds = Ds(Global.appPath, "flags-colour")
+      val ds = Ds("flags-colour")
       ds.open()
       val tss = Datasets.kfoldCV(ds.patterns, 5) { (tr, ts, fold, min) => ts}.toVector
       tss foreach (ts => assert(ts.size === (ds.patterns.size * 0.2).toInt || ts.size === (ds.patterns.size * 0.2).toInt + 1))

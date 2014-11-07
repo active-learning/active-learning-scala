@@ -33,7 +33,7 @@ import scala.util.Random
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") with Blob with CM {
+case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   override lazy val toString = dataset
   override val context = dataset
   lazy val n = read("select count(1) from i").head.head.toInt
