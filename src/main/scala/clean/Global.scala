@@ -1,6 +1,7 @@
 package clean
 
 import java.io.File
+import java.sql.Connection
 
 import scala.io.Source
 
