@@ -96,6 +96,8 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
     val query = new InstanceQuerySQLite()
     val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
     query.setDatabaseURL(url)
+    query.setUsername("davi")
+    query.setPassword(Global.mysqlPass)
     query.setQuery("select i.* from " + sqlTail)
     query.setDebug(false)
     val instances = query.retrieveInstances()
@@ -110,7 +112,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   } catch {
     case ex: Exception => error(s"${
       ex.getStackTraceString
-    } \n Problems reading file $database: ${
+    } \n Problems reading dataset $database: ${
       ex.getMessage
     }")
   }

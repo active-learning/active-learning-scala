@@ -689,8 +689,6 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
             System.err.println("Executing query: " + query);
         }
         connectToDatabase();
-//        ((SQLiteConnection) m_Connection).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
-        execute("attach 'app.db' as app");
 
         //eliminating id column from attributes
         if (!execute("select * from i limit 1")) {
@@ -713,7 +711,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
 
 
         //original query
-        if (!execute("select " + str + " from ( " + query + " )")) {
+        if (!execute("select " + str + " from ( " + query + " ) as foo")) {
             if (m_PreparedStatement.getUpdateCount() == -1) {
                 throw new Exception("Query didn't produce results");
             } else {
