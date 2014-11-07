@@ -18,7 +18,7 @@
 
 package clean
 
-import java.sql.{Connection, DriverManager}
+import java.sql.{Statement, SQLException, Connection, DriverManager}
 
 
 /**
@@ -37,7 +37,6 @@ class Db(val database: String) extends Log with Lock {
   def open() {
     //    if (!fileExists(database)) error(s" $database not found!")
     try {
-      ???
       val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
       //      val url = "jdbc:sqlite:////" + database
       //      connection = DriverManager.getConnection(url)
@@ -194,22 +193,33 @@ class Db(val database: String) extends Log with Lock {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
     log("batch write blob ...", 10)
     log(sqls.mkString("\n"), 10)
-
+    var stats: List[Statement] = null
     try {
       acquire()
-      val statement = connection.createStatement()
-      statement.execute("begin")
-      sqls.zip(blobs) foreach { case (sql, blob) =>
+      connection.setAutoCommit(false)
+      stats = sqls.zip(blobs) map { case (sql, blob) =>
         val statement = connection.prepareStatement(sql)
         if (blob != null) statement.setBytes(1, blob)
         statement.execute()
+        statement
       }
-      statement.execute("end")
-      statement.close()
+      connection.commit()
     } catch {
       case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
-    } finally release()
+        if (connection != null) {
+          try {
+            System.err.print("Transaction is being rolled back")
+            connection.rollback()
+            error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
+          } catch {
+            case e2: Throwable => error(s"\nProblems rolling back SQL queries '$sqls' in: $database .\n" + e.getMessage)
+          }
+        }
+    } finally {
+      if (stats != null && stats.forall(_ != null)) stats foreach (_.close())
+      connection.setAutoCommit(true)
+      release()
+    }
     log("batch write blob finished.", 10)
   }
 
@@ -220,17 +230,29 @@ class Db(val database: String) extends Log with Lock {
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
     sqls foreach (m => log(m, 10))
+    var statement: Statement = null
     try {
       acquire()
-      val statement = connection.createStatement()
-      statement.execute("begin")
+      connection.setAutoCommit(false)
+      statement = connection.createStatement()
       sqls foreach statement.executeUpdate
-      statement.execute("end")
-      statement.close()
+      connection.commit()
     } catch {
       case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
-    } finally release()
+        if (connection != null) {
+          try {
+            System.err.print("Transaction is being rolled back")
+            connection.rollback()
+            error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
+          } catch {
+            case e2: Throwable => error(s"\nProblems rolling back SQL queries '$sqls' in: $database .\n" + e.getMessage)
+          }
+        }
+    } finally {
+      if (statement != null) statement.close()
+      connection.setAutoCommit(true)
+      release()
+    }
   }
 
   def close() {
