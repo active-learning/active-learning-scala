@@ -40,7 +40,7 @@ class Db(val database: String) extends Log with Lock {
     //    if (!fileExists(database)) error(s" $database not found!")
     try {
       ???
-      val url = "jdbc:mysql://localhost:3306/" + database
+      val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
       //      val url = "jdbc:sqlite:////" + database
       connection = DriverManager.getConnection(url)
       //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
