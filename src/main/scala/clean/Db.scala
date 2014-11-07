@@ -37,11 +37,13 @@ class Db(val database: String) extends Log with Lock {
   val context = database
 
   def open() {
-    if (!fileExists(database)) error(s" $database not found!")
+    //    if (!fileExists(database)) error(s" $database not found!")
     try {
-      val url = "jdbc:sqlite:////" + database
+      ???
+      val url = "jdbc:mysql://localhost:3306/" + database
+      //      val url = "jdbc:sqlite:////" + database
       connection = DriverManager.getConnection(url)
-      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
+      //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
       log(s"Connection to $database opened.")
     } catch {
       case e: Throwable => e.printStackTrace()
@@ -50,24 +52,24 @@ class Db(val database: String) extends Log with Lock {
     }
   }
 
-  /**
-   * A more reliable test for file existence.
-   * @param filePath
-   * @return
-   */
-  def fileExists(filePath: String) = {
-    val f = new File(filePath)
-    try {
-      val buffer = new Array[Byte](4)
-      val is = new FileInputStream(f)
-      if (is.read(buffer) != buffer.length) {
-      }
-      is.close()
-      true
-    } catch {
-      case _: Throwable => false
-    }
-  }
+  //  /**
+  //   * A more reliable test for file existence.
+  //   * @param filePath
+  //   * @return
+  //   */
+  //  def fileExists(filePath: String) = {
+  //    val f = new File(filePath)
+  //    try {
+  //      val buffer = new Array[Byte](4)
+  //      val is = new FileInputStream(f)
+  //      if (is.read(buffer) != buffer.length) {
+  //      }
+  //      is.close()
+  //      true
+  //    } catch {
+  //      case _: Throwable => false
+  //    }
+  //  }
 
   override def error(msg: String) = {
     if (connection != null && !connection.isClosed) close()
