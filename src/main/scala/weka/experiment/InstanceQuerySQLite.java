@@ -21,7 +21,6 @@
 
 package weka.experiment;
 
-import org.sqlite.SQLiteConnection;
 import weka.core.*;
 
 import java.io.File;
@@ -690,7 +689,7 @@ public class InstanceQuerySQLite extends DatabaseUtils implements weka.core.Opti
             System.err.println("Executing query: " + query);
         }
         connectToDatabase();
-        ((SQLiteConnection) m_Connection).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
+//        ((SQLiteConnection) m_Connection).setBusyTimeout(20 * 60 * 1000); //20min. de timeout
         execute("attach 'app.db' as app");
 
         //eliminating id column from attributes

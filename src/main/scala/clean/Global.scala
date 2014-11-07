@@ -22,6 +22,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
+  val mysqlPass = Source.fromFile("/tmp/mysql.txt").getLines().toList(1)
+
   val mysqlPort = Source.fromFile("/tmp/mysql.txt").getLines().toList.head
 
   var running = true

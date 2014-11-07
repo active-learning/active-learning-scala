@@ -18,11 +18,6 @@
 
 package clean
 
-import java.io.{File, FileInputStream}
-import java.sql.{Connection, DriverManager}
-
-import org.sqlite.SQLiteConnection
-
 import scala.util.Random
 
 trait Lock {

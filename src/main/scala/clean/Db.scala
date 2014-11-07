@@ -18,10 +18,8 @@
 
 package clean
 
-import java.io.{File, FileInputStream}
 import java.sql.{Connection, DriverManager}
 
-import org.sqlite.SQLiteConnection
 
 /**
  * Cada instancia desta classe representa uma conexao a
@@ -42,7 +40,8 @@ class Db(val database: String) extends Log with Lock {
       ???
       val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
       //      val url = "jdbc:sqlite:////" + database
-      connection = DriverManager.getConnection(url)
+      //      connection = DriverManager.getConnection(url)
+      connection = DriverManager.getConnection(url, "davi", Global.mysqlPass)
       //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
       log(s"Connection to $database opened.")
     } catch {
