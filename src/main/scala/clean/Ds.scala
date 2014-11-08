@@ -68,21 +68,22 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
   def reset() {
-    //query [pool timeStep instance]
-    //hit [pool timeStep blobMatrix(realClass X guessedClass values)] (confusion matrix blob)
-    //pool [strat learner run fold]
-    //result [app.measure pool value] (Q, ...)
-    //time [pool value] in seconds
-    write("drop table if exists q")
-    write("drop table if exists h")
-    write("drop table if exists p")
-    write("drop table if exists r")
-    write("drop table if exists t")
-    write("CREATE TABLE q ( p INT, t INT, i INT, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, UNIQUE (p, i) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id) ); ")
-    write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) );")
-    write("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT, UNIQUE (s, l, r, f) ON CONFLICT ROLLBACK ); ")
-    write("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ")
-    //    write("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ")
+    ???
+    //    //query [pool timeStep instance]
+    //    //hit [pool timeStep blobMatrix(realClass X guessedClass values)] (confusion matrix blob)
+    //    //pool [strat learner run fold]
+    //    //result [app.measure pool value] (Q, ...)
+    //    //time [pool value] in seconds
+    //    write("drop table if exists q")
+    //    write("drop table if exists h")
+    //    write("drop table if exists p")
+    //    write("drop table if exists r")
+    //    write("drop table if exists t")
+    //    write("CREATE TABLE q ( p INT, t INT, i INT, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, UNIQUE (p, i) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id) ); ")
+    //    write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) );")
+    //    write("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT, UNIQUE (s, l, r, f) ON CONFLICT ROLLBACK ); ")
+    //    write("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ")
+    //    //    write("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ")
   }
 
   /**

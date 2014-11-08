@@ -18,7 +18,7 @@
 
 package clean
 
-import java.sql.{Statement, SQLException, Connection, DriverManager}
+import java.sql.{Connection, DriverManager, Statement}
 
 
 /**
@@ -28,9 +28,9 @@ class Db(val database: String) extends Log with Lock {
   override lazy val toString = database
   private var connection: Connection = null
   val context = database
+  val connectionWait_ms = 30000
 
   def open() {
-    //    if (!fileExists(database)) error(s" $database not found!")
     try {
       val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
       //      val url = "jdbc:sqlite:////" + database
@@ -40,9 +40,8 @@ class Db(val database: String) extends Log with Lock {
       log(s"Connection to $database opened.")
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(e.getMessage)
-        log(s"Problems opening db connection: $database ! Trying again in 30s...")
-        Thread.sleep(5000)
+        log(s"Problems opening db connection: ${e.getMessage} ! Trying again in 30s...")
+        Thread.sleep(connectionWait_ms)
         if (connection == null || connection.isClosed) {
           log("Reopening database...")
           open()
@@ -81,7 +80,7 @@ class Db(val database: String) extends Log with Lock {
       queue.toList.map(_.toVector)
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(s"\nProblems executing SQL query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 0)
         Thread.sleep(5000)
         if (connection.isClosed) {
           log("Reopening database...")
@@ -103,7 +102,7 @@ class Db(val database: String) extends Log with Lock {
       statement.close()
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(s"\nProblems executing SQL query '$sql' in: $database .\nTrying againg in 30s" + e.getMessage, 0)
+        log(s"\nProblems executing SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s", 0)
         release()
         Thread.sleep(5000)
         if (connection.isClosed) {
@@ -130,7 +129,7 @@ class Db(val database: String) extends Log with Lock {
       queue.toList
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(s"\nProblems executing SQL read blobs query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        log(s"\nProblems executing SQL read blobs query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 0)
         Thread.sleep(5000)
         if (connection.isClosed) {
           log("Reopening database...")
@@ -156,7 +155,7 @@ class Db(val database: String) extends Log with Lock {
       queue.toList
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(s"\nProblems executing read blobs4 SQL query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        log(s"\nProblems executing read blobs4 SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 0)
         Thread.sleep(5000)
         if (connection.isClosed) {
           log("Reopening database...")
@@ -177,7 +176,7 @@ class Db(val database: String) extends Log with Lock {
       statement.close()
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(s"\nProblems executing SQL blob query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        log(s"\nProblems executing SQL blob query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 0)
         release()
         Thread.sleep(5000)
         if (connection.isClosed) {
@@ -210,15 +209,15 @@ class Db(val database: String) extends Log with Lock {
       stats foreach (_.close())
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(s"\nProblems writing blobs with SQL query '$sqls' in: $database .\nTrying againg in 30s\n" + e.getMessage, 0)
+        log(s"\nProblems writing blobs with SQL query '$sqls' in: ${e.getMessage} .\nTrying againg in 30s\n", 0)
         if (connection != null) {
           try {
             System.err.print("Transaction is being rolled back")
             connection.rollback()
             connection.setAutoCommit(true)
           } catch {
-            case e2: Throwable => log(s"\nProblems 'rolling back'/'setting auto commit' SQL queries '$sqls' in: $database .\n" +
-              s"Probably it wasn't needed anyway." + e2.getMessage, 0)
+            case e2: Throwable => log(s"\nProblems 'rolling back'/'setting auto commit' SQL queries '$sqls': ${e2.getMessage} .\n" +
+              s"Probably it wasn't needed anyway.", 0)
           }
           release()
           Thread.sleep(5000)
