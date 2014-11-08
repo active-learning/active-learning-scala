@@ -24,26 +24,26 @@ import ml.models.Model
 
 import scala.collection.immutable.ListMap
 
-case class DensityWeightedLocalUtility(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
-  extends StrategyWithLearnerAndMapsLoU with MarginMeasure {
-  override val toString = "Density Weighted LoU a" + alpha + " b" + beta + " (" + distance_name + ")"
-  val abr = "DWLoU" + distance_name.take(3)
+case class DensityWeightedLocalLabelUtility(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
+  extends StrategyWithLearnerAndMapsLoLaU with MarginMeasure {
+  override val toString = "Density Weighted LoLaU a" + alpha + " b" + beta + " (" + distance_name + ")"
+  val abr = "DWLoLaU" + distance_name.take(3)
   val id = if (alpha == 1 && beta == 1) distance_name match {
-    case "eucl" => 46
-    case "cheb" => 48
-    case "maha" => 49
-    case "manh" => 47
-  } else throw new Error("Parametros inesperados para DWLoU.")
+    case "eucl" => 56
+    case "cheb" => 58
+    case "maha" => 59
+    case "manh" => 57
+  } else throw new Error("Parametros inesperados para DWLoLaU.")
   lazy val poolSize = pool.size
 
-  protected def next(mapU: Map[Pattern, ListMap[Pattern, Double]], mapL: Map[Pattern, ListMap[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+  protected def next(mapU: => Map[Pattern, ListMap[Pattern, Double]], mapsL: => Seq[Map[Pattern, ListMap[Pattern, Double]]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
     val labSize = labeled.size
     val toTakeL = math.min(labSize, math.max(5, labSize / 5))
     val toTakeU = math.min(100, math.max(5, (poolSize - labSize) / 5))
     val selected = unlabeled maxBy { x =>
       val similarityU = avgOfTop(mapU(x), toTakeU)
-      val similarityL = avgOfTop(mapL(x), toTakeL)
-      (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similarityL, alpha)
+      val similaritiesL = simL(mapsL, x, toTakeL, hist)
+      (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similaritiesL, alpha)
     }
     selected
   }
@@ -60,18 +60,12 @@ case class DensityWeightedLocalUtility(learner: Learner, pool: Seq[Pattern], dis
     similarity
   }
 
-  /*
-    SOverflow site
-   */
-  def top[T](n: Int, iter: Iterable[T])(implicit ord: Ordering[T]): Iterable[T] = {
-    def partitionMax(acc: Iterable[T], it: Iterable[T]): Iterable[T] = {
-      val max = it.max(ord)
-      val (nextElems, rest) = it.partition(ord.gteq(_, max))
-      val maxElems = acc ++ nextElems
-      if (maxElems.size >= n || rest.isEmpty) maxElems.take(n)
-      else partitionMax(maxElems, rest)
-    }
-    if (iter.isEmpty) iter.take(0)
-    else partitionMax(iter.take(0), iter)
+  def simL(mapsL: => Seq[Map[Pattern, ListMap[Pattern, Double]]], patt: Pattern, toTakeL: Int, hist: Seq[Int]) = {
+    val tot = hist.size
+    mapsL.map { m =>
+      val n = hist(m.head._2.head._1.label.toInt).toDouble
+      val p = n / tot
+      math.pow(avgOfTop(m(patt), toTakeL), p)
+    }.product
   }
 }

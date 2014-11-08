@@ -30,15 +30,17 @@ trait StrategyWithLearnerAndMapsLU extends Strategy with DistanceMeasure {
     val initial_mapsL = labeled.groupBy(_.label) map { case (label, patts) =>
       unlabeled.map(x => x -> patts.map(l => 1d / (1 + d(x, l))).sum).toMap
     }
+    val hist = labeled.groupBy(_.label).toSeq.sortBy(_._1).map(_._2.size)
     val current_model = learner.build(labeled)
-    queries_rec(initial_mapU, initial_mapsL.toSeq, current_model, unlabeled, labeled)
+    queries_rec(initial_mapU, initial_mapsL.toSeq, current_model, unlabeled, labeled, hist)
   }
 
-  private def queries_rec(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
+  private def queries_rec(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]): Stream[Pattern] = {
     if (unlabeled.isEmpty) Stream.Empty
     else {
       if (debug) visual_test(null, unlabeled, labeled)
-      val selected = next(mapU, mapsL, current_model, unlabeled, labeled)
+      val selected = next(mapU, mapsL, current_model, unlabeled, labeled, hist)
+      val newHist = hist.updated(selected.label.toInt, hist(selected.label.toInt) + 1)
 
       //isso está certo, pois ambos são o conjunto U, só muda o peso do selected de um pro outro.
       lazy val newU = (mapU - selected) transform { case (pa, si) => si - 1d / (1 + d(selected, pa))}
@@ -49,11 +51,11 @@ trait StrategyWithLearnerAndMapsLU extends Strategy with DistanceMeasure {
 
       val new_model = learner.update(current_model, fast_mutable = true)(selected)
       if (debug) visual_test(selected, unlabeled, labeled)
-      selected #:: queries_rec(newU, newsL, new_model, unlabeled.diff(Seq(selected)), labeled :+ selected)
+      selected #:: queries_rec(newU, newsL, new_model, unlabeled.diff(Seq(selected)), labeled :+ selected, newHist)
     }
   }
 
-  protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern
+  protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]): Pattern
 
   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
     val current_model = learner.build(labeled)
