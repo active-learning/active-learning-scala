@@ -39,7 +39,7 @@ case class DensityWeightedLocalLabelUtility(learner: Learner, pool: Seq[Pattern]
   protected def next(mapU: => Map[Pattern, ListMap[Pattern, Double]], mapsL: => Seq[Map[Pattern, ListMap[Pattern, Double]]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
     val labSize = labeled.size
     val toTakeL = math.min(labSize, math.max(5, labSize / 5))
-    val toTakeU = math.min(100, math.max(5, (poolSize - labSize) / 5))
+    val toTakeU = math.min(100, math.max(1, (poolSize - labSize) / 5))
     val selected = unlabeled maxBy { x =>
       val similarityU = avgOfTop(mapU(x), toTakeU)
       val similaritiesL = simL(mapsL, x, toTakeL, hist)
