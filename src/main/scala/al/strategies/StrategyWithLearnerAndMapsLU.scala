@@ -27,7 +27,7 @@ trait StrategyWithLearnerAndMapsLU extends Strategy with DistanceMeasure {
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
     val initial_mapU = unlabeled.map(x => x -> unlabeled.diff(Seq(x)).map(u => 1d / (1 + d(x, u))).sum).toMap
-    val initial_mapsL = labeled.groupBy(_.label) map { case (label, patts) =>
+    val initial_mapsL = labeled.groupBy(_.label).toSeq.sortBy(_._1) map { case (label, patts) =>
       unlabeled.map(x => x -> patts.map(l => 1d / (1 + d(x, l))).sum).toMap
     }
     val hist = labeled.groupBy(_.label).toSeq.sortBy(_._1).map(_._2.size)

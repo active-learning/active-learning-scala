@@ -43,9 +43,9 @@ case class DensityWeightedLabelUtility(learner: Learner, pool: Seq[Pattern], dis
   }
 
   def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern, hist: Seq[Int]) = {
-    val tot = hist.size
-    mapsL.map { m =>
-      val n = hist(m.head._1.label.toInt).toDouble
+    val tot = hist.sum
+    mapsL.zipWithIndex.map { case (m, lab) =>
+      val n = hist(lab).toDouble
       val p = n / tot
       math.pow(m(patt) / n, p)
     }.product

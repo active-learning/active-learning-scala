@@ -38,7 +38,7 @@ case class DensityWeightedLocalLabelUtility(learner: Learner, pool: Seq[Pattern]
 
   protected def next(mapU: => Map[Pattern, ListMap[Pattern, Double]], mapsL: => Seq[Map[Pattern, ListMap[Pattern, Double]]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
     val labSize = labeled.size
-    val toTakeL = math.min(labSize, math.max(5, labSize / 5))
+    val toTakeL = math.min(labSize, math.max(1, labSize / 5))
     val toTakeU = math.min(100, math.max(1, (poolSize - labSize) / 5))
     val selected = unlabeled maxBy { x =>
       val similarityU = avgOfTop(mapU(x), toTakeU)
@@ -61,9 +61,9 @@ case class DensityWeightedLocalLabelUtility(learner: Learner, pool: Seq[Pattern]
   }
 
   def simL(mapsL: => Seq[Map[Pattern, ListMap[Pattern, Double]]], patt: Pattern, toTakeL: Int, hist: Seq[Int]) = {
-    val tot = hist.size
-    mapsL.map { m =>
-      val n = hist(m.head._2.head._1.label.toInt).toDouble
+    val tot = hist.sum
+    mapsL.zipWithIndex.map { case (m, lab) =>
+      val n = hist(lab).toDouble
       val p = n / tot
       math.pow(avgOfTop(m(patt), toTakeL), p)
     }.product

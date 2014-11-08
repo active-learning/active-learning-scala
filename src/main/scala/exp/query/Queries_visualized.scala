@@ -62,7 +62,8 @@ object Queries_visualized extends App {
   //  RF(0, 5)
   val e =
     DensityWeightedLocalLabelUtility(c, train, "eucl", debug = true)
-  //    DensityWeightedLocalUtility(c, train, "eucl", debug = true)
+  //      DensityWeightedLabelUtility(c, train, "eucl", debug = true)
+  //      DensityWeightedLocalUtility(c, train, "eucl", debug = true)
   //    DensityWeightedTrainingUtility(c, train, "maha", debug = true)
   //    SVMmulti(train, "SELF_CONF", debug = true)
   //      SVMmulti(train, "KFF", debug = true)

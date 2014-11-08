@@ -36,7 +36,7 @@ trait StrategyWithLearnerAndMapsLoLaU extends Strategy with DistanceMeasure {
 
     val hist = labeled.groupBy(_.label).toSeq.sortBy(_._1).map(_._2.size)
 
-    val initial_mapsL = labeled.groupBy(_.label).map { case (label, patts) =>
+    val initial_mapsL = labeled.groupBy(_.label).toSeq.sortBy(_._1).map { case (label, patts) =>
       unlabeled.map { u =>
         u -> ListMap(patts.map { l =>
           l -> 1d / (1 + d(u, l))
