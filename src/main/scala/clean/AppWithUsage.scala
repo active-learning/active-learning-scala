@@ -69,7 +69,7 @@ trait AppWithUsage extends App with Log with ArgParser {
     Global.debug = debugIntensity
     println(args.mkString(" "))
     if (args.size != arguments.size) {
-      println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
+      println(s"Usage: java -cp your-path/als-versionjar ${this.getClass.getCanonicalName.dropRight(1).replace(".", "")} ${arguments.mkString(" ")}")
       sys.exit(1)
     }
   }
