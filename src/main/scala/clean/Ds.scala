@@ -33,7 +33,7 @@ import scala.util.Random
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") with Blob with CM {
+case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   override lazy val toString = dataset
   override val context = dataset
   lazy val n = read("select count(1) from i").head.head.toInt
@@ -94,7 +94,10 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
     val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
     log(s"Fetching patterns...")
     val query = new InstanceQuerySQLite()
-    query.setDatabaseURL("jdbc:sqlite:////" + database)
+    val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
+    query.setDatabaseURL(url)
+    query.setUsername("davi")
+    query.setPassword(Global.mysqlPass)
     query.setQuery("select i.* from " + sqlTail)
     query.setDebug(false)
     val instances = query.retrieveInstances()
@@ -109,7 +112,7 @@ case class Ds(path: String, dataset: String) extends Db(s"$path/$dataset.db") wi
   } catch {
     case ex: Exception => error(s"${
       ex.getStackTraceString
-    } \n Problems reading file $database: ${
+    } \n Problems reading dataset $database: ${
       ex.getMessage
     }")
   }

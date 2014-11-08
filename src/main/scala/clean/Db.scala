@@ -18,18 +18,11 @@
 
 package clean
 
-import java.io.{File, FileInputStream}
-import java.sql.{Connection, DriverManager}
+import java.sql.{Statement, SQLException, Connection, DriverManager}
 
-import org.sqlite.SQLiteConnection
 
 /**
- * Cada instancia desta classe representa uma conexao a
- * um arquivo db.
- * Uma vez aberta, a conexao aceita consultas simultaneas de leitura
- * que sao resolvidas pelo SQLite.
- * A escrita depende do mutex aqui implementado, mas
- * pode ser resolvida pelo SQLite via tentativas durante BUSY_WAITING.
+ * Cada instancia desta classe representa uma conexao.
  */
 class Db(val database: String) extends Log with Lock {
   override lazy val toString = database
@@ -37,35 +30,23 @@ class Db(val database: String) extends Log with Lock {
   val context = database
 
   def open() {
-    if (!fileExists(database)) error(s" $database not found!")
+    //    if (!fileExists(database)) error(s" $database not found!")
     try {
-      val url = "jdbc:sqlite:////" + database
-      connection = DriverManager.getConnection(url)
-      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
+      val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
+      //      val url = "jdbc:sqlite:////" + database
+      //      connection = DriverManager.getConnection(url)
+      connection = DriverManager.getConnection(url, "davi", Global.mysqlPass)
+      //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
       log(s"Connection to $database opened.")
     } catch {
-      case e: Throwable => e.printStackTrace()
+      case e: Throwable => //e.printStackTrace()
         log(e.getMessage)
-        error(s"Problems opening db connection: $database !")
-    }
-  }
-
-  /**
-   * A more reliable test for file existence.
-   * @param filePath
-   * @return
-   */
-  def fileExists(filePath: String) = {
-    val f = new File(filePath)
-    try {
-      val buffer = new Array[Byte](4)
-      val is = new FileInputStream(f)
-      if (is.read(buffer) != buffer.length) {
-      }
-      is.close()
-      true
-    } catch {
-      case _: Throwable => false
+        log(s"Problems opening db connection: $database ! Trying again in 30s...")
+        Thread.sleep(5000)
+        if (connection == null || connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
     }
   }
 
@@ -79,7 +60,7 @@ class Db(val database: String) extends Log with Lock {
     justQuit(msg)
   }
 
-  def read(sql: String) = {
+  def read(sql: String): List[Vector[Double]] = {
     test(sql)
     log(s"[$sql]", 10)
     try {
@@ -90,31 +71,27 @@ class Db(val database: String) extends Log with Lock {
       val columnsType = new Array[Int](numColumns + 1)
       columnsType(0) = 0
       1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
-
       val queue = collection.mutable.Queue[Seq[Double]]()
       while (resultSet.next()) {
-        val seq = 1 to numColumns map {
-          i =>
-            //            val s = columnsType(i) match {
-            //              case java.sql.Types.BOOLEAN | java.sql.Types.DATE | java.sql.Types.TIMESTAMP | java.sql.Types.TINYINT | java.sql.Types.SMALLINT | java.sql.Types.INTEGER | java.sql.Types.BIGINT | java.sql.Types.CHAR | java.sql.Types.VARCHAR => resultSet.getString(i)
-            //              case java.sql.Types.NVARCHAR => resultSet.getNString(i)
-            //              case java.sql.Types.FLOAT | java.sql.Types.NUMERIC | java.sql.Types.DOUBLE => "%2.2f".format(resultSet.getDouble(i))
-            //              case _ => resultSet.getString(i)
-            //            }
-            resultSet.getDouble(i)
-        }
+        val seq = 1 to numColumns map { i => resultSet.getDouble(i)}
         queue.enqueue(seq)
       }
       resultSet.close()
       statement.close()
       queue.toList.map(_.toVector)
     } catch {
-      case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems executing SQL query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        Thread.sleep(5000)
+        if (connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
+        read(sql)
     }
   }
 
-  def test(sql: String) = if (connection == null || connection.isClosed) error(s"Not applying sql query [$sql]. Database $database is closed.")
+  def test(sql: String) = if (connection == null || connection.isClosed) error(s"Not applying sql query [$sql]. Database $database is closed or null.")
 
   def write(sql: String) {
     test(sql)
@@ -125,12 +102,19 @@ class Db(val database: String) extends Log with Lock {
       statement.executeUpdate(sql)
       statement.close()
     } catch {
-      case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL query '$sql' in: $database .\n" + e.getMessage)
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems executing SQL query '$sql' in: $database .\nTrying againg in 30s" + e.getMessage, 0)
+        release()
+        Thread.sleep(5000)
+        if (connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
+        write(sql)
     } finally release()
   }
 
-  def readBlobs(sql: String) = {
+  def readBlobs(sql: String): List[(Array[Byte], Int)] = {
     test(sql)
     log(s"[$sql]", 10)
     try {
@@ -145,12 +129,18 @@ class Db(val database: String) extends Log with Lock {
       statement.close()
       queue.toList
     } catch {
-      case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
-    } finally release()
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems executing SQL read blobs query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        Thread.sleep(5000)
+        if (connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
+        readBlobs(sql)
+    }
   }
 
-  def readBlobs4(sql: String) = {
+  def readBlobs4(sql: String): List[(Array[Byte], Int, Int, Int)] = {
     test(sql)
     log(s"[$sql]", 10)
     try {
@@ -165,9 +155,15 @@ class Db(val database: String) extends Log with Lock {
       statement.close()
       queue.toList
     } catch {
-      case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
-    } finally release()
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems executing read blobs4 SQL query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        Thread.sleep(5000)
+        if (connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
+        readBlobs4(sql)
+    }
   }
 
   def writeBlob(sql: String, data: Array[Byte]) {
@@ -180,8 +176,15 @@ class Db(val database: String) extends Log with Lock {
       statement.execute()
       statement.close()
     } catch {
-      case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL blob query '$sql' in: $database .\n" + e.getMessage)
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems executing SQL blob query '$sql' in: $database .\nTrying againg in 30s.\n" + e.getMessage, 0)
+        release()
+        Thread.sleep(5000)
+        if (connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
+        writeBlob(sql, data)
     } finally release()
   }
 
@@ -193,22 +196,43 @@ class Db(val database: String) extends Log with Lock {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
     log("batch write blob ...", 10)
     log(sqls.mkString("\n"), 10)
-
+    var stats: List[Statement] = null
     try {
       acquire()
-      val statement = connection.createStatement()
-      statement.execute("begin")
-      sqls.zip(blobs) foreach { case (sql, blob) =>
+      connection.setAutoCommit(false)
+      stats = sqls.zip(blobs) map { case (sql, blob) =>
         val statement = connection.prepareStatement(sql)
         if (blob != null) statement.setBytes(1, blob)
         statement.execute()
+        statement
       }
-      statement.execute("end")
-      statement.close()
+      connection.commit()
+      stats foreach (_.close())
     } catch {
-      case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
-    } finally release()
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems writing blobs with SQL query '$sqls' in: $database .\nTrying againg in 30s\n" + e.getMessage, 0)
+        if (connection != null) {
+          try {
+            System.err.print("Transaction is being rolled back")
+            connection.rollback()
+            connection.setAutoCommit(true)
+          } catch {
+            case e2: Throwable => log(s"\nProblems 'rolling back'/'setting auto commit' SQL queries '$sqls' in: $database .\n" +
+              s"Probably it wasn't needed anyway." + e2.getMessage, 0)
+          }
+          release()
+          Thread.sleep(5000)
+          if (connection.isClosed) {
+            log("Reopening database...")
+            open()
+          }
+        }
+        batchWriteBlob(sqls, blobs)
+    } finally {
+      //      if (stats != null && stats.forall(_ != null)) stats foreach (_.close())
+      connection.setAutoCommit(true)
+      release()
+    }
     log("batch write blob finished.", 10)
   }
 
@@ -219,17 +243,41 @@ class Db(val database: String) extends Log with Lock {
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
     sqls foreach (m => log(m, 10))
+    var statement: Statement = null
     try {
       acquire()
-      val statement = connection.createStatement()
-      statement.execute("begin")
+      connection.setAutoCommit(false)
+      statement = connection.createStatement()
       sqls foreach statement.executeUpdate
-      statement.execute("end")
+      connection.commit()
       statement.close()
     } catch {
-      case e: Throwable => e.printStackTrace()
-        error(s"\nProblems executing SQL queries '$sqls' in: $database .\n" + e.getMessage)
-    } finally release()
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems writing blobs with SQL query '$sqls': ${e.getMessage} .\nTrying againg in 30s\n", 0)
+        if (connection != null) {
+          try {
+            log("Transaction is being rolled back...", 0)
+            connection.rollback()
+            connection.setAutoCommit(true)
+          } catch {
+            case e2: Throwable => log(s"\nProblems 'rolling back'/'setting auto commit' SQL queries '$sqls': ${e2.getMessage}.\n" +
+              s"Probably it wasn't needed anyway.", 0)
+          }
+          release()
+          Thread.sleep(5000)
+          if (connection.isClosed) {
+            log("Reopening database...")
+            open()
+          }
+        }
+        log("Recursive call...", 0)
+        batchWrite(sqls)
+        println(s"depois")
+    } finally {
+      if (statement != null) statement.close()
+      connection.setAutoCommit(true)
+      release()
+    }
   }
 
   def close() {

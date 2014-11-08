@@ -33,19 +33,19 @@ case class DensityWeightedLabelUtility(learner: Learner, pool: Seq[Pattern], dis
     case "manh" => 37
   } else throw new Error("Parametros inesperados para DWLU.")
 
-  protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+  protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
     val selected = unlabeled maxBy { x =>
       val similarityU = mapU(x) / mapU.size.toDouble
-      val similaritiesL = simL(mapsL, x)
+      val similaritiesL = simL(mapsL, x, hist)
       (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similaritiesL, alpha)
     }
     selected
   }
 
-  def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern) = {
-    val tot = (mapsL map (_.size)).sum
-    mapsL.map { m =>
-      val n = m.size.toDouble
+  def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern, hist: Seq[Int]) = {
+    val tot = hist.sum
+    mapsL.zipWithIndex.map { case (m, lab) =>
+      val n = hist(lab).toDouble
       val p = n / tot
       math.pow(m(patt) / n, p)
     }.product

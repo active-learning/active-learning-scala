@@ -37,7 +37,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
       val sl = mutable.LinkedHashSet[String]()
       //      val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset => //nao pode ser paralelo
       val res = datasets.toList map { dataset =>
-        val ds = Ds(path, dataset)
+        val ds = Ds(dataset)
         ds.open()
         sl += "Q/$|\\mathcal{U}|$"
         val ms = for {
