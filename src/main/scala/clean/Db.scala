@@ -70,7 +70,7 @@ class Db(val database: String) extends Log with Lock {
 
   def heartbeat() {
     val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
-    write(s"update t set v=`$now`, uuid=`$id`")
+    write(s"update t set v='$now', uuid='$id'")
   }
 
   def toDate(timestamp: java.sql.Timestamp) = {
