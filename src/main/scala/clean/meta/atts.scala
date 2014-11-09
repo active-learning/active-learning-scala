@@ -29,6 +29,7 @@ object atts extends AppWithUsage {
     (if (parallelDatasets) datasets.toList.par else datasets.toList) foreach { name =>
       val ds = Ds(name)
       ds.open()
+      ???
       ds.metaAtts
       ds.close()
     }
