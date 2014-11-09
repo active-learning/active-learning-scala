@@ -30,7 +30,8 @@ object all extends Exp with LearnerTrait with StratsTrait {
   run()
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-    if (!ds.isAliveByOtherJob()) {
+    if (ds.isAliveByOtherJob()) log("Outro job está allizando este dataset. Skipping this pool...", 0)
+    else {
       ds.heartbeat()
 
       //rnd clu svm maj / lff lfd
