@@ -23,10 +23,10 @@ import weka.core.Instances
 
 import scala.util.{Failure, Success, Try}
 import app.ArgParser
-import weka.core.converters.DatabaseSaverForSQLite
+import weka.core.converters.DatabaseSaverCustomized
 
 object ARFF2SQLite extends App {
-  Class.forName("org.sqlite.JDBC")
+  //  Class.forName("org.sqlite.JDBC")
   val desc = """Version 1
 It preprocess the ARFF files before sendind to SQLite.
 Steps:
@@ -47,7 +47,7 @@ Steps:
       }
     } else if (instancesOp.isDefined) {
       val instances = instancesOp.get
-      val save = new DatabaseSaverForSQLite
+      val save = new DatabaseSaverCustomized
       save.setUrl("jdbc:sqlite:////" + path + name + ".db")
       save.setInstances(instances)
       save.setRelationForTableName(false)

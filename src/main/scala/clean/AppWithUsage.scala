@@ -23,12 +23,13 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 trait AppWithUsage extends App with Log with ArgParser {
   //  Class.forName("org.sqlite.JDBC")
-  val superArguments = List("debug-verbosity:-1,0,1,2,,20", "files-with-dataset-names-or-dataset-names:file1,file2|#d1,d2,d3", "paralleliz(runs folds):r|f|rf|d")
+  val superArguments = List("debug-verbosity:-1,0,1,2,...,20", "files-with-dataset-names-or-dataset-names:file1,file2|#d1,d2,d3", "paralleliz(runs folds):r|f|rf|d")
   val arguments: List[String]
   lazy val runs = Global.runs
   lazy val folds = Global.folds
   lazy val debugIntensity = if (args.isEmpty) 20 else args(0).toInt
   lazy val sql = args(3)
+  lazy val path = args(3) + "/"
   lazy val datasets = if (args(1).startsWith("#")) args(1).drop(1).split(',') else datasetsFromFiles(args(1))
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
@@ -69,7 +70,7 @@ trait AppWithUsage extends App with Log with ArgParser {
     Global.debug = debugIntensity
     println(args.mkString(" "))
     if (args.size != arguments.size) {
-      println(s"Usage: java -cp your-path/als-versionjar ${this.getClass.getCanonicalName.dropRight(1).replace(".", "")} ${arguments.mkString(" ")}")
+      println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
       sys.exit(1)
     }
   }
