@@ -67,11 +67,17 @@ trait AppWithUsage extends App with Log with ArgParser {
   }
 
   def run() {
-    Global.debug = debugIntensity
-    println(args.mkString(" "))
-    if (args.size != arguments.size) {
-      println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
-      sys.exit(1)
+    try {
+      Global.debug = debugIntensity
+      println(args.mkString(" "))
+      if (args.size != arguments.size) {
+        println(s"Usage: java -cp your-path/als-version.jar ${this.getClass.getCanonicalName.dropRight(1)} ${arguments.mkString(" ")}")
+        sys.exit(1)
+      }
+    } catch {
+      case ex: Throwable => Global.running = false
+        ex.printStackTrace()
+        justQuit("Erro: " + ex.getMessage)
     }
   }
 }
