@@ -1,6 +1,6 @@
 package clean.meta
 
-import clean.AppWithUsage
+import clean.{Ds, AppWithUsage}
 
 /*
  active-learning-scala: Active Learning library for Scala
@@ -19,13 +19,18 @@ import clean.AppWithUsage
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-class Tree extends AppWithUsage {
-  val context = "treeApp"
+object atts extends AppWithUsage {
+  val context = "metaAttsApp"
   val arguments = superArguments
   run()
 
   override def run() = {
     super.run()
-
+    (if (parallelDatasets) datasets.toList.par else datasets.toList) foreach { name =>
+      val ds = Ds(name)
+      ds.open()
+      ds.metaAtts
+      ds.close()
+    }
   }
 }
