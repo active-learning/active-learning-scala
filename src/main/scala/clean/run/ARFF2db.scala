@@ -37,6 +37,7 @@ object ARFF2db extends AppWithUsage {
       save.setUrl(url)
       save.setInstances(instances.get)
       save.setUser("davi")
+      save.setPassword(Global.mysqlPass)
       save.setRelationForTableName(false)
       save.setTableName("i")
       save.setAutoKeyGeneration(true)

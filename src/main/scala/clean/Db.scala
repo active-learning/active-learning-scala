@@ -40,7 +40,7 @@ class Db(val database: String) extends Log with Lock {
       log(s"Connection to $database opened.")
     } catch {
       case e: Throwable => //e.printStackTrace()
-        log(s"Problems opening db connection: ${e.getMessage} ! Trying again in 30s...")
+        log(s"Problems opening db connection: ${e.getMessage} ! Trying again in 30s...", 0)
         Thread.sleep(connectionWait_ms)
         if (connection == null || connection.isClosed) {
           log("Reopening database...")
