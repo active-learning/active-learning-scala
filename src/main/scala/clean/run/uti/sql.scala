@@ -38,6 +38,6 @@ object sql extends AppWithUsage {
       }
       ds.close()
     }
-    justQuit("Datasets prontos.")
+    justQuit("Datasets prontos.\n" + arguments)
   }
 }
