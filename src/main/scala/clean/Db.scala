@@ -19,7 +19,7 @@
 package clean
 
 import java.sql.{Timestamp, Connection, DriverManager, Statement}
-import java.util.Calendar
+import java.util.{UUID, Calendar}
 
 
 /**
@@ -31,6 +31,7 @@ class Db(val database: String) extends Log with Lock {
   val context = database
   val connectionWait_ms = 30000
   var alive = false
+  val id = System.currentTimeMillis() + UUID.randomUUID().toString
 
   def open() {
     try {
@@ -50,7 +51,7 @@ class Db(val database: String) extends Log with Lock {
               Thread.sleep(40)
               Global.running && alive
             }
-            markAsAlive()
+            heartbeat()
           }
         }
       }).start()
@@ -67,9 +68,9 @@ class Db(val database: String) extends Log with Lock {
     }
   }
 
-  def markAsAlive() {
+  def heartbeat() {
     val now = Calendar.getInstance().getTime
-    write(s"update t set v=`$now`")
+    write(s"update t set v=`$now`, uuid=$id")
   }
 
   def toDate(timestamp: java.sql.Timestamp) = {
@@ -77,7 +78,7 @@ class Db(val database: String) extends Log with Lock {
     new java.util.Date(milliseconds)
   }
 
-  def isAlive(lifetimeSeconds: Double = 120): Boolean = {
+  def isAliveByOtherJob(lifetimeSeconds: Double = 120): Boolean = {
     val now = Calendar.getInstance().getTime
     val sql = "select * from t"
     try {
@@ -88,16 +89,17 @@ class Db(val database: String) extends Log with Lock {
       val columnsType = new Array[Int](numColumns + 1)
       columnsType(0) = 0
       1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
-      val queue = collection.mutable.Queue[Seq[Timestamp]]()
+      val queue = collection.mutable.Queue[(Timestamp, String)]()
       while (resultSet.next()) {
-        val seq = 1 to numColumns map { i => resultSet.getTimestamp(i)}
-        queue.enqueue(seq)
+        val tup = resultSet.getTimestamp(1) -> resultSet.getString(2)
+        queue.enqueue(tup)
       }
       resultSet.close()
       statement.close()
-      val past = toDate(queue.toList.head.head)
+      val past = toDate(queue.head._1)
+      val idPast = queue.head._2
       val elapsedSeconds = (now.getTime - past.getTime) / 1000d
-      elapsedSeconds < lifetimeSeconds
+      idPast != id && elapsedSeconds < lifetimeSeconds
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 60s.\n", 0)
@@ -106,7 +108,7 @@ class Db(val database: String) extends Log with Lock {
           log("Reopening database...")
           open()
         }
-        isAlive(lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
+        isAliveByOtherJob(lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
     }
   }
 
@@ -142,7 +144,7 @@ class Db(val database: String) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 0)
-        Thread.sleep(30000)
+        Thread.sleep(connectionWait_ms)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -165,7 +167,7 @@ class Db(val database: String) extends Log with Lock {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s", 0)
         release()
-        Thread.sleep(30000)
+        Thread.sleep(connectionWait_ms)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -191,7 +193,7 @@ class Db(val database: String) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL read blobs query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 0)
-        Thread.sleep(30000)
+        Thread.sleep(connectionWait_ms)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -217,7 +219,7 @@ class Db(val database: String) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing read blobs4 SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 0)
-        Thread.sleep(30000)
+        Thread.sleep(connectionWait_ms)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -239,7 +241,7 @@ class Db(val database: String) extends Log with Lock {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL blob query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 0)
         release()
-        Thread.sleep(30000)
+        Thread.sleep(connectionWait_ms)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -281,7 +283,7 @@ class Db(val database: String) extends Log with Lock {
               s"Probably it wasn't needed anyway.", 0)
           }
           release()
-          Thread.sleep(30000)
+          Thread.sleep(connectionWait_ms)
           if (connection.isClosed) {
             log("Reopening database...")
             open()
@@ -324,7 +326,7 @@ class Db(val database: String) extends Log with Lock {
               s"Probably it wasn't needed anyway.", 0)
           }
           release()
-          Thread.sleep(30000)
+          Thread.sleep(connectionWait_ms)
           if (connection.isClosed) {
             log("Reopening database...")
             open()
