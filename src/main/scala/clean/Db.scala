@@ -42,16 +42,18 @@ class Db(val database: String) extends Log with Lock {
       //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
       log(s"Connection to $database opened.")
 
+      Thread.sleep(100)
       alive = true
       new Thread(new Runnable() {
         def run() {
           while (Global.running && alive) {
+            heartbeat()
+
             //20s
             1 to 500 takeWhile { _ =>
               Thread.sleep(40)
               Global.running && alive
             }
-            heartbeat()
           }
         }
       }).start()
@@ -157,7 +159,7 @@ class Db(val database: String) extends Log with Lock {
 
   def write(sql: String) {
     test(sql)
-    log(s"[$sql]", 10)
+    log(s"[$sql]", 5)
     try {
       acquire()
       val statement = connection.createStatement()
@@ -230,7 +232,7 @@ class Db(val database: String) extends Log with Lock {
 
   def writeBlob(sql: String, data: Array[Byte]) {
     test(sql)
-    log(s"[$sql]", 10)
+    log(s"[$sql]", 5)
     try {
       acquire()
       val statement = connection.prepareStatement(sql)
@@ -256,7 +258,7 @@ class Db(val database: String) extends Log with Lock {
    */
   def batchWriteBlob(sqls: List[String], blobs: List[Array[Byte]]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-    log("batch write blob ...", 10)
+    log("batch write blob ... head: " + sqls.head, 5)
     log(sqls.mkString("\n"), 10)
     var stats: List[Statement] = null
     try {
@@ -304,6 +306,7 @@ class Db(val database: String) extends Log with Lock {
    */
   def batchWrite(sqls: List[String]) {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
+    log("batch write blob ... head: " + sqls.head, 5)
     sqls foreach (m => log(m, 10))
     var statement: Statement = null
     try {
