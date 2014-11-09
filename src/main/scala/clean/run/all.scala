@@ -32,7 +32,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
     if (ds.isAliveByOtherJob()) log("Outro job está allizando este dataset. Skipping this pool...", 0)
     else {
-      ds.heartbeat()
+      ds.startbeat()
 
       //rnd clu svm maj / lff lfd
       stratsFilterFreeSemLearnerExterno(pool).zip(stratsFilterFreeSemLearnerExterno(fpool)) foreach { case (strat, fstrat) =>

@@ -41,9 +41,21 @@ class Db(val database: String) extends Log with Lock {
       connection = DriverManager.getConnection(url, "davi", Global.mysqlPass)
       //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
       log(s"Connection to $database opened.")
+    } catch {
+      case e: Throwable => //e.printStackTrace()
+        log(s"Problems opening db connection: ${e.getMessage} ! Trying again in 30s...", 0)
+        Thread.sleep(connectionWait_ms)
+        if (connection == null || connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
+    }
+  }
 
-      Thread.sleep(100)
+  def startbeat(): Unit = {
+    if (!alive) {
       alive = true
+      Thread.sleep(100)
       new Thread(new Runnable() {
         def run() {
           while (Global.running && alive) {
@@ -57,20 +69,11 @@ class Db(val database: String) extends Log with Lock {
           }
         }
       }).start()
-
       log("created alive beeper")
-    } catch {
-      case e: Throwable => //e.printStackTrace()
-        log(s"Problems opening db connection: ${e.getMessage} ! Trying again in 30s...", 0)
-        Thread.sleep(connectionWait_ms)
-        if (connection == null || connection.isClosed) {
-          log("Reopening database...")
-          open()
-        }
-    }
+    } else heartbeat()
   }
 
-  def heartbeat() {
+  private def heartbeat() {
     val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
     write(s"update t set v='$now', uuid='$id'")
   }
