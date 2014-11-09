@@ -32,14 +32,14 @@ trait Log {
 
   def error(msg: String) = {
     Global.running = false
-    //    Thread.sleep(100)
+    Thread.sleep(100)
     throw new Error(s"Error: $msg")
   }
 
   def justQuit(msg: String) = {
     log(s"Quiting: $msg", 20)
     Global.running = false
-    //    Thread.sleep(100)
+    Thread.sleep(100)
     sys.exit(1)
   }
 }

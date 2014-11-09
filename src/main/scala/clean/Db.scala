@@ -18,7 +18,8 @@
 
 package clean
 
-import java.sql.{Connection, DriverManager, Statement}
+import java.sql.{Timestamp, Connection, DriverManager, Statement}
+import java.util.Calendar
 
 
 /**
@@ -29,6 +30,7 @@ class Db(val database: String) extends Log with Lock {
   private var connection: Connection = null
   val context = database
   val connectionWait_ms = 30000
+  var alive = false
 
   def open() {
     try {
@@ -38,6 +40,22 @@ class Db(val database: String) extends Log with Lock {
       connection = DriverManager.getConnection(url, "davi", Global.mysqlPass)
       //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
       log(s"Connection to $database opened.")
+
+      alive = true
+      new Thread(new Runnable() {
+        def run() {
+          while (Global.running && alive) {
+            //20s
+            1 to 500 takeWhile { _ =>
+              Thread.sleep(40)
+              Global.running && alive
+            }
+            markAsAlive()
+          }
+        }
+      }).start()
+
+      log("created alive beeper")
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"Problems opening db connection: ${e.getMessage} ! Trying again in 30s...", 0)
@@ -46,6 +64,49 @@ class Db(val database: String) extends Log with Lock {
           log("Reopening database...")
           open()
         }
+    }
+  }
+
+  def markAsAlive() {
+    val now = Calendar.getInstance().getTime
+    write(s"update t set v=`$now`")
+  }
+
+  def toDate(timestamp: java.sql.Timestamp) = {
+    val milliseconds = timestamp.getTime + (timestamp.getNanos / 1000000)
+    new java.util.Date(milliseconds)
+  }
+
+  def isAlive(lifetimeSeconds: Double = 120): Boolean = {
+    val now = Calendar.getInstance().getTime
+    val sql = "select * from t"
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      val rsmd = resultSet.getMetaData
+      val numColumns = rsmd.getColumnCount
+      val columnsType = new Array[Int](numColumns + 1)
+      columnsType(0) = 0
+      1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
+      val queue = collection.mutable.Queue[Seq[Timestamp]]()
+      while (resultSet.next()) {
+        val seq = 1 to numColumns map { i => resultSet.getTimestamp(i)}
+        queue.enqueue(seq)
+      }
+      resultSet.close()
+      statement.close()
+      val past = toDate(queue.toList.head.head)
+      val elapsedSeconds = (now.getTime - past.getTime) / 1000d
+      elapsedSeconds < lifetimeSeconds
+    } catch {
+      case e: Throwable => //e.printStackTrace()
+        log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 60s.\n", 0)
+        Thread.sleep(60000) //waiting time is longer than normal to allow for other alive connections to update the table
+        if (connection.isClosed) {
+          log("Reopening database...")
+          open()
+        }
+        isAlive(lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
     }
   }
 
@@ -81,7 +142,7 @@ class Db(val database: String) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 0)
-        Thread.sleep(5000)
+        Thread.sleep(30000)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -104,7 +165,7 @@ class Db(val database: String) extends Log with Lock {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s", 0)
         release()
-        Thread.sleep(5000)
+        Thread.sleep(30000)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -130,7 +191,7 @@ class Db(val database: String) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL read blobs query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 0)
-        Thread.sleep(5000)
+        Thread.sleep(30000)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -156,7 +217,7 @@ class Db(val database: String) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing read blobs4 SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 0)
-        Thread.sleep(5000)
+        Thread.sleep(30000)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -178,7 +239,7 @@ class Db(val database: String) extends Log with Lock {
       case e: Throwable => //e.printStackTrace()
         log(s"\nProblems executing SQL blob query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 0)
         release()
-        Thread.sleep(5000)
+        Thread.sleep(30000)
         if (connection.isClosed) {
           log("Reopening database...")
           open()
@@ -220,7 +281,7 @@ class Db(val database: String) extends Log with Lock {
               s"Probably it wasn't needed anyway.", 0)
           }
           release()
-          Thread.sleep(5000)
+          Thread.sleep(30000)
           if (connection.isClosed) {
             log("Reopening database...")
             open()
@@ -263,7 +324,7 @@ class Db(val database: String) extends Log with Lock {
               s"Probably it wasn't needed anyway.", 0)
           }
           release()
-          Thread.sleep(5000)
+          Thread.sleep(30000)
           if (connection.isClosed) {
             log("Reopening database...")
             open()
@@ -280,6 +341,7 @@ class Db(val database: String) extends Log with Lock {
   }
 
   def close() {
+    alive = false
     log(s"Connection to $database closed.")
     if (!connection.isClosed) connection.close()
   }
