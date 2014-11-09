@@ -92,6 +92,6 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
   def isAlreadyDone(ds: Ds) = false //ds.isMeasureComplete(measure, s.id, learner.id)
 
   def end(res: Map[String, Boolean]): Unit = {
-    println(s"prontos. \n$arguments")
+    println(s"prontos. \n$args")
   }
 }
