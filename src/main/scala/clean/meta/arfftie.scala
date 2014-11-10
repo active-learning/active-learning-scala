@@ -80,7 +80,7 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
       val labels = ss.distinct.sorted
       println(labels)
       grpdw foreach { case (w, lines) =>
-        val header = List("@relation data") ++ (0 until lines.head.toList.count(_ == ",")).map(i => s"@attribute a$i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+        val header = List("@relation data") ++ (0 until 7).map(i => s"@attribute a$i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
         val pronto = header ++ lines
         pronto foreach println
         println(s"")
