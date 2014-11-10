@@ -72,15 +72,16 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
       }
 
       val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
-      val grpdw = ss map (w => w -> datasetLearnerAndWinners.filter(_._2.contains(w)).map { case ((darner, (pred, le)), ws) =>
-        pred.mkString(",") + s",$le,$w"
+      val grpdw = ss map (w => w -> datasetLearnerAndWinners.map { case ((darner, (pred, le)), ws) =>
+        if (ws.contains(w)) pred.mkString(",") + s",$le,$w"
+        else pred.mkString(",") + s",$le,other"
       })
 
       //cria ARFF
-      val labels = ss.distinct.sorted
+      val labels = ss.distinct.sorted ++ Seq("other")
       println(labels)
       grpdw foreach { case (w, lines) =>
-        val header = List("@relation data") ++ (0 until 7).map(i => s"@attribute a$i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+        val header = List("@relation data") ++ "nclasses, nattributes, Uavg, nattsByUavg, QbyUavg, nomCount, numCount, nomByNum".split(", ").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
         val pronto = header ++ lines
         pronto foreach println
         println(s"")
