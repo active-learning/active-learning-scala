@@ -52,7 +52,7 @@ trait LearnerTrait {
     //    , CIELM(learnerSeed)
     //    , ECIELM(learnerSeed)
     //    , EIELM(learnerSeed)
-      r)
+  )
 
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
     case "nb" => NB()
