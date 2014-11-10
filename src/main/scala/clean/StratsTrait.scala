@@ -48,8 +48,11 @@ trait StratsTrait {
     //    DensityWeighted(learner, pool, 1, "eucl"),
     //    DensityWeightedTrainingUtility(learner, pool, "cheb"),
     , DensityWeightedTrainingUtility(learner, pool, "eucl")
-    , DensityWeightedLabelUtility(learner, pool, "eucl")
-    , DensityWeightedLocalUtility(learner, pool, "eucl")
+
+    //    , DensityWeightedLabelUtility(learner, pool, "eucl")
+    //    , DensityWeightedLocalUtility(learner, pool, "eucl")
+    //    , DensityWeightedLocalLabelUtility(learner, pool, "eucl")
+
     //    DensityWeightedTrainingUtility(learner, pool, "manh"),
     , ExpErrorReductionMargin(learner, pool, "entropy")
     , ExpErrorReductionMargin(learner, pool, "gmeans+residual")

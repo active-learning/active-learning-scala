@@ -75,9 +75,8 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
       println(s"")
       println(s"")
 
-      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
-      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
-      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 100
+      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 100
+      val tbs = res.filter(!_._2.contains(-1d, -1d)).toList.sortBy(x => x._2.head) grouped 100
       tbs foreach { case res1 =>
         StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
       }

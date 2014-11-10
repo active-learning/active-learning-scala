@@ -104,7 +104,7 @@ class Db(val database: String) extends Log with Lock {
       val past = toDate(queue.head._1)
       val idPast = queue.head._2
       val elapsedSeconds = (now.getTime - past.getTime) / 1000d
-      if (idPast != id && elapsedSeconds < lifetimeSeconds) log(s"outro:$idPast lifetime:$lifetimeSeconds", 30)
+      if (idPast != id && elapsedSeconds < lifetimeSeconds) log(s"meu:$id outro:$idPast lifetime:$elapsedSeconds", 30)
       idPast != id && elapsedSeconds < lifetimeSeconds
     } catch {
       case e: Throwable => //e.printStackTrace()
