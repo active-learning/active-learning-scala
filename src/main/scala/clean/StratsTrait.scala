@@ -51,7 +51,7 @@ trait StratsTrait {
 
     , DensityWeightedLabelUtility(learner, pool, "eucl")
     , DensityWeightedLocalUtility(learner, pool, "eucl")
-    , DensityWeightedLocalLabelUtility(learner, pool, "eucl")
+    //    , DensityWeightedLocalLabelUtility(learner, pool, "eucl") ??? corrigir 1out of bounds!
 
     //    DensityWeightedTrainingUtility(learner, pool, "manh"),
     , ExpErrorReductionMargin(learner, pool, "entropy")
