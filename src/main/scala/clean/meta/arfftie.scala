@@ -72,21 +72,21 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
       }
 
       val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
-      val grpdw = ss map (w => datasetLearnerAndWinners.filter(_._2.contains(w)).map { case ((darner, (pred, le)), ws) =>
+      val grpdw = ss map (w => w -> datasetLearnerAndWinners.filter(_._2.contains(w)).map { case ((darner, (pred, le)), ws) =>
         pred.mkString(",") + s",$le,$w"
       })
 
       //cria ARFF
       val labels = ss.distinct.sorted
       println(labels)
-      grpdw foreach { lines =>
-        val header = List("@relation data") ++ (0 until lines.head.count(_ == ",")).map(i => s"@attribute a$i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      grpdw foreach { case (w, lines) =>
+        val header = List("@relation data") ++ (0 until lines.head.toList.count(_ == ",")).map(i => s"@attribute a$i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
         val pronto = header ++ lines
         pronto foreach println
         println(s"")
-        //        val fw = new FileWriter("/home/davi/wcs/ucipp/uci/meta.arff")
-        //        pronto foreach (x => fw.write(s"$x\n"))
-        //        fw.close()
+        val fw = new FileWriter(s"/home/davi/wcs/ucipp/uci/metatie-$w.arff")
+        pronto foreach (x => fw.write(s"$x\n"))
+        fw.close()
       }
       println(s"")
     }
