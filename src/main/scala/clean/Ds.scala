@@ -34,17 +34,27 @@ import scala.util.Random
  * Cada instancia desta classe representa um ML dataset.
  */
 case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
-  lazy val metaAtts = ???
-
   override lazy val toString = dataset
   override val context = dataset
-  lazy val n = read("select count(1) from i").head.head.toInt
-  lazy val nclasses = patterns.head.nclasses
   lazy val patterns = fetchPatterns("i order by id asc")
+  lazy val n = patterns.size
+  lazy val nclasses = patterns.head.nclasses
+  lazy val nattributes = patterns.head.nattributes
   lazy val Q = {
     val r = fetchQ()
     if (r.isEmpty) error("Q not found.") else r.head.toInt
   }
+  lazy val Uavg = {
+    val Us = expectedPoolSizes(5)
+    Us.sum / Us.size.toDouble
+  }
+  lazy val nattsByUavg = nattributes / Uavg
+  lazy val QbyUavg = Q / Uavg
+  lazy val nomCount = patterns.head.enumerateAttributes().count(_.isNominal)
+  lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
+  lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
+  lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, nattsByUavg, QbyUavg, nomCount, numCount, nomByNum)
+
   //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
   //  def passiveAcc(learner: Learner, r: Int, f: Int) = {
