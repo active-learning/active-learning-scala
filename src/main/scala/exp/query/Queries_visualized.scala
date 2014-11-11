@@ -61,11 +61,11 @@ object Queries_visualized extends App {
   //  NB()
   //  RF(0, 5)
   val e =
-    DensityWeightedLocalLabelUtility(c, train, "eucl", debug = true)
+  //    DensityWeightedLocalLabelUtility(c, train, "eucl", debug = true)
   //      DensityWeightedLabelUtility(c, train, "eucl", debug = true)
   //      DensityWeightedLocalUtility(c, train, "eucl", debug = true)
   //      DensityWeightedTrainingUtility(c, train, "eucl", debug = true)
-  //    SVMmulti(train, "SELF_CONF", debug = true)
+    SVMmulti(train, "SELF_CONF", debug = true)
   //      SVMmulti(train, "KFF", debug = true)
   //    SVMmulti(train, "BALANCED_EE", debug = true)
   //    SVMmulti(train, "SIMPLE", debug = true)
@@ -75,9 +75,11 @@ object Queries_visualized extends App {
   //    Uncertainty(c, train, debug = true) //212 10:199
   //    RandomSampling(train, true)
   //      SGmulti(c, train, "consensus", debug = true) //143 10:146 ponto fraco: talvez seja mais sensível ao peso dos exemplos de fundo
-  //    SGmultiJS(c, train, debug = true) //149 ponto fraco: não consulta quando concordam na dúvida
+  //        SGmulti(c, train, "majority", debug = true) //
+  //      SGmultiJS(c, train, debug = true) //149 ponto fraco: não consulta quando concordam na dúvida
   //                       SGmultiMargin(c, train, debug = true) //168 ponto fraco: concentra demais as consultas na fronteira de decisão
-  //                     DensityWeightedTrainingUtility(c, train, 1,1, "maha", debug = true)
+  //                       DensityWeightedTrainingUtility(c, train, "cheb", debug = true)
+  //    ExpErrorReductionMargin(c, train, "accuracy", 100, debug = true)
   //           QBCJS(c, train, debug = true) //2:168 10:143
   //           QBCJSMargin(c, train, debug = true) //2:168 10:168
   //      DensityWeighted(c, train, 1d, "eucl", debug = true)

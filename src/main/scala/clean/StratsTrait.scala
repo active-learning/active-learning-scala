@@ -37,33 +37,32 @@ trait StratsTrait {
     , SVMmulti(pool, "BALANCED_EE") //SIMPLE + KFF
     //    ,SVMmulti(pool, "SIMPLE") // exploitation="uncertainty"
     //    ,SVMmulti(pool, "KFF") // exploration
-    //    , SVMmulti(pool, "SELF_CONF") //EER
+    , SVMmulti(pool, "SELF_CONF") //EER
   )
 
   def stratsFilterFreeComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
     //    Uncertainty(learner, pool),
     Entropy(learner, pool)
     , Margin(learner, pool)
-    //,
-    //    DensityWeighted(learner, pool, 1, "eucl"),
-    //    DensityWeightedTrainingUtility(learner, pool, "cheb"),
+    , DensityWeighted(learner, pool, 1, "eucl")
+    , DensityWeightedTrainingUtility(learner, pool, "cheb")
     , DensityWeightedTrainingUtility(learner, pool, "eucl")
+    , DensityWeightedTrainingUtility(learner, pool, "manh")
 
     , DensityWeightedLabelUtility(learner, pool, "eucl")
     , DensityWeightedLocalUtility(learner, pool, "eucl")
     //    , DensityWeightedLocalLabelUtility(learner, pool, "eucl") ??? corrigir 1out of bounds!
 
-    //    DensityWeightedTrainingUtility(learner, pool, "manh"),
     , ExpErrorReductionMargin(learner, pool, "entropy")
     , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
-    //    ExpErrorReductionMargin(learner, pool, "accuracy"),
+    , ExpErrorReductionMargin(learner, pool, "accuracy")
     , new SGmulti(learner, pool, "consensus")
     //    , new SGmulti(learner, pool, "majority")
     //    new SGmultiJS(learner, pool)
   )
 
   def stratsFilterDependentComLearnerExterno(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-    //    DensityWeightedTrainingUtility(learner, pool, "maha")
+    DensityWeightedTrainingUtility(learner, pool, "maha")
     //      ,DensityWeightedLabelUtility(learner, pool, "maha")
     //      ,DensityWeightedLocalUtility(learner, pool, "maha")
   )
