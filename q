@@ -15,7 +15,7 @@ teaching-assistant-evaluation
 monks1
 thyroid-ann
 leaf
-#arcene
+arcene
 mammographic-mass
 phoneme
 robot-failure-lp4
@@ -26,7 +26,7 @@ flare
 thyroid-sick-euthyroid
 turkiye-student
 robot-failure-lp5
-#micro-mass-pure-spectra
+micro-mass-pure-spectra
 page-blocks
 bupa
 wine-quality-white-5class
@@ -35,7 +35,7 @@ thyroid-newthyroid
 tic-tac-toe
 mfeat-fourier
 dbworld-subjects
-#micro-mass-mixed-spectra
+micro-mass-mixed-spectra
 steel-plates-faults
 leukemia-haslinger
 indian-liver-patient

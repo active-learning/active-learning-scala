@@ -1,7 +1,0 @@
-pendigits
-nursery-4class
-nursery
-gas-drift
-gas-drift-different-concentrations
-eeg-eye-state
-magic

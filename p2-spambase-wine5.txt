@@ -1,7 +1,0 @@
-spambase
-wilt
-artificial-characters
-waveform-v1
-waveform-v2
-robot-nav-sensor-readings-2
-wine-quality-5class

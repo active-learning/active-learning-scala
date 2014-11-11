@@ -1,7 +1,0 @@
-first-order-theorem
-optdigits
-musk
-ringnorm
-twonorm
-mushroom
-mushroom-expanded

@@ -1,6 +1,0 @@
-banana
-page-blocks
-phoneme
-robot-nav-sensor-readings-4
-robot-nav-sensor-readings-24
-texture
