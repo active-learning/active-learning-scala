@@ -107,7 +107,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
     val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
     log(s"Fetching patterns...")
     val query = new InstanceQuerySQLite()
-    val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
+    val url = s"jdbc:mysql://${Global.mysqlHost}:${Global.mysqlPort}/" + database
     query.setDatabaseURL(url)
     query.setUsername("davi")
     query.setPassword(Global.mysqlPass)

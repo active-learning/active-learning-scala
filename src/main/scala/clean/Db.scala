@@ -35,7 +35,7 @@ class Db(val database: String) extends Log with Lock {
 
   def open() {
     try {
-      val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" + database
+      val url = s"jdbc:mysql://${Global.mysqlHost}:${Global.mysqlPort}/" + database
       //      val url = "jdbc:sqlite:////" + database
       //      connection = DriverManager.getConnection(url)
       connection = DriverManager.getConnection(url, "davi", Global.mysqlPass)

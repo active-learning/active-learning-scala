@@ -32,7 +32,7 @@ object ARFF2db extends AppWithUsage {
       }
 
       val save = new DatabaseSaverCustomized
-      val url = s"jdbc:mysql://127.0.0.1:${Global.mysqlPort}/" //+ name
+      val url = s"jdbc:mysql://${Global.mysqlHost}:${Global.mysqlPort}/"
       save.name = name
       save.setUrl(url)
       save.setInstances(instances.get)

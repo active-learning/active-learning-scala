@@ -54,9 +54,9 @@ object grpByQ extends Exp with Lock {
     println(s"")
     println(m.toList.sortBy(_._2).map(_._1).mkString(","))
     println(s"")
-    val bla = m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 30} map (_._2)
+    val bla = m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 5} map (_._2)
     bla.zipWithIndex foreach { case (g, i) =>
-      val fw = new FileWriter(s"r$i")
+      val fw = new FileWriter(s"s$i")
       g.foreach(x => fw.write(x._1 + "\n"))
       fw.close()
     }

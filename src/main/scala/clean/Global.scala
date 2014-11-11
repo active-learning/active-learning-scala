@@ -23,13 +23,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-  lazy val mysqlPass = {
-    val l = Source.fromFile("/tmp/mysql.txt").getLines().toList
-    if (l.size == 1) ""
-    else Source.fromFile("/tmp/mysql.txt").getLines().toList(1)
+  lazy val (mysqlHost, mysqlPort, mysqlPass) = {
+    val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
+    (l(0), l(1), l(2))
   }
-
-  lazy val mysqlPort = Source.fromFile("/tmp/mysql.txt").getLines().toList.head
 
   var running = true
 
