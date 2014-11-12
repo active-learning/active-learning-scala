@@ -38,7 +38,7 @@ trait AppWithUsage extends App with Log with ArgParser {
   lazy val sql = args(4)
   lazy val path = args(4) + "/"
   lazy val trulyrnd = new SecureRandom()
-  lazy val seed = (trulyrnd.nextInt() + System.nanoTime() + System.currentTimeMillis() + UUID.randomUUID().toString.map(_.toByte).mkString).toLong
+  lazy val seed = trulyrnd.nextInt() + System.nanoTime() + System.currentTimeMillis() + UUID.randomUUID().toString.map(_.toByte).map(_.toInt).sum
   lazy val xsrnd = {
     val tmp = new XSRandom()
     tmp.setSeed(seed)
