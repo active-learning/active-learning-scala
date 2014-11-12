@@ -158,7 +158,7 @@ public class FriedmanTest {
      * List is the ranking of avgs.
      */
     public static LinkedList<Number> CD(double[][] matriz, boolean asc) {
-        LinkedList<Number> l = new LinkedList<>();
+        LinkedList<Number> l = new LinkedList<Number>();
 
         int nl = matriz.length;
         int nc = matriz[0].length;
