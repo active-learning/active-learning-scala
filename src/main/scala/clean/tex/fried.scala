@@ -34,7 +34,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
 
   override def run() = {
     super.run()
-    allMeasures.dropRight(2) foreach { measure =>
+    allMeasures(maxtimesteps).dropRight(2) foreach { measure =>
       val sl = mutable.LinkedHashSet[String]()
       val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
         val ds = Ds(dataset)
@@ -100,7 +100,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             }).flatten
           }
         }
-        val res = ds.dataset -> (Seq((ds.Q.toDouble, (ds.n.toDouble * 0.8).round.toDouble)) ++ ms.flatten)
+        val res = ds.dataset -> (Seq((maxtimesteps.toDouble, (ds.n.toDouble * 0.8).round.toDouble)) ++ ms.flatten)
         ds.close()
         res
       }

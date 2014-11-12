@@ -28,10 +28,10 @@ import weka.filters.Filter
 
 import scala.collection.mutable
 
-object grpByQ extends Exp with Lock {
+object grpByU extends Exp with Lock {
   val arguments = superArguments
   val context = "grpByQ"
-  val m = mutable.Map[String, (Int, Int)]()
+  val m = mutable.Map[String, (Int)]()
   val ignoreNotDone = false
   run()
 
@@ -43,11 +43,9 @@ object grpByQ extends Exp with Lock {
   }
 
   def datasetFinished(ds: Ds) {
-    if (ds.isQCalculated) {
-      acquire()
-      m += ds.dataset ->(ds.Q, (ds.n * 4) / 5)
-      release()
-    }
+    acquire()
+    m += ds.dataset -> ((ds.n * 4) / 5)
+    release()
   }
 
   def end(res: Map[String, Boolean]): Unit = {

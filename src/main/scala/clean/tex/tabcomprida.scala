@@ -21,7 +21,7 @@ package clean.tex
 
 import al.strategies.{PassiveAcc, PassiveGme}
 import clean._
-import clean.res.gmeansAtQ
+import clean.res.gmeansAt
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
@@ -32,7 +32,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
 
   override def run() = {
     super.run()
-    Seq(gmeansAtQ(), null, null).dropRight(2) foreach { measure =>
+    Seq(gmeansAt(maxtimesteps), null, null).dropRight(2) foreach { measure =>
       //    allMeasures.dropRight(2) foreach { measure =>
       //      val strats = (measure.id match {
       //        case 11 => Seq(PassiveAcc(NoLearner(), Seq()))

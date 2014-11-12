@@ -33,7 +33,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
 
   override def run() = {
     super.run()
-    allMeasures.dropRight(2) foreach { measure =>
+    allMeasures(maxtimesteps).dropRight(2) foreach { measure =>
       val sl = mutable.LinkedHashSet[String]()
       //      val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset => //nao pode ser paralelo
       val res = datasets.toList map { dataset =>
@@ -100,7 +100,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
             }).flatten
           }
         }
-        val res = ds.dataset -> (Seq((ds.Q.toDouble, (ds.n.toDouble * 0.8).round.toDouble)) ++ ms.flatten)
+        val res = ds.dataset -> (Seq((maxtimesteps.toDouble, (ds.n.toDouble * 0.8).round.toDouble)) ++ ms.flatten)
         ds.close()
         res
       }

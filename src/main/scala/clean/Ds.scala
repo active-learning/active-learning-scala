@@ -40,20 +40,20 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   lazy val n = patterns.size
   lazy val nclasses = patterns.head.nclasses
   lazy val nattributes = patterns.head.nattributes
-  lazy val Q = {
-    val r = fetchQ()
-    if (r.isEmpty) error("Q not found.") else r.head.toInt
-  }
+  //  lazy val Q = {
+  //    val r = fetchQ()
+  //    if (r.isEmpty) error("Q not found.") else r.head.toInt
+  //  }
   lazy val Uavg = {
     val Us = expectedPoolSizes(5)
     Us.sum / Us.size.toDouble
   }
   lazy val nattsByUavg = nattributes / Uavg
-  lazy val QbyUavg = Q / Uavg
+  //  lazy val QbyUavg = Q / Uavg
   lazy val nomCount = patterns.head.enumerateAttributes().count(_.isNominal)
   lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
   lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
-  lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, nattsByUavg, QbyUavg, nomCount, numCount, nomByNum)
+  lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, nattsByUavg, nomCount, numCount, nomByNum) //todo: budget?
 
   //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
@@ -69,7 +69,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   //    acc(cm)
   //  }
 
-  private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
+  //  private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
   /**
    * not exact because of fixed learner strats.
@@ -138,9 +138,9 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
       case List(seq) => Some(seq.head.toInt)
     }
 
-  def isQCalculated = fetchQ().nonEmpty
+  //  def isQCalculated = fetchQ().nonEmpty
 
-  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean): Boolean = {
+  def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount: Int): Boolean = {
     val (sid, lid) = (strat.id, strat.learner.id)
     poolId(sid, lid, run, fold) match {
       case None =>
@@ -161,33 +161,33 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
           }
           case _ => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries!  l:$lid  s:$sid")
-            case q if q >= Q => true
+            case q if q >= expectedAmount => true
             case q => if (completeIt) {
-              log(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. Completing it...", 20)
+              log(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${strat.learner}. Completing it...", 20)
               val qrs = queries(strat, run, fold, binaf, zscof)
-              val newqrs = strat.resume_queries(qrs).take(Q - q)
-              if (newqrs.size + q != Q) quit(s"wrong new total of queries: ${newqrs.size + q}")
+              val newqrs = strat.resume_queries(qrs).take(expectedAmount - q)
+              if (newqrs.size + q != expectedAmount) quit(s"wrong new total of queries: ${newqrs.size + q}")
               val sqls = newqrs.zipWithIndex map { case (patt, t0) =>
                 val t = t0 + lastT + 1
                 s"INSERT INTO q values ($pid, $t, ${patt.id})"
               }
               batchWrite(sqls.toList)
-              sqls.size + q == Q
-            } else quit(s"$qs previous $q queries should be at least $Q. s:$strat l:${strat.learner}. |U|=$poolSize. But not allowed to complete it...")
+              sqls.size + q == expectedAmount
+            } else quit(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${strat.learner}. |U|=$poolSize. But not allowed to complete it...")
           }
         }
     }
   }
 
-  def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean) =
+  def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount: Int) =
     if (learner.id != strat.learner.id && strat.id > 1) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
-    else if (!areQueriesFinished(poolSize, strat, run, fold, null, null, completeIt = false)) error(s"Queries must be finished to check hits! |U|=$poolSize")
+    else if (!areQueriesFinished(poolSize, strat, run, fold, null, null, completeIt = false, expectedAmount + nclasses - 1)) error(s"Queries must be finished to check hits! |U|=$poolSize")
     else {
       poolId(strat, learner, run, fold) match {
         case None => false
         case Some(pid) =>
           val ExpectedHitsForFullPool = poolSize - nclasses + 1
-          lazy val ExpectedHitsForNormalPool = Q - nclasses + 1
+          lazy val ExpectedHitsForNormalPool = expectedAmount
           val hs = (read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
             case List(Vector(0)) | List(Vector(0, 0)) => 0d
             case List(Vector(c, m)) => if (c == m - nclasses + 2) c
@@ -208,7 +208,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
                 //gera hits e sql strs
                 val usedQueries = hs + nclasses - 1
                 val lastUsedT = usedQueries - 1
-                val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(Q).splitAt(usedQueries)
+                val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(expectedAmount + nclasses - 1).splitAt(usedQueries)
                 if (usedPatterns.size != usedQueries) error("Problems taking hit-used queries.")
                 var m = learner.build(usedPatterns)
                 val tuples = ((null +: rest).zipWithIndex map { case (patt, idx) =>
@@ -221,7 +221,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
                 val (sqls, blobs) = tuples.unzip
                 log(tuples.mkString("\n"), 20)
                 batchWriteBlob(sqls, blobs)
-                sqls.size + hs == Q
+                sqls.size + hs == expectedAmount
               } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...")
             }
             case (s, l) if s > 0 => hs match {
@@ -232,7 +232,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
                 //gera hits e sql strs
                 val usedQueries = hs + nclasses - 1
                 val lastUsedT = usedQueries - 1
-                val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(Q).splitAt(usedQueries)
+                val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(expectedAmount + nclasses - 1).splitAt(usedQueries)
                 if (usedPatterns.size != usedQueries) error("Problems taking hit-used queries.")
                 var m = learner.build(usedPatterns)
                 val tuples = ((null +: rest).zipWithIndex map { case (patt, idx) =>
@@ -245,7 +245,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
                 val (sqls, blobs) = tuples.unzip
                 log(tuples.mkString("\n"), 20)
                 batchWriteBlob(sqls, blobs)
-                sqls.size + hs == Q
+                sqls.size + hs == expectedAmount
               } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete...")
             }
           }
@@ -260,45 +260,45 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
       Qcalculado = m <= 100
       Q = Qcalculado >= |Y| + 2
     */
-  def calculaQ(runs: Int, folds: Int, n: Int = n) {
-    if (isQCalculated) quit("Q already calculated!")
-    else {
-      lazy val medianaTGme_s = 1 to 3 map { l =>
-        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
-          (r, f) ->(gmeans(blobToConfusion(b, nclasses)), t)
-        }.groupBy(_._1).map(_._2.map(_._2))
-        val t_max_s = grpByPool.map { pool =>
-          //max gmeans no pool
-          val max = pool.maxBy(_._1)._1
-          val maxs = pool.filter(x => x._1 >= max * 0.99)
-          //primeiro t em que atinje max
-          val t = maxs.minBy(_._2)._2
-          (t, max)
-        }.toSeq
-        //pega mediana dentre 25 pools
-        t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
-      }
-
-      lazy val medianaTAcc_s = 1 to 3 map { l =>
-        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
-          (r, f) ->(acc(blobToConfusion(b, nclasses)), t)
-        }.groupBy(_._1).map(_._2.map(_._2))
-        val t_max_s = grpByPool.map { pool =>
-          val max = pool.maxBy(_._1)._1
-          val maxs = pool.filter(x => x._1 >= max * 0.99)
-          val t = maxs.minBy(_._2)._2
-          (t, max)
-        }.toSeq
-        t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
-      }
-
-      val Qcalculado = 50
-      //      val Qcalculado = math.min(100, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
-
-      val qToWrite = math.max(Qcalculado, nclasses + 2)
-      write(s"INSERT INTO r values (0, -1, $qToWrite)")
-    }
-  }
+  //  def calculaQ(runs: Int, folds: Int, n: Int = n) {
+  //    if (isQCalculated) quit("Q already calculated!")
+  //    else {
+  //      lazy val medianaTGme_s = 1 to 3 map { l =>
+  //        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
+  //          (r, f) ->(gmeans(blobToConfusion(b, nclasses)), t)
+  //        }.groupBy(_._1).map(_._2.map(_._2))
+  //        val t_max_s = grpByPool.map { pool =>
+  //          //max gmeans no pool
+  //          val max = pool.maxBy(_._1)._1
+  //          val maxs = pool.filter(x => x._1 >= max * 0.99)
+  //          //primeiro t em que atinje max
+  //          val t = maxs.minBy(_._2)._2
+  //          (t, max)
+  //        }.toSeq
+  //        //pega mediana dentre 25 pools
+  //        t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
+  //      }
+  //
+  //      lazy val medianaTAcc_s = 1 to 3 map { l =>
+  //        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
+  //          (r, f) ->(acc(blobToConfusion(b, nclasses)), t)
+  //        }.groupBy(_._1).map(_._2.map(_._2))
+  //        val t_max_s = grpByPool.map { pool =>
+  //          val max = pool.maxBy(_._1)._1
+  //          val maxs = pool.filter(x => x._1 >= max * 0.99)
+  //          val t = maxs.minBy(_._2)._2
+  //          (t, max)
+  //        }.toSeq
+  //        t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
+  //      }
+  //
+  //      val Qcalculado = 50
+  //      //      val Qcalculado = math.min(100, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
+  //
+  //      val qToWrite = math.max(Qcalculado, nclasses + 2)
+  //      write(s"INSERT INTO r values (0, -1, $qToWrite)")
+  //    }
+  //  }
 
   def countQueries(strat: Strategy, run: Int, fold: Int) = {
     val pid = poolId(strat, strat.learner, run, fold).getOrElse(quit(s"Pool not found for  s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold !"))
@@ -309,23 +309,21 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   }
 
   /**
-   * Get the list of CMs sorted by time, usually Q, sometimes |U|.
+   * Get the list of CMs sorted by time.
    * @param strat
    * @param learner
    * @param run
    * @param fold
    * @return
    */
-  def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int) = poolId(strat, learner, run, fold) match {
+  def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int, expectedAmount: Int) = poolId(strat, learner, run, fold) match {
     case None => error("Attempt to get hits without an existent related pid.")
     case Some(pid) =>
       val cms = mutable.LinkedHashMap[Int, Array[Array[Int]]]()
-      readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t") foreach {
+      readBlobs(s"select mat,t from h WHERE p=$pid ORDER BY t LIMIT $expectedAmount") foreach {
         case (b, t) => cms += t -> blobToConfusion(b, nclasses)
       }
-      val numberOfQueriesNeeded = if (strat.id == 0 && learner.id < 4) countQueries(strat, run, fold) else Q
-      val expectedCms = numberOfQueriesNeeded - nclasses + 1
-      if (expectedCms > cms.size) error(s"${cms.size} conf mats found, at least $expectedCms expected!")
+      if (expectedAmount != cms.size) error(s"${cms.size} conf mats found, $expectedAmount expected!")
       cms
   }
 
@@ -382,7 +380,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
    * @param learner
    * @return
    */
-  def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int)(learner: Learner) =
+  def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int, h: Int)(learner: Learner) =
     if (learner.id != strat.learner.id && strat.id > 1)
       error(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
     else {
@@ -395,11 +393,11 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
       }
 
       //para rnd e quaisquer learners, |queries| = |U|.
-      val expectedQ = if (strat.id == 0) poolSize else Q
+      val expectedQ = if (strat.id == 0) poolSize else h + nclasses - 1
       if (expectedQ > queries.size) quit(s"Number of ${queries.size} provided queries for hits is lesser than $expectedQ expected!")
 
       //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
-      val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else Q
+      val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else h + nclasses - 1
       val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
       if (nclasses != initialPatterns.size || initialPatterns.size + rest.size != qtdQueriesToTake) error("Problems picking initialPatterns for hits.")
 

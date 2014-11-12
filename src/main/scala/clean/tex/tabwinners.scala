@@ -31,7 +31,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with M
 
   override def run() = {
     super.run()
-    allMeasures.dropRight(2) foreach { measure =>
+    allMeasures(maxtimesteps).dropRight(2) foreach { measure =>
       val strats = allStrats()
       val ss = strats.map(_.abr).toVector
 

@@ -39,27 +39,27 @@ trait Measure extends CM {
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
 
-case class Q() extends Measure() {
-  val id = 0
+//case class Q() extends Measure() {
+//  val id = 0
+//
+//  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = ds.Q
+//}
 
-  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = ds.Q
-}
-
-case class ALCacc() extends Measure {
-  val id = 1
+case class ALCacc(maxBudget: Int) extends Measure {
+  val id = 100000 + maxBudget
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    val acertos = cms.take(ds.Q - ds.nclasses + 1).values.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
-    acertos.toDouble / (tsSize * (ds.Q - ds.nclasses + 1))
+    val acertos = cms.take(maxBudget - ds.nclasses + 1).values.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
+    acertos.toDouble / (tsSize * (maxBudget - ds.nclasses + 1))
   }
 }
 
-case class ALCgmeans() extends Measure() {
-  val id = 2
+case class ALCgmeans(maxBudget: Int) extends Measure() {
+  val id = 200000 + maxBudget
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    val tot = cms.take(ds.Q - ds.nclasses + 1).values.foldLeft(0d)((gmtot, cm) => gmtot + gmeans(cm))
-    tot.toDouble / (ds.Q - ds.nclasses + 1)
+    val tot = cms.take(maxBudget - ds.nclasses + 1).values.foldLeft(0d)((gmtot, cm) => gmtot + gmeans(cm))
+    tot.toDouble / (maxBudget - ds.nclasses + 1)
   }
 }
 
@@ -132,20 +132,20 @@ case class timeToQuerySD() extends Measure() {
   }
 }
 
-case class accAtQ() extends Measure() {
-  val id = 11
+case class accAt(budget: Int) extends Measure() {
+  val id = 1100000 + budget
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    val acertos = contaAcertos(cms.take(ds.Q - ds.nclasses + 1).last._2)
+    val acertos = contaAcertos(cms.take(budget - ds.nclasses + 1).last._2)
     acertos.toDouble / tsSize
   }
 }
 
-case class gmeansAtQ() extends Measure() {
-  val id = 12
+case class gmeansAt(budget: Int) extends Measure() {
+  val id = 1200000 + budget
 
   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-    gmeans(cms.take(ds.Q - ds.nclasses + 1).last._2)
+    gmeans(cms.take(budget - ds.nclasses + 1).last._2)
   }
 }
 

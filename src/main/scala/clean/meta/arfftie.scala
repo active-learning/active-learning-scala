@@ -19,7 +19,7 @@ package clean.meta
 
 import java.io.FileWriter
 
-import clean.res.ALCgmeans
+import clean.res.{accAt, ALCgmeans}
 import clean._
 import util.{StatTests, Stat}
 
@@ -32,7 +32,7 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
 
   override def run() = {
     super.run()
-    Seq(ALCgmeans(), null, null).dropRight(2) foreach { measure =>
+    Seq(accAt(maxtimesteps), null, null).dropRight(2) foreach { measure =>
       val strats = allStrats()
       val ss = strats.map(_.abr).toVector
 

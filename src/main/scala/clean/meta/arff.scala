@@ -2,8 +2,8 @@ package clean.meta
 
 import java.io.FileWriter
 
-import clean.res.ALCgmeans
 import clean._
+import clean.res.{ALCgmeans, accAt}
 import util.Stat
 
 /*
@@ -40,11 +40,11 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait {
       ds.open()
       val medidas = for {
         s <- allStrats()
-      } yield if (ds.isMeasureComplete(ALCgmeans(), s.id, l.id)) {
+      } yield if (ds.isMeasureComplete(accAt(maxtimesteps), s.id, l.id)) {
           val ms = for {
             r <- 0 until Global.runs
             f <- 0 until Global.folds
-          } yield ds.getMeasure(ALCgmeans(), s, l, r, f).getOrElse(error("nao pegou a medida"))
+          } yield ds.getMeasure(accAt(maxtimesteps), s, l, r, f).getOrElse(error("nao pegou a medida"))
           val (m, d) = Stat.media_desvioPadrao(ms.toVector)
           (s.abr, r(m) * 10 + d)
         } else (s.abr, 0d)

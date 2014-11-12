@@ -23,29 +23,28 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 trait AppWithUsage extends App with Log with ArgParser {
   //  Class.forName("org.sqlite.JDBC")
-  val superArguments = List("debug-verbosity:-1,0,1,2,...,30", "files-with-dataset-names-or-dataset-names:file1,file2|#d1,d2,d3", "paralleliz(runs folds):r|f|rf|d")
+  val superArguments = List("debug-verbosity:-1,0,1,2,...,30", "files-with-dataset-names-or-dataset-names:file1,file2|#d1,d2,d3", "paralleliz(runs folds):r|f|rf|d", "maxtimesteps")
   val arguments: List[String]
   lazy val runs = Global.runs
   lazy val folds = Global.folds
   lazy val debugIntensity = if (args.isEmpty) 20 else args(0).toInt
-  lazy val sql = args(3)
-  lazy val path = args(3) + "/"
+  lazy val maxtimesteps = args(3).toInt
+  lazy val sql = args(4)
+  lazy val path = args(4) + "/"
   lazy val datasets = if (args(1).startsWith("#")) args(1).drop(1).split(',') else datasetsFromFiles(args(1))
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
   lazy val parallelDatasets = args(2).contains("d")
-  //args(3).contains("d")
-  lazy val learnerStr = if (args.size < 4) "learner-undefined" else args(3)
-  lazy val learnersStr = if (args.size < 4) Array("learners-undefined") else args(3).split(",")
-  lazy val measure = args.last match {
-    case "q" => Q()
-    case "alca" => ALCacc()
-    case "alcg" => ALCgmeans()
-    case "aatq" => accAtQ()
-    case "gatq" => gmeansAtQ()
-    case "pa" => passiveAcc()
-    case "pg" => passiveGme()
-  }
+  lazy val learnerStr = if (args.size < 5) "learner-undefined" else args(4)
+  lazy val learnersStr = if (args.size < 5) Array("learners-undefined") else args(4).split(",")
+  //  lazy val measure = args.last match {
+  //    case "alca" => ALCacc()
+  //    case "alcg" => ALCgmeans()
+  //    case "aatq" => accAtQ()
+  //    case "gatq" => gmeansAtQ()
+  //    case "pa" => passiveAcc()
+  //    case "pg" => passiveGme()
+  //  }
   lazy val memlimit = Global.memlimit
 
   def memoryMonitor() = {
