@@ -45,7 +45,8 @@ trait AppWithUsage extends App with Log with ArgParser {
     tmp
   }
   lazy val rnd = new Random(xsrnd.nextInt())
-  lazy val datasets = rnd.shuffle(if (args(1).startsWith("#")) args(1).drop(1).split(',') else datasetsFromFiles(args(1)))
+  lazy val datasets = rnd.shuffle(if (args(1).startsWith("#")) args(1).drop(1).split(',').toList else datasetsFromFiles(args(1)).toList)
+  //  lazy val datasets = if (args(1).startsWith("#")) args(1).drop(1).split(',') else datasetsFromFiles(args(1))
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
   lazy val parallelDatasets = args(2).contains("d")

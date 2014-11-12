@@ -22,7 +22,7 @@ import scala.util.Random
 
 trait Lock {
   private var available = true
-  lazy val rnd = new Random(System.currentTimeMillis())
+  lazy val lockrnd = new Random(System.currentTimeMillis())
 
   def acquire() = {
     synchronized {
