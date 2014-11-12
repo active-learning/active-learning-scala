@@ -1,7 +1,13 @@
 package clean
 
+import java.security.SecureRandom
+import java.util.UUID
+
 import clean.res._
 import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.AttributedQName
+import util.XSRandom
+
+import scala.util.Random
 
 /*
 active-learning-scala: Active Learning library for Scala
@@ -31,7 +37,15 @@ trait AppWithUsage extends App with Log with ArgParser {
   lazy val maxtimesteps = args(3).toInt
   lazy val sql = args(4)
   lazy val path = args(4) + "/"
-  lazy val datasets = if (args(1).startsWith("#")) args(1).drop(1).split(',') else datasetsFromFiles(args(1))
+  lazy val trulyrnd = new SecureRandom()
+  lazy val seed = (trulyrnd.nextInt() + System.nanoTime() + System.currentTimeMillis() + UUID.randomUUID().toString.map(_.toByte).mkString).toLong
+  lazy val xsrnd = {
+    val tmp = new XSRandom()
+    tmp.setSeed(seed)
+    tmp
+  }
+  lazy val rnd = new Random(xsrnd.nextInt())
+  lazy val datasets = rnd.shuffle(if (args(1).startsWith("#")) args(1).drop(1).split(',') else datasetsFromFiles(args(1)))
   lazy val parallelRuns = args(2).contains("r")
   lazy val parallelFolds = args(2).contains("f")
   lazy val parallelDatasets = args(2).contains("d")

@@ -20,15 +20,14 @@ package clean
 
 import al.strategies._
 import clean.res.Measure
-import ml.classifiers.{SVMLib, Learner, NoLearner}
+import ml.classifiers.{Learner, NoLearner}
 import ml.{Pattern, PatternParent}
-import util.{Stat, Datasets}
+import util.Datasets
 import weka.experiment.InstanceQuerySQLite
 import weka.filters.Filter
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.util.Random
 
 /**
  * Cada instancia desta classe representa um ML dataset.
