@@ -22,5 +22,6 @@ package clean
 import clean.res._
 
 trait MeasuresTrait {
-  val allMeasures = Seq(ALCacc(), ALCgmeans(), accAtQ(), gmeansAtQ(), passiveAcc(), passiveGme())
+  val allMeasures = Seq(accAtQ())
+  //  val allMeasures = Seq(ALCacc(), ALCgmeans(), accAtQ(), gmeansAtQ(), passiveAcc(), passiveGme())
 }

@@ -69,6 +69,8 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
   //    acc(cm)
   //  }
 
+  private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
+
   /**
    * not exact because of fixed learner strats.
    * @param strats
@@ -76,8 +78,6 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
    * @return
    */
   def progress(strats: Seq[Int], learners: Seq[Int]) = read(s"select count(0) from r,p where p.id=p and p.s in (${strats.mkString(",")}) and p.l in (${learners.mkString(",")})").head.head / (strats.size * learners.size * Global.runs * Global.folds)
-
-  private def fetchQ() = read(s"select v from r where m=0 AND p=-1").map(_.head)
 
   def reset() {
     ???
