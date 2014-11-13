@@ -120,6 +120,7 @@ class Db(val database: String) extends Log with Lock {
 
   override def error(msg: String) = {
     if (connection != null && !connection.isClosed) close()
+    else log("error: closed or null")
     super.error(database + ": " + msg)
   }
 
