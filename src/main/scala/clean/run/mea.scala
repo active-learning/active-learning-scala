@@ -63,7 +63,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
   }
 
   def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int, testSetSize: Int, meas: Measure)(learner: Learner): Unit = {
-    log(s"$strat $learner $run $fold")
+    ds.log(s"$strat $learner $run $fold")
     if (!ds.areHitsFinished(poolSize, Seq(), strat, learner, run, fold, null, null, completeIt = false, maxtimesteps - ds.nclasses + 1)) {
       ds.log(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
       //      sqls += "cancel"
