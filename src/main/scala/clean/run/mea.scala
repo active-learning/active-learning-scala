@@ -82,12 +82,14 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
   }
 
   def datasetFinished(ds: Ds) {
-    if (sqls.contains("cancel")) ds.log("Refused to measure on incomplete dataset results. Look at log to see why it could not be completed now, probably results have not even started.", 20)
-    else if (sqls.nonEmpty) {
-      ds.batchWrite(sqls.toList)
-      ds.log("Possible measures completed.")
+    if (!ds.isClosed) {
+      if (sqls.contains("cancel")) ds.log("Refused to measure on incomplete dataset results. Look at log to see why it could not be completed now, probably results have not even started.", 20)
+      else if (sqls.nonEmpty) {
+        ds.batchWrite(sqls.toList)
+        ds.log("Possible measures completed.")
+      }
+      ds.log("fim deste")
     }
-    ds.log("fim deste")
     sqls.clear()
   }
 

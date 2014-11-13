@@ -349,6 +349,8 @@ class Db(val database: String) extends Log with Lock {
     }
   }
 
+  def isClosed = connection == null || connection.isClosed
+
   def close() {
     alive = false
     log(s"Connection to $database closed.")
