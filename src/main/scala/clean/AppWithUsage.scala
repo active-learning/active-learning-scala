@@ -67,14 +67,16 @@ trait AppWithUsage extends App with Log with ArgParser {
     new Thread(new Runnable() {
       def run() {
         while (Global.running) {
-          1 to 250 takeWhile { _ =>
-            Thread.sleep(20)
+          //60s
+          1 to 300 takeWhile { _ =>
+            Thread.sleep(200)
             Global.running
           }
-          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
-            Global.running = false
-            error(s"Limite de $memlimit MB de memoria atingido.")
-          }
+          log(s"Memory usage: ${Runtime.getRuntime.totalMemory() / 1000000d}MB.")
+          //          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
+          //            Global.running = false
+          //            error(s"Limite de $memlimit MB de memoria atingido.")
+          //          }
         }
       }
     }).start()
