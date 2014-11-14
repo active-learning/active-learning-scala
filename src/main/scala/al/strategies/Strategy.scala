@@ -110,7 +110,13 @@ trait Strategy extends Log {
     //todo: I donk know if resuming queries is a perfectly working idea
     if (firstof_each_class != labeled.take(nclasses)) {
       println("Expected: " + firstof_each_class)
+      println(s"")
       println("Found:" + labeled.take(nclasses).toList)
+      println(s"")
+      println(s"")
+      println("Expected: " + firstof_each_class.map(_.label))
+      println(s"")
+      println("Found:" + labeled.take(nclasses).toList.map(_.label))
       error(s"In dataset '${labeled.head.dataset().relationName()}': queries cannot be resumed, there should be the exact one-instance-per-class subset at the beginning.")
     }
     resume_queries_impl(distinct_pool.diff(labeled), labeled)
