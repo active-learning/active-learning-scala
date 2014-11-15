@@ -21,7 +21,7 @@ package clean.tex
 
 import al.strategies.{PassiveAcc, PassiveGme}
 import clean._
-import clean.res.gmeansAt
+import clean.res.{accAt, gmeansAt}
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
@@ -32,7 +32,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
 
   override def run() = {
     super.run()
-    Seq(gmeansAt(maxtimesteps), null, null).dropRight(2) foreach { measure =>
+    Seq(accAt(maxtimesteps), null, null).dropRight(2) foreach { measure =>
       //    allMeasures.dropRight(2) foreach { measure =>
       //      val strats = (measure.id match {
       //        case 11 => Seq(PassiveAcc(NoLearner(), Seq()))
@@ -68,18 +68,25 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
           vv
         }
         ds.close()
-        (ds.dataset + l.toString.take(3)) -> sres
+        ds.dataset -> sres
+        //        (ds.dataset + l.toString.take(3)) -> sres
       }
       val res = res0.sortBy(x => x._2.head)
       println(s"")
       println(s"")
       println(s"")
 
-      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 100
-      val tbs = res.filter(!_._2.contains(-1d, -1d)).toList.sortBy(x => x._2.head) grouped 100
-      tbs foreach { case res1 =>
-        StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
-      }
+      res.filter(_._2.contains(-1d, -1d)).toList foreach (x => println(x._1))
+
+      //      val tbs = Seq(res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) )//grouped 10000000
+      ////      val tbs = Seq(res.map(x => x._1 -> x._2).toList.sortBy(x => x._2.head) )//grouped 10000000
+      ////            val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 100
+      ////      val tbs = res.filter(!_._2.contains(-1d, -1d)).toList.sortBy(x => x._2.head) grouped 100
+      //      tbs foreach { case res1 =>
+      //        StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+      //      }
     }
   }
 }
+
+//micro-mass-mixed-spectra,digits2-davi,micro-mass-pure-spectra,musk,multiple-features

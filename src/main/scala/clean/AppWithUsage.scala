@@ -78,6 +78,7 @@ trait AppWithUsage extends App with Log with ArgParser {
           //            error(s"Limite de $memlimit MB de memoria atingido.")
           //          }
         }
+        log("Saiu do monitoramento de memória.", 30)
       }
     }).start()
   }

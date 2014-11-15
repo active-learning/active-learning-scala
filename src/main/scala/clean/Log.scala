@@ -33,11 +33,12 @@ trait Log {
   def error(msg: String) = {
     Global.running = false
     Thread.sleep(10)
-    throw new Error(s"$context : Error: $msg")
+    new Throwable().printStackTrace()
+    justQuit(s"$context : Error: $msg")
   }
 
   def justQuit(msg: String) = {
-    log(s"$context : Quiting: $msg", 20)
+    log(s"$context : Quiting: $msg", 30)
     Global.running = false
     Thread.sleep(10)
     sys.exit(1)
