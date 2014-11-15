@@ -72,7 +72,7 @@ trait AppWithUsage extends App with Log with ArgParser {
             Thread.sleep(200)
             Global.running
           }
-          log(s"Memory usage: ${Runtime.getRuntime.totalMemory() / 1000000d}MB.")
+          log(s"Memory usage: ${Runtime.getRuntime.totalMemory() / 1000000d}MB.", 30)
           //          if (Runtime.getRuntime.totalMemory() / 1000000d > memlimit) {
           //            Global.running = false
           //            error(s"Limite de $memlimit MB de memoria atingido.")
