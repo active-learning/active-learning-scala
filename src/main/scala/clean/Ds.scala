@@ -194,29 +194,25 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
                   case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner")
                }).toInt
 
-               def completa() = hs match {
-                  case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
-                  case nhs if nhs >= ExpectedHitsForNormalPool => true
-                  case nhs => if (completeIt) {
-                     log(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Completing...")
-                     //gera hits e sql strs
-                     val usedQueries = hs + nclasses - 1
-                     val lastUsedT = usedQueries - 1
-                     val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(expectedAmount + nclasses - 1).splitAt(usedQueries)
-                     if (usedPatterns.size != usedQueries) error("Problems taking hit-used queries.")
-                     var m = learner.build(usedPatterns)
-                     val tuples = rest.zipWithIndex.map { case (patt, idx) =>
-                        val t = idx + lastUsedT + 1
-                        m = learner.update(m, fast_mutable = true)(patt)
-                        val cm = m.confusion(testSet)
-                        val blob = confusionToBlob(cm)
-                        (s"INSERT INTO h values ($pid, $t, ?)", blob)
-                     }.toList
-                     val (sqls, blobs) = tuples.unzip
-                     log(tuples.mkString("\n"), 20)
-                     batchWriteBlob(sqls, blobs)
-                     sqls.size + hs == expectedAmount
-                  } else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...")
+               def completa() = {
+                  log(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. Completing...")
+                  //gera hits e sql strs
+                  val usedQueries = hs + nclasses - 1
+                  val lastUsedT = usedQueries - 1
+                  val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(expectedAmount + nclasses - 1).splitAt(usedQueries)
+                  if (usedPatterns.size != usedQueries) error("Problems taking hit-used queries.")
+                  var m = learner.build(usedPatterns)
+                  val tuples = rest.zipWithIndex.map { case (patt, idx) =>
+                     val t = idx + lastUsedT + 1
+                     m = learner.update(m, fast_mutable = true)(patt)
+                     val cm = m.confusion(testSet)
+                     val blob = confusionToBlob(cm)
+                     (s"INSERT INTO h values ($pid, $t, ?)", blob)
+                  }.toList
+                  val (sqls, blobs) = tuples.unzip
+                  log(tuples.mkString("\n"), 20)
+                  batchWriteBlob(sqls, blobs)
+                  sqls.size + hs == expectedAmount
                }
 
                (strat.id, learner.id) match {
@@ -225,8 +221,16 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
                      case ExpectedHitsForFullPool => true
                      case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForFullPool")
                   }
-                  case (s, l) if s == 0 => completa()
-                  case (s, l) if s > 0 => completa()
+                  case (s, l) if s == 0 => hs match {
+                     case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
+                     case nhs if nhs >= ExpectedHitsForNormalPool => true
+                     case nhs => if (completeIt) completa() else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...")
+                  }
+                  case (s, l) if s > 0 => hs match {
+                     case 0 => false
+                     case nhs if nhs >= ExpectedHitsForNormalPool => true
+                     case nhs => if (completeIt) completa() else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...")
+                  }
                }
          }
       }
