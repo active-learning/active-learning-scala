@@ -32,7 +32,7 @@ bupa
 wine-quality-white-5class
 volcanoes-d1
 thyroid-newthyroid
-tic-tac-toe
+#tic-tac-toe
 mfeat-fourier
 dbworld-subjects
 micro-mass-mixed-spectra
