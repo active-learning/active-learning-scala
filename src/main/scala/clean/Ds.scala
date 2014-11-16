@@ -139,7 +139,8 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
 
    //  def isQCalculated = fetchQ().nonEmpty
 
-   def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount: Int): Boolean = {
+   def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount0: Int): Boolean = {
+      val expectedAmount = math.min(poolSize, expectedAmount0)
       val (sid, lid) = (strat.id, strat.learner.id)
       poolId(sid, lid, run, fold) match {
          case None =>
@@ -178,14 +179,15 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
       }
    }
 
-   def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount: Int) =
+   def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount0: Int) = {
+      val ExpectedHitsForFullPool = poolSize - nclasses + 1
+      val expectedAmount = math.min(ExpectedHitsForFullPool, expectedAmount0)
       if (learner.id != strat.learner.id && strat.id > 1) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
       else if (!areQueriesFinished(poolSize, strat, run, fold, null, null, completeIt = false, expectedAmount + nclasses - 1)) error(s"Queries must be finished to check hits! |U|=$poolSize")
-      else {
+      else
          poolId(strat, learner, run, fold) match {
             case None => false
             case Some(pid) =>
-               val ExpectedHitsForFullPool = poolSize - nclasses + 1
                lazy val ExpectedHitsForNormalPool = expectedAmount
                val hs = (read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
                   case List(Vector(0)) | List(Vector(0, 0)) => 0d
@@ -233,7 +235,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
                   }
                }
          }
-      }
+   }
 
    /**
    q = primeiro t em que atinje max num dado pool
@@ -408,7 +410,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
 
    def getMeasure(measure: Measure, strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
       val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
-      read(s"select v from r where p=$pid and m=${measure.id}") match {
+      read(s"select v from r where p=$pid and m=${measure.id(this)}") match {
          case List() => None
          case List(seq) => Some(seq.head)
       }
@@ -422,7 +424,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
    def isMeasureComplete(measure: Measure, sid: Int, lid: Int) = {
       val Nrpools = Global.runs * Global.folds
       pids(sid, lid) match {
-         case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id}") match {
+         case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id(this)}") match {
             case List(Vector(Nrpools)) => true
             case _ => false
          }
@@ -432,7 +434,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
 
    def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
       val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
-      s"insert into r values (${measure.id}, $pid, $value)"
+      s"insert into r values (${measure.id(this)}, $pid, $value)"
    }
 
    def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {

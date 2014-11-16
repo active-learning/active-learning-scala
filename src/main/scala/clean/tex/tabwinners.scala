@@ -31,7 +31,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with M
 
   override def run() = {
     super.run()
-    allMeasures(maxtimesteps).dropRight(2) foreach { measure =>
+     allMeasures(maxQueries0).dropRight(2) foreach { measure =>
       val strats = allStrats()
       val ss = strats.map(_.abr).toVector
 
@@ -53,7 +53,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with M
             } yield {
               val le = if (s.id >= 17 && s.id <= 21) s.learner else l
               if (!ds.isMeasureComplete(measure, s.id, le.id)) throw new Exception()
-              if (measure.id == 0) throw new Exception()
+               if (measure.id(ds) == 0) throw new Exception()
               ds.getMeasure(measure, s, le, r, f) match {
                 case Some(v) => v
                 case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")

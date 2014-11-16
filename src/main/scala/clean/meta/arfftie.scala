@@ -32,7 +32,7 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
 
   override def run() = {
     super.run()
-    Seq(accAt(maxtimesteps), null, null).dropRight(2) foreach { measure =>
+     Seq(accAt(maxQueries0), null, null).dropRight(2) foreach { measure =>
       val strats = allStrats()
       val ss = strats.map(_.abr).toVector
 
@@ -54,7 +54,7 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
             } yield {
               val le = if (s.id >= 17 && s.id <= 21) s.learner else l
               if (!ds.isMeasureComplete(measure, s.id, le.id)) throw new Exception()
-              if (measure.id == 0) throw new Exception()
+               if (measure.id(ds) == 0) throw new Exception()
               ds.getMeasure(measure, s, le, r, f) match {
                 case Some(v) => v
                 case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")

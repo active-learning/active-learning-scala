@@ -32,7 +32,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
 
   override def run() = {
     super.run()
-    Seq(accAt(maxtimesteps), null, null).dropRight(2) foreach { measure =>
+     Seq(accAt(maxQueries0), null, null).dropRight(2) foreach { measure =>
       //    allMeasures.dropRight(2) foreach { measure =>
       //      val strats = (measure.id match {
       //        case 11 => Seq(PassiveAcc(NoLearner(), Seq()))
@@ -57,7 +57,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
               r <- 0 until runs
               f <- 0 until folds
             } yield {
-              if (measure.id == 0) -1
+               if (measure.id(ds) == 0) -1
               else ds.getMeasure(measure, s, le, r, f) match {
                 case Some(v) => v
                 case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")
@@ -68,8 +68,8 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
           vv
         }
         ds.close()
-        ds.dataset -> sres
-        //        (ds.dataset + l.toString.take(3)) -> sres
+         "asd" -> sres
+         //                (ds.dataset + l.toString.take(3)) -> sres
       }
       val res = res0.sortBy(x => x._2.head)
       println(s"")
@@ -78,13 +78,13 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
 
       res.filter(_._2.contains(-1d, -1d)).toList foreach (x => println(x._1))
 
-      //      val tbs = Seq(res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) )//grouped 10000000
+        val tbs = Seq(res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head)) //grouped 10000000
       ////      val tbs = Seq(res.map(x => x._1 -> x._2).toList.sortBy(x => x._2.head) )//grouped 10000000
       ////            val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 100
       ////      val tbs = res.filter(!_._2.contains(-1d, -1d)).toList.sortBy(x => x._2.head) grouped 100
-      //      tbs foreach { case res1 =>
-      //        StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
-      //      }
+        tbs foreach { case res1 =>
+           StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+        }
     }
   }
 }

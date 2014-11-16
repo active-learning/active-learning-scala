@@ -34,14 +34,14 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
 
   override def run() = {
     super.run()
-    allMeasures(maxtimesteps).dropRight(2) foreach { measure =>
+     allMeasures(maxQueries0).dropRight(2) foreach { measure =>
       val sl = mutable.LinkedHashSet[String]()
       val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
         val ds = Ds(dataset)
         ds.open()
         sl += "Q/$|\\mathcal{U}|$"
         val ms = for {
-          s <- (measure.id match {
+           s <- (measure.id(ds) match {
             case 11 => Seq(PassiveAcc(NoLearner(), Seq()))
             case 12 => Seq(PassiveGme(NoLearner(), Seq()))
             case _ => Seq()
@@ -55,7 +55,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                 r <- 0 until runs
                 f <- 0 until folds
               } yield {
-                if (measure.id == 0) -1d
+                 if (measure.id(ds) == 0) -1d
                 else ds.getMeasure(s.mea, RandomSampling(Seq()), learner, r, f) match {
                   case Some(v) => v
                   case None => ds.quit(s"No pass measure for ${(s.mea, s, learner, r, f)}!")
@@ -71,7 +71,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                 r <- 0 until runs
                 f <- 0 until folds
               } yield {
-                if (measure.id == 0) -1
+                 if (measure.id(ds) == 0) -1
                 else ds.getMeasure(measure, s, learner, r, f) match {
                   case Some(v) => v
                   case None => ds.quit(s"No svm/maj measure for ${(measure, s, learner, r, f)}!")
@@ -89,7 +89,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                   r <- 0 until runs
                   f <- 0 until folds
                 } yield {
-                  if (measure.id == 0) -1
+                   if (measure.id(ds) == 0) -1
                   else ds.getMeasure(measure, s, learner, r, f) match {
                     case Some(v) => v
                     case None => ds.quit(s"No measure for ${(measure, s, learner, r, f)}!")
@@ -100,7 +100,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             }).flatten
           }
         }
-        val res = ds.dataset -> (Seq((maxtimesteps.toDouble, (ds.n.toDouble * 0.8).round.toDouble)) ++ ms.flatten)
+         val res = ds.dataset -> (Seq((maxQueries(ds).toDouble, (ds.n.toDouble * 0.8).round.toDouble)) ++ ms.flatten)
         ds.close()
         res
       }
