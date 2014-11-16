@@ -6,7 +6,7 @@ spect-heart
 banknote-authentication
 connectionist-vowel
 fertility-diagnosis
-monks2
+#monks2
 statlog-image-segmentation
 iris
 autoUniv-au1-1000
