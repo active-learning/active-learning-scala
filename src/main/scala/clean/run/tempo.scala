@@ -20,12 +20,12 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import clean._
-import util.Tempo
+import ml.classifiers.{SVMLib, KNNBatch, NB}
+import util.{Datasets, Tempo}
 
 object tempo extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
+   lazy val arguments = superArguments
    val context = "tempo"
-   val qs = 1000
    run()
 
    override def run() = {
@@ -33,18 +33,20 @@ object tempo extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       datasets.toList.foreach { dataset =>
          val ds = Ds(dataset)
          ds.open()
-         0 until runs foreach { r =>
-            val pool = new scala.util.Random(r).shuffle(ds.patterns).take(ds.expectedPoolSizes(folds).min)
-            learners(learnersStr).foreach { learner =>
-               val sqls = allStrats(learner, pool) flatMap { strat =>
-                  val t = Tempo.time {
-                     strat.queries.take(qs)
-                  } / qs
-                  Seq(s"insert into p values (${strat.id}, ${learner.id}, $r, -1)",
-                     s"insert into r select ${1000 + qs}, id, $t from p where s=${strat.id} and l=${learner.id} and r=$r and f=-1") //tempo id = 1000 + #queries
-               }
-               ds.batchWrite(sqls)
-            }
+         val qs = maxQueries(ds)
+         Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
+            //            val pool = new scala.util.Random(System.currentTimeMillis().toInt).shuffle(Datasets.kfoldCV(new scala.util.Random(System.currentTimeMillis().toInt).shuffle(ds.patterns), 5) { (tr, ts, x, y) => tr}.head).take(ds.n / 10)
+            //            val sqls = allStrats(learner, pool) flatMap { strat =>
+            //               val t = Tempo.time {
+            //                  0 until runs foreach { r =>
+            //                     strat.queries.take(qs)
+            //                  }
+            //               } / qs
+            //               Seq(s"insert into p values (${strat.id}, ${learner.id}, $r, -1)",
+            //                  s"insert into r select ${1000 + qs}, id, $t from p where s=${strat.id} and l=${learner.id} and r=$r and f=-1") //tempo id = 1000 + #queries
+            //               //               ds.batchWrite(sqls)
+            //               println(s"$sqls")
+            //            }
          }
          ds.close()
       }
