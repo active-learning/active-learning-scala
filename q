@@ -6,7 +6,7 @@ spect-heart
 banknote-authentication
 connectionist-vowel
 fertility-diagnosis
-#monks2
+monks2
 statlog-image-segmentation
 iris
 autoUniv-au1-1000
@@ -32,7 +32,7 @@ bupa
 wine-quality-white-5class
 volcanoes-d1
 thyroid-newthyroid
-#tic-tac-toe
+tic-tac-toe
 mfeat-fourier
 dbworld-subjects
 micro-mass-mixed-spectra
@@ -74,7 +74,7 @@ ozone-eighthr
 vertebra-column-3c
 car-evaluation
 autoUniv-au7-300-drift-au7-cpd1-800
-#lsvt-voice-rehabilitation
+lsvt-voice-rehabilitation
 wholesale-channel
 statlog-landsat-satellite
 horse-colic-surgical
