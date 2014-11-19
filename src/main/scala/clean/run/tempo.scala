@@ -34,7 +34,6 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
    val ignoreNotDone = false
    val sqls = mutable.Queue[String]()
    override lazy val runs = 1
-   //   override lazy val folds = 4
    run()
 
    /**
@@ -72,9 +71,9 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
       //avg querying time 10000 + #queries
       //0,1*pool time 50000 + #queries
       val inserts = (0 until Global.runs).flatMap { rr =>
-         List(s"insert into r select ${1000 + maxQueries0}, id, $elapsedi from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
-            , s"insert into r select ${10000 + maxQueries0}, id, ${elapsed / poolSize} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
-            , s"insert into r select ${50000 + maxQueries0}, id, ${0.1 * elapsed} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f")
+         List(s"insert into r select ${1000 + qs}, id, $elapsedi from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
+            , s"insert into r select ${10000 + qs}, id, ${elapsed / poolSize} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
+            , s"insert into r select ${50000 + qs}, id, ${0.1 * elapsed} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f")
       }.toList
       acquire()
       sqls.enqueue(inserts: _*)

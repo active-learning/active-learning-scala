@@ -33,7 +33,8 @@ trait Measure extends CM {
 
    def id(ds: Ds): Int
 
-   def budget(ds: Ds) = math.min(ds.expectedPoolSizes(Global.folds).min, budget0)
+   //   def budget(ds: Ds) = math.max(1, math.min(ds.expectedPoolSizes(Global.folds).min, budget0))
+   def budget(ds: Ds) = math.max(ds.nclasses, math.min(ds.expectedPoolSizes(Global.folds).min, budget0))
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
@@ -170,6 +171,8 @@ case class gmeansAt(budget0: Int) extends Measure() {
 
 // medidas que só fazem sentido para learners C45, NB e 5NN por terem Q=|U| ---------------------
 case class passiveAcc() extends Measure() {
+   val budget0 = 0
+
    def id(ds: Ds) = 15
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
@@ -179,6 +182,8 @@ case class passiveAcc() extends Measure() {
 
 
 case class passiveGme() extends Measure() {
+   val budget0 = 0
+
    def id(ds: Ds) = 16
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
