@@ -28,14 +28,12 @@ import scala.collection.mutable
  * Q measure id = 0
  */
 trait Measure extends CM {
+   val context = "MeaTrait"
+   val budget0: Int
+
    def id(ds: Ds): Int
 
-   val context = "MeaTrait"
-
-   //  def check(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]]) = {
-   //    if (ds.Q - ds.nclasses + 1 != cms.size) ds.error(s"${ds.Q - ds.nclasses + 1} differs from ${cms.size}")
-   //    if (cms.last._1 != ds.Q - 1) ds.error(s"${cms.last._1} differs from ${ds.Q - 1}")
-   //  }
+   def budget(ds: Ds) = math.min(ds.expectedPoolSizes(Global.folds).min, budget0)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
@@ -46,33 +44,28 @@ trait Measure extends CM {
 //  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = ds.Q
 //}
 
-case class ALCacc(maxBudget0: Int) extends Measure {
-   def maxBudget(ds: Ds) = math.min(ds.expectedPoolSizes(Global.folds).min, maxBudget0)
+case class ALCacc(budget0: Int) extends Measure {
 
-   def id(ds: Ds) = 100000 + maxBudget(ds)
+   def id(ds: Ds) = 100000 + budget(ds)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      val vs = cms.take(maxBudget(ds) - ds.nclasses + 1).values
+      val vs = cms.take(budget(ds) - ds.nclasses + 1).values
       val acertos = vs.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
       acertos.toDouble / (tsSize * vs.size)
    }
 }
 
-case class ALCgmeans(maxBudget0: Int) extends Measure() {
-   def maxBudget(ds: Ds) = math.min(ds.expectedPoolSizes(Global.folds).min, maxBudget0)
-
-   def id(ds: Ds) = 200000 + maxBudget(ds)
+case class ALCgmeans(budget0: Int) extends Measure() {
+   def id(ds: Ds) = 200000 + budget(ds)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      val vs = cms.take(maxBudget(ds) - ds.nclasses + 1).values
+      val vs = cms.take(budget(ds) - ds.nclasses + 1).values
       val tot = vs.foldLeft(0d)((gmtot, cm) => gmtot + gmeans(cm))
       tot.toDouble / vs.size
    }
 }
 
 case class accAt(budget0: Int) extends Measure() {
-   def budget(ds: Ds) = math.min(ds.expectedPoolSizes(Global.folds).min, budget0)
-
    def id(ds: Ds) = 1100000 + budget(ds)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
@@ -82,8 +75,6 @@ case class accAt(budget0: Int) extends Measure() {
 }
 
 case class gmeansAt(budget0: Int) extends Measure() {
-   def budget(ds: Ds) = math.min(ds.expectedPoolSizes(Global.folds).min, budget0)
-
    def id(ds: Ds) = 1200000 + budget(ds)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
