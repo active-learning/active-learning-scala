@@ -62,7 +62,7 @@ trait AppWithUsage extends App with Log with ArgParser {
    //  }
    lazy val memlimit = Global.memlimit
 
-   def maxQueries(ds: Ds) = math.min(ds.expectedPoolSizes(folds).min, maxQueries0)
+   def maxQueries(ds: Ds) = math.max(ds.nclasses + 2, math.min(ds.expectedPoolSizes(folds).min, maxQueries0))
 
    def memoryMonitor() = {
       Global.running = true

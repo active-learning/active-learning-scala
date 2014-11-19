@@ -36,7 +36,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          ds.startbeat()
 
          //rnd clu svm maj / lff lfd
-         stratsFilterFreeSemLearnerExterno(pool).zip(stratsFilterFreeSemLearnerExterno(fpool)) foreach { case (strat, fstrat) =>
+         stratsSemLearnerExterno(pool).zip(stratsSemLearnerExterno(fpool)) foreach { case (strat, fstrat) =>
             ds.log(s"$strat ...")
             //queries
             val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -67,7 +67,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
          //restoSemF / lff
          learnersFilterFree(pool, learnerSeed) foreach { learner =>
-            stratsFilterFreeComLearnerExterno(pool, learner) foreach { case strat =>
+            stratsComLearnerExterno_FilterFree(pool, learner) foreach { case strat =>
                ds.log(s"$strat ...")
                //queries
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -84,7 +84,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
          //restoSemF / lfd
          learnersFilterDependent(learnerSeed) foreach { flearner =>
-            stratsFilterFreeComLearnerExterno(fpool, flearner) foreach { case fstrat =>
+            stratsComLearnerExterno_FilterFree(fpool, flearner) foreach { case fstrat =>
                ds.log(s"$fstrat ...")
                //queries
                val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
@@ -102,7 +102,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
          //restoComF / lff lfd
          (learnersFilterFree(fpool, learnerSeed) ++ learnersFilterDependent(learnerSeed)) foreach { flearner =>
-            stratsFilterDependentComLearnerExterno(fpool, flearner) foreach { case fstrat =>
+            stratsComLearnerExterno_FilterDependent(fpool, flearner) foreach { case fstrat =>
                ds.log(s"$fstrat ...")
                //queries
                val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {

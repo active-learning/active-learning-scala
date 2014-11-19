@@ -26,89 +26,89 @@ import weka.filters.Filter
 import scala.util.Random
 
 trait Exp extends AppWithUsage {
-  val ignoreNotDone: Boolean
+   val ignoreNotDone: Boolean
 
-  //  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
+   //  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
 
-  def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter)
+   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter)
 
-  def datasetFinished(ds: Ds)
+   def datasetFinished(ds: Ds)
 
-  def isAlreadyDone(ds: Ds): Boolean
+   def isAlreadyDone(ds: Ds): Boolean
 
-  /**
-   * returns whether dataset was already done
-   */
-  override def run() = {
-    super.run()
-    memoryMonitor()
-    val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
-      val ds = Ds(dataset)
-      ds.open()
-      val res1 = if ((context == "meaApp" || context == "allApp") && ds.isAliveByOtherJob()) {
-        ds.log("Outro job está allizando este dataset. Skipping all pools...", 30)
-        ds.dataset -> false
-      } else {
-        if (isAlreadyDone(ds)) {
-          println(s"$dataset already done!")
-          ds.dataset -> true
-        } else {
-          if (!ignoreNotDone) {
-            ds.log(s"Processing ${ds.n} instances ...")
-            (if (parallelRuns) (0 until runs).par else 0 until Global.runs) foreach { run =>
-              val shuffled = new Random(run).shuffle(ds.patterns)
-              Datasets.kfoldCV(shuffled, k = folds, parallelFolds) { (tr, ts, fold, minSize) =>
-                ds.log(s"Pool $run.$fold (${tr.size} instances) ...")
-                val learnerSeed = run * 10000 + fold
+   /**
+    * returns whether dataset was already done
+    */
+   override def run() = {
+      super.run()
+      memoryMonitor()
+      val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
+         val ds = Ds(dataset)
+         ds.open()
+         val res1 = if ((context == "meaApp" || context == "allApp") && ds.isAliveByOtherJob()) {
+            ds.log("Outro job está allizando este dataset. Skipping all pools...", 30)
+            ds.dataset -> false
+         } else {
+            if (isAlreadyDone(ds)) {
+               println(s"$dataset already done!")
+               ds.dataset -> true
+            } else {
+               if (!ignoreNotDone) {
+                  ds.log(s"Processing ${ds.n} instances ...")
+                  (if (parallelRuns) (0 until runs).par else 0 until runs) foreach { run =>
+                     val shuffled = new Random(run).shuffle(ds.patterns)
+                     Datasets.kfoldCV(shuffled, k = folds, parallelFolds) { (tr, ts, fold, minSize) =>
+                        ds.log(s"Pool $run.$fold (${tr.size} instances) ...")
+                        val learnerSeed = run * 10000 + fold
 
-                //Ordena pool e testSet e cria filtros.
-                val pool = new Random(fold).shuffle(tr.sortBy(_.id))
-                val (fpool, binaf, zscof) = filterTr(tr, fold)
+                        //Ordena pool e testSet e cria filtros.
+                        val pool = new Random(fold).shuffle(tr.sortBy(_.id))
+                        val (fpool, binaf, zscof) = filterTr(tr, fold)
 
-                //ts
-                val testSet = new Random(fold).shuffle(ts.sortBy(_.id))
-                val ftestSet = filterTs(ts, fold, binaf, zscof)
+                        //ts
+                        val testSet = new Random(fold).shuffle(ts.sortBy(_.id))
+                        val ftestSet = filterTs(ts, fold, binaf, zscof)
 
-                //opera no ds // find (&& x.learner.id == strat.learner.id) desnecessario
-                op(ds, pool, testSet, fpool, ftestSet, learnerSeed, run, fold, binaf, zscof)
-              }
+                        //opera no ds // find (&& x.learner.id == strat.learner.id) desnecessario
+                        op(ds, pool, testSet, fpool, ftestSet, learnerSeed, run, fold, binaf, zscof)
+                     }
+                  }
+                  datasetFinished(ds)
+               }
+               ds.dataset -> false
             }
-            datasetFinished(ds)
-          }
-          ds.dataset -> false
-        }
+         }
+         ds.close()
+         res1
       }
-      ds.close()
-      res1
-    }
-    end(res.toList.toMap)
-    justQuit("Datasets prontos.\n" + args.toList)
-  }
+      end(res.toList.toMap)
+      justQuit("Datasets prontos.\n" + args.toList)
+   }
 
-  def end(res: Map[String, Boolean])
+   def end(res: Map[String, Boolean])
 
-  def filterTr(tr: Seq[Pattern], fold: Int) = {
-    //bina
-    val binaf = Datasets.binarizeFilter(tr)
-    val binarizedTr = Datasets.applyFilter(binaf)(tr)
+   def filterTr(tr: Seq[Pattern], fold: Int) = {
+      //bina
+      val binaf = Datasets.binarizeFilter(tr)
+      val binarizedTr = Datasets.applyFilter(binaf)(tr)
 
-    //tr
-    val zscof = Datasets.zscoreFilter(binarizedTr)
-    val pool = {
-      val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
-      new Random(fold).shuffle(filteredTr.sortBy(_.id))
-    }
+      //tr
+      val zscof = Datasets.zscoreFilter(binarizedTr)
+      val pool = {
+         val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+         new Random(fold).shuffle(filteredTr.sortBy(_.id))
+      }
 
-    (pool, binaf, zscof)
-  }
+      (pool, binaf, zscof)
+   }
 
-  def filterTs(ts: Seq[Pattern], fold: Int, binaf: Filter, zscof: Filter) = {
-    //ts
-    val binarizedTs = Datasets.applyFilter(binaf)(ts)
-    val testSet = {
-      val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
-      new Random(fold).shuffle(filteredTs.sortBy(_.id))
-    }
-    testSet
-  }
+   def filterTs(ts: Seq[Pattern], fold: Int, binaf: Filter, zscof: Filter) = {
+      //ts
+      val binarizedTs = Datasets.applyFilter(binaf)(ts)
+      val testSet = {
+         val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
+         new Random(fold).shuffle(filteredTs.sortBy(_.id))
+      }
+      testSet
+   }
 }

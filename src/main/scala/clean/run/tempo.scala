@@ -19,38 +19,89 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
+import al.strategies.Strategy
 import clean._
-import ml.classifiers.{SVMLib, KNNBatch, NB}
-import util.{Datasets, Tempo}
+import ml.Pattern
+import ml.classifiers._
+import util.Tempo
+import weka.filters.Filter
 
-object tempo extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait {
-   lazy val arguments = superArguments
-   val context = "tempo"
+import scala.collection.mutable
+
+object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
+   val context = "tempoApp"
+   val arguments = superArguments
+   val ignoreNotDone = false
+   val sqls = mutable.Queue[String]()
+   override lazy val runs = 1
+   //   override lazy val folds = 4
    run()
 
-   override def run() = {
-      super.run()
-      datasets.toList.foreach { dataset =>
-         val ds = Ds(dataset)
-         ds.open()
-         val qs = maxQueries(ds)
-         Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
-            //            val pool = new scala.util.Random(System.currentTimeMillis().toInt).shuffle(Datasets.kfoldCV(new scala.util.Random(System.currentTimeMillis().toInt).shuffle(ds.patterns), 5) { (tr, ts, x, y) => tr}.head).take(ds.n / 10)
-            //            val sqls = allStrats(learner, pool) flatMap { strat =>
-            //               val t = Tempo.time {
-            //                  0 until runs foreach { r =>
-            //                     strat.queries.take(qs)
-            //                  }
-            //               } / qs
-            //               Seq(s"insert into p values (${strat.id}, ${learner.id}, $r, -1)",
-            //                  s"insert into r select ${1000 + qs}, id, $t from p where s=${strat.id} and l=${learner.id} and r=$r and f=-1") //tempo id = 1000 + #queries
-            //               //               ds.batchWrite(sqls)
-            //               println(s"$sqls")
-            //            }
-         }
-         ds.close()
+   /**
+    * Take 5% of dataset as pool, or 50, whatever is higher.
+    * @param s
+    * @param ds
+    * @return
+    */
+   def redux(s: Seq[Pattern], ds: Ds) = s.groupBy(_.label).flatMap(_._2.take(math.max((ds.n / 10) / ds.nclasses, 50 / ds.nclasses))).toList
+
+   def op(ds: Ds, pool0: Seq[Pattern], testSet: Seq[Pattern], fpool0: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+      val poolSize = ds.expectedPoolSizes(5).min
+      val qs = maxQueries(ds)
+      val (pool, fpool) = redux(pool0, ds) -> redux(fpool0, ds)
+      ds.log(s"${pool.size} amostrados")
+      stratsemLearnerExterno(pool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
+      stratcomLearnerExterno(IELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
+      //      stratcomLearnerExterno(CIELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
+      stratcomLearnerExterno(ninteraELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
+      Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
+         stratsComLearnerExterno_FilterFree(pool, learner) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
+         stratsComLearnerExterno_FilterDependent(fpool, learner) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
       }
    }
-}
 
-//micro-mass-mixed-spectra,digits2-davi,micro-mass-pure-spectra,musk,multiple-features
+   def gravaTempo(poolSize: Int, strat: Strategy, qs: Int, r: Int, f: Int) = {
+      val elapsedi = Tempo.time {
+         strat.queries.take(1)
+      }
+      val elapsed = poolSize * Tempo.time {
+         strat.queries.take(qs)
+      } / qs
+
+      //warming time 1000 + #queries
+      //avg querying time 10000 + #queries
+      //0,1*pool time 50000 + #queries
+      val inserts = (0 until Global.runs).flatMap { rr =>
+         List(s"insert into r select ${1000 + maxQueries0}, id, $elapsedi from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
+            , s"insert into r select ${10000 + maxQueries0}, id, ${elapsed / poolSize} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
+            , s"insert into r select ${50000 + maxQueries0}, id, ${0.1 * elapsed} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f")
+      }.toList
+      acquire()
+      sqls.enqueue(inserts: _*)
+      release()
+      //            println(s"$sql")
+   }
+
+   def datasetFinished(ds: Ds) {
+      if (sqls.nonEmpty) {
+         ds.batchWrite(sqls.toList)
+
+         println(s"")
+         println(s"")
+         sqls.toList foreach println
+         println(s"")
+
+         sqls.clear()
+      }
+   }
+
+   def isAlreadyDone(ds: Ds) = {
+      //é tudo ou nada; ou gravou tempo do dataset inteiro, ou não gravou nada.
+      val qs = maxQueries(ds)
+      val prev = ds.read(s"select count(0) from r where m=${1000 + qs}").head.head.toInt
+      prev != 0
+   }
+
+   def end(res: Map[String, Boolean]): Unit = {
+   }
+}
