@@ -69,7 +69,7 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
 
       //warming time 1000 + #queries
       //avg querying time 10000 + #queries
-      //0,1*pool time 50000 + #queries
+      //0.1*pool time 50000 + #queries
       val inserts = (0 until Global.runs).flatMap { rr =>
          List(s"insert into r select ${1000 + qs}, id, $elapsedi from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
             , s"insert into r select ${10000 + qs}, id, ${elapsed / poolSize} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
