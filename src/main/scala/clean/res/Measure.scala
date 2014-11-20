@@ -56,13 +56,24 @@ case class ALCacc(budget0: Int) extends Measure {
    }
 }
 
+case class ALCaccBal(budget0: Int) extends Measure {
+
+   def id(ds: Ds) = 1300000 + budget(ds)
+
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      val vs = cms.take(budget(ds) - ds.nclasses + 1).values
+      val tot = vs.foldLeft(0d)((accBalTot, cm) => accBalTot + accBal(cm))
+      tot / vs.size
+   }
+}
+
 case class ALCgmeans(budget0: Int) extends Measure() {
    def id(ds: Ds) = 200000 + budget(ds)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
       val vs = cms.take(budget(ds) - ds.nclasses + 1).values
       val tot = vs.foldLeft(0d)((gmtot, cm) => gmtot + gmeans(cm))
-      tot.toDouble / vs.size
+      tot / vs.size
    }
 }
 

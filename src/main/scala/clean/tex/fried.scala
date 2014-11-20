@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean._
-import clean.res.accAt
+import clean.res.ALCaccBal
 import util.{Stat, StatTests}
 
 object fried extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait {
@@ -30,7 +30,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
 
    override def run() = {
       super.run()
-      Seq(accAt(maxQueries0), null, null).dropRight(2) foreach { measure =>
+      Seq(ALCaccBal(maxQueries0), null, null).dropRight(2) foreach { measure =>
          //    allMeasures.dropRight(2) foreach { measure =>
          //      val strats = (measure.id match {
          //        case 11 => Seq(PassiveAcc(NoLearner(), Seq()))
@@ -69,13 +69,12 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             //            "asd" -> sres
             (ds.dataset + l.toString.take(3)) -> sres
          }
-         val res = res0.sortBy(x => x._2.head)
+         val res = res0.filter(!_._2.contains(-1d, -1d)).sortBy(x => x._2.head)
          println(s"")
          println(s"")
          println(s"")
          StatTests.extensiveTable2(res.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
          println(s"")
-         res.filter(_._2.contains(-1d, -1d)).toList foreach (x => println(x._1))
          val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
          StatTests.pairTable(pairs, "tablename", "acc")
       }
