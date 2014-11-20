@@ -68,8 +68,8 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
           vv
         }
         ds.close()
-         "asd" -> sres
-         //                (ds.dataset + l.toString.take(3)) -> sres
+         //         "asd" -> sres
+         (ds.dataset + l.toString.take(3)) -> sres
       }
       val res = res0.sortBy(x => x._2.head)
       println(s"")
@@ -88,5 +88,3 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
     }
   }
 }
-
-//micro-mass-mixed-spectra,digits2-davi,micro-mass-pure-spectra,musk,multiple-features

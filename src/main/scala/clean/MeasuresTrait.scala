@@ -24,5 +24,5 @@ import clean.res._
 trait MeasuresTrait {
    //  def allMeasures(budget: Int = 50) = Seq(accAt(budget))
 
-   def allMeasures(budget: Int = 50) = Seq(ALCacc(budget), ALCgmeans(budget), accAt(budget), gmeansAt(budget), passiveAcc(), passiveGme())
+   def allMeasures(budget: Int = 50) = Seq(ALCacc(budget)) //, ALCgmeans(budget), accAt(budget), gmeansAt(budget), passiveAcc(), passiveGme())
 }
