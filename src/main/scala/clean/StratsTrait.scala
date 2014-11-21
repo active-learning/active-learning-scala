@@ -69,3 +69,28 @@ trait StratsTrait {
       //      ,DensityWeightedLocalUtility(learner, pool, "maha")
    )
 }
+
+//0 rnd
+//1 clu
+//2 unc
+//3 mar
+//4 ent
+//5 DW
+//6 DWTUeu
+//7 DWTUman
+//8 DWTUche
+//9 DWTUmah
+//10
+//11 eer ent
+//12 eer acc
+//13 eer gme
+//14 sg con
+//15 sg maj
+//17 simple
+//18 self
+//19 kff
+//20 balanced
+//
+//36 dwlau eu
+//
+//46 dwlou eu

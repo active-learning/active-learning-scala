@@ -106,6 +106,8 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
    }
 
    def isAlreadyDone(ds: Ds) = {
+      val contapid = ds.read(s"select count(0) from r,p where m=1020 and p=id and s in (15,16)").head.head.toInt
+      if (contapid == 0) ds.quit("Pool ainda não criado para essa strat/learner/r/f.")
       //é tudo ou nada; ou gravou tempo do dataset inteiro, ou não gravou nada.
       val qs = maxQueries(ds)
       val prev = ds.read(s"select count(0) from r,p where m=${1000 + qs} and p=id and s in (15,16)").head.head.toInt
