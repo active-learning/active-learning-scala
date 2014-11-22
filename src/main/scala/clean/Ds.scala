@@ -52,7 +52,7 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
    lazy val nomCount = patterns.head.enumerateAttributes().count(_.isNominal)
    lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
    lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
-   lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, nattsByUavg, nomCount, numCount, nomByNum) //todo: budget?
+   lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, nattsByUavg, nomCount, numCount, nomByNum)
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
