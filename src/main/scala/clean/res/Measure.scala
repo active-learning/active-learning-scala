@@ -94,24 +94,37 @@ case class gmeansAt(budget0: Int) extends Measure() {
    }
 }
 
+/**
+ * timeToQuery needed extra exp and db table.
+ */
+case class timeToStart(budget0: Int) extends Measure() {
+   def id(ds: Ds) = 1000 + budget(ds)
 
-//case class ALCaccSD() extends Measure() {
-//   val id = 3
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      ???
-//   }
-//}
-//
-//case class ALCgmeansSD() extends Measure() {
-//   val id = 4
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      ???
-//   }
-//}
-//
-//
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
+      ???
+   }
+}
+
+case class timeToQuery(budget0: Int) extends Measure() {
+   def id(ds: Ds) = 10000 + budget(ds)
+
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
+      ???
+   }
+}
+
+case class timeToLearn(budget0: Int) extends Measure() {
+   def id(ds: Ds) = 50000 + budget(ds)
+
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
+      ???
+   }
+}
+
+
 //case class costToReachPassiveacc() extends Measure() {
 //   val id = 5
 //
@@ -119,15 +132,6 @@ case class gmeansAt(budget0: Int) extends Measure() {
 //      ???
 //   }
 //}
-//
-//case class costToReachPassivegmeans() extends Measure() {
-//   val id = 6
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      ???
-//   }
-//}
-//
 //case class costToReachPassiveaccSD() extends Measure() {
 //   val id = 7
 //
@@ -135,45 +139,8 @@ case class gmeansAt(budget0: Int) extends Measure() {
 //      ???
 //   }
 //}
-//
-//case class costToReachPassivegmeansSD() extends Measure() {
-//   val id = 8
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      ???
-//   }
-//}
-//
-//
-///**
-// * timeToQuery will need extra exp and db table.
-// */
-//case class timeToQuery() extends Measure() {
-//   val id = 9
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      ???
-//   }
-//}
-//
-//case class timeToQuerySD() extends Measure() {
-//   val id = 10
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      ???
-//   }
-//}
-//
 //case class accAtQSD() extends Measure() {
 //   val id = 13
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      ???
-//   }
-//}
-//
-//case class gmeansAtQSD() extends Measure() {
-//   val id = 14
 //
 //   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
 //      ???

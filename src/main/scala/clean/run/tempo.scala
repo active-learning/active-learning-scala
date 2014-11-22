@@ -48,48 +48,49 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
       val poolSize = ds.expectedPoolSizes(5).min
       val (pool, fpool) = redux(pool0, ds) -> redux(fpool0, ds)
       val qs = maxQueries(ds)
-      val prev = ds.read(s"select count(0) from r where m=${1000 + qs}").head.head.toInt
-      if (prev == 0) {
-         ds.log(s"${pool.size} amostrados")
-         stratsemLearnerExterno(pool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         stratcomLearnerExterno(IELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         //      stratcomLearnerExterno(CIELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         stratcomLearnerExterno(ninteraELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
-            stratsComLearnerExterno_FilterFree(pool, learner) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-            stratsComLearnerExterno_FilterDependent(fpool, learner) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         }
-      } else {
-         //completa com sgs que nao tinha antes
-         ds.log(s"${pool.size} amostradoss")
-         stratsSGmajJS(fpool, IELM(System.currentTimeMillis().toInt)) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         stratsSGmajJS(fpool, ninteraELM(System.currentTimeMillis().toInt)) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
-            stratsSGmajJS(pool, learner) foreach (strat => gravaTempo(poolSize, strat, qs, run, fold))
-         }
+      ds.log(s"${pool.size} amostrados")
+      stratsemLearnerExterno(pool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+      stratcomLearnerExterno(IELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+      //      stratcomLearnerExterno(CIELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+      stratcomLearnerExterno(ninteraELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+      Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
+         stratsComLearnerExterno_FilterFree(pool, learner) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+         stratsComLearnerExterno_FilterDependent(fpool, learner) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
       }
+      //      stratsSGmajJS(fpool, IELM(System.currentTimeMillis().toInt)) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+      //      stratsSGmajJS(fpool, ninteraELM(System.currentTimeMillis().toInt)) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+      //      Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
+      //         stratsSGmajJS(pool, learner) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
+      //      }
    }
 
-   def gravaTempo(poolSize: Int, strat: Strategy, qs: Int, r: Int, f: Int) = {
-      val elapsedi = Tempo.time {
-         strat.queries.take(1)
-      }
-      val elapsed = poolSize * Tempo.time {
-         strat.queries.take(qs)
-      } / qs
+   def gravaTempo(ds: Ds, poolSize: Int, strat: Strategy, qs: Int, r: Int, f: Int) = {
+      val contapid = ds.read(s"select count(0) from p where s=${strat.id} and l=${strat.learner.id} and r=$r and f=$f").head.head.toInt
+      if (contapid == 0) ds.log("Pool ainda não criado para essa strat/learner/r/f.")
+      else {
+         val prev = ds.read(s"select count(0) from r,p where p=id and m=${1000 + qs} and s=${strat.id} and l=${strat.learner.id} and r=$r and f=$f").head.head.toInt
+         if (prev == 0 && contapid == 1) {
+            val elapsedi = Tempo.time {
+               strat.queries.take(1)
+            }
+            val elapsed = poolSize * Tempo.time {
+               strat.queries.take(qs)
+            } / qs
 
-      //warming time 1000 + #queries
-      //avg querying time 10000 + #queries
-      //0.1*pool time 50000 + #queries
-      val inserts = (0 until Global.runs).flatMap { rr =>
-         List(s"insert into r select ${1000 + qs}, id, $elapsedi from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
-            , s"insert into r select ${10000 + qs}, id, ${elapsed / poolSize} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
-            , s"insert into r select ${50000 + qs}, id, ${0.1 * elapsed} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f")
-      }.toList
-      acquire()
-      sqls.enqueue(inserts: _*)
-      release()
-      //            println(s"$sql")
+            //warming time 1000 + #queries
+            //avg querying time 10000 + #queries
+            //0.1*pool time 50000 + #queries
+            val inserts = (0 until Global.runs).flatMap { rr =>
+               List(s"insert into r select ${1000 + qs}, id, $elapsedi from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
+                  , s"insert into r select ${10000 + qs}, id, ${elapsed / poolSize} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f"
+                  , s"insert into r select ${50000 + qs}, id, ${0.1 * elapsed} from p where s=${strat.id} and l=${strat.learner.id} and r=$rr and f=$f")
+            }.toList
+            acquire()
+            sqls.enqueue(inserts: _*)
+            release()
+            //            println(s"$sql")
+         }
+      }
    }
 
    def datasetFinished(ds: Ds) {
@@ -106,12 +107,11 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
    }
 
    def isAlreadyDone(ds: Ds) = {
-      val contapid = ds.read(s"select count(0) from r,p where m=1020 and p=id and s in (15,16)").head.head.toInt
-      if (contapid == 0) ds.quit("Pool ainda não criado para essa strat/learner/r/f.")
-      //é tudo ou nada; ou gravou tempo do dataset inteiro, ou não gravou nada.
-      val qs = maxQueries(ds)
-      val prev = ds.read(s"select count(0) from r,p where m=${1000 + qs} and p=id and s in (15,16)").head.head.toInt
-      prev != 0
+      //      val qs = maxQueries(ds)
+      //      //é tudo ou nada; ou gravou tempo do dataset inteiro, ou não gravou nada.
+      //      val prev = ds.read(s"select count(0) from r,p where m=${1000 + qs} and p=id and s in (15,16)").head.head.toInt
+      //      prev != 0
+      false
    }
 
    def end(res: Map[String, Boolean]): Unit = {
