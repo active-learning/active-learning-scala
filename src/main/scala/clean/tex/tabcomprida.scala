@@ -30,7 +30,8 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
 
    override def run() = {
       super.run()
-      Seq(timeToStart(maxQueries0), timeToQuery(maxQueries0), timeToLearn(maxQueries0), null, null).dropRight(2) foreach { measure =>
+      Seq(timeToQuery(maxQueries0), null, null).dropRight(2) foreach { measure =>
+         //      Seq(timeToStart(maxQueries0), timeToQuery(maxQueries0), timeToLearn(maxQueries0), null, null).dropRight(2) foreach { measure =>
          //     Seq(ALCaccBal(maxQueries0), null, null).dropRight(2) foreach { measure =>
          //    allMeasures.dropRight(2) foreach { measure =>
          //      val strats = (measure.id match {

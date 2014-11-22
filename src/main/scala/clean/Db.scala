@@ -261,7 +261,7 @@ class Db(val database: String) extends Log with Lock {
          stats foreach (_.close())
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems writing blobs with SQL query '$sqls' in: ${e.getMessage} .\nTrying againg in 30s\n", 30)
+            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in 30s\n", 30)
             if (connection != null) {
                try {
                   System.err.print("Transaction is being rolled back")
@@ -302,7 +302,7 @@ class Db(val database: String) extends Log with Lock {
          statement.close()
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems writing blobs with SQL query '$sqls': ${e.getMessage} .\nTrying againg in 30s\n", 30)
+            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in 30s\n", 30)
             if (connection != null) {
                try {
                   log("Transaction is being rolled back...", 30)
