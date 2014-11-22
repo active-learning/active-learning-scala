@@ -45,10 +45,7 @@ class Db(val database: String) extends Log with Lock {
          case e: Throwable => //e.printStackTrace()
             log(s"Problems opening db connection: ${e.getMessage} ! Trying again in 30s...", 30)
             Thread.sleep(connectionWait_ms)
-            if (connection == null || connection.isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test("")
       }
    }
 
@@ -110,10 +107,7 @@ class Db(val database: String) extends Log with Lock {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 60s.\n", 30)
             Thread.sleep(60000) //waiting time is longer than normal to allow for other alive connections to update the table
-            if (connection.isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sql)
             isAliveByOtherJob(lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
       }
    }
@@ -152,15 +146,15 @@ class Db(val database: String) extends Log with Lock {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 30)
             Thread.sleep(connectionWait_ms)
-            if (isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sql)
             read(sql)
       }
    }
 
-   def test(sql: String) = if (connection == null || connection.isClosed) error(s"Not applying sql query [$sql]. Database $database is closed or null.")
+   def test(sql: String) = if (isClosed) {
+      log(s"[$sql]\nReopening database...")
+      open()
+   }
 
    def write(sql: String) {
       test(sql)
@@ -175,10 +169,7 @@ class Db(val database: String) extends Log with Lock {
             log(s"\nProblems executing SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s", 30)
             release()
             Thread.sleep(connectionWait_ms)
-            if (connection.isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sql)
             write(sql)
       } finally release()
    }
@@ -201,10 +192,7 @@ class Db(val database: String) extends Log with Lock {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing SQL read blobs query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 30)
             Thread.sleep(connectionWait_ms)
-            if (connection.isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sql)
             readBlobs(sql)
       }
    }
@@ -227,10 +215,7 @@ class Db(val database: String) extends Log with Lock {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing read blobs4 SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 30)
             Thread.sleep(connectionWait_ms)
-            if (connection.isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sql)
             readBlobs4(sql)
       }
    }
@@ -249,10 +234,7 @@ class Db(val database: String) extends Log with Lock {
             log(s"\nProblems executing SQL blob query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 30)
             release()
             Thread.sleep(connectionWait_ms)
-            if (connection.isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sql)
             writeBlob(sql, data)
       } finally release()
    }
@@ -292,10 +274,7 @@ class Db(val database: String) extends Log with Lock {
                release()
             }
             Thread.sleep(connectionWait_ms)
-            if (isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sqls.mkString("; "))
             batchWriteBlob(sqls, blobs)
       } finally {
          //      if (stats != null && stats.forall(_ != null)) stats foreach (_.close())
@@ -336,10 +315,7 @@ class Db(val database: String) extends Log with Lock {
                release()
             }
             Thread.sleep(connectionWait_ms)
-            if (connection.isClosed) {
-               log("Reopening database...")
-               open()
-            }
+            test(sqls.mkString("; "))
             log("Recursive call...", 30)
             batchWrite(sqls)
             println(s"depois")

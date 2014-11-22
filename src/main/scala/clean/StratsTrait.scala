@@ -34,10 +34,10 @@ trait StratsTrait {
       //    Majoritary(pool)
       RandomSampling(pool)
       , ClusterBased(pool)
-      //    , SVMmulti(pool, "BALANCED_EE") //SIMPLE + KFF
+      //          , SVMmulti(pool, "BALANCED_EE") //SIMPLE + KFF
       //    ,SVMmulti(pool, "SIMPLE") // exploitation="uncertainty"
       //    ,SVMmulti(pool, "KFF") // exploration
-      //      , SVMmulti(pool, "SELF_CONF") //EER
+      //            , SVMmulti(pool, "SELF_CONF") //EER
    )
 
    def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
