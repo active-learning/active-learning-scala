@@ -32,7 +32,7 @@ import scala.collection.mutable
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
+case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM {
    override lazy val toString = dataset
    override val context = dataset
    lazy val patterns = fetchPatterns("i order by id asc")
@@ -106,10 +106,10 @@ case class Ds(dataset: String) extends Db(s"$dataset") with Blob with CM {
       val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
       log(s"Fetching patterns...")
       val query = new InstanceQuerySQLite()
-      val url = s"jdbc:mysql://${Global.mysqlHost}:${Global.mysqlPort}/" + database
+      val url = s"jdbc:mysql://${Global.mysqlHost(readOnly = true)}:${Global.mysqlPort(readOnly = true)}/" + database
       query.setDatabaseURL(url)
       query.setUsername("davi")
-      query.setPassword(Global.mysqlPass)
+      query.setPassword(Global.mysqlPass(readOnly = true))
       query.setQuery("select i.* from " + sqlTail)
       query.setDebug(false)
       val instances = query.retrieveInstances()

@@ -26,6 +26,7 @@ import weka.filters.Filter
 import scala.util.Random
 
 trait Exp extends AppWithUsage {
+   val readOnly = false
    val ignoreNotDone: Boolean
 
    //  def strats(pool: Seq[Pattern], seed: Int): List[Strategy]
@@ -43,7 +44,7 @@ trait Exp extends AppWithUsage {
       super.run()
       memoryMonitor()
       val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
-         val ds = Ds(dataset)
+         val ds = Ds(dataset, readOnly)
          ds.open()
          val res1 = if ((context == "meaApp" || context == "allApp") && ds.isAliveByOtherJob()) {
             ds.log("Outro job está allizando este dataset. Skipping all pools...", 30)

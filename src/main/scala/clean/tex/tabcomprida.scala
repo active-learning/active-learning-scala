@@ -46,7 +46,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
             dataset <- datasets.toList.par
             l <- learners(learnersStr)
          } yield {
-            val ds = Ds(dataset)
+            val ds = Ds(dataset, readOnly = true)
             ds.open()
             val sres = for {
                s <- strats

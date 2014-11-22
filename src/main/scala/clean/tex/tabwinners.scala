@@ -39,7 +39,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with M
         dataset <- datasets.toList
         l <- learners(learnersStr)
       } yield {
-        val ds = Ds(dataset)
+         val ds = Ds(dataset, readOnly = true)
         ds.open()
         try {
           val vs = for {

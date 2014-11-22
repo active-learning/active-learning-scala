@@ -25,7 +25,7 @@ import java.util.{UUID, Calendar}
 /**
  * Cada instancia desta classe representa uma conexao.
  */
-class Db(val database: String) extends Log with Lock {
+class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    override lazy val toString = database
    private var connection: Connection = null
    val context = database
@@ -35,10 +35,10 @@ class Db(val database: String) extends Log with Lock {
 
    def open() {
       try {
-         val url = s"jdbc:mysql://${Global.mysqlHost}:${Global.mysqlPort}/" + database
+         val url = s"jdbc:mysql://${Global.mysqlHost(readOnly)}:${Global.mysqlPort(readOnly)}/" + database
          //      val url = "jdbc:sqlite:////" + database
          //      connection = DriverManager.getConnection(url)
-         connection = DriverManager.getConnection(url, "davi", Global.mysqlPass)
+         connection = DriverManager.getConnection(url, "davi", Global.mysqlPass(readOnly))
          //      connection.asInstanceOf[SQLiteConnection].setBusyTimeout(20 * 60 * 1000) //20min. timeout
          log(s"Connection to $database opened.")
       } catch {

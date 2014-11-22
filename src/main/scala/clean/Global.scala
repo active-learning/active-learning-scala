@@ -23,17 +23,25 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-  lazy val (mysqlHost, mysqlPort, mysqlPass) = {
-    val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
-    (l(0), l(1), l(2))
-  }
+   lazy val (mysqlHostRW, mysqlPortRW, mysqlPassRW) = {
+      val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
+      (l(0), l(1), l(2))
+   }
+   lazy val (mysqlHostRO, mysqlPortRO, mysqlPassRO) = {
+      val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
+      (l(3), l(4), l(5))
+   }
+   var running = true
+   lazy val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
+   var debug = 20
+   lazy val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
+   lazy val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
+   val appPath = new File(".").getCanonicalPath + "/"
 
-  var running = true
+   def mysqlHost(readOnly: Boolean) = if (readOnly) mysqlHostRO else mysqlHostRW
 
-  lazy val memlimit = Source.fromFile("memlimit.txt").getLines().toList.head.toInt
+   def mysqlPort(readOnly: Boolean) = if (readOnly) mysqlPortRO else mysqlPortRW
 
-  var debug = 20
-  lazy val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
-  lazy val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
-  val appPath = new File(".").getCanonicalPath + "/"
+   def mysqlPass(readOnly: Boolean) = if (readOnly) mysqlPassRO else mysqlPassRW
+
 }

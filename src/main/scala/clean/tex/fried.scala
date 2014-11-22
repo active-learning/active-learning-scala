@@ -44,7 +44,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             dataset <- datasets.toList
             l <- learners(learnersStr)
          } yield {
-            val ds = Ds(dataset)
+            val ds = Ds(dataset, readOnly = true)
             ds.open()
             val sres = for {
                s <- strats

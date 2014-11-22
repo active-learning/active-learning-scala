@@ -29,34 +29,35 @@ import weka.filters.Filter
 import scala.collection.mutable
 
 object grpByU extends Exp with Lock {
-  val arguments = superArguments
-  val context = "grpByQ"
-  val m = mutable.Map[String, (Int)]()
-  val ignoreNotDone = false
-  run()
+   val arguments = superArguments
+   val context = "grpByQ"
+   val m = mutable.Map[String, (Int)]()
+   val ignoreNotDone = false
+   override val readOnly = true
+   run()
 
-  def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))
+   def strats(pool: Seq[Pattern], seed: Int) = List(RandomSampling(pool))
 
-  def isAlreadyDone(ds: Ds) = false
+   def isAlreadyDone(ds: Ds) = false
 
-  def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-  }
+   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+   }
 
-  def datasetFinished(ds: Ds) {
-    acquire()
-    m += ds.dataset -> ((ds.n * 4) / 5)
-    release()
-  }
+   def datasetFinished(ds: Ds) {
+      acquire()
+      m += ds.dataset -> ((ds.n * 4) / 5)
+      release()
+   }
 
-  def end(res: Map[String, Boolean]): Unit = {
-    println(s"")
-    println(m.toList.sortBy(_._2).map(_._1).mkString(","))
-    println(s"")
-    val bla = m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 5} map (_._2)
-    bla.zipWithIndex foreach { case (g, i) =>
-      val fw = new FileWriter(s"s$i")
-      g.foreach(x => fw.write(x._1 + "\n"))
-      fw.close()
-    }
-  }
+   def end(res: Map[String, Boolean]): Unit = {
+      println(s"")
+      println(m.toList.sortBy(_._2).map(_._1).mkString(","))
+      println(s"")
+      val bla = m.toList.sortBy(_._2).map(_._1).zipWithIndex.groupBy { case (d, i) => i % 5} map (_._2)
+      bla.zipWithIndex foreach { case (g, i) =>
+         val fw = new FileWriter(s"s$i")
+         g.foreach(x => fw.write(x._1 + "\n"))
+         fw.close()
+      }
+   }
 }
