@@ -19,9 +19,9 @@ package clean.meta
 
 import java.io.FileWriter
 
-import clean.res.{accAt, ALCgmeans}
 import clean._
-import util.{StatTests, Stat}
+import clean.res.ALCaccBal
+import util.StatTests
 
 object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
    val context = "metaAttsApp"
@@ -32,7 +32,7 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
 
    override def run() = {
       super.run()
-      Seq(accAt(maxQueries0), null, null).dropRight(2) foreach { measure =>
+      Seq(ALCaccBal(maxQueries0), null, null).dropRight(2) foreach { measure =>
          val strats = allStrats()
          val ss = strats.map(_.abr).toVector
 
@@ -81,7 +81,7 @@ object arfftie extends AppWithUsage with StratsTrait with LearnerTrait {
          val labels = ss.distinct.sorted ++ Seq("other")
          println(labels)
          grpdw foreach { case (w, lines) =>
-            val header = List("@relation data") ++ "nclasses, nattributes, Uavg, nattsByUavg, QbyUavg, nomCount, numCount, nomByNum".split(", ").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+            val header = List("@relation data") ++ "nclasses, nattributes, Uavg, nattsByUavg, nomCount, numCount, nomByNum".split(", ").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
             val pronto = header ++ lines
             pronto foreach println
             println(s"")

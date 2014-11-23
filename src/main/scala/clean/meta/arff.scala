@@ -3,7 +3,7 @@ package clean.meta
 import java.io.FileWriter
 
 import clean._
-import clean.res.{ALCgmeans, accAt}
+import clean.res.ALCaccBal
 import util.Stat
 
 /*
@@ -40,11 +40,11 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait {
          ds.open()
          val medidas = for {
             s <- allStrats()
-         } yield if (ds.isMeasureComplete(accAt(maxQueries(ds)), s.id, l.id)) {
+         } yield if (ds.isMeasureComplete(ALCaccBal(maxQueries(ds)), s.id, l.id)) {
                val ms = for {
                   r <- 0 until Global.runs
                   f <- 0 until Global.folds
-               } yield ds.getMeasure(accAt(maxQueries(ds)), s, l, r, f).getOrElse(error("nao pegou a medida"))
+               } yield ds.getMeasure(ALCaccBal(maxQueries(ds)), s, l, r, f).getOrElse(error("nao pegou a medida"))
                val (m, d) = Stat.media_desvioPadrao(ms.toVector)
                (s.abr, r(m) * 10 + d)
             } else (s.abr, 0d)
@@ -61,7 +61,8 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait {
       val noms = nom.distinct.sorted
       println(noms)
       val data = metadata.map { case (d, n, p) => d.mkString(",") + s",$n,$p"}
-      val header = List("@relation data") ++ desc.dropRight(1).head.indices.map(i => s"@attribute a$i numeric") ++ List("@attribute learner {" + noms.mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      //      val header = List("@relation data") ++ desc.dropRight(1).head.map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + noms.mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ "nclasses, nattributes, Uavg, nattsByUavg, nomCount, numCount, nomByNum".split(", ").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
