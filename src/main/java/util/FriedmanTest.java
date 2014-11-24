@@ -30,6 +30,7 @@ public class FriedmanTest {
             int nc = matriz[0].length;
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.out.println("no algorithms provided");
+            System.exit(0);
         }
         int nc = matriz[0].length;
         int[][] table = new int[nc][nc]; //invertido (indica qnd lin vence col; 1:0.9; 2:0.95)
@@ -83,8 +84,8 @@ public class FriedmanTest {
                 medRank[j] /= nl;
             }
             int[] orderedRank = Utils.sort(medRank);
-            System.out.println(Arrays.toString(medRank));
-            System.out.println(Arrays.toString(orderedRank));
+//            System.out.println(Arrays.toString(medRank));
+//            System.out.println(Arrays.toString(orderedRank));
             statsResults.append("Ranking:\n");
             for (int j = 0; j < nc; ++j) {
                 statsResults.append((orderedRank[j] + 1) + "\t" + medRank[orderedRank[j]] + "\n");
@@ -154,7 +155,7 @@ public class FriedmanTest {
 
         }
 
-        System.out.println(statsResults);
+//        System.out.println(statsResults);
 
         return table;
     }
@@ -326,7 +327,7 @@ public class FriedmanTest {
                 if (numBases % 2 == 0) {
                     Zs[i][j] = Zs[j][i] = (diferencas[middle] + diferencas[middle - 1]) / 2.0;
                 } else {
-                    System.out.println("" + i + "|" + j + ":" + diferencas[middle]);
+//                    System.out.println("" + i + "|" + j + ":" + diferencas[middle]);
                     Zs[i][j] = Zs[j][i] = diferencas[middle];
                 }
             }
@@ -341,12 +342,12 @@ public class FriedmanTest {
             Ms[i] = sum / numAlgoritmos;
         }
 
-        for (int i = 0; i < numAlgoritmos; ++i) {
-            for (int j = 0; j < numAlgoritmos; ++j) {
-                System.out.print(Utils.doubleToString(Ms[i] - Ms[j], 4) + ";");
-            }
-            System.out.println();
-        }
+//        for (int i = 0; i < numAlgoritmos; ++i) {
+//            for (int j = 0; j < numAlgoritmos; ++j) {
+//                System.out.print(Utils.doubleToString(Ms[i] - Ms[j], 4) + ";");
+//            }
+//            System.out.println();
+//        }
         return output.toString();
     }
 
@@ -410,13 +411,13 @@ public class FriedmanTest {
             }
             String ascORdesc = (asc) ? "ASC" : "DESC";
             if (friedman) {
-                System.out.println("\n\nEstatísticas -- " + arq + "(" + ascORdesc + ")\n" + FriedmanTest.Friedman(data, asc));
+//                System.out.println("\n\nEstatísticas -- " + arq + "(" + ascORdesc + ")\n" + FriedmanTest.Friedman(data, asc));
             }
             if (tabelaVED) {
-                System.out.println("\n\nWin/Tie/Loss -- " + arq + "\n" + FriedmanTest.tabelaDesempenho(data, asc));
+//                System.out.println("\n\nWin/Tie/Loss -- " + arq + "\n" + FriedmanTest.tabelaDesempenho(data, asc));
             }
             if (contrastEstimation) {
-                System.out.println("\n\nConstrast Estimation based on medians -- " + arq + "\n" + FriedmanTest.tabelaConstrastEstimation(data, asc));
+//                System.out.println("\n\nConstrast Estimation based on medians -- " + arq + "\n" + FriedmanTest.tabelaConstrastEstimation(data, asc));
             }
         } catch (Exception e) {
             System.out.println("ARQUIVO: " + arq);
