@@ -65,7 +65,7 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
    }
 
    def gravaTempo(ds: Ds, poolSize: Int, strat: Strategy, qs0: Int, f: Int) = {
-      val qs = math.max(qs0, ds.nclasses + 2)
+      val qs = math.max(qs0, ds.nclasses + 3)
       lazy val q = strat.queries
       lazy val elapsedi = Tempo.time {
          q.take(ds.nclasses + 1)
