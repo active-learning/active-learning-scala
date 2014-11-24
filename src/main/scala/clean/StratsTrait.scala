@@ -55,8 +55,8 @@ trait StratsTrait {
       //      //      , DensityWeightedLocalUtility(learner, pool, "eucl")
       //      //    , DensityWeightedLocalLabelUtility(learner, pool, "eucl") ??? corrigir 1 out of bounds!
       //
-      //      , ExpErrorReductionMargin(learner, pool, "entropy")
-      //      , ExpErrorReductionMargin(learner, pool, "balacc")
+      , ExpErrorReductionMargin(learner, pool, "entropy")
+      , ExpErrorReductionMargin(learner, pool, "balacc")
       //      //      , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
       //      //      , ExpErrorReductionMargin(learner, pool, "accuracy")
       , new SGmulti(learner, pool, "consensus")
