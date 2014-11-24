@@ -63,7 +63,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
                         case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")
                      }
                   }
-                  Stat.media_desvioPadrao(vs.map(_ * 1000000).toVector)
+                  Stat.media_desvioPadrao(vs.toVector)
                } else (Double.MinValue, Double.MinValue)
                vv
             }
