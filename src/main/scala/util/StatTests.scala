@@ -104,8 +104,9 @@ object StatTests {
          case (Inf, _) => ""
          case (Mn, s) if Mn == Mx => s"$s"
          case (Mn, s) => s"\\textcolor{red}{\\textbf{$s}}"
-         case (Snd, s) => s"\\textcolor{blue}{\\textbf{$s}}"
-         case (Mx, s) => s"\\underline{\\textcolor{blue}{\\textbf{$s}}}"
+         case (Snd, s) => s"\\textbf{$s}"
+         case (Mx, s) if Snd < Mx => s"\\underline{\\textcolor{blue}{\\textbf{$s}}}"
+         case (Mx, s) => s"\\textcolor{blue}{\\textbf{$s}}"
          case (_, s) => s"$s"
       }
    }
