@@ -95,10 +95,10 @@ object StatTests {
 
    def cor(ns0: Seq[Double], precision: Double) = {
       val ns = ns0 map ff(precision)
-      val ns1 = ns.filter(_ > Double.MinValue).sorted
-      val Mx = ns1.last
-      val Snd = ns1(1)
-      val Mn = ns1.head
+      val ns1 = ns.filter(_ > Double.MinValue).sorted.reverse
+      val Mx = ns1.head
+      val Snd = ns1.tail.head
+      val Mn = ns1.last
       val Inf = ff(precision)(Double.MinValue)
       ns.zip(ns.map(x => f(x))).map {
          case (Inf, _) => ""
