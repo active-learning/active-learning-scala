@@ -46,7 +46,7 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
 
    def op(ds: Ds, pool0: Seq[Pattern], testSet: Seq[Pattern], fpool0: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
       val poolSize = ds.expectedPoolSizes(5).min
-      val (pool, fpool) = redux(pool0, ds) -> redux(fpool0, ds)
+      val (pool, fpool) = pool0 -> fpool0 //redux(pool0, ds) -> redux(fpool0, ds)
       val qs = maxQueries(ds)
       ds.log(s"${pool.size} amostrados")
       stratsemLearnerExterno(pool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
