@@ -64,7 +64,8 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
       //      }
    }
 
-   def gravaTempo(ds: Ds, poolSize: Int, strat: Strategy, qs: Int, f: Int) = {
+   def gravaTempo(ds: Ds, poolSize: Int, strat: Strategy, qs0: Int, f: Int) = {
+      val qs = math.max(qs0, ds.nclasses + 2)
       lazy val q = strat.queries
       lazy val elapsedi = Tempo.time {
          q.take(ds.nclasses + 1)
@@ -79,11 +80,11 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
       (0 until Global.runs).foreach { rr =>
          ds.read(s"select id from p where s=${strat.id} and l=${strat.learner.id} and f=$f and r=$rr") match {
             case List(Vector(pid)) =>
-               val prev = ds.read(s"select count(0) from r where p=$pid and m=${1000 + qs}").head.head.toInt
+               val prev = ds.read(s"select count(0) from r where p=$pid and m=${1000 + qs0}").head.head.toInt
                if (prev == 0) {
-                  val inserts = List(s"insert into r values (${1000 + qs}, $pid, $elapsedi)"
-                     , s"insert into r values (${10000 + qs}, $pid, ${elapsed / poolSize})"
-                     , s"insert into r values (${50000 + qs}, $pid, ${0.1 * elapsed})")
+                  val inserts = List(s"insert into r values (${1000 + qs0}, $pid, $elapsedi)"
+                     , s"insert into r values (${10000 + qs0}, $pid, ${elapsed / poolSize})"
+                     , s"insert into r values (${50000 + qs0}, $pid, ${0.1 * elapsed})")
                   acquire()
                   sqls.enqueue(inserts: _*)
                   release()

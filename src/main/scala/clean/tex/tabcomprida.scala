@@ -63,7 +63,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
                         case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")
                      }
                   }
-                  Stat.media_desvioPadrao(vs.toVector)
+                  Stat.media_desvioPadrao(vs.map(_ * 1000000).toVector)
                } else (Double.MinValue, Double.MinValue)
                vv
             }
@@ -79,7 +79,7 @@ object tabcomprida extends AppWithUsage with LearnerTrait with StratsTrait with 
          val tbs = res.toList.sortBy(x => x._2.max) grouped 100
          //         val tbs = res.filter(!_._2.contains(-1d, -1d)).toList.sortBy(x => x._2.head) grouped 100
          tbs foreach { case res1 =>
-            StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+            StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
          }
       }
    }

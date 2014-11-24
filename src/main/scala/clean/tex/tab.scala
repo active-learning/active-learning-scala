@@ -112,7 +112,7 @@ object tab extends AppWithUsage with LearnerTrait with StratsTrait with Measures
          //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
          val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 50
          tbs foreach { case res0 =>
-            StatTests.extensiveTable2(res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+            StatTests.extensiveTable2(1000, res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
          }
          sl.clear()
       }

@@ -20,7 +20,7 @@ package util
 object StatTests {
    def f(x: Double) = "%4.3f".format(x)
 
-   def ff(x: Double) = (x * 1000).round / 1000d
+   def ff(precision: Double)(x: Double) = (x * precision).round / precision
 
    /**
     * Takes a map DatasetName -> strategyMeasuresTheHigherTheBetter
@@ -93,13 +93,13 @@ object StatTests {
       table(core, nstrats, strategies, tableName, measure, language)
    }
 
-   def cor(ns0: Seq[Double]) = {
-      val ns = ns0 map ff
+   def cor(ns0: Seq[Double], precision: Double) = {
+      val ns = ns0 map ff(precision)
       val ns1 = ns.filter(_ > Double.MinValue).sorted
       val Mx = ns1.last
       val Snd = ns1(1)
       val Mn = ns1.head
-      val Inf = ff(Double.MinValue)
+      val Inf = ff(precision)(Double.MinValue)
       ns.zip(ns.map(x => f(x))).map {
          case (Inf, _) => ""
          case (Mn, s) if Mn == Mx => s"$s"
@@ -110,11 +110,11 @@ object StatTests {
       }
    }
 
-   def extensiveTable2(measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
+   def extensiveTable2(precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
       val nstrats = measures.head._2.length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip
-         val r = cor(vs).zip(ds.map { case Double.MinValue => ""; case x => f(x)}) map { case ("", "") => ""; case x => x._1 + "/" + x._2}
+         val r = cor(vs, precision).zip(ds.map { case Double.MinValue => ""; case x => f(x)}) map { case ("", "") => ""; case x => x._1 + "/" + x._2}
          val vals = r.mkString(" & ")
          s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
       }.filter(_.nonEmpty).mkString("\n")
