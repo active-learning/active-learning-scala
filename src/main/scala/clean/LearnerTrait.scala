@@ -37,11 +37,11 @@ trait LearnerTrait {
 
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
       NB()
-      //      , KNNBatch(5, "eucl", pool, weighted = true)
-      //      , VFDT()
-      //      , SVMLib(learnerSeed)
-      //      , C45()
-      //      //    , NBBatch() //perde demais no gmeans e nao é primeiro na acc
+      , KNNBatch(5, "eucl", pool, weighted = true)
+      , VFDT()
+      , SVMLib(learnerSeed)
+      , C45()
+      //    , NBBatch() //perde demais no gmeans e nao é primeiro na acc
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
