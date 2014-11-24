@@ -26,6 +26,11 @@ public class FriedmanTest {
     public static int[][] Friedman(double[][] matriz, boolean asc) {
         StringBuilder statsResults = new StringBuilder();
         int nl = matriz.length;
+        try {
+            int nc = matriz[0].length;
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            System.out.println("no algorithms provided");
+        }
         int nc = matriz[0].length;
         int[][] table = new int[nc][nc]; //invertido (indica qnd lin vence col; 1:0.9; 2:0.95)
         double[][] ranks = new double[nl][nc];
