@@ -18,21 +18,21 @@
 
 package al.strategies
 
-import clean.res.passiveAcc
+import clean.res.passiveAccBal
 import ml.Pattern
 import ml.classifiers.Learner
 import ml.models.Model
 
 case class PassiveAcc(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
-  extends StrategyWithLearner {
-  override val toString = "PassiveAcc"
-  val abr = "Pasa"
-  val id = 22
-  override val mea = passiveAcc()
-  if (learner.id > 3) error("Passive needs learner with full queries: C45, NB or 5NN.")
+   extends StrategyWithLearner {
+   override val toString = "PassiveAcc"
+   val abr = "Pasa"
+   val id = 22
+   override val mea = passiveAccBal()
+   if (learner.id > 3) error("Passive needs learner with full queries: C45, NB or 5NN.")
 
-  def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    error("Passive cannot generate queries!")
-  }
+   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      error("Passive cannot generate queries!")
+   }
 }
 
