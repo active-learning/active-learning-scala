@@ -49,8 +49,8 @@ trait StratsTrait {
       , Margin(learner, pool)
       , DensityWeighted(learner, pool, 1, "eucl")
       //      //      , DensityWeightedTrainingUtility(learner, pool, "cheb")
-      //      , DensityWeightedTrainingUtility(learner, pool, "eucl")
-      //      , DensityWeightedTrainingUtility(learner, pool, "manh")
+      , DensityWeightedTrainingUtility(learner, pool, "eucl")
+      , DensityWeightedTrainingUtility(learner, pool, "manh")
       //      //
       //      , DensityWeightedLabelUtility(learner, pool, "eucl")
       //      //      //      , DensityWeightedLocalUtility(learner, pool, "eucl")
