@@ -31,9 +31,9 @@ trait StratsTrait {
    def stratsemLearnerExterno(pool: Seq[Pattern] = Seq()) = stratsSemLearnerExterno(pool)
 
    def stratsSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
-      //      Majoritary(pool),
-      //      RandomSampling(pool)
-      //      , ClusterBased(pool)
+      Majoritary(pool),
+      RandomSampling(pool)
+      , ClusterBased(pool)
       //      , SVMmulti(pool, "BALANCED_EE") //SIMPLE + KFF
       //      , SVMmulti(pool, "SIMPLE") // exploitation="uncertainty"
       //      , SVMmulti(pool, "KFF") // exploration
@@ -44,10 +44,10 @@ trait StratsTrait {
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       Uncertainty(learner, pool)
-      //      ,
-      //      Entropy(learner, pool)
-      //      , Margin(learner, pool)
-      //      , DensityWeighted(learner, pool, 1, "eucl")
+      ,
+      Entropy(learner, pool)
+      , Margin(learner, pool)
+      , DensityWeighted(learner, pool, 1, "eucl")
       //      //      , DensityWeightedTrainingUtility(learner, pool, "cheb")
       //      , DensityWeightedTrainingUtility(learner, pool, "eucl")
       //      , DensityWeightedTrainingUtility(learner, pool, "manh")
