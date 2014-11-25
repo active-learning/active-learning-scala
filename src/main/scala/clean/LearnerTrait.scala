@@ -45,11 +45,11 @@ trait LearnerTrait {
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      //      IELM(learnerSeed)
+      IELM(learnerSeed)
       //      //    ,
       //      //        interaELM(learnerSeed),
       //      , ninteraELM(learnerSeed)
-      //      , CIELM(learnerSeed)
+      , CIELM(learnerSeed)
       //      , ECIELM(learnerSeed)
       //      , EIELM(learnerSeed)
    )

@@ -52,22 +52,22 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "eucl")
       , DensityWeightedTrainingUtility(learner, pool, "manh")
       //      //
-      //      , DensityWeightedLabelUtility(learner, pool, "eucl")
+      , DensityWeightedLabelUtility(learner, pool, "eucl")
       //      //      //      , DensityWeightedLocalUtility(learner, pool, "eucl")
       //      //      //    , DensityWeightedLocalLabelUtility(learner, pool, "eucl") ??? corrigir 1 out of bounds!
       //      //
-      //      //      , ExpErrorReductionMargin(learner, pool, "entropy")
-      //      //      , ExpErrorReductionMargin(learner, pool, "balacc")
+      , ExpErrorReductionMargin(learner, pool, "entropy")
+      , ExpErrorReductionMargin(learner, pool, "balacc")
       //      //      //      , ExpErrorReductionMargin(learner, pool, "gmeans+residual")
       //      //      //      , ExpErrorReductionMargin(learner, pool, "accuracy")
-      //      , new SGmulti(learner, pool, "consensus")
-      //      , new SGmulti(learner, pool, "majority")
+      , new SGmulti(learner, pool, "consensus")
+      , new SGmulti(learner, pool, "majority")
       //      , new SGmultiJS(learner, pool)
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      //      DensityWeightedTrainingUtility(learner, pool, "maha")
-      //      , DensityWeightedLabelUtility(learner, pool, "maha")
+      DensityWeightedTrainingUtility(learner, pool, "maha")
+      , DensityWeightedLabelUtility(learner, pool, "maha")
       //      , MahalaWeightedTrainingUtility(learner, pool)
       //      //      ,DensityWeightedLocalUtility(learner, pool, "maha")
    )
