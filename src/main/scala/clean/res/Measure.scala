@@ -20,8 +20,6 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.res
 
 import clean.{Global, CM, Ds}
-import ml.classifiers.{Learner, NB}
-
 import scala.collection.mutable
 
 /**
@@ -92,7 +90,7 @@ case class passiveAccBal() extends Measure() {
    def id(ds: Ds) = 1500000
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      accBal(cms.last._2)
+      accBal(cms(ds.expectedPoolSizes(Global.folds).min - 1))
    }
 
 }

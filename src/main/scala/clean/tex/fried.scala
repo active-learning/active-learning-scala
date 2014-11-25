@@ -30,53 +30,46 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
 
    override def run() = {
       super.run()
-      Seq(ALCaccBal(maxQueries0), null, null).dropRight(2) foreach { measure =>
-         //    allMeasures.dropRight(2) foreach { measure =>
-         //      val strats = (measure.id match {
-         //        case 11 => Seq(PassiveAcc(NoLearner(), Seq()))
-         //        case 12 => Seq(PassiveGme(NoLearner(), Seq()))
-         //        case _ => Seq()
-         //      }) ++ allStrats()
-         val strats = allStrats()
-         val sl = strats.map(_.abr)
+      val strats = allStrats()
+      val sl = strats.map(_.abr)
 
-         val res0 = (for {
-            dataset <- datasets.toList
-            l <- learners(learnersStr)
+      val res0 = (for {
+         dataset <- datasets.toList
+         l <- learners(learnersStr)
+         measure <- Seq(allMeasures(maxQueries0))
+      } yield {
+         val ds = Ds(dataset, readOnly = true)
+         ds.open()
+         val sres = for {
+            s <- strats
          } yield {
-            val ds = Ds(dataset, readOnly = true)
-            ds.open()
-            val sres = for {
-               s <- strats
-            } yield {
-               val le = if (s.id >= 17 && s.id <= 21) s.learner else l
-               val vv = if (ds.isMeasureComplete(measure, s.id, le.id)) {
-                  val vs = for {
-                     r <- 0 until runs
-                     f <- 0 until folds
-                  } yield {
-                     if (measure.id(ds) == 0) -1
-                     else ds.getMeasure(measure, s, le, r, f) match {
-                        case Some(v) => v
-                        case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")
-                     }
+            val le = if (s.id >= 17 && s.id <= 21) s.learner else l
+            val vv = if (ds.isMeasureComplete(measure, s.id, le.id)) {
+               val vs = for {
+                  r <- 0 until runs
+                  f <- 0 until folds
+               } yield {
+                  if (measure.id(ds) == 0) -1
+                  else ds.getMeasure(measure, s, le, r, f) match {
+                     case Some(v) => v
+                     case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")
                   }
-                  Stat.media_desvioPadrao(vs.toVector)
-               } else (-1d, -1d)
-               vv
-            }
-            ds.close()
-            //            "asd" -> sres
-            (ds.dataset + l.toString.take(3)) -> sres
-         }).sortBy(x => x._2.head)
-         val res = res0.filter(!_._2.contains(-1d, -1d))
-         println(s"")
-         println(s"")
-         println(s"")
-         StatTests.extensiveTable2(100, res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
-         println(s"")
-         val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))
-         StatTests.pairTable(pairs, "tablename", "acc")
-      }
+               }
+               Stat.media_desvioPadrao(vs.toVector)
+            } else (-1d, -1d)
+            vv
+         }
+         ds.close()
+         //            "asd" -> sres
+         (ds.dataset + l.toString.take(3)) -> sres
+      }).sortBy(x => x._2.head)
+      val res = res0.filter(!_._2.contains(-1d, -1d))
+      println(s"")
+      println(s"")
+      println(s"")
+      StatTests.extensiveTable2(100, res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+      println(s"")
+      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))
+      StatTests.pairTable(pairs, "tablename", "acc")
    }
 }
