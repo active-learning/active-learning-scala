@@ -39,22 +39,32 @@ trait Measure extends CM {
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int): Double
 }
 
-//case class Q() extends Measure() {
-//  val id = 0
-//
-//  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = ds.Q
-//}
+case class timeToStart(budget0: Int) extends Measure() {
+   def id(ds: Ds) = 1000 + budget(ds)
 
-//case class ALCacc(budget0: Int) extends Measure {
-//
-//   def id(ds: Ds) = 100000 + budget(ds)
-//
-//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-//      val vs = cms.take(budget(ds) - ds.nclasses + 1).values
-//      val acertos = vs.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
-//      acertos.toDouble / (tsSize * vs.size)
-//   }
-//}
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
+      ???
+   }
+}
+
+case class timeToQuery(budget0: Int) extends Measure() {
+   def id(ds: Ds) = 10000 + budget(ds)
+
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
+      ???
+   }
+}
+
+case class timeToLearn(budget0: Int) extends Measure() {
+   def id(ds: Ds) = 50000 + budget(ds)
+
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
+      ???
+   }
+}
 
 case class ALCaccBal(budget0: Int) extends Measure {
 
@@ -72,6 +82,38 @@ case class accBalAt(budget0: Int) extends Measure() {
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = accBal(cms.take(budget(ds) - ds.nclasses + 1).last._2)
 }
+
+/**
+ * medida que só faz sentido para learners C45, NB e 5NN por terem Q=|U|
+ */
+case class passiveAccBal() extends Measure() {
+   val budget0 = 0
+
+   def id(ds: Ds) = 1500000
+
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      accBal(cms.last._2)
+   }
+
+}
+
+/**
+ * Calcula ALC num intervalo de largura 10% do pool (na verdade, 10% das CMs totais possiveis) no limite máximo de 20 de largura.
+ * @param step
+ */
+case class intervalALCaccBal20or10pct(step: Int) extends Measure {
+   val budget0 = 0
+
+   def id(ds: Ds) = 1600000 + step
+
+   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+      val stepSize = math.min(20, (ds.expectedPoolSizes(Global.folds).min - ds.nclasses + 1) / 10)
+      val vs = cms.drop(stepSize * step).take(stepSize).values
+      val tot = vs.foldLeft(0d)((accBalTot, cm) => accBalTot + accBal(cm))
+      tot / vs.size
+   }
+}
+
 
 //case class ALCgmeans(budget0: Int) extends Measure() {
 //   def id(ds: Ds) = 200000 + budget(ds)
@@ -100,37 +142,6 @@ case class accBalAt(budget0: Int) extends Measure() {
 //   }
 //}
 
-/**
- * timeToQuery needed extra exp and db table.
- */
-case class timeToStart(budget0: Int) extends Measure() {
-   def id(ds: Ds) = 1000 + budget(ds)
-
-   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
-      ???
-   }
-}
-
-case class timeToQuery(budget0: Int) extends Measure() {
-   def id(ds: Ds) = 10000 + budget(ds)
-
-   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
-      ???
-   }
-}
-
-case class timeToLearn(budget0: Int) extends Measure() {
-   def id(ds: Ds) = 50000 + budget(ds)
-
-   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      println(s"Tempo não é calculado como as outras medidas. Só o id é necessário.")
-      ???
-   }
-}
-
-
 //case class costToReachPassiveacc() extends Measure() {
 //   val id = 5
 //
@@ -153,24 +164,43 @@ case class timeToLearn(budget0: Int) extends Measure() {
 //   }
 //}
 
+
+//case class Q() extends Measure() {
+//  val id = 0
+//
+//  def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = ds.Q
+//}
+
+//case class ALCacc(budget0: Int) extends Measure {
+//
+//   def id(ds: Ds) = 100000 + budget(ds)
+//
+//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+//      val vs = cms.take(budget(ds) - ds.nclasses + 1).values
+//      val acertos = vs.foldLeft(0)((hits, cm) => hits + contaAcertos(cm))
+//      acertos.toDouble / (tsSize * vs.size)
+//   }
+//}
+
 // medidas que só fazem sentido para learners C45, NB e 5NN por terem Q=|U| ---------------------
-case class passiveAcc() extends Measure() {
-   val budget0 = 0
-
-   def id(ds: Ds) = 15
-
-   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      acc(cms.last._2)
-   }
-}
-
-
-case class passiveGme() extends Measure() {
-   val budget0 = 0
-
-   def id(ds: Ds) = 16
-
-   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
-      gmeans(cms.last._2)
-   }
-}
+//case class passiveAcc() extends Measure() {
+//   val budget0 = 0
+//
+//   def id(ds: Ds) = 15
+//
+//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+//      acc(cms.last._2)
+//   }
+//}
+//
+//
+//case class passiveGme() extends Measure() {
+//   val budget0 = 0
+//
+//   def id(ds: Ds) = 16
+//
+//   def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
+//      gmeans(cms.last._2)
+//   }
+//}
+//

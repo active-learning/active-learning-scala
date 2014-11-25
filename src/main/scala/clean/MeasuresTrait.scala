@@ -22,5 +22,8 @@ package clean
 import clean.res._
 
 trait MeasuresTrait {
-   def allMeasures(budget: Int = 50) = Seq(accBalAt(budget), ALCaccBal(budget)) //, ALCgmeans(budget), accAt(budget), gmeansAt(budget), passiveAcc(), passiveGme())
+   def allMeasures(budget: Int = 50) = 0 to 4 map intervalALCaccBal20or10pct
+
+   //   def allMeasures(budget: Int = 50) = 0 to 9 map intervalALCaccBal20or10pct
+   //   def allMeasures(budget: Int = 50) = Seq(accBalAt(budget), ALCaccBal(budget))
 }
