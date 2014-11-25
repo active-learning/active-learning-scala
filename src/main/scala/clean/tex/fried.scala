@@ -40,7 +40,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
          val strats = allStrats()
          val sl = strats.map(_.abr)
 
-         val res0 = for {
+         val res0 = (for {
             dataset <- datasets.toList
             l <- learners(learnersStr)
          } yield {
@@ -68,12 +68,12 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             ds.close()
             //            "asd" -> sres
             (ds.dataset + l.toString.take(3)) -> sres
-         }
-         val res = res0.filter(!_._2.contains(-1d, -1d)).sortBy(x => x._2.head)
+         }).sortBy(x => x._2.head)
+         val res = res0.filter(!_._2.contains(-1d, -1d))
          println(s"")
          println(s"")
          println(s"")
-         StatTests.extensiveTable2(100, res.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
+         StatTests.extensiveTable2(100, res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString)
          println(s"")
          val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))
          StatTests.pairTable(pairs, "tablename", "acc")
