@@ -41,15 +41,13 @@ trait LearnerTrait {
       , VFDT()
       , SVMLib(learnerSeed)
       , C45()
-      //    , NBBatch() //perde demais no gmeans e nao é primeiro na acc
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       IELM(learnerSeed)
-      //      //    ,
-      //      //        interaELM(learnerSeed),
-      //      , ninteraELM(learnerSeed)
       , CIELM(learnerSeed)
+      //      , interaELM(learnerSeed)
+      //      , ninteraELM(learnerSeed)
       //      , ECIELM(learnerSeed)
       //      , EIELM(learnerSeed)
    )
