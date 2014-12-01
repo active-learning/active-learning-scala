@@ -94,7 +94,7 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
       if (unlabeled.isEmpty) Stream.Empty
       else {
          val n = labeled.size
-         val accps = (0 until nclasses).zip(fdp(hist(labeled.toArray, n) map (_ / n.toDouble), n))
+         val accps = (0 until nclasses).zip(fdp(hist(labeled.toArray, n) map (x => 1 - x / n.toDouble), n))
          val sorteio = rnd.nextFloat()
          val chosen = accps.dropWhile(_._2 < sorteio).head._1
 
