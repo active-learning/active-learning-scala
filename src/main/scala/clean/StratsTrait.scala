@@ -35,7 +35,7 @@ trait StratsTrait {
       //      , RandomSampling(pool)
       //      , ClusterBased(pool)
       //      ,
-      SVMmulti(pool, "BALANCED_EEw") //SIMPLE + KFF
+      //      SVMmulti(pool, "BALANCED_EEw") //SIMPLE + KFF
    )
 
    def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
@@ -46,6 +46,11 @@ trait StratsTrait {
       //      , Margin(learner, pool)
       //      , DensityWeighted(learner, pool, 1, "eucl")
       //      , DensityWeighted(learner, pool, 0.5, "eucl")
+
+      AgDensityWeightedTrainingUtility(learner, pool, "eucl")
+      , AgDensityWeightedLabelUtility(learner, pool, "eucl")
+      , AgDensityWeightedTrainingUtility(learner, pool, "eucl", 0.5)
+      , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5)
       //
       //      , DensityWeightedTrainingUtility(learner, pool, "eucl")
       //      , DensityWeightedTrainingUtility(learner, pool, "manh")
