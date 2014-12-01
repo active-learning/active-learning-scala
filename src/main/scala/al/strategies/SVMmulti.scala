@@ -32,59 +32,85 @@ import scala.util.Random
  * @param debug
  */
 case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
-  override val toString = s"SVMmulti ($algorithm)"
-  val abr = "SVM" + algorithm.take(3).toLowerCase
+   override val toString = s"SVMmulti ($algorithm)"
+   val abr = "SVM" + algorithm.take(3).toLowerCase
 
-  def learner = SVMLib()
+   def learner = SVMLib()
 
-  //just to visual tests and to be referenced in db
-  val id = algorithm match {
-    case "SIMPLE" => 17
-    case "SELF_CONF" => 18
-    case "KFF" => 19
-    case "BALANCED_EE" => 20
-  }
+   //just to visual tests and to be referenced in db
+   val id = algorithm match {
+      case "SIMPLE" => 17
+      case "SELF_CONF" => 18
+      case "KFF" => 19
+      case "BALANCED_EE" => 20
+      case "BALANCED_EEw" => -20
+   }
 
-  protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    val labeledar = labeled.toArray
-    val unlabeledar = unlabeled.toArray
-    val svms = {
-      for (c <- 0 until nclasses) yield {
-        new SVMStrategymulti(algorithm, SVMStrategymulti.PatternsToInstances2(labeledar, c), SVMStrategymulti.PatternsToInstances2(unlabeledar, c))
+   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val labeledar = labeled.toArray
+      val unlabeledar = unlabeled.toArray
+      val svms = {
+         for (c <- 0 until nclasses) yield {
+            new SVMStrategymulti(algorithm, SVMStrategymulti.PatternsToInstances2(labeledar, c), SVMStrategymulti.PatternsToInstances2(unlabeledar, c))
+         }
+      }.toArray
+      queries_rec(svms, unlabeled, labeled)
+   }
+
+   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
+      val current_model = learner.build(labeled)
+      plot.zera()
+      for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p).toInt, 9)
+      for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
+      if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
+      plot.mostra()
+      Thread.sleep((delay * 1000).round.toInt)
+   }
+
+   private def hist(seq: Array[Pattern], n: Int) = {
+      val ar = Array.fill(nclasses)(0)
+      var i = 0
+      while (i < n) {
+         ar(seq(i).label.toInt) += 1
+         i += 1
       }
-    }.toArray
-    queries_rec(svms, unlabeled, labeled)
-  }
+      ar
+   }
 
-  protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
-    val current_model = learner.build(labeled)
-    plot.zera()
-    for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p).toInt, 9)
-    for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-    if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
-    plot.mostra()
-    Thread.sleep((delay * 1000).round.toInt)
-  }
-
-  private def queries_rec(svm: Seq[SVMStrategymulti], unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
-    if (unlabeled.isEmpty) Stream.Empty
-    else {
-      val n = labeled.size
-      val chosen = n % nclasses
-
-      if (debug) visual_test(null, unlabeled, labeled)
-
-      val id = svm(chosen).nextQuery()
-      val ind = svm(chosen).lastQueriedInd
-      svm.zipWithIndex.filter { case (_, i) => i != chosen}.foreach { case (s, _) => s.markAsQueried(ind)}
-      val selected = pool.find(_.id == id) match {
-        case Some(p) => p
-        case None => println("Queried id not found!")
-          sys.exit(1)
+   private def fdp(hist: Array[Double], n: Int) = {
+      val ar = Array.fill(nclasses)(0d)
+      var c = 0
+      ar(0) = hist(0)
+      while (c + 1 < nclasses) {
+         ar(c) = ar(c - 1) + hist(c)
+         c += 1
       }
+      ar
+   }
 
-      if (debug) visual_test(selected, unlabeled, labeled)
-      selected #:: queries_rec(svm, unlabeled.diff(Seq(selected)), labeled :+ selected)
-    }
-  }
+   val rnd = new Random(123)
+
+   private def queries_rec(svm: Seq[SVMStrategymulti], unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
+      if (unlabeled.isEmpty) Stream.Empty
+      else {
+         val n = labeled.size
+         val accps = (0 until nclasses).zip(fdp(hist(labeled.toArray, n) map (_ / n.toDouble), n))
+         val sorteio = rnd.nextFloat()
+         val chosen = accps.dropWhile(_._2 < sorteio).head._1
+
+         if (debug) visual_test(null, unlabeled, labeled)
+
+         val id = svm(chosen).nextQuery()
+         val ind = svm(chosen).lastQueriedInd
+         svm.zipWithIndex.filter { case (_, i) => i != chosen}.foreach { case (s, _) => s.markAsQueried(ind)}
+         val selected = pool.find(_.id == id) match {
+            case Some(p) => p
+            case None => println("Queried id not found!")
+               sys.exit(1)
+         }
+
+         if (debug) visual_test(selected, unlabeled, labeled)
+         selected #:: queries_rec(svm, unlabeled.diff(Seq(selected)), labeled :+ selected)
+      }
+   }
 }
