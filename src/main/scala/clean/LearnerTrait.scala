@@ -46,10 +46,7 @@ trait LearnerTrait {
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       IELM(learnerSeed)
       , CIELM(learnerSeed)
-      //      , interaELM(learnerSeed)
       //      , ninteraELM(learnerSeed)
-      //      , ECIELM(learnerSeed)
-      //      , EIELM(learnerSeed)
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
