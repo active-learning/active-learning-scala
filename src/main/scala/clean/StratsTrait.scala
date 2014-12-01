@@ -43,9 +43,15 @@ trait StratsTrait {
       , Entropy(learner, pool)
       , Margin(learner, pool)
       , DensityWeighted(learner, pool, 1, "eucl")
+      , DensityWeighted(learner, pool, 0.5, "eucl")
+
       , DensityWeightedTrainingUtility(learner, pool, "eucl")
       , DensityWeightedTrainingUtility(learner, pool, "manh")
       , DensityWeightedLabelUtility(learner, pool, "eucl")
+      , DensityWeightedTrainingUtility(learner, pool, "eucl", 0.5)
+      , DensityWeightedTrainingUtility(learner, pool, "manh", 0.5)
+      , DensityWeightedLabelUtility(learner, pool, "eucl", 0.5)
+
       , ExpErrorReductionMargin(learner, pool, "entropy")
       , ExpErrorReductionMargin(learner, pool, "balacc")
       , new SGmulti(learner, pool, "consensus")
@@ -55,6 +61,8 @@ trait StratsTrait {
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha")
       , DensityWeightedLabelUtility(learner, pool, "maha")
+      , DensityWeightedTrainingUtility(learner, pool, "maha", 0.5)
+      , DensityWeightedLabelUtility(learner, pool, "maha", 0.5)
    )
 }
 

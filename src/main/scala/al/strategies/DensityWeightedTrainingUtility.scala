@@ -29,11 +29,11 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
   extends StrategyWithLearnerAndMaps with MarginMeasure {
   override val toString = "Density Weighted TU a" + alpha + " b" + beta + " (" + distance_name + ")"
   val abr = "DWTU" + distance_name.take(3)
-  val id = if (alpha == 1 && beta == 1) distance_name match {
-    case "eucl" => 6
-    case "cheb" => 8
-    case "maha" => 9
-    case "manh" => 7
+   val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
+      case "eucl" => 6 + 100 * (alpha - 1)
+      case "cheb" => 8 + 100 * (alpha - 1)
+      case "maha" => 9 + 100 * (alpha - 1)
+      case "manh" => 7 + 100 * (alpha - 1)
   } else throw new Error("Parametros inesperados para DWTU.")
 
   protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {

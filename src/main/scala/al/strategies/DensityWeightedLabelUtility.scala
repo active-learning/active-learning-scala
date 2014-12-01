@@ -23,31 +23,31 @@ import ml.classifiers.Learner
 import ml.models.Model
 
 case class DensityWeightedLabelUtility(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
-  extends StrategyWithLearnerAndMapsLU with MarginMeasure {
-  override val toString = "Density Weighted LU a" + alpha + " b" + beta + " (" + distance_name + ")"
-  val abr = "DWLU" + distance_name.take(3)
-  val id = if (alpha == 1 && beta == 1) distance_name match {
-    case "eucl" => 36
-    case "cheb" => 38
-    case "maha" => 39
-    case "manh" => 37
-  } else throw new Error("Parametros inesperados para DWLU.")
+   extends StrategyWithLearnerAndMapsLU with MarginMeasure {
+   override val toString = "Density Weighted LU a" + alpha + " b" + beta + " (" + distance_name + ")"
+   val abr = "DWLU" + distance_name.take(3)
+   val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
+      case "eucl" => 36 + 100 * (alpha - 1)
+      case "cheb" => 38 + 100 * (alpha - 1)
+      case "maha" => 39 + 100 * (alpha - 1)
+      case "manh" => 37 + 100 * (alpha - 1)
+   } else throw new Error("Parametros inesperados para DWLU.")
 
-  protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
-    val selected = unlabeled maxBy { x =>
-      val similarityU = mapU(x) / mapU.size.toDouble
-      val similaritiesL = simL(mapsL, x, hist)
-      (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similaritiesL, alpha)
-    }
-    selected
-  }
+   protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
+      val selected = unlabeled maxBy { x =>
+         val similarityU = mapU(x) / mapU.size.toDouble
+         val similaritiesL = simL(mapsL, x, hist)
+         (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similaritiesL, alpha)
+      }
+      selected
+   }
 
-  def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern, hist: Seq[Int]) = {
-    val tot = hist.sum
-    mapsL.zipWithIndex.map { case (m, lab) =>
-      val n = hist(lab).toDouble
-      val p = n / tot
-      math.pow(m(patt) / n, p)
-    }.product
-  }
+   def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern, hist: Seq[Int]) = {
+      val tot = hist.sum
+      mapsL.zipWithIndex.map { case (m, lab) =>
+         val n = hist(lab).toDouble
+         val p = n / tot
+         math.pow(m(patt) / n, p)
+      }.product
+   }
 }

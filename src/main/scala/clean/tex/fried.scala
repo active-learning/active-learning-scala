@@ -67,7 +67,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       println(s"")
       println(s"")
       println(s"")
-      StatTests.extensiveTable2(100, res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", "ALCACcBal por faixas")
+      StatTests.extensiveTable2(1000, res0.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", "ALCACcBal por faixas")
       println(s"")
       val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))
       StatTests.pairTable(pairs, "tablename", "acc")
