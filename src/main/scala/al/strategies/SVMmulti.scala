@@ -28,17 +28,18 @@ import scala.util.Random
 /**
  * One SVM per class; queries by round-robin.
  * @param pool
- * @param algorithm
+ * @param algorithm0
  * @param debug
  */
-case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
-   override val toString = s"SVMmulti ($algorithm)"
-   val abr = "SVM" + algorithm.take(3).toLowerCase
+case class SVMmulti(pool: Seq[Pattern], algorithm0: String, debug: Boolean = false) extends Strategy {
+   override val toString = s"SVMmulti ($algorithm0)"
+   val abr = "SVM" + algorithm0.take(3).toLowerCase
 
    def learner = SVMLib()
 
    //just to visual tests and to be referenced in db
-   val id = algorithm match {
+   val algorithm = if (algorithm0 == "BALANCED_EEw") "BALANCED_EE" else algorithm0
+   val id = algorithm0 match {
       case "SIMPLE" => 17
       case "SELF_CONF" => 18
       case "KFF" => 19
