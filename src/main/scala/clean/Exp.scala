@@ -46,7 +46,8 @@ trait Exp extends AppWithUsage {
       val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
          val ds = Ds(dataset, readOnly)
          ds.open()
-         val res1 = if ((context == "meaApp" || context == "allApp") && ds.isAliveByOtherJob()) {
+         val res1 = if ((context == "allApp") && ds.isAliveByOtherJob()) {
+            //         val res1 = if ((context == "meaApp" || context == "allApp") && ds.isAliveByOtherJob()) {
             ds.log("Outro job está allizando este dataset. Skipping all pools...", 30)
             ds.dataset -> false
          } else {
