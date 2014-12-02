@@ -44,7 +44,7 @@ case class SVMmulti(pool: Seq[Pattern], algorithm0: String, debug: Boolean = fal
       case "SELF_CONF" => 18
       case "KFF" => 19
       case "BALANCED_EE" => 20
-      case "BALANCED_EEw" => -20
+      case "BALANCED_EEw" => 969
    }
 
    protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
