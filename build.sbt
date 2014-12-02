@@ -2,7 +2,7 @@ name := "als"
 
 //version := "200+22s7l"
 
-version := "200+4ags+0.5s"
+version := "8s"
 
 scalaVersion := "2.10.4"
 
