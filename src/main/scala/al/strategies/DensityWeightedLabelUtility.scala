@@ -27,10 +27,10 @@ case class DensityWeightedLabelUtility(learner: Learner, pool: Seq[Pattern], dis
    override val toString = "Density Weighted LU a" + alpha + " b" + beta + " (" + distance_name + ")"
    val abr = "DWLU" + distance_name.take(3)
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 36 + (100 * (alpha - 1)).toInt
-      case "cheb" => 38 + (100 * (alpha - 1)).toInt
-      case "maha" => 39 + (100 * (alpha - 1)).toInt
-      case "manh" => 37 + (100 * (alpha - 1)).toInt
+      case "eucl" => 36 + (100 * (1 - alpha)).toInt
+      case "cheb" => 38 + (100 * (1 - alpha)).toInt
+      case "maha" => 39 + (100 * (1 - alpha)).toInt
+      case "manh" => 37 + (100 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para DWLU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {

@@ -220,7 +220,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                   sqls.size + hs == expectedAmount
                }
 
-               println(s"lixo================================")
+               //               println(s"lixo================================")
                (strat.id, learner.id) match {
                   case (s, l) if s == 0 && l < 4 => hs match {
                      case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
