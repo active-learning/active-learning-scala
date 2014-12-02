@@ -31,11 +31,11 @@ trait LearnerTrait {
 
    def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
-   def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
+   def specialLearners(pool: Seq[Pattern] = Seq()) = Stream[Learner](
       NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
    )
 
-   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
+   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = Stream[Learner](
       NB()
       , KNNBatch(5, "eucl", pool, weighted = true)
       , VFDT()
@@ -43,7 +43,7 @@ trait LearnerTrait {
       , C45()
    )
 
-   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
+   def learnersFilterDependent(learnerSeed: Int = -1) = Stream[Learner](
       IELM(learnerSeed)
       , CIELM(learnerSeed)
       //      , ninteraELM(learnerSeed)

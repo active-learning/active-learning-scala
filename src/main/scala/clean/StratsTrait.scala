@@ -30,32 +30,36 @@ trait StratsTrait {
 
    def stratsemLearnerExterno(pool: Seq[Pattern] = Seq()) = stratsSemLearnerExterno(pool)
 
-   def stratsSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
-      //            Majoritary(pool)
-      //            , RandomSampling(pool)
-      //            , ClusterBased(pool)
+   def stratsSemLearnerExterno(pool: Seq[Pattern]) = Stream[Strategy](
+      //8s a
+      Majoritary(pool)
+      , RandomSampling(pool)
+      , ClusterBased(pool)
    )
 
-   def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
+   def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = Stream[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
 
-   def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      //            Uncertainty(learner, pool)
-      //            , Entropy(learner, pool)
-      //            , Margin(learner, pool)
-      //            , DensityWeighted(learner, pool, 1, "eucl")
-      //            , DensityWeighted(learner, pool, 0.5, "eucl")
+   def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = Stream[Strategy](
+      //8s b
+      Uncertainty(learner, pool)
+      , Entropy(learner, pool)
+      , Margin(learner, pool)
+      , DensityWeighted(learner, pool, 1, "eucl")
+      , DensityWeighted(learner, pool, 0.5, "eucl")
 
-      //      AgDensityWeightedTrainingUtility(learner, pool, "eucl")
-      //      , AgDensityWeightedLabelUtility(learner, pool, "eucl")
-      //      , AgDensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5)
-      //      , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5)
+      //4s
+      , AgDensityWeightedTrainingUtility(learner, pool, "eucl")
+      , AgDensityWeightedLabelUtility(learner, pool, "eucl")
+      , AgDensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5)
+      , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5)
 
-      DensityWeightedTrainingUtility(learner, pool, "eucl")
-      , DensityWeightedTrainingUtility(learner, pool, "manh")
-      , DensityWeightedLabelUtility(learner, pool, "eucl")
-      , DensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5)
-      , DensityWeightedTrainingUtility(learner, pool, "manh", 0.5, 0.5)
-      , DensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5)
+      //6s
+      //      ,DensityWeightedTrainingUtility(learner, pool, "eucl")
+      //      , DensityWeightedTrainingUtility(learner, pool, "manh")
+      //      , DensityWeightedLabelUtility(learner, pool, "eucl")
+      //      , DensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5)
+      //      , DensityWeightedTrainingUtility(learner, pool, "manh", 0.5, 0.5)
+      //      , DensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5)
 
       //            , ExpErrorReductionMargin(learner, pool, "entropy")
       //            , ExpErrorReductionMargin(learner, pool, "balacc")
@@ -63,7 +67,7 @@ trait StratsTrait {
       //            , new SGmulti(learner, pool, "majority")
    )
 
-   def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
+   def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = Stream[Strategy](
       //      DensityWeightedTrainingUtility(learner, pool, "maha")
       //      , DensityWeightedLabelUtility(learner, pool, "maha")
       //      DensityWeightedTrainingUtility(learner, pool, "maha", 0.5, 0.5)
