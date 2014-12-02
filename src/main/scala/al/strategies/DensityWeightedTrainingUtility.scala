@@ -30,10 +30,10 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
   override val toString = "Density Weighted TU a" + alpha + " b" + beta + " (" + distance_name + ")"
   val abr = "DWTU" + distance_name.take(3)
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 6 + (100 * (alpha - 1)).toInt
-      case "cheb" => 8 + (100 * (alpha - 1)).toInt
-      case "maha" => 9 + (100 * (alpha - 1)).toInt
-      case "manh" => 7 + (100 * (alpha - 1)).toInt
+      case "eucl" => 6 + (100000 * (1 - alpha)).toInt
+      case "cheb" => 8 + (100000 * (1 - alpha)).toInt
+      case "maha" => 9 + (100000 * (1 - alpha)).toInt
+      case "manh" => 7 + (100000 * (1 - alpha)).toInt
   } else throw new Error("Parametros inesperados para DWTU.")
 
   protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
