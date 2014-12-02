@@ -108,7 +108,8 @@ public class FriedmanTest {
              */
             double critDiff = Math.sqrt((nc * (nc + 1.0)) / (6.0 * nl));
 
-            statsResults.append("Friedman teste pvalue: ").append(pValue_Friedman).append("\n\n");
+            System.out.println("Friedman teste pvalue: " + pValue_Friedman);
+//            statsResults.append("Friedman teste pvalue: ").append(pValue_Friedman).append("\n\n");
             statsResults.append("Nemenyi Test:");
             int[] sorts = Utils.sort(medRank);
             statsResults.append("CritDiff(.05) ").append(qAlpha5pct[nc - 2] * critDiff).append("\n");
