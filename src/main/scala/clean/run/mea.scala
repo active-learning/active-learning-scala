@@ -43,22 +43,26 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             specialLearners(Seq()) foreach storeSQL(pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size, meas)
          } else {
             stratsemLearnerExterno() foreach { strat =>
-               if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
-                  ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-                  acquire()
-                  sqls += "cancel"
-                  release()
-               } else if (strat.id >= 17 && strat.id <= 21 || strat.id == 969) storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(strat.learner)
-               else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)
-            }
-            allLearners() foreach { learner =>
-               stratcomLearnerExterno(learner) foreach { strat =>
+               if (!sqls.contains("cancel")) {
                   if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
                      ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
                      acquire()
                      sqls += "cancel"
                      release()
-                  } else storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(learner)
+                  } else if (strat.id >= 17 && strat.id <= 21 || strat.id == 969) storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(strat.learner)
+                  else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)
+               }
+            }
+            allLearners() foreach { learner =>
+               if (!sqls.contains("cancel")) {
+                  stratcomLearnerExterno(learner) foreach { strat =>
+                     if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
+                        ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+                        acquire()
+                        sqls += "cancel"
+                        release()
+                     } else storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(learner)
+                  }
                }
             }
          }
@@ -68,25 +72,25 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
 
    def storeSQL(poolSize: Int, ds: Ds, strat: Strategy, run: Int, fold: Int, testSetSize: Int, meas: Measure)(learner: Learner) =
       if (!sqls.contains("cancel")) {
-      ds.log(s"$strat $learner $run $fold")
-      if (!ds.areHitsFinished(poolSize, Seq(), strat, learner, run, fold, null, null, completeIt = false, maxQueries(ds) - ds.nclasses + 1)) {
-         ds.log(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
-         acquire()
-         sqls += "cancel"
-         release()
-      } else ds.getMeasure(meas, strat, learner, run, fold) match {
-         case Some(_) => ds.log(s"Measure $meas already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-         case None =>
-            val cms = ds.getCMs(strat, learner, run, fold, maxQueries(ds) - ds.nclasses + 1) //pega todas CMs
-            if (cms.size < maxQueries(ds) - ds.nclasses + 1) ds.quit(s"Couldn't take at least ${maxQueries(ds) - ds.nclasses + 1} queries, ${cms.size} only.")
-            val tsSize = contaTotal(cms.head._2)
-            if (testSetSize != tsSize) ds.quit("Hits differs from testSetSize!")
-            val v = calculate(ds, cms, tsSize, meas)
+         ds.log(s"$strat $learner $run $fold")
+         if (!ds.areHitsFinished(poolSize, Seq(), strat, learner, run, fold, null, null, completeIt = false, maxQueries(ds) - ds.nclasses + 1)) {
+            ds.log(s"Conf. matrices were not finished for ${strat.abr}/$learner/svm? at pool $run.$fold!")
             acquire()
-            sqls += ds.measureToSQL(meas, v, strat.id, learner, run, fold)
+            sqls += "cancel"
             release()
+         } else ds.getMeasure(meas, strat, learner, run, fold) match {
+            case Some(_) => ds.log(s"Measure $meas already calculated for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+            case None =>
+               val cms = ds.getCMs(strat, learner, run, fold, maxQueries(ds) - ds.nclasses + 1) //pega todas CMs
+               if (cms.size < maxQueries(ds) - ds.nclasses + 1) ds.quit(s"Couldn't take at least ${maxQueries(ds) - ds.nclasses + 1} queries, ${cms.size} only.")
+               val tsSize = contaTotal(cms.head._2)
+               if (testSetSize != tsSize) ds.quit("Hits differs from testSetSize!")
+               val v = calculate(ds, cms, tsSize, meas)
+               acquire()
+               sqls += ds.measureToSQL(meas, v, strat.id, learner, run, fold)
+               release()
+         }
       }
-   }
 
    def datasetFinished(ds: Ds) {
       if (!ds.isClosed) {

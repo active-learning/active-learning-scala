@@ -42,14 +42,14 @@ object rnd extends Exp {
       val queries = if (ds.areQueriesFinished(poolSize, RandomSampling(pool), run, fold, null, null, completeIt = false, poolSize)) {
          ds.log(s"Queries already done for rnd at pool $run.$fold. Retrieving from disk.")
          ds.queries(RandomSampling(pool), run, fold, null, null)
-      } else ds.writeQueries(RandomSampling(pool), run, fold, Int.MaxValue)
+      } else ds.writeQueries(RandomSampling(pool), run, fold, Int.MaxValue) //pode dar conflito de insercao aqui se existir incompleto, pois queries agora retorna false, nao mais quit()
 
       //hits
       ds.log("hits")
       val hitspoolsize = poolSize - ds.nclasses + 1
       Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()) foreach { learner =>
          if (ds.areHitsFinished(poolSize, testSet, RandomSampling(pool), learner, run, fold, null, null, completeIt = false, hitspoolsize)) ds.log(s"Hits done for rnd/$learner at pool $run.$fold.")
-         else ds.writeHits(poolSize, testSet, queries.toVector, RandomSampling(pool), run, fold, hitspoolsize)(learner)
+         else ds.writeHits(poolSize, testSet, queries.toVector, RandomSampling(pool), run, fold, hitspoolsize)(learner) //pode dar conflito de insercao aqui se existir incompleto, pois queries agora retorna false, nao mais quit()
       }
    }
 

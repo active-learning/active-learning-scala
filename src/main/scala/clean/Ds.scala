@@ -173,7 +173,10 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                      }
                      batchWrite(sqls.toList)
                      sqls.size + q == expectedAmount
-                  } else quit(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${strat.learner}. |U|=$poolSize. But not allowed to complete it...")
+                  } else {
+                     log(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${strat.learner}. |U|=$poolSize. But not allowed to complete it...", 20)
+                     false
+                  }
                }
             }
       }
@@ -226,12 +229,20 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                   case (s, l) if s == 0 => hs match {
                      case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
                      case nhs if nhs >= ExpectedHitsForNormalPool => true
-                     case nhs => if (completeIt) completa() else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...")
+                     case nhs => if (completeIt) completa()
+                     else {
+                        log(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...", 20)
+                        false
+                     }
                   }
                   case (s, l) if s > 0 => hs match {
                      case 0 => false
                      case nhs if nhs >= ExpectedHitsForNormalPool => true
-                     case nhs => if (completeIt) completa() else quit(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...")
+                     case nhs => if (completeIt) completa()
+                     else {
+                        log(s"$hs previous rnd hits should be at least $ExpectedHitsForNormalPool.\n ExpectedHitsForFullPool:$ExpectedHitsForFullPool s=$strat l=$learner. But not allowed to complete ...", 20)
+                        false
+                     }
                   }
                }
          }
@@ -442,6 +453,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       write(measureToSQL(measure, value, strategy.id, learner, run, fold))
    }
 
+
+   //todo: completar abreviacoes pra novas estrats (apenas para pretty print e evitar unmatched key)
    lazy val abr = Seq(RandomSampling(Seq()),
       ClusterBased(Seq()),
       Uncertainty(NoLearner(), Seq()),
@@ -462,6 +475,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       SVMmulti(Seq(), "SELF_CONF"),
       SVMmulti(Seq(), "KFF"),
       SVMmulti(Seq(), "BALANCED_EE"),
+      SVMmulti(Seq(), "BALANCED_EEw"),
       SVMmulti(Seq(), "SIMPLE")
    ).map(s => s.id -> s.abr).toMap
 }
