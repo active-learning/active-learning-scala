@@ -80,9 +80,9 @@ case class SVMmulti(pool: Seq[Pattern], algorithm0: String, debug: Boolean = fal
 
    private def fdp(hist: Array[Double], n: Int) = {
       val ar = Array.fill(nclasses)(0d)
-      var c = 0
+      var c = 1
       ar(0) = hist(0)
-      while (c + 1 < nclasses) {
+      while (c < nclasses) {
          ar(c) = ar(c - 1) + hist(c)
          c += 1
       }
