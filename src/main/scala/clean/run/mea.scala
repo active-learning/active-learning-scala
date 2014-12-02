@@ -46,7 +46,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
                if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
                   ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
                   //            sqls += "cancel"
-               } else if (strat.id >= 17 && strat.id <= 21) storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(strat.learner)
+               } else if (strat.id >= 17 && strat.id <= 21 || strat.id == 969) storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)(strat.learner)
                else allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size, meas)
             }
             allLearners() foreach { learner =>
