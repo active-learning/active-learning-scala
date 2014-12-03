@@ -84,7 +84,7 @@ case class accBalAt(budget0: Int) extends Measure() {
 case class ALCkappa(budget0: Int) extends Measure {
    ???
 
-   def id(ds: Ds) = 1300000 + budget(ds)
+   def id(ds: Ds) = 1700000 + budget(ds)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = {
       val vs = cms.take(budget(ds) - ds.nclasses + 1).values
@@ -94,9 +94,7 @@ case class ALCkappa(budget0: Int) extends Measure {
 }
 
 case class kappaAt(budget0: Int) extends Measure() {
-   ???
-
-   def id(ds: Ds) = 1400000 + budget(ds)
+   def id(ds: Ds) = 1800000 + budget(ds)
 
    def calc(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int) = accBal(cms.take(budget(ds) - ds.nclasses + 1).last._2)
 }

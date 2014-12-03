@@ -60,6 +60,30 @@ trait CM extends Log {
 
    def accBal(cms: Array[Array[Int]]) = accPorClasse(cms).sum / cms.head.size
 
+   def totPerLin(cms: Array[Array[Int]]) = cms.map(_.sum)
+
+   def totPerCol(cms: Array[Array[Int]]) = totPerLin(cms.transpose)
+
+   def kappa(cm: Array[Array[Int]]) = {
+      val n = contaTotal(cm)
+      val v1 = totPerCol(cm)
+      val v2 = totPerLin(cm)
+      val u1 = v1.map(_ / n)
+
+      Divido cada um dos 6 números pelo total de exemplos e obtenho 2 novos vetores:
+         u1 = v1 / tot = (pCol1, pCol2, pCol3) //u1: proporções das predições por classe
+      u2 = v2 / tot = (pLin1, pLin2, pLin3) //u2: proporções das classes
+
+      Faço o produto vetorial sem sentido macumbinha:
+         dot = u1.u2
+
+      Acochambro pra evitar dividir por zero:
+         pc = (dot == 1) ? 0: dot
+
+      Capo o traste:
+         kappa =[(sumDiag / tot) - pc] /(1 - pc)
+   }
+
   def accPorClasse(m: Array[Array[Int]]) = {
     m.zipWithIndex map { case (li, idx) =>
       val s = li.sum.toDouble

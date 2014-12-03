@@ -62,12 +62,12 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
          ds.close()
          //            "asd" -> sres
          (ds.dataset + l.toString.take(3)) -> sres
-      }).sortBy(x => x._2.count(_._1 == -1)).reverse
+      }).sortBy(x => x._2.count(_._1 == -1))
       val res = res0.filter(!_._2.contains(-1d, -1d))
       println(s"")
       println(s"")
       println(s"")
-      res0.grouped(100).foreach { res1 =>
+      res0.grouped(280).foreach { res1 =>
          StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", "ALCACcBal", 7)
       }
       println(s"")
