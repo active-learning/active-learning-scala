@@ -26,23 +26,23 @@ import util.{ALDatasets, Datasets}
 import scala.util.Random
 
 case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
-  extends StrategyWithLearnerAndMaps with MarginMeasure {
-  override val toString = "Density Weighted TU a" + alpha + " b" + beta + " (" + distance_name + ")"
-  val abr = "DWTU" + distance_name.take(3)
+   extends StrategyWithLearnerAndMaps with MarginMeasure {
+   override val toString = "Density Weighted TU a" + alpha + " b" + beta + " (" + distance_name + ")"
+   val abr = "DWTU" + distance_name.take(3) + beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 6 + (100000 * (1 - alpha)).toInt
       case "cheb" => 8 + (100000 * (1 - alpha)).toInt
       case "maha" => 9 + (100000 * (1 - alpha)).toInt
       case "manh" => 7 + (100000 * (1 - alpha)).toInt
-  } else throw new Error("Parametros inesperados para DWTU.")
+   } else throw new Error("Parametros inesperados para DWTU.")
 
-  protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    val selected = unlabeled maxBy {
-      x =>
-        val similarityU = mapU(x) / mapU.size.toDouble
-        val similarityL = mapL(x) / mapL.size.toDouble
-        (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similarityL, alpha)
-    }
-    selected
-  }
+   protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val selected = unlabeled maxBy {
+         x =>
+            val similarityU = mapU(x) / mapU.size.toDouble
+            val similarityL = mapL(x) / mapL.size.toDouble
+            (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similarityL, alpha)
+      }
+      selected
+   }
 }
