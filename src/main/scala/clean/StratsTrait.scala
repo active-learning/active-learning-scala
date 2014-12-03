@@ -41,10 +41,10 @@ trait StratsTrait {
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = Stream[Strategy](
       //8s b
-      Uncertainty(learner, pool)
-      , Entropy(learner, pool)
-      , Margin(learner, pool)
-      , DensityWeighted(learner, pool, 1, "eucl")
+      //      Uncertainty(learner, pool)
+      //      , Entropy(learner, pool)
+      //      , Margin(learner, pool)
+      DensityWeighted(learner, pool, 1, "eucl")
       , DensityWeighted(learner, pool, 0.5, "eucl")
 
       //4s
@@ -54,9 +54,9 @@ trait StratsTrait {
       , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5)
 
       //6s
-      //      ,DensityWeightedTrainingUtility(learner, pool, "eucl")
+      , DensityWeightedTrainingUtility(learner, pool, "eucl")
       //      , DensityWeightedTrainingUtility(learner, pool, "manh")
-      //      , DensityWeightedLabelUtility(learner, pool, "eucl")
+      , DensityWeightedLabelUtility(learner, pool, "eucl")
       //      , DensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5)
       //      , DensityWeightedTrainingUtility(learner, pool, "manh", 0.5, 0.5)
       //      , DensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5)

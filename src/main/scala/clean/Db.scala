@@ -152,7 +152,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    }
 
    def test(sql: String) = if (isClosed) {
-      log(s"[$sql]\nReopening database...")
+      log(s"[$sql]\n[Re]opening database...")
       open()
    }
 
