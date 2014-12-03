@@ -32,29 +32,29 @@ trait StratsTrait {
 
    def stratsSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
       //8s a
-      Majoritary(pool) //21
-      , RandomSampling(pool) //0
-      , ClusterBased(pool) //1
+      //      Majoritary(pool) //21
+      //      , RandomSampling(pool) //0
+      //      , ClusterBased(pool) //1
    )
 
    def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       //8s b
-      Uncertainty(learner, pool) //2
-      , Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeighted(learner, pool, 0.5, "eucl") //5005
+      //      Uncertainty(learner, pool) //2
+      //      , Entropy(learner, pool) //4
+      //      , Margin(learner, pool) //3
+      //      , DensityWeighted(learner, pool, 1, "eucl") //5
+      //      , DensityWeighted(learner, pool, 0.5, "eucl") //5005
 
       //4s
-      , AgDensityWeightedTrainingUtility(learner, pool, "eucl") //600
-      , AgDensityWeightedLabelUtility(learner, pool, "eucl") //360
-      , AgDensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5) //650
-      , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5) //410
+      //      , AgDensityWeightedTrainingUtility(learner, pool, "eucl") //600
+      //      , AgDensityWeightedLabelUtility(learner, pool, "eucl") //360
+      //      , AgDensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5) //650
+      //      , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5) //410
 
       //6s
-      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+      DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , DensityWeightedLabelUtility(learner, pool, "eucl") //36
       , DensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5) //50006
