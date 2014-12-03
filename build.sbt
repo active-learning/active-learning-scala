@@ -2,7 +2,7 @@ name := "als"
 
 //version := "200+22s7l"
 
-version := "tudo"
+version := "meakappa+accbal"
 
 scalaVersion := "2.10.4"
 
