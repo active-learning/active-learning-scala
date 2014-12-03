@@ -34,7 +34,7 @@ object pool2arff extends Exp with LearnerTrait with StratsTrait {
       val exemplos = if (normalizar) fpool else pool
       val header = exemplos.head.dataset().toString.split("\n").takeWhile(!_.contains("@data")).mkString("\n")
       val data = exemplos.mkString("\n")
-      val fw = new FileWriter(s"$ds-r$run-f$fold-normalized-pool.arff")
+      val fw = new FileWriter(s"$ds-r$run-f$fold-${if (normalizar) "normalized-" else ""}pool.arff")
       fw.write(header + "\n@data\n" + data)
       fw.close()
       //      println(header + "\n@data\n" + data)
