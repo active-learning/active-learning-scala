@@ -36,17 +36,17 @@ trait LearnerTrait {
    )
 
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-      NB()
-      , KNNBatch(5, "eucl", pool, weighted = true)
-      , VFDT()
-      , SVMLib(learnerSeed)
-      , C45()
+      NB() //1
+      , KNNBatch(5, "eucl", pool, weighted = true) //2
+      , VFDT() //4
+      , SVMLib(learnerSeed) //5
+      , C45() //3
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      IELM(learnerSeed)
-      , CIELM(learnerSeed)
-      //      , ninteraELM(learnerSeed)
+      IELM(learnerSeed) //6
+      , CIELM(learnerSeed) //8
+      //            , ninteraELM(learnerSeed)//11
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
