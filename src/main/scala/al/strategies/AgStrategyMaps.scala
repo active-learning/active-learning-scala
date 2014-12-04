@@ -48,7 +48,9 @@ trait AgStrategyMaps extends Strategy with DistanceMeasure {
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Pattern
 
-   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = ???
+   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
+      ???
+   }
 }
 
 

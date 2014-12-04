@@ -36,7 +36,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          ds.startbeat()
 
          //rnd clu svm maj / lff lfd
-         stratsSemLearnerExterno(pool).zip(stratsSemLearnerExterno(fpool)) foreach { case (strat, fstrat) =>
+         stratsSemLearnerExterno_FilterFree(pool).zip(stratsSemLearnerExterno_FilterFree(fpool)) foreach { case (strat, fstrat) =>
             ds.log(s"$strat ...")
             //queries
             val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -63,6 +63,23 @@ object all extends Exp with LearnerTrait with StratsTrait {
                }
             }
             ds.log(s"$strat ok.")
+         }
+
+         //agDW* / lff lfd
+         stratsSemLearnerExterno_FilterDependent(fpool) foreach { fstrat =>
+            ds.log(s"$fstrat ...")
+            //queries
+            val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
+               ds.log(s"agDW* fQueries  done for ${fstrat.abr}/${fstrat.learner} at pool $run.$fold. Retrieving from disk.")
+               ds.queries(fstrat, run, fold, binaf, zscof)
+            } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
+            //hits
+            learnersFilterFree(fpool, learnerSeed) ++ learnersFilterDependent(learnerSeed) foreach { flearner =>
+               ds.log(s"agDW* hits [$fstrat $flearner] at pool $run.$fold.", 20)
+               if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
+               else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
+            }
+            ds.log(s"$fstrat ok.")
          }
 
          //restoSemF / lff

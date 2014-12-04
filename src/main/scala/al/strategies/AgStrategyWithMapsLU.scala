@@ -19,10 +19,11 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.Learner
+import ml.classifiers.{NoLearner, Learner}
 import ml.models.Model
 
-trait AgStrategyWithLearnerAndMapsLU extends Strategy with DistanceMeasure {
+trait AgStrategyWithMapsLU extends Strategy with DistanceMeasure {
+   val learner = NoLearner()
 
    protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val initial_mapU = unlabeled.map(x => x -> unlabeled.diff(Seq(x)).map(u => 1d / (1 + d(x, u))).sum).toMap
@@ -55,13 +56,7 @@ trait AgStrategyWithLearnerAndMapsLU extends Strategy with DistanceMeasure {
    protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]): Pattern
 
    protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
-      val current_model = learner.build(labeled)
-      plot.zera()
-      for (p <- distinct_pool) plot.bola(p.x, p.y, current_model.predict(p).toInt, 9)
-      for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-      if (selected != null) plot.bola(selected.x, selected.y, -1, 25)
-      plot.mostra()
-      Thread.sleep((delay * 1000).round.toInt)
+      ???
    }
 }
 
