@@ -31,39 +31,29 @@ trait StratsTrait {
    def stratsemLearnerExterno(pool: Seq[Pattern] = Seq()) = stratsSemLearnerExterno(pool)
 
    def stratsSemLearnerExterno(pool: Seq[Pattern]) = List[Strategy](
-      //8s a
       Majoritary(pool) //21
       , RandomSampling(pool) //0
       , ClusterBased(pool) //1
+      , AgDensityWeightedTrainingUtility(pool, "eucl") //600
+      , AgDensityWeightedLabelUtility(pool, "eucl") //360
    )
 
    def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      //8s b
       Uncertainty(learner, pool) //2
       , Entropy(learner, pool) //4
       , Margin(learner, pool) //3
+
       , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeighted(learner, pool, 0.5, "eucl") //5005
 
-      //4s
-      , AgDensityWeightedTrainingUtility(learner, pool, "eucl") //600
-      , AgDensityWeightedLabelUtility(learner, pool, "eucl") //360
-      , AgDensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5) //650
-      , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5) //410
-
-      //6s
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , DensityWeightedLabelUtility(learner, pool, "eucl") //36
-      , DensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5) //50006
-      , DensityWeightedTrainingUtility(learner, pool, "manh", 0.5, 0.5) //50007
-      , DensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5) //86
-
 
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
+
       , new SGmulti(learner, pool, "consensus") //14
       , new SGmulti(learner, pool, "majority") //15
    )
@@ -71,7 +61,36 @@ trait StratsTrait {
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , DensityWeightedLabelUtility(learner, pool, "maha") //39
-      , DensityWeightedTrainingUtility(learner, pool, "maha", 0.5, 0.5) //50009
-      , DensityWeightedLabelUtility(learner, pool, "maha", 0.5, 0.5) //89
+      , AgDensityWeightedTrainingUtility(learner, pool, "maha") //900
+      , AgDensityWeightedLabelUtility(learner, pool, "maha") //390
    )
 }
+
+/* ids:
+      Majoritary(pool) //21
+      , RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      Uncertainty(learner, pool) //2
+      , Entropy(learner, pool) //4
+      , Margin(learner, pool) //3
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , DensityWeighted(learner, pool, 0.5, "eucl") //5005
+      , AgDensityWeightedTrainingUtility(learner, pool, "eucl") //600
+      , AgDensityWeightedLabelUtility(learner, pool, "eucl") //360
+      , AgDensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5) //650
+      , AgDensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5) //410
+      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      , DensityWeightedLabelUtility(learner, pool, "eucl") //36
+      , DensityWeightedTrainingUtility(learner, pool, "eucl", 0.5, 0.5) //50006
+      , DensityWeightedTrainingUtility(learner, pool, "manh", 0.5, 0.5) //50007
+      , DensityWeightedLabelUtility(learner, pool, "eucl", 0.5, 0.5) //86
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      , new SGmulti(learner, pool, "consensus") //14
+      , new SGmulti(learner, pool, "majority") //15
+      DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , DensityWeightedLabelUtility(learner, pool, "maha") //39
+      , DensityWeightedTrainingUtility(learner, pool, "maha", 0.5, 0.5) //50009
+      , DensityWeightedLabelUtility(learner, pool, "maha", 0.5, 0.5) //89
+  */

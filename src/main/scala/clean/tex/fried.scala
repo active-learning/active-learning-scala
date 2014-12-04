@@ -35,7 +35,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
 
       val res0 = (for {
          dataset <- datasets.toList
-         l <- learners(learnersStr)
+         l <- learners(learnersStr).par
          measure <- allMeasures(maxQueries0)
       } yield {
          val ds = Ds(dataset, readOnly = true)
