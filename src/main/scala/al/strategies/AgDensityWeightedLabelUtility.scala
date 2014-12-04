@@ -27,10 +27,10 @@ case class AgDensityWeightedLabelUtility(pool: Seq[Pattern], distance_name: Stri
    override val toString = "Density Weighted AgLU a" + alpha + " b" + beta + " (" + distance_name + ")"
    val abr = "DWAgLU" + distance_name.take(3) + beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 360 + (100 * (1 - alpha)).toInt
-      case "cheb" => 380 + (100 * (1 - alpha)).toInt
-      case "maha" => 390 + (100 * (1 - alpha)).toInt
-      case "manh" => 370 + (100 * (1 - alpha)).toInt
+      case "eucl" => 361 + (100 * (1 - alpha)).toInt
+      case "cheb" => 381 + (100 * (1 - alpha)).toInt
+      case "maha" => 391 + (100 * (1 - alpha)).toInt
+      case "manh" => 371 + (100 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para DWAgLU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
