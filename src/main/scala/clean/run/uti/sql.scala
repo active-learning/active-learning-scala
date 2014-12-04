@@ -22,22 +22,22 @@ package clean.run.uti
 import clean.{AppWithUsage, Ds}
 
 object sql extends AppWithUsage {
-  lazy val arguments = superArguments ++ List("sql")
-  val context = "sql"
-  run()
+   lazy val arguments = superArguments ++ List("sql")
+   val context = "sql"
+   run()
 
-  override def run() = {
-    super.run()
-    datasets foreach { dataset =>
-       val ds = Ds(dataset, readOnly = false)
-      ds.open()
-      sql.split(";").foreach { s =>
-         val sq = s.trim.toLowerCase
-         if (sq.startsWith("alter") || sq.startsWith("insert") || sq.startsWith("update") || sq.startsWith("delete") || sq.startsWith("vacuum") || sq.startsWith(".pragma")) ds.write(sq)
-        else println(s"${ds.read(sq)}")
+   override def run() = {
+      super.run()
+      datasets foreach { dataset =>
+         val ds = Ds(dataset, readOnly = false)
+         ds.open()
+         sql.split(";").foreach { s =>
+            val sq = s.trim.toLowerCase
+            if (sq.startsWith("alter") || sq.startsWith("insert") || sq.startsWith("update") || sq.startsWith("delete") || sq.startsWith("vacuum") || sq.startsWith(".pragma")) ds.write(sq)
+            else println(s"${ds.read(sq)}")
+         }
+         ds.close()
       }
-      ds.close()
-    }
-    justQuit("Datasets prontos.\n" + args.toList)
-  }
+      justQuit("Datasets prontos.\n" + args.toList)
+   }
 }
