@@ -32,8 +32,8 @@ object sql extends AppWithUsage {
        val ds = Ds(dataset, readOnly = false)
       ds.open()
       sql.split(";").foreach { s =>
-        val sq = s.trim
-        if (sq.startsWith("insert") || sq.startsWith("update") || sq.startsWith("delete") || sq.startsWith("vacuum") || sq.startsWith(".pragma")) ds.write(sq)
+         val sq = s.trim.toLowerCase
+         if (sq.startsWith("alter") || sq.startsWith("insert") || sq.startsWith("update") || sq.startsWith("delete") || sq.startsWith("vacuum") || sq.startsWith(".pragma")) ds.write(sq)
         else println(s"${ds.read(sq)}")
       }
       ds.close()
