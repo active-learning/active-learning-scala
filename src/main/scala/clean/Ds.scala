@@ -185,7 +185,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount0: Int) = {
       val ExpectedHitsForFullPool = poolSize - nclasses + 1
       val expectedAmount = math.min(ExpectedHitsForFullPool, expectedAmount0)
-      if (learner.id != strat.learner.id && strat.id > 1 && !Seq(21, 600, 360, 900, 390).contains(strat.id)) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
+      if (learner.id != strat.learner.id && strat.id > 1 && !Seq(211, 601, 361, 901, 391).contains(strat.id)) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
       else if (!areQueriesFinished(poolSize, strat, run, fold, null, null, completeIt = false, expectedAmount + nclasses - 1)) error(s"Queries must be finished to check hits! |U|=$poolSize")
       else
          poolId(strat, learner, run, fold) match {
@@ -379,14 +379,14 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     * @return
     */
    def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int, h: Int)(learner: Learner) =
-      if (learner.id != strat.learner.id && strat.id > 1 && !Seq(21, 600, 360, 900, 390).contains(strat.id))
+      if (learner.id != strat.learner.id && strat.id > 1 && !Seq(211, 601, 361, 901, 391).contains(strat.id))
          error(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
       else {
          //Apenas agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
          val insertIntoP = poolId(strat, learner, run, fold) match {
-            case Some(pid) => if (strat.id < 2 || Seq(21, 600, 360, 900, 390).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
+            case Some(pid) => if (strat.id < 2 || Seq(211, 601, 361, 901, 391).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
             case None =>
-               if (strat.id < 2 || Seq(21, 600, 360, 900, 390).contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
+               if (strat.id < 2 || Seq(211, 601, 361, 901, 391).contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
                else quit(s"Missing gnostic queries pid for hits.")
          }
 
