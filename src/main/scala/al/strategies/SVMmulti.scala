@@ -18,6 +18,8 @@
 
 package al.strategies
 
+import clean.{CM, Ds}
+import clean.res.accBalAt
 import ml.Pattern
 import ml.classifiers.{NB, SVMLib}
 import svmal.SVMStrategymulti
@@ -114,4 +116,28 @@ case class SVMmulti(pool: Seq[Pattern], algorithm0: String, debug: Boolean = fal
          selected #:: queries_rec(svm, unlabeled.diff(Seq(selected)), labeled :+ selected)
       }
    }
+}
+
+object SVMmultiTest extends App with CM {
+   val context = "SVMmultiTest"
+   val ds = Ds("banana", readOnly = true)
+   val patts = new Random().shuffle(ds.patterns)
+   val (tr, ts) = patts.splitAt(patts.size / 2)
+   val strats = Seq(
+      RandomSampling(tr)
+      , SVMmulti(tr, "BALANCED_EE")
+      , SVMmulti(tr, "BALANCED_EEw")
+      , SVMmulti(tr, "KFF")
+      , SVMmulti(tr, "SIMPLE")
+      , SVMmulti(tr, "SELF_CONF"))
+
+   val l = SVMLib()
+   val accss = (1 to tr.take(100).size) map { qs =>
+      val accs = strats.par.map { x =>
+         accBal(l.build(x.queries.take(qs)).confusion(ts))
+      }
+      accs.mkString(" ")
+   }
+   println(strats.map(_.abr).mkString(" "))
+   accss foreach println
 }

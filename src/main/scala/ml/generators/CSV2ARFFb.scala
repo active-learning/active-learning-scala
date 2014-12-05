@@ -21,6 +21,7 @@ package ml.generators
 import java.io.FileWriter
 
 import al.strategies._
+import clean.CM
 import ml.classifiers._
 import ml.models.ELMModel
 import util.{Datasets, Stat, Tempo}
@@ -88,5 +89,4 @@ object CSV2ARFFbCVTest extends App {
       println(s"$acc $aacc")
       //      println(s"$toTake $acc $aacc")
    }
-
 }
