@@ -53,7 +53,7 @@ trait Strategy extends Log {
    * specially because of the guarantee of encompassing all classes)
    * @return
    */
-  def queries: Stream[Pattern] = firstof_each_class.toStream ++ resume_queries_impl(rest, firstof_each_class)
+  lazy val queries: Stream[Pattern] = firstof_each_class.toStream ++ resume_queries_impl(rest, firstof_each_class)
 
   /**
    * Se estourar o tempo limite,
