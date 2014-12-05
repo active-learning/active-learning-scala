@@ -20,6 +20,7 @@ package ml.generators
 
 import java.io.FileWriter
 
+import al.strategies._
 import ml.classifiers._
 import ml.models.ELMModel
 import util.{Datasets, Stat, Tempo}
@@ -31,7 +32,7 @@ import scala.util.Random
 object CSV2ARFFb extends App {
    val path = "/home/davi/wcs/als/p_results_H3O.csv"
    val (linhaUm, linhas) = Source.fromFile(path).getLines().toList.splitAt(1)
-   val tuplas = linhas.map(x => x.split(",").tail.map(_.toDouble) -> x.split(",")(0))
+   val tuplas = linhas.map(x => x.split(",").tail.map(_.toDouble) -> x.split(",")(0).take(5))
    //   tuplas.take(3) foreach println
    val (descs, preds) = tuplas.unzip
    val labels = preds.distinct.sorted
@@ -49,18 +50,43 @@ object CSV2ARFFb extends App {
 }
 
 object CSV2ARFFbCVTest extends App {
+   def accuracy(hits: Seq[Boolean]) = {
+      val hc = hits.count(_ == true)
+      hc.toDouble / hits.size
+   }
+
    val rnd = new Random(1230)
    val path = "/home/davi/wcs/als/p_results_H3O.csv"
-   val patts = Datasets.arff(path + ".arff").right.get
-   //   val patts = rnd.shuffle(Datasets.arff(path + ".arff").right.get)
-   val hits = Datasets.LOO(patts) { (tr, p) =>
-      //      val learner = C45()
-      val learner = ninteraELM(rnd.nextInt())
-      //      val learner = SVMLib(rnd.nextInt())
-      val model = learner.build(tr)
-      val model = learner.batchBuild(tr)
-      model.hit(p)
+   val patts0 = Datasets.arff(path + ".arff") match {
+      case Right(ps) => ps
+      case Left(str) => println(s"$str"); sys.exit(1)
    }
-   val hitsc = hits.count(_ == true).toDouble
-   println(s"acc (${hits.size} exemplos; $hitsc}):${hitsc / hits.size}")
+   val f = Datasets.zscoreFilter(patts0)
+
+   println(s"t acc aacc")
+   1 to patts0.size foreach { toTake =>
+      val bothhits = Datasets.LOO(patts0) { (tr0, p) =>
+         val tr = tr0 //Datasets.applyFilter(f)(tr0)
+
+         val learner = KNNBatch(1, "eucl", tr, weighted = true)
+         //         val learner = NBBatch()
+
+         val amostra = Entropy(learner, rnd.shuffle(tr0)).queries.take(toTake)
+         val model = learner.build(amostra)
+
+         val aamostra2 = ExpErrorReduction(learner, rnd.shuffle(tr0), "entropy", 35).queries.take(toTake)
+         val amodel2 = learner.build(aamostra2)
+
+         //         val aamostra = AgDensityWeightedLabelUtility(tr, "maha").queries.take(toTake)
+         //         val amodel = alearner.build(aamostra)
+
+         model.hit(p) -> amodel2.hit(p)
+      }
+      val (hits, ahits) = bothhits.unzip
+      val acc = accuracy(hits)
+      val aacc = accuracy(ahits)
+      println(s"$acc $aacc")
+      //      println(s"$toTake $acc $aacc")
+   }
+
 }
