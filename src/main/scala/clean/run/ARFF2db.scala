@@ -1,8 +1,6 @@
 package clean.run
 
-import java.io.File
-
-import clean.{Global, AppWithUsage}
+import clean.{AppWithUsage, Global}
 import util.Datasets
 import weka.core.Instances
 import weka.core.converters.DatabaseSaverCustomized
