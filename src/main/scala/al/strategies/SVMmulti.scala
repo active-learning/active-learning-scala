@@ -30,22 +30,24 @@ import scala.util.Random
 /**
  * One SVM per class; queries by round-robin.
  * @param pool
- * @param algorithm0
+ * @param algorithm
  * @param debug
  */
-case class SVMmulti(pool: Seq[Pattern], algorithm0: String, debug: Boolean = false) extends Strategy {
-   override val toString = s"SVMmulti ($algorithm0)"
-   val abr = "SVM" + algorithm0.take(3).toLowerCase
+case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
+   override val toString = s"SVMmulti ($algorithm)"
+   val abr = "SVM" + algorithm.take(3).toLowerCase
 
    def learner = SVMLib()
 
    //just to visual tests and to be referenced in db
-   val algorithm = if (algorithm0 == "BALANCED_EEw") "BALANCED_EE" else algorithm0
-   val id = algorithm0 match {
-      case "SIMPLE" => 17
-      case "SELF_CONF" => 18
-      case "KFF" => 19
-      case "BALANCED_EE" => 20
+   val id = algorithm match {
+      //      case "SIMPLE" => 17
+      //      case "SELF_CONF" => 18
+      //      case "KFF" => 19
+      //      case "BALANCED_EE" => 20
+      case "SIMPLEw" => 966
+      case "SELF_CONFw" => 967
+      case "KFFw" => 968
       case "BALANCED_EEw" => 969
    }
 
@@ -97,10 +99,17 @@ case class SVMmulti(pool: Seq[Pattern], algorithm0: String, debug: Boolean = fal
       if (unlabeled.isEmpty) Stream.Empty
       else {
          val n = labeled.size
-         val accps = (0 until nclasses).zip(fdp(hist(labeled.toArray, n) map (x => 1 - x / n.toDouble), n))
+         val ps = hist(labeled.toArray, n) map (x => x / n.toDouble)
+         val ps_1 = ps map (x => 1 - x)
+         val pscompl = ps_1 map (_ / ps_1.sum)
+         val fdpscompl = fdp(pscompl, n)
+         //         println(ps.mkString(" "))
+         //         println(ps_1.mkString(" "))
+         //         println(pscompl.mkString(" "))
+         //         println(fdpscompl.mkString(" "))
          val sorteio = rnd.nextFloat()
-         val chosen = accps.dropWhile(_._2 < sorteio).head._1
-
+         val chosen = fdpscompl.zipWithIndex.dropWhile(_._1 < sorteio).head._2
+         //         println(s"\n ==== $chosen ====== $sorteio")
          if (debug) visual_test(null, unlabeled, labeled)
 
          val id = svm(chosen).nextQuery()
@@ -125,15 +134,14 @@ object SVMmultiTest extends App with CM {
    val (tr, ts) = patts.splitAt(patts.size / 2)
    val strats = Seq(
       RandomSampling(tr)
-      , SVMmulti(tr, "BALANCED_EE")
       , SVMmulti(tr, "BALANCED_EEw")
-      , SVMmulti(tr, "KFF")
-      , SVMmulti(tr, "SIMPLE")
-      , SVMmulti(tr, "SELF_CONF"))
+      , SVMmulti(tr, "KFFw")
+      , SVMmulti(tr, "SIMPLEw")
+      , SVMmulti(tr, "SELF_CONFw")).par
 
    val l = SVMLib()
    val accss = (1 to tr.take(100).size) map { qs =>
-      val accs = strats.par.map { x =>
+      val accs = strats.map { x =>
          accBal(l.build(x.queries.take(qs)).confusion(ts))
       }
       accs.mkString(" ")

@@ -36,14 +36,14 @@ public class SVMStrategy {
         unlabeled = svm.convertData(rest);
         labeled = svm.convertData(firstOfEachClass, unlabeled);
         switch (strategy) {
-            case "SIMPLE":
+            case "SIMPLEw":
                 /*
                     Only strat immutable here.
                     Tong
                  */
                 learner = new SIMPLE();
                 break;
-            case "SELF_CONF":
+            case "SELF_CONFw":
                 /*
                  * This implementation is an SVM-based variant of SELF-CONF.
                  * For SVM, probabilistic estimates are obtained in a standard way, using logistic regression.
@@ -69,7 +69,7 @@ public class SVMStrategy {
                  */
                 learner = new SELF_CONF();
                 break;
-            case "KFF":
+            case "KFFw":
                 /*
                     A simple active-learning heuristic based on “farthest-first” traversal sequences
                     in kernel space. Farthest-first (FF) sequences have been previously used for computing provably
@@ -94,7 +94,7 @@ public class SVMStrategy {
                     */
                 learner = new KFF();
                 break;
-            case "BALANCED_EE":
+            case "BALANCED_EEw":
                 /*
                  * Parece que é o sucessor do MAB3.
                  * The idea is similar to COMB (by Luz et. al.). We use two learners:
