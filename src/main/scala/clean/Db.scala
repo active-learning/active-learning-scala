@@ -93,7 +93,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
 
    private def heartbeat(r: Int, f: Int) {
       val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
-      write(s"insert into l set values($r,$f,'$id','$now')")
+      write(s"update l set r=$r, f=$f, u='$id', t='$now'")
    }
 
    //   private def heartbeat() {
