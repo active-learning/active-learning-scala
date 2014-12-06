@@ -37,12 +37,14 @@ trait StratsTrait {
       , RandomSampling(pool) //0
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      , AgDensityWeightedLabelUtility(pool, "eucl") //361
+      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361
+      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
       AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , AgDensityWeightedLabelUtility(pool, "maha") //391
+      , AgDensityWeightedLabelUtility1(pool, "maha") //66391
+      , AgDensityWeightedLabelUtility2(pool, "maha") //391
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](

@@ -19,19 +19,17 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.Learner
-import ml.models.Model
 
-case class AgDensityWeightedLabelUtility(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
+case class AgDensityWeightedLabelUtility1(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends AgStrategyWithMapsLU with MarginMeasure {
-   override val toString = "Density Weighted AgLU a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "DWAgLU" + distance_name.take(3) + beta
+   override val toString = "Density Weighted AgLU1 a" + alpha + " b" + beta + " (" + distance_name + ")"
+   val abr = "DWAgLU1" + distance_name.take(3) + beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 361 + (100 * (1 - alpha)).toInt
-      case "cheb" => 381 + (100 * (1 - alpha)).toInt
-      case "maha" => 391 + (100 * (1 - alpha)).toInt
-      case "manh" => 371 + (100 * (1 - alpha)).toInt
-   } else throw new Error("Parametros inesperados para DWAgLU.")
+      case "eucl" => 66361 + (100 * (1 - alpha)).toInt
+      case "cheb" => 66381 + (100 * (1 - alpha)).toInt
+      case "maha" => 66391 + (100 * (1 - alpha)).toInt
+      case "manh" => 66371 + (100 * (1 - alpha)).toInt
+   } else throw new Error("Parametros inesperados para DWAgLU1.")
 
    protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
       val selected = unlabeled maxBy { x =>
@@ -42,12 +40,18 @@ case class AgDensityWeightedLabelUtility(pool: Seq[Pattern], distance_name: Stri
       selected
    }
 
+   /**
+    * Logica da coisa: nenhum rótulo pode estar perto demais
+    * e basta um rótulo bem longe para que ocorra a consulta.
+    * @param mapsL
+    * @param patt
+    * @param hist
+    * @return
+    */
    def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern, hist: Seq[Int]) = {
-      val tot = hist.sum
-      mapsL.zipWithIndex.map { case (m, lab) =>
+      math.pow(mapsL.zipWithIndex.map { case (m, lab) =>
          val n = hist(lab).toDouble
-         val p = n / tot
-         math.pow(m(patt) / n, p)
-      }.product
+         m(patt) / n
+      }.product, 1d / nclasses)
    }
 }
