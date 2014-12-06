@@ -33,6 +33,15 @@ import scala.collection.mutable
  * Cada instancia desta classe representa um ML dataset.
  */
 case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM {
+   def isFinished(Budget: Int) = read(s"select b from f") match {
+      case List(Vector(Budget)) => true
+      case _ => false
+   }
+
+   def markAsFinished(budget: Int): Unit = {
+      write(s"insert into f values ($budget)")
+   }
+
    override lazy val toString = dataset
    override val context = dataset
    lazy val patterns = fetchPatterns("i order by id asc")
@@ -94,6 +103,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       //    write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) );")
       //    write("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT, UNIQUE (s, l, r, f) ON CONFLICT ROLLBACK ); ")
       //    write("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ")
+      //    write("CREATE TABLE f ( b INT, PRIMARY KEY (b) ); ")
       //    //    write("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ")
    }
 
