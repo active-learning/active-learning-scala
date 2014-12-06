@@ -23,16 +23,22 @@ import clean._
 import ml.Pattern
 import weka.filters.Filter
 
-object all extends Exp with LearnerTrait with StratsTrait {
+object all extends Exp with LearnerTrait with StratsTrait with Lock {
    val context = "allApp"
    val arguments = superArguments
    val ignoreNotDone = false
+   var outroProcessoVaiTerminarEsteDataset = false
    run()
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
       if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
       //      else if (ds.isAliveByOtherJob()) ds.log("Outro job está all-izando este dataset. Skipping all' for this pool...", 30)
-      else if (ds.isAliveByOtherJob(run, fold)) ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
+      else if (ds.isAliveByOtherJob(run, fold)) {
+         acquire()
+         outroProcessoVaiTerminarEsteDataset = true
+         release()
+         ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
+      }
       else {
          //         ds.startbeat()
          ds.startbeat(run, fold)
@@ -140,9 +146,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
       }
    }
 
-   def datasetFinished(ds: Ds) = {
-      ds.markAsFinished(maxQueries(ds))
-   }
+   def datasetFinished(ds: Ds) = if (!outroProcessoVaiTerminarEsteDataset) ds.markAsFinished(maxQueries(ds))
 
    def isAlreadyDone(ds: Ds) = ds.isFinished(maxQueries(ds))
 
