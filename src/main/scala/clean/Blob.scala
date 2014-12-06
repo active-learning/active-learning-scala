@@ -19,27 +19,52 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait Blob {
-  def confusionToBlob(m: Array[Array[Int]]) = shrinkToBytes(m.flatten)
+   /**
+    * limits for values: [-4; 4]
+    * @param m
+    * @return
+    */
+   def doublesTobdString(m: Seq[Double]) = if (m.exists(x => x < -4 || x > 4)) {
+      println(s"${m.toList}\nfora do intervalo [-4;4] na conversão de valores double para string!")
+      sys.exit(1)
+   } else m.map(x => "%5.4f".format(x + 4).replace(".", "")).mkString
 
-  def shrinkToBytes(numbers: Seq[Int], bits: Int = 12) = {
-    val binary = numbers flatMap { num =>
-      val str32bit = Integer.toBinaryString(num)
-      val str12bit = str32bit.reverse.padTo(12, 0).reverse
-      str12bit
-    }
-    val n = binary.size
-    val pad8bit = binary.reverse.padTo(n + (8 - (n % 8)), 0).reverse
-    val r = BaseConverter.fromBinary(pad8bit.mkString)
-    r
-  }
+   def bdstringToDoubles(s: String) = s.grouped(5).map(x => (x.head + "." + x.tail).toDouble - 4).toVector
 
-  def blobToConfusion(b: Array[Byte], nclasses: Int) = stretchFromBytes(b).grouped(nclasses).map(_.toArray).toArray
+   /**
+    * lossless
+    * @param numbers
+    * @param bits
+    * @return
+    */
+   def shrinkToBytes(numbers: Seq[Int], bits: Int = 12) = {
+      val binary = numbers flatMap { num =>
+         val str32bit = Integer.toBinaryString(num)
+         val str12bit = str32bit.reverse.padTo(bits, 0).reverse
+         str12bit
+      }
+      val n = binary.size
+      val pad8bit = binary.reverse.padTo(n + (8 - (n % 8)), 0).reverse
+      val r = BaseConverter.fromBinary(pad8bit.mkString)
+      r
+   }
 
-  def stretchFromBytes(bytes: Array[Byte], bits: Int = 12) = {
-    val a = BaseConverter.toBinary(bytes)
-    val b = a.drop(a.size % 12)
-    val c = b.grouped(12).map(_.mkString).toList
-    val d = c.map(Integer.parseInt(_, 2))
-    d
-  }
+   def confusionToBlob(m: Array[Array[Int]]) = shrinkToBytes(m.flatten)
+
+   def blobToConfusion(b: Array[Byte], nclasses: Int) = stretchFromBytes(b).grouped(nclasses).map(_.toArray).toArray
+
+   def stretchFromBytes(bytes: Array[Byte], bits: Int = 12) = {
+      val a = BaseConverter.toBinary(bytes)
+      val b = a.drop(a.size % bits)
+      val c = b.grouped(bits).map(_.mkString).toList
+      val d = c.map(Integer.parseInt(_, 2))
+      d
+   }
+}
+
+object BlobTest extends App with Blob {
+   val ar = Array(-1.3210, 0.6754, 0, -1, 1, -4, 4, 4)
+   val str = doublesTobdString(ar)
+   println(str)
+   println(s"${ar.toList} == ${bdstringToDoubles(str)}")
 }
