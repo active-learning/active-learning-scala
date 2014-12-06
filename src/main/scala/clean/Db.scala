@@ -49,27 +49,6 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       }
    }
 
-   //   def startbeat(): Unit = {
-   //      if (!alive) {
-   //         alive = true
-   //         Thread.sleep(100)
-   //         new Thread(new Runnable() {
-   //            def run() {
-   //               while (Global.running && alive) {
-   //                  heartbeat()
-   //
-   //                  //20s
-   //                  1 to 500 takeWhile { _ =>
-   //                     Thread.sleep(40)
-   //                     Global.running && alive
-   //                  }
-   //               }
-   //            }
-   //         }).start()
-   //         log("created alive beeper")
-   //      } else heartbeat()
-   //   }
-
    def startbeat(r: Int, f: Int): Unit = {
       if (!alive(r)(f)) {
          alive(r)(f) = true
@@ -93,13 +72,8 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
 
    private def heartbeat(r: Int, f: Int) {
       val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
-      write(s"update l set r=$r, f=$f, u='$id', t='$now'")
+      write(s"update l set u='$id', t='$now' where r=$r and f=$f")
    }
-
-   //   private def heartbeat() {
-   //      val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
-   //      write(s"update t set v='$now', uuid='$id'")
-   //   }
 
    def toDate(timestamp: java.sql.Timestamp) = {
       val milliseconds = timestamp.getTime + (timestamp.getNanos / 1000000)
