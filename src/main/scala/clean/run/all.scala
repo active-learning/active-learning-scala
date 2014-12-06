@@ -31,9 +31,12 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
       if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
-      else if (ds.isAliveByOtherJob()) ds.log("Outro job está all-izando este dataset. Skipping all' for this pool...", 30)
+      //      else if (ds.isAliveByOtherJob()) ds.log("Outro job está all-izando este dataset. Skipping all' for this pool...", 30)
+      else if (ds.isAliveByOtherJob(run, fold)) ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
       else {
-         ds.startbeat()
+         //         ds.startbeat()
+         ds.startbeat(run, fold)
+         ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
 
          //rnd clu svm maj / lff lfd
          stratsSemLearnerExterno_FilterFree(pool).zip(stratsSemLearnerExterno_FilterFree(fpool)) foreach { case (strat, fstrat) =>

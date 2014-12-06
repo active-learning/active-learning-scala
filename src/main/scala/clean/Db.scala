@@ -30,7 +30,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    private var connection: Connection = null
    val context = database
    val connectionWait_ms = 30000
-   var alive = false
+   var alive = Array.fill(Global.runs)(Array.fill(Global.folds)(false))
    val id = System.currentTimeMillis() + UUID.randomUUID().toString
 
    def open() {
@@ -49,40 +49,66 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       }
    }
 
-   def startbeat(): Unit = {
-      if (!alive) {
-         alive = true
+   //   def startbeat(): Unit = {
+   //      if (!alive) {
+   //         alive = true
+   //         Thread.sleep(100)
+   //         new Thread(new Runnable() {
+   //            def run() {
+   //               while (Global.running && alive) {
+   //                  heartbeat()
+   //
+   //                  //20s
+   //                  1 to 500 takeWhile { _ =>
+   //                     Thread.sleep(40)
+   //                     Global.running && alive
+   //                  }
+   //               }
+   //            }
+   //         }).start()
+   //         log("created alive beeper")
+   //      } else heartbeat()
+   //   }
+
+   def startbeat(r: Int, f: Int): Unit = {
+      if (!alive(r)(f)) {
+         alive(r)(f) = true
          Thread.sleep(100)
          new Thread(new Runnable() {
             def run() {
-               while (Global.running && alive) {
-                  heartbeat()
+               while (Global.running && alive(r)(f)) {
+                  heartbeat(r, f)
 
                   //20s
                   1 to 500 takeWhile { _ =>
                      Thread.sleep(40)
-                     Global.running && alive
+                     Global.running && alive(r)(f)
                   }
                }
             }
          }).start()
-         log("created alive beeper")
-      } else heartbeat()
+         log(s"created alive beeper for pool $r.$f")
+      } else heartbeat(r, f)
    }
 
-   private def heartbeat() {
+   private def heartbeat(r: Int, f: Int) {
       val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
-      write(s"update t set v='$now', uuid='$id'")
+      write(s"insert into l set values($r,$f,'$id','$now')")
    }
+
+   //   private def heartbeat() {
+   //      val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
+   //      write(s"update t set v='$now', uuid='$id'")
+   //   }
 
    def toDate(timestamp: java.sql.Timestamp) = {
       val milliseconds = timestamp.getTime + (timestamp.getNanos / 1000000)
       new java.util.Date(milliseconds)
    }
 
-   def isAliveByOtherJob(lifetimeSeconds: Double = 120): Boolean = {
+   def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 120): Boolean = {
       val now = Calendar.getInstance().getTime
-      val sql = "select * from t"
+      val sql = s"select * from l where r=$r and f=$f"
       try {
          val statement = connection.createStatement()
          val resultSet = statement.executeQuery(sql)
@@ -91,26 +117,58 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          val columnsType = new Array[Int](numColumns + 1)
          columnsType(0) = 0
          1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
-         val queue = collection.mutable.Queue[(Timestamp, String)]()
+         val queue = collection.mutable.Queue[(Int, Int, String, Timestamp)]()
          while (resultSet.next()) {
-            val tup = resultSet.getTimestamp(1) -> resultSet.getString(2)
+            val tup = (resultSet.getInt(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getTimestamp(4))
             queue.enqueue(tup)
          }
          resultSet.close()
          statement.close()
-         val past = toDate(queue.head._1)
-         val idPast = queue.head._2
+         val past = toDate(queue.head._4)
+         val idPast = queue.head._3
          val elapsedSeconds = (now.getTime - past.getTime) / 1000d
-         if (idPast != id && elapsedSeconds < lifetimeSeconds) log(s"meu:$id outro:$idPast lifetime:$elapsedSeconds", 30)
+         if (idPast != id && elapsedSeconds < lifetimeSeconds) log(s"meu:$id outro:$idPast\n lifetime:$elapsedSeconds r=$r and f=$f", 30)
          idPast != id && elapsedSeconds < lifetimeSeconds
       } catch {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 60s.\n", 30)
             Thread.sleep(60000) //waiting time is longer than normal to allow for other alive connections to update the table
             test(sql)
-            isAliveByOtherJob(lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
+            isAliveByOtherJob(r, f, lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
       }
    }
+
+   //   def isAliveByOtherJob(lifetimeSeconds: Double = 120): Boolean = {
+   //      val now = Calendar.getInstance().getTime
+   //      val sql = "select * from t"
+   //      try {
+   //         val statement = connection.createStatement()
+   //         val resultSet = statement.executeQuery(sql)
+   //         val rsmd = resultSet.getMetaData
+   //         val numColumns = rsmd.getColumnCount
+   //         val columnsType = new Array[Int](numColumns + 1)
+   //         columnsType(0) = 0
+   //         1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
+   //         val queue = collection.mutable.Queue[(Timestamp, String)]()
+   //         while (resultSet.next()) {
+   //            val tup = resultSet.getTimestamp(1) -> resultSet.getString(2)
+   //            queue.enqueue(tup)
+   //         }
+   //         resultSet.close()
+   //         statement.close()
+   //         val past = toDate(queue.head._1)
+   //         val idPast = queue.head._2
+   //         val elapsedSeconds = (now.getTime - past.getTime) / 1000d
+   //         if (idPast != id && elapsedSeconds < lifetimeSeconds) log(s"meu:$id outro:$idPast lifetime:$elapsedSeconds", 30)
+   //         idPast != id && elapsedSeconds < lifetimeSeconds
+   //      } catch {
+   //         case e: Throwable => //e.printStackTrace()
+   //            log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 60s.\n", 30)
+   //            Thread.sleep(60000) //waiting time is longer than normal to allow for other alive connections to update the table
+   //            test(sql)
+   //            isAliveByOtherJob(lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
+   //      }
+   //   }
 
    override def error(msg: String) = {
       if (connection != null && !connection.isClosed) close()
@@ -329,7 +387,11 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    def isClosed = connection == null || connection.isClosed
 
    def close() {
-      alive = false
+      0 until Global.runs foreach { r =>
+         0 until Global.folds foreach { f =>
+            alive(r)(f) = false
+         }
+      }
       log(s"Connection to $database closed.")
       if (connection != null && !connection.isClosed) connection.close()
    }
