@@ -137,10 +137,11 @@ object all extends Exp with LearnerTrait with StratsTrait {
       }
    }
 
-   def datasetFinished(ds: Ds) {
+   def datasetFinished(ds: Ds) = {
+      ds.markAsFinished(maxQueries(ds))
    }
 
-   def isAlreadyDone(ds: Ds) = false
+   def isAlreadyDone(ds: Ds) = ds.isFinished(maxQueries(ds))
 
    def end(res: Map[String, Boolean]): Unit = {
    }
