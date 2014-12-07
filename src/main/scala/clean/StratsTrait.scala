@@ -43,7 +43,7 @@ trait StratsTrait {
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
       ////AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , AgDensityWeightedLabelUtility1(pool, "maha") //66391
+      AgDensityWeightedLabelUtility1(pool, "maha") //66391
       ////, AgDensityWeightedLabelUtility2(pool, "maha") //391
    )
 
