@@ -19,6 +19,7 @@
 package clean
 
 import al.strategies._
+import clean.res.Measure
 import ml.classifiers.{Learner, NoLearner}
 import ml.{Pattern, PatternParent}
 import util.Datasets
@@ -138,7 +139,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       }")
    }
 
-   private def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int): Option[Int] = poolId(strat.id, learner.id, run, fold)
+   def poolId(strat: Strategy, learner: Learner, run: Int, fold: Int): Option[Int] = poolId(strat.id, learner.id, run, fold)
 
    private def poolId(idStrat: Int, lid: Int, run: Int, fold: Int) =
       read(s"SELECT id FROM p WHERE s=$idStrat and l=$lid and r=$run and f=$fold") match {
@@ -322,7 +323,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     * @param fold
     * @return
     */
-   def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int, expectedAmount: Int) = poolId(strat, learner, run, fold) match {
+   def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int)(expectedAmount: Int) = poolId(strat, learner, run, fold) match {
       case None => error("Attempt to get hits without an existent related pid.")
       case Some(pid) =>
          val cms = mutable.LinkedHashMap[Int, Array[Array[Int]]]()
@@ -443,49 +444,49 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       case l => Some(l.map(_.head.toInt))
    }
 
-   def isMeasureComplete(measure: Measure, sid: Int, lid: Int) = {
-      //      val Nrpools = Global.runs * Global.folds
-      //      pids(sid, lid) match {
-      //         case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id(this)}") match {
-      //            case List(Vector(Nrpools)) => true
-      //            case _ => false
-      //         }
-      //         case _ => false
-      //      }
-      //   }
-      //
-      //   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
-      //      val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
-      //      s"insert into r values (${measure.id(this)}, $pid, $value)"
-      //   }
-      //
-      //   def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
-      //      write(measureToSQL(measure, value, strategy.id, learner, run, fold))
-      //   }
+   //   def isMeasureComplete(measure: Measure, sid: Int, lid: Int) = {
+   //      val Nrpools = Global.runs * Global.folds
+   //      pids(sid, lid) match {
+   //         case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id(this)}") match {
+   //            case List(Vector(Nrpools)) => true
+   //            case _ => false
+   //         }
+   //         case _ => false
+   //      }
+   //   }
+   //
+   //   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
+   //      val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
+   //      s"insert into r values (${measure.id(this)}, $pid, $value)"
+   //   }
+   //
+   //   def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
+   //      write(measureToSQL(measure, value, strategy.id, learner, run, fold))
+   //   }
 
 
-      //   //todo: completar abreviacoes pra novas estrats (apenas para pretty print e evitar unmatched key)
-      //   lazy val abr = Seq(RandomSampling(Seq()),
-      //      ClusterBased(Seq()),
-      //      Uncertainty(NoLearner(), Seq()),
-      //      Entropy(NoLearner(), Seq()),
-      //      Margin(NoLearner(), Seq()),
-      //      DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
-      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),
-      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "eucl"),
-      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "maha"),
-      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "manh"),
-      //      MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
-      //      ExpErrorReductionMargin(NoLearner(), Seq(), "entropy"),
-      //      ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual"),
-      //      ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy"),
-      //      new SGmulti(NoLearner(), Seq(), "consensus"),
-      //      new SGmulti(NoLearner(), Seq(), "majority"),
-      //      new SGmultiJS(NoLearner(), Seq()),
-      //      SVMmulti(Seq(), "SELF_CONF"),
-      //      SVMmulti(Seq(), "KFF"),
-      //      SVMmulti(Seq(), "BALANCED_EE"),
-      //      SVMmulti(Seq(), "BALANCED_EEw"),
-      //      SVMmulti(Seq(), "SIMPLE")
-      //   ).map(s => s.id -> s.abr).toMap
-   }
+   //   //todo: completar abreviacoes pra novas estrats (apenas para pretty print e evitar unmatched key)
+   //   lazy val abr = Seq(RandomSampling(Seq()),
+   //      ClusterBased(Seq()),
+   //      Uncertainty(NoLearner(), Seq()),
+   //      Entropy(NoLearner(), Seq()),
+   //      Margin(NoLearner(), Seq()),
+   //      DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
+   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),
+   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "eucl"),
+   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "maha"),
+   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "manh"),
+   //      MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
+   //      ExpErrorReductionMargin(NoLearner(), Seq(), "entropy"),
+   //      ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual"),
+   //      ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy"),
+   //      new SGmulti(NoLearner(), Seq(), "consensus"),
+   //      new SGmulti(NoLearner(), Seq(), "majority"),
+   //      new SGmultiJS(NoLearner(), Seq()),
+   //      SVMmulti(Seq(), "SELF_CONF"),
+   //      SVMmulti(Seq(), "KFF"),
+   //      SVMmulti(Seq(), "BALANCED_EE"),
+   //      SVMmulti(Seq(), "BALANCED_EEw"),
+   //      SVMmulti(Seq(), "SIMPLE")
+   //   ).map(s => s.id -> s.abr).toMap
+}

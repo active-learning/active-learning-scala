@@ -229,6 +229,28 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       }
    }
 
+   def readString(sql: String): List[String] = {
+      test(sql)
+      log(s"[$sql]", 5)
+      try {
+         val statement = connection.createStatement()
+         val resultSet = statement.executeQuery(sql)
+         val queue = collection.mutable.Queue[String]()
+         while (resultSet.next()) {
+            queue.enqueue(resultSet.getString(1))
+         }
+         resultSet.close()
+         statement.close()
+         queue.toList
+      } catch {
+         case e: Throwable => //e.printStackTrace()
+            log(s"\nProblems executing SQL read styrings query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 30)
+            Thread.sleep(connectionWait_ms)
+            test(sql)
+            readString(sql)
+      }
+   }
+
    def readBlobs4(sql: String): List[(Array[Byte], Int, Int, Int)] = {
       test(sql)
       log(s"[$sql]", 5)

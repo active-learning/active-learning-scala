@@ -19,21 +19,53 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.res
 
-import clean.Ds
+import al.strategies.Strategy
+import clean.{Blob, CM, Ds}
+import ml.classifiers.Learner
 
-/**
- * Q measure id = 0
- */
-trait Measure {
+trait Measure extends CM with Blob {
+   val ds: Ds
    val id: Int
+   val s: Strategy
+   val l: Learner
+   val r: Int
+   val f: Int
+   val context = "MeaTrait"
+   val expectedQtdHits: Int
+   lazy val cmsbase = ds.getCMs(s, l, r, f)
+   lazy val cms = cmsbase(expectedQtdHits)
+   lazy val p = ds.poolId(s, l, r, f)
+   val calc: Option[Seq[Double]]
 
-   def isComplete(ds: Ds): Boolean
+   def qs2hs(qs: Int) = qs - ds.nclasses + 1
+
+   def t2qs(t: Int) = t + 1
+
+   def t2hs(t: Int) = qs2hs(t2qs(t))
+
+   def write() {
+      calc match {
+         case Some(seq) => ds.write(s"insert into r values ($id, $p, ${doublesTobdString(seq)}")
+         case None => ds.log(s"Pool $r.$f incompleto para os hits de $s/$l.")
+      }
+   }
 }
 
-case class balancedAcc(t: Int) extends Measure {
+case class balancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(t: Int) extends Measure {
    val id = 1
+   lazy val prev = {
+      ds.readString(s"select vs from r where m=$id and p=$p") match {
+         case List(str) => bdstringToDoubles(str)
+      }
+   }
+   lazy val expectedQtdHits = t2hs(t)
+   lazy val calc = if (cms.contains(t)) Some(prev ++ Seq(accBal(cms(t)))) else None
+}
 
-   def isComplete(ds: Ds) = ds.read("select count(0) from r where")
+case class kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(t: Int) extends Measure {
+   val id = 2
+   lazy val expectedQtdHits = t2hs(t)
+   lazy val calc = if (cms.contains(t)) Some(prev ++ Seq(kappa(cms(t)))) else None
 }
 
 //
