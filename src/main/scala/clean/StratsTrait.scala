@@ -38,13 +38,13 @@ trait StratsTrait {
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedLabelUtility1(pool, "eucl") //66361
-      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
+      ////      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
-      AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , AgDensityWeightedLabelUtility1(pool, "maha") //66391
-      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      ////      AgDensityWeightedTrainingUtility(pool, "maha") //901
+      ////      , AgDensityWeightedLabelUtility1(pool, "maha") //66391
+      ////      , AgDensityWeightedLabelUtility2(pool, "maha") //391
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -56,7 +56,7 @@ trait StratsTrait {
 
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      , DensityWeightedLabelUtility(learner, pool, "eucl") //36
+      ////      DensityWeightedLabelUtility(learner, pool, "eucl") //36
 
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
@@ -67,7 +67,7 @@ trait StratsTrait {
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , DensityWeightedLabelUtility(learner, pool, "maha") //39
+      ////      DensityWeightedLabelUtility(learner, pool, "maha") //39
    )
 }
 
