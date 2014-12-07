@@ -23,6 +23,9 @@ public class FriedmanTest {
     static final double[] qAlpha10pct = {1.645, 2.052, 2.291, 2.460, 2.589, 2.693, 2.780, 2.855, 2.920, 2.978, 3.030, 3.077, 3.120, 3.159,
             3.196, 3.230, 3.261, 3.291, 3.319, 3.346, 3.371, 3.394, 3.417, 3.439, 3.459, 3.479, 3.498, 3.516};
 
+    static final double[] qAlphaMaior = qAlpha5pct;
+    static final double[] qAlphaMenor = qAlpha1pct;
+
     public static int[][] Friedman(double[][] matriz, boolean asc) {
         StringBuilder statsResults = new StringBuilder();
         int nl = matriz.length;
@@ -112,13 +115,13 @@ public class FriedmanTest {
 //            statsResults.append("Friedman teste pvalue: ").append(pValue_Friedman).append("\n\n");
             statsResults.append("Nemenyi Test:");
             int[] sorts = Utils.sort(medRank);
-            statsResults.append("CritDiff(.05) ").append(qAlpha5pct[nc - 2] * critDiff).append("\n");
+            statsResults.append("CritDiff(.01) ").append(qAlphaMenor[nc - 2] * critDiff).append("\n");
 //            statsResults.append("CritDiff(.10) ").append(qAlpha10pct[nc - 2] * critDiff).append("\n");
             for (int j = 0; j < nc; ++j) {
                 for (int jj = j + 1; jj < nc; ++jj) {
                     //statsResults.append("C"+sorts[nc-j-1]+"/C"+sorts[nc-jj-1]+" "+ (medRank[sorts[nc-j-1]]-medRank[sorts[nc-jj-1]])+"\n");
                     double diff = medRank[sorts[nc - j - 1]] - medRank[sorts[nc - jj - 1]];
-                    if (diff >= (qAlpha5pct[nc - 2] * critDiff)) {
+                    if (diff >= (qAlphaMenor[nc - 2] * critDiff)) {
                         statsResults.append(sorts[nc - j - 1] + 1).append(" ").append(sorts[nc - jj - 1] + 1).append(" ").append(medRank[sorts[nc - j - 1]] - medRank[sorts[nc - jj - 1]]).append(" " + medRank[sorts[nc - j - 1]] + " " + medRank[sorts[nc - jj - 1]]).append("\n");
                     }
                 }
@@ -142,9 +145,9 @@ public class FriedmanTest {
                 statsResults.append("\n,").append(i + 1).append(",");
                 for (int j = 0; j < nc; j++) {
                     double diff = medRank[i] - medRank[j];
-                    if (diff >= (qAlpha10pct[nc - 2] * critDiff) && diff < (qAlpha5pct[nc - 2] * critDiff)) {
+                    if (diff >= (qAlphaMaior[nc - 2] * critDiff) && diff < (qAlphaMenor[nc - 2] * critDiff)) {
                         table[j][i] = 1;
-                    } else if (diff >= (qAlpha5pct[nc - 2] * critDiff)) {
+                    } else if (diff >= (qAlphaMenor[nc - 2] * critDiff)) {
                         table[j][i] = 2;
                     }
                 }
@@ -242,115 +245,115 @@ public class FriedmanTest {
         return l;
     }
 
-    /**
-     * Monta uma tabela de Vitorias/Empates/Derrotas
-     *
-     * @param data dados, algoritmos em colunas, bases nas linhas
-     * @param asc  ascendente ou descendente
-     * @return
-     */
-    public static String tabelaDesempenho(double[][] data, boolean asc) {
-        StringBuilder output = new StringBuilder();
-        int numAlgoritmos = data[0].length;
-        int numBases = data.length;
-        int[][] vitorias = new int[numAlgoritmos][numAlgoritmos];
-        int[][] empates = new int[numAlgoritmos][numAlgoritmos];
-        int[][] derrotas = new int[numAlgoritmos][numAlgoritmos];
-
-        for (int i = 0; i < numAlgoritmos; ++i) {
-
-            for (int j = 0; j < numAlgoritmos; ++j) {
-                if (i == j) {
-                    continue;
-                }
-
-                for (int b = 0; b < numBases; ++b) {
-                    if (data[b][i] > data[b][j]) {
-                        if (asc) {
-                            ++vitorias[i][j];
-                        } else {
-                            ++derrotas[i][j];
-                        }
-                    } else if (data[b][i] < data[b][j]) {
-                        if (asc) {
-                            ++derrotas[i][j];
-                        } else {
-                            ++vitorias[i][j];
-                        }
-                    } else {
-                        ++empates[i][j];
-                    }
-                }
-            }
-        }
-        double pVit, pEmp, pDer;
-        Locale.setDefault(Locale.US);
-        DecimalFormat df = new DecimalFormat("0.0");
-        for (int i = 0; i < numAlgoritmos; ++i) {
-            output.append("\n");
-            for (int j = 0; j < numAlgoritmos; ++j) {
-                if (i == j) {
-                    output.append("---,");
-                } else {
-                    pVit = (vitorias[i][j] / (1.0 * numBases)) * 100;
-                    pEmp = (empates[i][j] / (1.0 * numBases)) * 100;
-                    pDer = (derrotas[i][j] / (1.0 * numBases)) * 100;
-                    output.append(df.format(pVit)).append(" / ").append(df.format(pEmp)).append(" / ").append(df.format(pDer)).append(",");
-                }
-            }
-        }
-        return output.toString();
-    }
-
-    /**
-     * Monta uma tabela de Contrast Estimation (Garcia2010)
-     *
-     * @param data dados, algoritmos em colunas, bases nas linhas
-     * @param asc  ascendente ou descendente
-     * @return
-     */
-    public static String tabelaConstrastEstimation(double[][] data, boolean asc) {
-        StringBuilder output = new StringBuilder();
-        int numAlgoritmos = data[0].length;
-        int numBases = data.length;
-        double[][] Zs = new double[numAlgoritmos][numAlgoritmos];
-        double[] Ms = new double[numAlgoritmos];
-        int middle = numBases / 2;
-
-        for (int i = 0; i < numAlgoritmos - 1; ++i) {
-
-            for (int j = i + 1; j < numAlgoritmos; ++j) {
-                double[] diferencas = new double[numBases];
-                for (int b = 0; b < numBases; ++b) {
-                    diferencas[b] = data[b][i] - data[b][j];
-                }
-                Arrays.sort(diferencas);
-                if (numBases % 2 == 0) {
-                    Zs[i][j] = Zs[j][i] = (diferencas[middle] + diferencas[middle - 1]) / 2.0;
-                } else {
-//                    System.out.println("" + i + "|" + j + ":" + diferencas[middle]);
-                    Zs[i][j] = Zs[j][i] = diferencas[middle];
-                }
-            }
-
-        }
-
-        for (int i = 0; i < numAlgoritmos; ++i) {
-            double sum = 0;
-            for (int j = 0; j < numAlgoritmos; ++j) {
-                sum += Zs[i][j];
-            }
-            Ms[i] = sum / numAlgoritmos;
-        }
-
+//    /**
+//     * Monta uma tabela de Vitorias/Empates/Derrotas
+//     *
+//     * @param data dados, algoritmos em colunas, bases nas linhas
+//     * @param asc  ascendente ou descendente
+//     * @return
+//     */
+//    public static String tabelaDesempenho(double[][] data, boolean asc) {
+//        StringBuilder output = new StringBuilder();
+//        int numAlgoritmos = data[0].length;
+//        int numBases = data.length;
+//        int[][] vitorias = new int[numAlgoritmos][numAlgoritmos];
+//        int[][] empates = new int[numAlgoritmos][numAlgoritmos];
+//        int[][] derrotas = new int[numAlgoritmos][numAlgoritmos];
+//
 //        for (int i = 0; i < numAlgoritmos; ++i) {
+//
 //            for (int j = 0; j < numAlgoritmos; ++j) {
-//                System.out.print(Utils.doubleToString(Ms[i] - Ms[j], 4) + ";");
+//                if (i == j) {
+//                    continue;
+//                }
+//
+//                for (int b = 0; b < numBases; ++b) {
+//                    if (data[b][i] > data[b][j]) {
+//                        if (asc) {
+//                            ++vitorias[i][j];
+//                        } else {
+//                            ++derrotas[i][j];
+//                        }
+//                    } else if (data[b][i] < data[b][j]) {
+//                        if (asc) {
+//                            ++derrotas[i][j];
+//                        } else {
+//                            ++vitorias[i][j];
+//                        }
+//                    } else {
+//                        ++empates[i][j];
+//                    }
+//                }
 //            }
-//            System.out.println();
 //        }
-        return output.toString();
-    }
+//        double pVit, pEmp, pDer;
+//        Locale.setDefault(Locale.US);
+//        DecimalFormat df = new DecimalFormat("0.0");
+//        for (int i = 0; i < numAlgoritmos; ++i) {
+//            output.append("\n");
+//            for (int j = 0; j < numAlgoritmos; ++j) {
+//                if (i == j) {
+//                    output.append("---,");
+//                } else {
+//                    pVit = (vitorias[i][j] / (1.0 * numBases)) * 100;
+//                    pEmp = (empates[i][j] / (1.0 * numBases)) * 100;
+//                    pDer = (derrotas[i][j] / (1.0 * numBases)) * 100;
+//                    output.append(df.format(pVit)).append(" / ").append(df.format(pEmp)).append(" / ").append(df.format(pDer)).append(",");
+//                }
+//            }
+//        }
+//        return output.toString();
+//    }
+//
+//    /**
+//     * Monta uma tabela de Contrast Estimation (Garcia2010)
+//     *
+//     * @param data dados, algoritmos em colunas, bases nas linhas
+//     * @param asc  ascendente ou descendente
+//     * @return
+//     */
+//    public static String tabelaConstrastEstimation(double[][] data, boolean asc) {
+//        StringBuilder output = new StringBuilder();
+//        int numAlgoritmos = data[0].length;
+//        int numBases = data.length;
+//        double[][] Zs = new double[numAlgoritmos][numAlgoritmos];
+//        double[] Ms = new double[numAlgoritmos];
+//        int middle = numBases / 2;
+//
+//        for (int i = 0; i < numAlgoritmos - 1; ++i) {
+//
+//            for (int j = i + 1; j < numAlgoritmos; ++j) {
+//                double[] diferencas = new double[numBases];
+//                for (int b = 0; b < numBases; ++b) {
+//                    diferencas[b] = data[b][i] - data[b][j];
+//                }
+//                Arrays.sort(diferencas);
+//                if (numBases % 2 == 0) {
+//                    Zs[i][j] = Zs[j][i] = (diferencas[middle] + diferencas[middle - 1]) / 2.0;
+//                } else {
+////                    System.out.println("" + i + "|" + j + ":" + diferencas[middle]);
+//                    Zs[i][j] = Zs[j][i] = diferencas[middle];
+//                }
+//            }
+//
+//        }
+//
+//        for (int i = 0; i < numAlgoritmos; ++i) {
+//            double sum = 0;
+//            for (int j = 0; j < numAlgoritmos; ++j) {
+//                sum += Zs[i][j];
+//            }
+//            Ms[i] = sum / numAlgoritmos;
+//        }
+//
+////        for (int i = 0; i < numAlgoritmos; ++i) {
+////            for (int j = 0; j < numAlgoritmos; ++j) {
+////                System.out.print(Utils.doubleToString(Ms[i] - Ms[j], 4) + ";");
+////            }
+////            System.out.println();
+////        }
+//        return output.toString();
+//    }
 
     public static void main(String[] args) {
         String arq = "/home/davi/unversioned/organizar/friedman/elmc.txt";
