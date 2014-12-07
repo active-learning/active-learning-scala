@@ -35,7 +35,7 @@ import scala.collection.mutable
 case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM {
    def isFinished(Budget: Int) = read(s"select b from f") match {
       case List(Vector(Budget)) => true
-      case _ => false
+      case x => println(s"$x <<<<<<<<<<<<<<-------------------------"); false
    }
 
    def markAsFinished(budget: Int): Unit = {
