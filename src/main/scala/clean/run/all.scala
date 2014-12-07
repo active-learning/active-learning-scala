@@ -145,8 +145,9 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         if (ds.isFinished(maxQueries(ds))) ds.log("Dataset já estava marcado como terminado!!!")
-         else {
+         //         if (ds.isFinished(maxQueries(ds))) ds.log("Dataset já estava marcado como terminado!!!")
+         //         else
+         {
             ds.log("Dataset marcado como terminado !", 50)
             ds.markAsFinished(maxQueries(ds))
          }
