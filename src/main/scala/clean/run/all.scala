@@ -36,8 +36,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
       else if (ds.isAliveByOtherJob(run, fold)) {
          outroProcessoVaiTerminarEsteDataset = true
          ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
-      }
-      else {
+      } else {
          //         ds.startbeat()
          ds.startbeat(run, fold)
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
@@ -144,10 +143,13 @@ object all extends Exp with LearnerTrait with StratsTrait {
       }
    }
 
-   def datasetFinished(ds: Ds) = if (!outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinished(maxQueries(ds))
-      ds.log("Dataset marcado como terminado !!!", 50)
-   } else outroProcessoVaiTerminarEsteDataset = false
+   def datasetFinished(ds: Ds) = {
+      if (!outroProcessoVaiTerminarEsteDataset && !ds.isFinished(maxQueries(ds))) {
+         ds.markAsFinished(maxQueries(ds))
+         ds.log("Dataset marcado como terminado !!!", 50)
+      }
+      outroProcessoVaiTerminarEsteDataset = false
+   }
 
    def isAlreadyDone(ds: Ds) = ds.isFinished(maxQueries(ds))
 
