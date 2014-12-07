@@ -19,11 +19,9 @@
 package al.strategies
 
 import clean.{CM, Ds}
-import clean.res.accBalAt
 import ml.Pattern
-import ml.classifiers.{NB, SVMLib}
+import ml.classifiers.SVMLib
 import svmal.SVMStrategymulti
-import util.{ALDatasets, Datasets}
 
 import scala.util.Random
 

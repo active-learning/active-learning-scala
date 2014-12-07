@@ -19,7 +19,6 @@
 package al.strategies
 
 import clean.Log
-import clean.res.Measure
 import ml.Pattern
 import ml.classifiers.Learner
 import util.Graphics.Plot
@@ -41,7 +40,7 @@ trait Strategy extends Log {
   val delay: Double = .005
   lazy val plot = new Plot
   lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
-  val mea: Measure = null
+   //  val mea: Measure = null
 
   def learner: Learner
 

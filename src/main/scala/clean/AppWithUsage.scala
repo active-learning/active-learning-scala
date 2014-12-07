@@ -3,8 +3,6 @@ package clean
 import java.security.SecureRandom
 import java.util.UUID
 
-import clean.res._
-import com.sun.xml.internal.ws.developer.MemberSubmissionEndpointReference.AttributedQName
 import util.XSRandom
 
 import scala.util.Random

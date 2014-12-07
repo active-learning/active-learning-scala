@@ -3,7 +3,6 @@ package clean.meta
 import java.io.FileWriter
 
 import clean._
-import clean.res.ALCaccBal
 import util.Stat
 
 /*

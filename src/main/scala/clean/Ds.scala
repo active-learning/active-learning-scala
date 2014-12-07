@@ -19,7 +19,6 @@
 package clean
 
 import al.strategies._
-import clean.res.Measure
 import ml.classifiers.{Learner, NoLearner}
 import ml.{Pattern, PatternParent}
 import util.Datasets
@@ -431,13 +430,13 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       foldSizes map (n - _)
    }
 
-   def getMeasure(measure: Measure, strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-      val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
-      read(s"select v from r where p=$pid and m=${measure.id(this)}") match {
-         case List() => None
-         case List(seq) => Some(seq.head)
-      }
-   }
+   //   def getMeasure(measure: Measure, strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
+   //      val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
+   //      read(s"select v from r where p=$pid and m=${measure.id(this)}") match {
+   //         case List() => None
+   //         case List(seq) => Some(seq.head)
+   //      }
+   //   }
 
    def pids(sid: Int, lid: Int) = read(s"SELECT id FROM p WHERE s=$sid and l=$lid") match {
       case List() => None
@@ -445,48 +444,48 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    }
 
    def isMeasureComplete(measure: Measure, sid: Int, lid: Int) = {
-      val Nrpools = Global.runs * Global.folds
-      pids(sid, lid) match {
-         case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id(this)}") match {
-            case List(Vector(Nrpools)) => true
-            case _ => false
-         }
-         case _ => false
-      }
+      //      val Nrpools = Global.runs * Global.folds
+      //      pids(sid, lid) match {
+      //         case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id(this)}") match {
+      //            case List(Vector(Nrpools)) => true
+      //            case _ => false
+      //         }
+      //         case _ => false
+      //      }
+      //   }
+      //
+      //   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
+      //      val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
+      //      s"insert into r values (${measure.id(this)}, $pid, $value)"
+      //   }
+      //
+      //   def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
+      //      write(measureToSQL(measure, value, strategy.id, learner, run, fold))
+      //   }
+
+
+      //   //todo: completar abreviacoes pra novas estrats (apenas para pretty print e evitar unmatched key)
+      //   lazy val abr = Seq(RandomSampling(Seq()),
+      //      ClusterBased(Seq()),
+      //      Uncertainty(NoLearner(), Seq()),
+      //      Entropy(NoLearner(), Seq()),
+      //      Margin(NoLearner(), Seq()),
+      //      DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
+      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),
+      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "eucl"),
+      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "maha"),
+      //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "manh"),
+      //      MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
+      //      ExpErrorReductionMargin(NoLearner(), Seq(), "entropy"),
+      //      ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual"),
+      //      ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy"),
+      //      new SGmulti(NoLearner(), Seq(), "consensus"),
+      //      new SGmulti(NoLearner(), Seq(), "majority"),
+      //      new SGmultiJS(NoLearner(), Seq()),
+      //      SVMmulti(Seq(), "SELF_CONF"),
+      //      SVMmulti(Seq(), "KFF"),
+      //      SVMmulti(Seq(), "BALANCED_EE"),
+      //      SVMmulti(Seq(), "BALANCED_EEw"),
+      //      SVMmulti(Seq(), "SIMPLE")
+      //   ).map(s => s.id -> s.abr).toMap
    }
-
-   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
-      val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
-      s"insert into r values (${measure.id(this)}, $pid, $value)"
-   }
-
-   def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
-      write(measureToSQL(measure, value, strategy.id, learner, run, fold))
-   }
-
-
-   //todo: completar abreviacoes pra novas estrats (apenas para pretty print e evitar unmatched key)
-   lazy val abr = Seq(RandomSampling(Seq()),
-      ClusterBased(Seq()),
-      Uncertainty(NoLearner(), Seq()),
-      Entropy(NoLearner(), Seq()),
-      Margin(NoLearner(), Seq()),
-      DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
-      DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),
-      DensityWeightedTrainingUtility(NoLearner(), Seq(), "eucl"),
-      DensityWeightedTrainingUtility(NoLearner(), Seq(), "maha"),
-      DensityWeightedTrainingUtility(NoLearner(), Seq(), "manh"),
-      MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
-      ExpErrorReductionMargin(NoLearner(), Seq(), "entropy"),
-      ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual"),
-      ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy"),
-      new SGmulti(NoLearner(), Seq(), "consensus"),
-      new SGmulti(NoLearner(), Seq(), "majority"),
-      new SGmultiJS(NoLearner(), Seq()),
-      SVMmulti(Seq(), "SELF_CONF"),
-      SVMmulti(Seq(), "KFF"),
-      SVMmulti(Seq(), "BALANCED_EE"),
-      SVMmulti(Seq(), "BALANCED_EEw"),
-      SVMmulti(Seq(), "SIMPLE")
-   ).map(s => s.id -> s.abr).toMap
-}
