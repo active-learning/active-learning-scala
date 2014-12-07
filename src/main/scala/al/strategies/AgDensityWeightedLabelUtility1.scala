@@ -22,14 +22,14 @@ import ml.Pattern
 
 case class AgDensityWeightedLabelUtility1(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends AgStrategyWithMapsLU with MarginMeasure {
-   override val toString = "Density Weighted AgLU1 a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "DWAgLU1" + distance_name.take(3) + beta
+   override val toString = "Density Weighted AgLU a" + alpha + " b" + beta + " (" + distance_name + ")"
+   val abr = "AgLU" + distance_name.take(3) + beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 66361 + (100 * (1 - alpha)).toInt
       case "cheb" => 66381 + (100 * (1 - alpha)).toInt
       case "maha" => 66391 + (100 * (1 - alpha)).toInt
       case "manh" => 66371 + (100 * (1 - alpha)).toInt
-   } else throw new Error("Parametros inesperados para DWAgLU1.")
+   } else throw new Error("Parametros inesperados para AgLU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
       val selected = unlabeled maxBy { x =>

@@ -28,6 +28,8 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
    val context = "friedtex"
    run()
 
+   def ff(precision: Double)(x: Double) = (x * precision).round / precision
+
    override def run() = {
       super.run()
       val strats = allStrats()
@@ -36,7 +38,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       val res0 = (for {
          dataset <- datasets.toList
          l <- learners(learnersStr).par
-         measure <- allMeasures(maxQueries0)
+         measure <- allMeasures(maxQueries0).take(1)
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
@@ -51,7 +53,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                } yield {
                   if (measure.id(ds) == 0) -1
                   else ds.getMeasure(measure, s, le, r, f) match {
-                     case Some(v) => v
+                     case Some(v) => ff(100)(v)
                      case None => ds.quit(s"No measure for ${(measure, s, le, r, f)}!")
                   }
                }
@@ -68,7 +70,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       println(s"")
       println(s"")
       res0.grouped(280).foreach { res1 =>
-         StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", "ALCACcBal", 7)
+         StatTests.extensiveTable2(100, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", allMeasures(maxQueries0).toString(), 7)
       }
       println(s"")
       val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))

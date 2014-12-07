@@ -33,9 +33,9 @@ import scala.collection.mutable
  * Cada instancia desta classe representa um ML dataset.
  */
 case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM {
-   def isFinished(Budget: Int) = read(s"select b from f") match {
-      case List(Vector(Budget)) => true
-      case _ => false
+   def isFinished(budget: Int) = read(s"select b from f") match {
+      case lista if lista.map(_.head).contains(budget) => true
+      case x => false
    }
 
    def markAsFinished(budget: Int): Unit = {

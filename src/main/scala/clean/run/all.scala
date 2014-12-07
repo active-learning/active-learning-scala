@@ -23,7 +23,7 @@ import clean._
 import ml.Pattern
 import weka.filters.Filter
 
-object all extends Exp with LearnerTrait with StratsTrait with Lock {
+object all extends Exp with LearnerTrait with StratsTrait {
    val context = "allApp"
    val arguments = superArguments
    val ignoreNotDone = false
@@ -34,12 +34,9 @@ object all extends Exp with LearnerTrait with StratsTrait with Lock {
       if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
       //      else if (ds.isAliveByOtherJob()) ds.log("Outro job está all-izando este dataset. Skipping all' for this pool...", 30)
       else if (ds.isAliveByOtherJob(run, fold)) {
-         acquire()
          outroProcessoVaiTerminarEsteDataset = true
-         release()
          ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
-      }
-      else {
+      } else {
          //         ds.startbeat()
          ds.startbeat(run, fold)
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
@@ -146,10 +143,17 @@ object all extends Exp with LearnerTrait with StratsTrait with Lock {
       }
    }
 
-   def datasetFinished(ds: Ds) = if (!outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinished(maxQueries(ds))
-      ds.log("Dataset marcado como terminado !!!", 50)
-   } else outroProcessoVaiTerminarEsteDataset = false
+   def datasetFinished(ds: Ds) = {
+      if (!outroProcessoVaiTerminarEsteDataset) {
+         //         if (ds.isFinished(maxQueries(ds))) ds.log("Dataset já estava marcado como terminado!!!")
+         //         else
+         {
+            ds.log("Dataset marcado como terminado !", 50)
+            ds.markAsFinished(maxQueries(ds))
+         }
+      }
+      outroProcessoVaiTerminarEsteDataset = false
+   }
 
    def isAlreadyDone(ds: Ds) = ds.isFinished(maxQueries(ds))
 

@@ -26,8 +26,8 @@ object StatTests {
     * Takes a map DatasetName -> strategyMeasuresTheHigherTheBetter
     * and returns a map strategyName -> Vector(wins strat 1?, wins strat 2?, ...)
     * 0: no win
-    * 1: 0.9 confidence on win
-    * 2: 0.95 confidence on win
+    * 1: 0.95 confidence on win
+    * 2: 0.99 confidence on win
     * @param measures
     */
    def friedmanNemenyi(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = strategies.zip(FriedmanTest.Friedman(measures.map(_._2.toArray).toArray, true)).map(x => x._1 -> x._2.toVector)
@@ -127,8 +127,8 @@ object StatTests {
     */
    def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, measure: String, seps: Int = 2, language: String = "pt") {
       val caption = language match {
-         case "pt" => s"Um contra um: cada asterisco indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.95."
-         case "en" => s"Pairwise comparison: each asterisk indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.95."
+         case "pt" => s"Um contra um: cada asterisco indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.99."
+         case "en" => s"Pairwise comparison: each asterisk indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.99."
       }
       println( """\begin{table}[h]
 \caption{""" + caption + """}

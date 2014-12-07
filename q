@@ -26,7 +26,7 @@ flare
 thyroid-sick-euthyroid
 turkiye-student
 robot-failure-lp5
-micro-mass-pure-spectra
+#micro-mass-pure-spectra demorou
 page-blocks
 bupa
 wine-quality-white-5class
@@ -35,7 +35,7 @@ thyroid-newthyroid
 tic-tac-toe
 mfeat-fourier
 dbworld-subjects
-micro-mass-mixed-spectra
+#micro-mass-mixed-spectra demorou
 steel-plates-faults
 leukemia-haslinger
 indian-liver-patient
@@ -105,5 +105,5 @@ wdbc
 parkinsons
 #multiple-features
 voting
-digits2-davi
-optdigits
+#digits2-davi demorou
+#optdigits demorou
