@@ -32,10 +32,10 @@ trait Measure extends CM with Blob {
    val f: Int
    val context = "MeaTrait"
    val expectedQtdHits: Int
-   lazy val cmsbase = ds.getCMs(s, l, r, f)
+   lazy val cmsbase = ds.getCMs(s, l, r, f) _
    lazy val cms = cmsbase(expectedQtdHits)
    lazy val p = ds.poolId(s, l, r, f)
-   val calc: Option[Seq[Double]]
+   val calc: Option[Double]
 
    protected def qs2hs(qs: Int) = qs - ds.nclasses + 1
 
@@ -77,13 +77,13 @@ trait InstantMeasure extends Measure {
    }
 }
 
-case class balancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, readOnly: Boolean = true, t: Int)
+case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, t: Int, readOnly: Boolean = true)
    extends InstantMeasure {
    val id = 1
    val fun = accBal _
 }
 
-case class kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, readOnly: Boolean = true, t: Int)
+case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, t: Int, readOnly: Boolean = true)
    extends InstantMeasure {
    val id = 2
    val fun = kappa _
