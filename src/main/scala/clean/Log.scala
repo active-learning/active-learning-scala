@@ -25,7 +25,7 @@ trait Log {
 
   def log(msg: String, level: Int = 10) {
     level match {
-      case x if x >= 30 - Global.debug => println(s"$context : $msg    ${Calendar.getInstance().getTime}")
+       case x if x >= 30 - Global.debug => println(s"${java.net.InetAddress.getLocalHost.getHostName} $context : $msg    ${Calendar.getInstance().getTime}")
       case x =>
     }
   }
@@ -34,11 +34,11 @@ trait Log {
     Global.running = false
     Thread.sleep(10)
     new Throwable().printStackTrace()
-    justQuit(s"$context : Error: $msg")
+     justQuit(s"${java.net.InetAddress.getLocalHost.getHostName} $context : Error: $msg")
   }
 
   def justQuit(msg: String) = {
-    log(s"$context : Quiting: $msg", 30)
+     log(s"${java.net.InetAddress.getLocalHost.getHostName} $context : Quiting: $msg", 30)
     Global.running = false
     Thread.sleep(10)
     sys.exit(1)
