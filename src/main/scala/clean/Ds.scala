@@ -19,8 +19,7 @@
 package clean
 
 import al.strategies._
-import clean.res.Measure
-import ml.classifiers.{Learner, NoLearner}
+import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
 import util.Datasets
 import weka.experiment.InstanceQuerySQLite

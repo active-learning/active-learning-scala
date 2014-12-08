@@ -37,35 +37,56 @@ trait Measure extends CM with Blob {
    lazy val p = ds.poolId(s, l, r, f)
    val calc: Option[Seq[Double]]
 
-   def qs2hs(qs: Int) = qs - ds.nclasses + 1
+   protected def qs2hs(qs: Int) = qs - ds.nclasses + 1
 
-   def t2qs(t: Int) = t + 1
+   protected def t2qs(t: Int) = t + 1
 
-   def t2hs(t: Int) = qs2hs(t2qs(t))
+   protected def t2hs(t: Int) = qs2hs(t2qs(t))
 
-   def write() {
-      calc match {
-         case Some(seq) => ds.write(s"insert into r values ($id, $p, ${doublesTobdString(seq)}")
-         case None => ds.log(s"Pool $r.$f incompleto para os hits de $s/$l.")
-      }
-   }
-}
+   protected def t2hi(t: Int) = t - ds.nclasses
 
-case class balancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(t: Int) extends Measure {
-   val id = 1
-   lazy val prev = {
+   protected def values() = {
       ds.readString(s"select vs from r where m=$id and p=$p") match {
          case List(str) => bdstringToDoubles(str)
+         case List() => Vector()
+         case lista => ds.error(s"Mais de um item na lista $lista")
       }
    }
-   lazy val expectedQtdHits = t2hs(t)
-   lazy val calc = if (cms.contains(t)) Some(prev ++ Seq(accBal(cms(t)))) else None
 }
 
-case class kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(t: Int) extends Measure {
-   val id = 2
+trait InstantMeasure extends Measure {
+   val t: Int
+   val fun: (Array[Array[Int]]) => Double
+   val readOnly: Boolean
    lazy val expectedQtdHits = t2hs(t)
-   lazy val calc = if (cms.contains(t)) Some(prev ++ Seq(kappa(cms(t)))) else None
+   lazy val calc = if (readOnly) {
+      if (cms.contains(t)) Some(fun(cms(t))) else None
+   } else {
+      val dbVs = values()
+      if (dbVs.size >= expectedQtdHits) Some(dbVs(t2hi(t)))
+      else {
+         val dbCms = cms.values.toSeq
+         val newVs = if (dbCms.size > dbVs.size) {
+            val tmp = dbCms map fun
+            ds.write(s"replace into r values ($id, $p, ${doublesTobdString(tmp)})")
+            tmp
+         } else dbVs
+         val i = t2hi(t)
+         if (i >= newVs.size) None else Some(newVs(i))
+      }
+   }
+}
+
+case class balancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, readOnly: Boolean = true, t: Int)
+   extends InstantMeasure {
+   val id = 1
+   val fun = accBal _
+}
+
+case class kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, readOnly: Boolean = true, t: Int)
+   extends InstantMeasure {
+   val id = 2
+   val fun = kappa _
 }
 
 //
