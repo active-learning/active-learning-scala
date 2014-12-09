@@ -29,7 +29,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    override lazy val toString = database
    private var connection: Connection = null
    val context = database
-   val connectionWait_ms = 30000
+   val connectionWait_ms = 60000
    var alive = Array.fill(Global.runs)(Array.fill(Global.folds)(false))
    val id = System.currentTimeMillis() + UUID.randomUUID().toString
 
@@ -58,9 +58,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
                while (Global.running && alive(r)(f)) {
                   heartbeat(r, f)
 
-                  //20s
-                  1 to 500 takeWhile { _ =>
-                     Thread.sleep(40)
+                  //120s
+                  1 to 2000 takeWhile { _ =>
+                     Thread.sleep(60)
                      Global.running && alive(r)(f)
                   }
                }
@@ -80,7 +80,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       new java.util.Date(milliseconds)
    }
 
-   def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 120): Boolean = {
+   def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 180): Boolean = {
       val now = Calendar.getInstance().getTime
       val sql = s"select * from l where r=$r and f=$f"
       try {
@@ -106,9 +106,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       } catch {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 60s.\n", 30)
-            Thread.sleep(60000) //waiting time is longer than normal to allow for other alive connections to update the table
+            Thread.sleep(120000) //waiting time is longer than normal to allow for other alive connections to update the table
             test(sql)
-            isAliveByOtherJob(r, f, lifetimeSeconds + 60) //each time we recover, the elapsed time should be higher
+            isAliveByOtherJob(r, f, lifetimeSeconds + 120) //each time we recover, the elapsed time should be higher
       }
    }
 
@@ -176,7 +176,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          queue.toList.map(_.toVector)
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 30)
+            log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms.\n", 30)
             Thread.sleep(connectionWait_ms)
             test(sql)
             read(sql)
@@ -198,7 +198,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          statement.close()
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s", 30)
+            log(s"\nProblems executing SQL query '$sql' in: ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms", 30)
             release()
             Thread.sleep(connectionWait_ms)
             test(sql)
@@ -222,7 +222,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          queue.toList
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing SQL read blobs query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 30)
+            log(s"\nProblems executing SQL read blobs query '$sql': ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms.\n", 30)
             Thread.sleep(connectionWait_ms)
             test(sql)
             readBlobs(sql)
@@ -244,7 +244,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          queue.toList
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing SQL read styrings query '$sql': ${e.getMessage} .\nTrying againg in 30s.\n", 30)
+            log(s"\nProblems executing SQL read styrings query '$sql': ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms.\n", 30)
             Thread.sleep(connectionWait_ms)
             test(sql)
             readString(sql)
@@ -267,7 +267,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          queue.toList
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing read blobs4 SQL query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 30)
+            log(s"\nProblems executing read blobs4 SQL query '$sql' in: ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms.\n", 30)
             Thread.sleep(connectionWait_ms)
             test(sql)
             readBlobs4(sql)
@@ -285,7 +285,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          statement.close()
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing SQL blob query '$sql' in: ${e.getMessage} .\nTrying againg in 30s.\n", 30)
+            log(s"\nProblems executing SQL blob query '$sql' in: ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms.\n", 30)
             release()
             Thread.sleep(connectionWait_ms)
             test(sql)
@@ -315,7 +315,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          stats foreach (_.close())
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in 30s\n", 30)
+            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms\n", 30)
             if (connection != null) {
                try {
                   System.err.print("Transaction is being rolled back")
@@ -356,7 +356,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          statement.close()
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in 30s\n", 30)
+            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms\n", 30)
             if (connection != null) {
                try {
                   log("Transaction is being rolled back...", 30)
