@@ -44,7 +44,7 @@ trait Measure extends CM with Blob {
 
    def read(ds: Ds) = ds.read(s"select v from r where m=$id and p=$pid") match {
       case List(Vector(v)) => Some(v)
-      case List(Vector()) => None
+      case List() => None
       case x => ds.error(s"Mais de um valor? $x.")
    }
 

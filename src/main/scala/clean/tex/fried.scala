@@ -27,7 +27,6 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedtex"
    val measure = ALCBalancedAcc
-   val meaName = measure.toString
    run()
 
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
@@ -50,7 +49,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield measure(ds, s, le, r, f)(ds.nclasses - 1, maxQueries(ds) - 1).value.getOrElse(-4d)
+            } yield measure(ds, s, le, r, f)(ds.nclasses - 1, maxQueries(ds) - 1).read(ds).getOrElse(-4d)
             Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()
@@ -61,7 +60,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
 
       println(s"")
       res0sorted.grouped(280).foreach { res1 =>
-         StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", meaName, 7)
+         StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString, 7)
       }
 
       println(s"")
