@@ -86,26 +86,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     */
    def progress(strats: Seq[Int], learners: Seq[Int]) = read(s"select count(0) from r,p where p.id=p and p.s in (${strats.mkString(",")}) and p.l in (${learners.mkString(",")})").head.head / (strats.size * learners.size * Global.runs * Global.folds)
 
-   def reset() {
-      ???
-      //    //query [pool timeStep instance]
-      //    //hit [pool timeStep blobMatrix(realClass X guessedClass values)] (confusion matrix blob)
-      //    //pool [strat learner run fold]
-      //    //result [app.measure pool value] (Q, ...)
-      //    //time [pool value] in seconds
-      //    write("drop table if exists q")
-      //    write("drop table if exists h")
-      //    write("drop table if exists p")
-      //    write("drop table if exists r")
-      //    write("drop table if exists t")
-      //    write("CREATE TABLE q ( p INT, t INT, i INT, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, UNIQUE (p, i) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id) ); ")
-      //    write("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) );")
-      //    write("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT, UNIQUE (s, l, r, f) ON CONFLICT ROLLBACK ); ")
-      //    write("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ")
-      //    write("CREATE TABLE f ( b INT, PRIMARY KEY (b) ); ")
-      //    //    write("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ")
-   }
-
    /**
     * Reads all SQLite patterns according to given SQL conditions.
     * Note that nominal attributes must have all possible values present in the resulting sample!
@@ -148,7 +128,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
    //  def isQCalculated = fetchQ().nonEmpty
 
-   def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount0: Int): Boolean = {
+   def areQueriesFinished(poolSize: Int, strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount0: Int): Boolean = if (readOnly) error("read only")
+   else {
       val expectedAmount = math.min(poolSize, expectedAmount0)
       val (sid, lid) = (strat.id, strat.learner.id)
       poolId(sid, lid, run, fold) match {
@@ -191,7 +172,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       }
    }
 
-   def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount0: Int) = {
+   def areHitsFinished(poolSize: Int, testSet: Seq[Pattern], strat: Strategy, learner: Learner, run: Int, fold: Int, binaf: Filter, zscof: Filter, completeIt: Boolean, expectedAmount0: Int) = if (readOnly) error("read only")
+   else {
       val ExpectedHitsForFullPool = poolSize - nclasses + 1
       val expectedAmount = math.min(ExpectedHitsForFullPool, expectedAmount0)
       if (learner.id != strat.learner.id && strat.id > 1 && !Seq(211, 601, 361, 66361, 901, 391, 66391).contains(strat.id)) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
@@ -356,7 +338,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       }
    }
 
-   def writeQueries(strat: Strategy, run: Int, fold: Int, q: Int) = {
+   def writeQueries(strat: Strategy, run: Int, fold: Int, q: Int) = if (readOnly) error("read only")
+   else {
       poolId(strat, strat.learner, run, fold) match {
          case Some(queryPoolId) => quit(s"Pool $run.$fold já estava gravado para $strat.${strat.learner} referente às queries a gravar.")
          case None =>
@@ -383,40 +366,40 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     * @param learner
     * @return
     */
-   def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int, h: Int)(learner: Learner) =
-      if (learner.id != strat.learner.id && strat.id > 1 && !Seq(211, 601, 361, 66361, 901, 391, 66391).contains(strat.id))
-         error(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
-      else {
-         //Apenas agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
-         val insertIntoP = poolId(strat, learner, run, fold) match {
-            case Some(pid) => if (strat.id < 2 || Seq(211, 601, 361, 66361, 901, 391, 66391).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
-            case None =>
-               if (strat.id < 2 || Seq(211, 601, 361, 66361, 901, 391, 66391).contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
-               else quit(s"Missing gnostic queries pid for hits.")
-         }
-
-         //para rnd e quaisquer learners, |queries| = |U|.
-         val expectedQ = if (strat.id == 0) poolSize else h + nclasses - 1
-         if (expectedQ > queries.size) quit(s"Number of ${queries.size} provided queries for hits is lesser than $expectedQ expected!")
-
-         //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
-         val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else h + nclasses - 1
-         val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
-         if (nclasses != initialPatterns.size || initialPatterns.size + rest.size != qtdQueriesToTake) error("Problems picking initialPatterns for hits.")
-
-         //gera hits e sql strs
-         var m = learner.build(initialPatterns)
-         val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
-            val t = idx + nclasses - 1
-            if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
-            val cm = m.confusion(testSet)
-            val blob = confusionToBlob(cm)
-            (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
-         }).toList
-         val (sqls, blobs) = tuples.unzip
-         log(tuples.mkString("\n"), 20)
-         batchWriteBlob(sqls, blobs)
+   def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int, h: Int)(learner: Learner) = if (readOnly) error("read only")
+   else if (learner.id != strat.learner.id && strat.id > 1 && !Seq(211, 601, 361, 66361, 901, 391, 66391).contains(strat.id))
+      error(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
+   else {
+      //Apenas agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
+      val insertIntoP = poolId(strat, learner, run, fold) match {
+         case Some(pid) => if (strat.id < 2 || Seq(211, 601, 361, 66361, 901, 391, 66391).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
+         case None =>
+            if (strat.id < 2 || Seq(211, 601, 361, 66361, 901, 391, 66391).contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
+            else quit(s"Missing gnostic queries pid for hits.")
       }
+
+      //para rnd e quaisquer learners, |queries| = |U|.
+      val expectedQ = if (strat.id == 0) poolSize else h + nclasses - 1
+      if (expectedQ > queries.size) quit(s"Number of ${queries.size} provided queries for hits is lesser than $expectedQ expected!")
+
+      //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
+      val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else h + nclasses - 1
+      val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
+      if (nclasses != initialPatterns.size || initialPatterns.size + rest.size != qtdQueriesToTake) error("Problems picking initialPatterns for hits.")
+
+      //gera hits e sql strs
+      var m = learner.build(initialPatterns)
+      val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
+         val t = idx + nclasses - 1
+         if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
+         val cm = m.confusion(testSet)
+         val blob = confusionToBlob(cm)
+         (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
+      }).toList
+      val (sqls, blobs) = tuples.unzip
+      log(tuples.mkString("\n"), 20)
+      batchWriteBlob(sqls, blobs)
+   }
 
    def expectedPoolSizes(folds: Int) = {
       val parteIgual = n / folds

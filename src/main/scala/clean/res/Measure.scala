@@ -34,6 +34,7 @@ trait Measure extends CM with Blob {
    val context = "MeaTrait"
    protected val instantFun: (Array[Array[Int]]) => Double
    protected lazy val pid = ds.poolId(s, l, r, f).getOrElse {
+      ds.log(s"Tentando criar pool ${(s, l, r, f)}", 30)
       s match {
          case Passive(s.pool, false) =>
             ds.write(s"insert into p values (NULL, ${s.id}, ${l.id}, $r, $f)")

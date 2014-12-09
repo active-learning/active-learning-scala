@@ -42,6 +42,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
+         //         ds.log("",30)
          val sres = for {
             s <- strats
          } yield {
@@ -56,7 +57,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
          (ds.dataset + l.toString.take(3)) -> sres
       }
 
-      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == -1))
+      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == -4))
 
       println(s"")
       res0sorted.grouped(280).foreach { res1 =>
