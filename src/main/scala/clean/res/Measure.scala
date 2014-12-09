@@ -42,6 +42,12 @@ trait Measure extends CM with Blob {
       }
    }
 
+   def read(ds: Ds) = ds.read(s"select v from r where m=$id and p=$pid") match {
+      case List(Vector(v)) => Some(v)
+      case List(Vector()) => None
+      case x => ds.error(s"Mais de um valor? $x.")
+   }
+
    def write(ds: Ds, cm: Array[Array[Int]] = null) {
       if (ds.read(s"select count(0) from r where m=$id and p=$pid") == List(Vector(0))) {
          if (cm != null) ds.write(s"insert into r values ($id, $pid, ${instantFun(cm)})")
