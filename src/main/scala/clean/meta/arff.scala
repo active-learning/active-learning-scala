@@ -23,7 +23,7 @@ import util.Stat
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-object arff extends AppWithUsage with StratsTrait with LearnerTrait {
+object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val context = "metaAttsApp"
    val arguments = superArguments
    run()
@@ -38,12 +38,9 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait {
          (budix, ti, tf) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val min = ds.nclasses - 1
-            val max = math.min(ds.expectedPoolSizes(Global.folds).min, 200)
+            val tmp = ranges(ds)
             ds.close()
-            val delta = max - min
-            val step = delta / 10
-            (min until max by step zipWithIndex) map { case (x, idx) => (idx, x, x + step)} take 9
+            tmp
          }
       } yield {
          val ds = Ds(name, readOnly = true)

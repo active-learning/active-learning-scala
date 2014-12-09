@@ -322,14 +322,12 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     * @param fold
     * @return
     */
-   def getCMs(strat: Strategy, learner: Learner, run: Int, fold: Int)(ti: Int, tf: Int) = poolId(strat, learner, run, fold) match {
-      case None => error("Attempt to get hits without an existent related pid.")
-      case Some(pid) =>
-         val cms = mutable.LinkedHashMap[Int, Array[Array[Int]]]()
-         readBlobs(s"select mat,t from h WHERE p=$pid and t>=$ti and t <=$tf ORDER BY t") foreach {
-            case (b, t) => cms += t -> blobToConfusion(b, nclasses)
-         }
-         cms
+   def getCMs(pid: Int)(ti: Int, tf: Int) = {
+      val cms = mutable.LinkedHashMap[Int, Array[Array[Int]]]()
+      readBlobs(s"select mat,t from h WHERE p=$pid and t>=$ti and t <=$tf ORDER BY t") foreach {
+         case (b, t) => cms += t -> blobToConfusion(b, nclasses)
+      }
+      cms
    }
 
    /**

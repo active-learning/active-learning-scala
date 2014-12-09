@@ -32,6 +32,18 @@ trait Measure extends CM with Blob {
    val f: Int
    val value: Option[Double]
    val context = "MeaTrait"
+   protected val fun: (Array[Array[Int]]) => Double
+   protected lazy val pid = ds.poolId(s, l, r, f).getOrElse(error("Attempt to get hits without an existent related pid."))
+
+   def write(ds: Ds, cm: Array[Array[Int]] = null) {
+      if (ds.read(s"select count(0) from r where p=$pid") == List(Vector(0))) {
+         if (cm != null) ds.write(s"insert into r values ($id, $pid, ${fun(cm)}")
+         else value match {
+            case Some(v) => ds.write(s"insert into r values ($id, $pid, $v)")
+            case None => ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
+         }
+      }
+   }
 
    //   protected def qs2hs(qs: Int) = qs - ds.nclasses + 1
    //
@@ -44,27 +56,25 @@ trait Measure extends CM with Blob {
 
 sealed trait InstantMeasure extends Measure {
    val t: Int
-   protected val fun: (Array[Array[Int]]) => Double
-   protected lazy val CMs = {
+   protected lazy val cms = {
       if (t < ds.nclasses - 1 || t >= ds.expectedPoolSizes(Global.folds).min)
          ds.error(s"tf $t fora dos limites t:[${ds.nclasses};${ds.expectedPoolSizes(Global.folds).min}]")
-      ds.getCMs(s, l, r, f)(t, t)
+      ds.getCMs(pid)(t, t)
    }
-   lazy val value = if (CMs.isEmpty) None else Some(fun(CMs(t)))
+   lazy val value = if (cms.isEmpty) None else Some(fun(cms(t)))
 }
 
 sealed trait RangeMeasure extends Measure {
    val ti: Int
    val tf: Int
-   protected val fun: (Array[Array[Int]]) => Double
    protected val rangeFun: (Seq[Array[Array[Int]]]) => (Array[Array[Int]] => Double) => Double
-   protected lazy val CMs = {
+   protected lazy val cms = {
       if (ti > tf || tf <= ds.nclasses || tf >= ds.expectedPoolSizes(Global.folds).min)
          ds.error(s"ti $ti ou tf $tf fora dos limites ti<=tf tf:]${ds.nclasses};${ds.expectedPoolSizes(Global.folds).min}[")
-      ds.getCMs(s, l, r, f)(ti, tf)
+      ds.getCMs(pid)(ti, tf)
    }
-   protected lazy val calc = rangeFun(CMs.values.toSeq)
-   lazy val value = if (CMs.size < tf - ti + 1) None else Some(calc(fun))
+   protected lazy val calc = rangeFun(cms.values.toSeq)
+   lazy val value = if (cms.size != tf - ti + 1) None else Some(calc(fun))
 }
 
 case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
