@@ -55,8 +55,8 @@ connectionist-vowel-reduced
 abalone-3class
 #musk
 glass
-cnae-9
-texture
+#cnae-9 demorou nos 75
+#texture demorou nos 75
 vertebra-column-2c
 kr-vs-kp
 ozone-onehr
