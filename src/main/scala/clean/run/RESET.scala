@@ -22,19 +22,19 @@ package clean.run
 import clean.{AppWithUsage, Ds}
 
 object RESET extends AppWithUsage {
-  val arguments = superArguments.dropRight(1)
-  val context = "RESETapp"
-  run()
-  core()
+   val arguments = superArguments.dropRight(1)
+   val context = "RESETapp"
+   run()
+   core()
 
-  def core() {
-    datasets foreach { dataset =>
-       val ds = Ds(dataset, readOnly = false)
-      ds.open()
-      ds.reset()
-      ds.log(s"$dataset resetado.", 20)
-      ds.close()
-    }
-    log("Datasets zerados.")
-  }
+   def core() {
+      datasets foreach { dataset =>
+         val ds = Ds(dataset, readOnly = false)
+         ds.open()
+         ??? //ds.reset()
+         ds.log(s"$dataset resetado.", 20)
+         ds.close()
+      }
+      log("Datasets zerados.")
+   }
 }
