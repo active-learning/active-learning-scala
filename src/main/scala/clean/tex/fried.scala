@@ -20,10 +20,11 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean._
+import clean.meta.RangeGenerator
 import clean.res.{ALCBalancedAcc, ALCKappa}
 import util.{Stat, StatTests}
 
-object fried extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait {
+object fried extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedtex"
    val measure = ALCBalancedAcc
@@ -42,6 +43,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
+         val (ti, tf) = maxRange(ds)
          //         ds.log("",30)
          val sres = for {
             s <- strats
@@ -50,7 +52,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield measure(ds, s, le, r, f)(ds.nclasses - 1, maxQueries(ds) - 1).read(ds).getOrElse(-4d)
+            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-4d)
             Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()

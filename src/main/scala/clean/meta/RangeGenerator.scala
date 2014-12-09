@@ -26,6 +26,12 @@ trait RangeGenerator {
       val max = math.min(ds.expectedPoolSizes(Global.folds).min, 200)
       val delta = max - min
       val step = delta / 10
-      (min until max by step).zipWithIndex.map { case (x, idx) => (idx, x, x + step)} take 9
+      (min until max by step).map(x => (x, x + step)) take 9
+   }
+
+   def maxRange(ds: Ds) = {
+      val rs = ranges(ds)
+      rs.head._1 -> rs.last._2
    }
 }
+

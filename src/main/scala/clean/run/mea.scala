@@ -49,13 +49,13 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       }
 
       //majoritaria
-      for ((budix, ti, tf) <- ranges(ds)) {
+      for ((ti, tf) <- maxRange(ds) +: ranges(ds)) {
          ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).write(ds)
          ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).write(ds)
       }
 
       //outras
-      for (strat <- allStrats(); learner <- allLearners(); (budix, ti, tf) <- ranges(ds)) {
+      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- maxRange(ds) +: ranges(ds)) {
          strat match {
             case Majoritary(Seq(), false) =>
             case _ =>
