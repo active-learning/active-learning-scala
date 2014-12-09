@@ -44,7 +44,7 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait {
             val ms = for {
                r <- 0 until Global.runs
                f <- 0 until Global.folds
-            } yield BalancedAcc(ds, s, l, r, f, ???).calc.getOrElse(-4d)
+            } yield BalancedAcc(ds, s, l, r, f)(???).value.getOrElse(-4d)
             Stat.media_desvioPadrao(ms.toVector)
          }
          val res = (ds.metaAtts.map(_.toString), l.abr, medidas.maxBy(_._2)._1)

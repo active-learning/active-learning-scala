@@ -94,4 +94,6 @@ trait CM extends Log {
          li(idx) / s
       }
    }
+
+   def ALC(CMs: Seq[Array[Array[Int]]])(f: Array[Array[Int]] => Double) = (CMs map f).sum / CMs.size
 }

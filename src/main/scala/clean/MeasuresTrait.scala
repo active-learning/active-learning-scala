@@ -22,5 +22,5 @@ package clean
 import clean.res._
 
 trait MeasuresTrait {
-   val allMeasures = Seq(BalancedAcc, Kappa)
+   val allMeasures = Seq(ALCBalancedAcc, ALCKappa)
 }
