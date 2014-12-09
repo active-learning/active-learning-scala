@@ -32,12 +32,12 @@ trait Measure extends CM with Blob {
    val f: Int
    val value: Option[Double]
    val context = "MeaTrait"
-   protected val fun: (Array[Array[Int]]) => Double
+   protected val instantFun: (Array[Array[Int]]) => Double
    protected lazy val pid = ds.poolId(s, l, r, f).getOrElse(error("Attempt to get hits without an existent related pid."))
 
    def write(ds: Ds, cm: Array[Array[Int]] = null) {
       if (ds.read(s"select count(0) from r where p=$pid") == List(Vector(0))) {
-         if (cm != null) ds.write(s"insert into r values ($id, $pid, ${fun(cm)}")
+         if (cm != null) ds.write(s"insert into r values ($id, $pid, ${instantFun(cm)}")
          else value match {
             case Some(v) => ds.write(s"insert into r values ($id, $pid, $v)")
             case None => ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
@@ -61,7 +61,7 @@ sealed trait InstantMeasure extends Measure {
          ds.error(s"tf $t fora dos limites t:[${ds.nclasses};${ds.expectedPoolSizes(Global.folds).min}]")
       ds.getCMs(pid)(t, t)
    }
-   lazy val value = if (cms.isEmpty) None else Some(fun(cms(t)))
+   lazy val value = if (cms.isEmpty) None else Some(instantFun(cms(t)))
 }
 
 sealed trait RangeMeasure extends Measure {
@@ -74,31 +74,31 @@ sealed trait RangeMeasure extends Measure {
       ds.getCMs(pid)(ti, tf)
    }
    protected lazy val calc = rangeFun(cms.values.toSeq)
-   lazy val value = if (cms.size != tf - ti + 1) None else Some(calc(fun))
+   lazy val value = if (cms.size != tf - ti + 1) None else Some(calc(instantFun))
 }
 
 case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
    extends InstantMeasure {
    val id = 10000000 + t
-   protected val fun = accBal _
+   protected val instantFun = accBal _
 }
 
 case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
    extends InstantMeasure {
    val id = 20000000 + t
-   protected val fun = kappa _
+   protected val instantFun = kappa _
 }
 
 case class ALCBalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val ti: Int, val tf: Int)
    extends RangeMeasure {
    val id = 30000000 + tf * 10000 + ti
-   protected val fun = accBal _
+   protected val instantFun = accBal _
    protected val rangeFun = ALC _
 }
 
 case class ALCKappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val ti: Int, val tf: Int)
    extends RangeMeasure {
    val id = 40000000 + tf * 10000 + ti
-   protected val fun = kappa _
+   protected val instantFun = kappa _
    protected val rangeFun = ALC _
 }
