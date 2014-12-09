@@ -44,7 +44,7 @@ trait Measure extends CM with Blob {
 
    def write(ds: Ds, cm: Array[Array[Int]] = null) {
       if (ds.read(s"select count(0) from r where p=$pid") == List(Vector(0))) {
-         if (cm != null) ds.write(s"insert into r values ($id, $pid, ${instantFun(cm)}")
+         if (cm != null) ds.write(s"insert into r values ($id, $pid, ${instantFun(cm)})")
          else value match {
             case Some(v) => ds.write(s"insert into r values ($id, $pid, $v)")
             case None => ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
