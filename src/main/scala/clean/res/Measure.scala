@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.res
 
-import al.strategies.Strategy
+import al.strategies.{Passive, Strategy}
 import clean.{Global, Blob, CM, Ds}
 import ml.classifiers.Learner
 
@@ -33,7 +33,14 @@ trait Measure extends CM with Blob {
    val value: Option[Double]
    val context = "MeaTrait"
    protected val instantFun: (Array[Array[Int]]) => Double
-   protected lazy val pid = ds.poolId(s, l, r, f).getOrElse(error("Attempt to get hits without an existent related pid."))
+   protected lazy val pid = ds.poolId(s, l, r, f).getOrElse {
+      s match {
+         case Passive(s.pool, false) =>
+            ds.write(s"insert into p values (NULL, ${s.id}, ${l.id}, $r, $f)")
+            ds.poolId(s, l, r, f).getOrElse(error(s"Could not create pid for ${(s, l, r, f)}."))
+         case _ => error(s"No pid for ${(s, l, r, f)}.")
+      }
+   }
 
    def write(ds: Ds, cm: Array[Array[Int]] = null) {
       if (ds.read(s"select count(0) from r where p=$pid") == List(Vector(0))) {
