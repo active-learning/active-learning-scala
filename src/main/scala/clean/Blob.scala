@@ -56,7 +56,7 @@ trait Blob {
    def stretchFromBytes(bytes: Array[Byte], bits: Int = 12) = {
       val a = BaseConverter.toBinary(bytes)
       val b = a.drop(a.size % bits)
-      val c = b.grouped(bits).map(_.mkString).toList
+      val c = b.grouped(bits).map(_.mkString)
       val d = c.map(Integer.parseInt(_, 2))
       d
    }

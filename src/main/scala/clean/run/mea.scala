@@ -32,32 +32,30 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
    val ignoreNotDone = false
    run()
 
-   def calculate(ds: Ds, cms: mutable.LinkedHashMap[Int, Array[Array[Int]]], tsSize: Int, meas: Measure) = meas.calc(ds, cms, tsSize)
-
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
       //      allMeasures foreach { measu =>
-//         //se for passiva, só poderia medir em special learners; mas posso rodar o classificador aqui com o pool inteiro e descobrir o valor
-//         //               specialLearners(Seq()) foreach storeSQL(pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size, m)
-//         stratsemLearnerExterno() foreach { strat =>
-//            if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
-//               ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-//            } else {
-//               //estratégias de learner único (Maj/ZeroR id = 21) (enquanto estiver suando kappa, nao precisa de maj)
-//               //               if (strat.id >= 17 && strat.id <= 21 || strat.id == 969) {
-//               //                  val m = measu(ds, strat, strat.learner, run, fold,)
-//               //                  storeSQL(pool.size, ds, strat, run, fold, testSet.size, m)(strat.learner)
-//               //               }               else
-//               allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size, m)
-//            }
-//         }
-//         allLearners() foreach { learner =>
-//            stratcomLearnerExterno(learner) foreach { strat =>
-//               if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
-//                  ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
-//               } else storeSQL(pool.size, ds, strat, run, fold, testSet.size, m)(learner)
-//            }
-//         }
-//      }
+      //         //se for passiva, só poderia medir em special learners; mas posso rodar o classificador aqui com o pool inteiro e descobrir o valor
+      //         //               specialLearners(Seq()) foreach storeSQL(pool.size, ds, RandomSampling(Seq()), run, fold, testSet.size, m)
+      //         stratsemLearnerExterno() foreach { strat =>
+      //            if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
+      //               ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+      //            } else {
+      //               //estratégias de learner único (Maj/ZeroR id = 21) (enquanto estiver suando kappa, nao precisa de maj)
+      //               //               if (strat.id >= 17 && strat.id <= 21 || strat.id == 969) {
+      //               //                  val m = measu(ds, strat, strat.learner, run, fold,)
+      //               //                  storeSQL(pool.size, ds, strat, run, fold, testSet.size, m)(strat.learner)
+      //               //               }               else
+      //               allLearners() foreach storeSQL(pool.size, ds, strat, run, fold, testSet.size, m)
+      //            }
+      //         }
+      //         allLearners() foreach { learner =>
+      //            stratcomLearnerExterno(learner) foreach { strat =>
+      //               if (!ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = false, maxQueries(ds))) {
+      //                  ds.log(s"Queries were not finished for ${strat.abr}/${strat.learner} at pool $run.$fold!")
+      //               } else storeSQL(pool.size, ds, strat, run, fold, testSet.size, m)(learner)
+      //            }
+      //         }
+      //      }
    }
 
    def datasetFinished(ds: Ds) {

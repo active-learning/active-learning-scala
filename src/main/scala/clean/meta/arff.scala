@@ -3,7 +3,7 @@ package clean.meta
 import java.io.FileWriter
 
 import clean._
-import clean.res.BalancedAcc
+import clean.res.{ALCKappa, BalancedAcc}
 import util.Stat
 
 /*
@@ -33,18 +33,33 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait {
    override def run() = {
       super.run()
       val metadata0 = for {
-         name <- if (parallelDatasets) datasets.toList.par else datasets.toList
-         l <- allLearners()
+         name <- datasets.toList
+         l <- allLearners() //.par
+         (ti, tf) <- {
+            val ds = Ds(name, readOnly = true)
+            ds.open()
+            val min = ds.nclasses - 1
+            val max = math.min(ds.expectedPoolSizes(Global.folds).min, 200)
+            ds.close()
+            val delta = max - min
+            val step = delta / 10
+            val l = min until max by step map (x => (x, x + step)) take 9
+            println(s"")
+            println(s"${ds.nclasses}: $min $max")
+            l foreach println
+            l
+         }
       } yield {
          val ds = Ds(name, readOnly = true)
          ds.open()
          val medidas = for {
             s <- allStrats()
          } yield {
+            val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
             val ms = for {
                r <- 0 until Global.runs
                f <- 0 until Global.folds
-            } yield BalancedAcc(ds, s, l, r, f)(???).value.getOrElse(-4d)
+            } yield ALCKappa(ds, s, le, r, f)(ti, tf).value.getOrElse(-4d)
             Stat.media_desvioPadrao(ms.toVector)
          }
          val res = (ds.metaAtts.map(_.toString), l.abr, medidas.maxBy(_._2)._1)
@@ -52,6 +67,8 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait {
          res
       }
       val metadata = metadata0.toList
+      metadata foreach println
+      ???
 
       //cria ARFF
       val (desc, nom, pred) = metadata.unzip3
