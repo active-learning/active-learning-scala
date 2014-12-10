@@ -75,7 +75,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          }
       }
 
-      ds.batchWrite(fila.toList)
+      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
       fila.clear()
    }
 
