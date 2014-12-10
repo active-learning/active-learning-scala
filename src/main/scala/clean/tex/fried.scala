@@ -27,7 +27,7 @@ import util.{Stat, StatTests}
 object fried extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedtex"
-   val measure = ALCBalancedAcc
+   val measure = ALCKappa
    run()
 
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
@@ -43,7 +43,8 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         val (ti, tf) = maxRange(ds)
+         val (ti, tf) = ranges(ds).head
+         //         val (ti, tf) = maxRange(ds)
          //         ds.log("",30)
          val sres = for {
             s <- strats
@@ -52,14 +53,14 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-4d)
-            Stat.media_desvioPadrao(vs.toVector)
+            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
+            if (vs.contains(-2d)) (-2d, -2d) else Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()
          (ds.dataset + l.toString.take(3)) -> sres
       }
 
-      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == -4))
+      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == -2d))
 
       println(s"")
       res0sorted.grouped(280).foreach { res1 =>
@@ -67,7 +68,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       }
 
       println(s"")
-      val res = res0sorted.filter(!_._2.contains(-4, 0))
+      val res = res0sorted.filter(!_._2.contains(-2d, -2d))
       val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))
       StatTests.pairTable(pairs, "tablename", "acc")
    }

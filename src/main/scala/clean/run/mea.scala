@@ -58,9 +58,9 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- maxRange(ds) +: ranges(ds)) {
          strat match {
             case Majoritary(Seq(), false) =>
-            case _ =>
-               ALCKappa(ds, Passive(pool), learner, run, fold)(ti, tf).write(ds)
-               ALCBalancedAcc(ds, Passive(pool), learner, run, fold)(ti, tf).write(ds)
+            case s =>
+               ALCKappa(ds, s, learner, run, fold)(ti, tf).write(ds)
+               ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).write(ds)
          }
       }
    }
