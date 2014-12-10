@@ -168,7 +168,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          statement.close()
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing SQL query '$sql' in: ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms", 30)
+            val emsg = e.getMessage
+            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '$sql' in: $emsg}")
+            else log(s"\nProblems executing SQL query '$sql' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             release()
             Thread.sleep(connectionWait_ms)
             test(sql)
@@ -256,7 +258,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          statement.close()
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems executing SQL blob query '$sql' in: ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms.\n", 30)
+            val emsg = e.getMessage
+            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '$sql' in: $emsg}")
+            else log(s"\nProblems executing SQL query '$sql' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             release()
             Thread.sleep(connectionWait_ms)
             test(sql)
@@ -287,7 +291,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          stats foreach (_.close())
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms\n", 30)
+            val emsg = e.getMessage
+            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '${sqls.head}' in: $emsg}")
+            else log(s"\nProblems executing SQL batch query '${sqls.head}' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             if (connection != null) {
                try {
                   System.err.print("Transaction is being rolled back")
@@ -329,7 +335,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          statement.close()
       } catch {
          case e: Throwable => //e.printStackTrace()
-            log(s"\nProblems writing blobs with SQL query '$sqls':\n ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms\n", 30)
+            val emsg = e.getMessage
+            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '${sqls.head}' in: $emsg}")
+            else log(s"\nProblems executing SQL query '${sqls.head}' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             if (connection != null) {
                try {
                   log("Transaction is being rolled back...", 30)
@@ -366,3 +374,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    }
 }
 
+object DbTest extends App {
+   val ds = Ds("iris", readOnly = false)
+   ds.open()
+   ds.write("insert into r values (1999999999, 1, 1999999999)")
+   ds.close()
+}
