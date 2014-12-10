@@ -33,6 +33,11 @@ trait Measure extends CM with Blob {
    val value: Option[Double]
    val context = "MeaTrait"
    protected val instantFun: (Array[Array[Int]]) => Double
+   lazy val existia = {
+      val tmp = ds.read(s"select count(0) from r where m=$id and p=$pid").head.head
+      if (tmp > 1) ds.error(s"Mais do que um r!!!")
+      tmp == 1
+   }
    lazy val pid = ds.poolId(s, l, r, f).getOrElse {
       ds.log(s"Tentando criar pool ${(s, l, r, f)}", 30)
       s match {
@@ -50,7 +55,7 @@ trait Measure extends CM with Blob {
    }
 
    def write(ds: Ds, cm: Array[Array[Int]] = null) {
-      if (ds.read(s"select count(0) from r where m=$id and p=$pid") == List(Vector(0))) {
+      if (!existia) {
          if (cm != null) ds.write(s"insert into r values ($id, $pid, ${instantFun(cm)})")
          else value match {
             case Some(v) => ds.write(s"insert into r values ($id, $pid, $v)")
@@ -60,7 +65,7 @@ trait Measure extends CM with Blob {
    }
 
    def sqlToWrite(ds: Ds, cm: Array[Array[Int]] = null) = {
-      if (ds.read(s"select count(0) from r where m=$id and p=$pid") == List(Vector(0))) {
+      if (!existia) {
          if (cm != null) s"insert into r values ($id, $pid, ${instantFun(cm)})"
          else value match {
             case Some(v) => s"insert into r values ($id, $pid, $v)"

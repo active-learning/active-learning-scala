@@ -39,16 +39,24 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       val fila = mutable.Queue[String]()
       //passiva
       for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
-         val model = learner.build(pool)
-         val CM = model.confusion(testSet)
-         fila += Kappa(ds, Passive(pool), learner, run, fold)(-1).sqlToWrite(ds, CM)
-         fila += BalancedAcc(ds, Passive(pool), learner, run, fold)(-1).sqlToWrite(ds, CM)
+         val k = Kappa(ds, Passive(pool), learner, run, fold)(-1)
+         val b = BalancedAcc(ds, Passive(pool), learner, run, fold)(-1)
+         if (!k.existia || !b.existia) {
+            val model = learner.build(pool)
+            val CM = model.confusion(testSet)
+            fila += k.sqlToWrite(ds, CM)
+            fila += b.sqlToWrite(ds, CM)
+         }
       }
       for (flearner <- learnersFilterDependent(rnd.nextInt(99999))) {
-         val model = flearner.build(fpool)
-         val CM = model.confusion(ftestSet)
-         fila += Kappa(ds, Passive(fpool), flearner, run, fold)(-1).sqlToWrite(ds, CM)
-         fila += BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1).sqlToWrite(ds, CM)
+         val k = Kappa(ds, Passive(fpool), flearner, run, fold)(-1)
+         val b = BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1)
+         if (!k.existia || !b.existia) {
+            val model = flearner.build(fpool)
+            val CM = model.confusion(ftestSet)
+            fila += k.sqlToWrite(ds, CM)
+            fila += b.sqlToWrite(ds, CM)
+         }
       }
 
       //majoritaria
