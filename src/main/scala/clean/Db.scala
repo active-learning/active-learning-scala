@@ -324,7 +324,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          acquire()
          connection.setAutoCommit(false)
          statement = connection.createStatement()
-         sqls foreach statement.executeUpdate
+         sqls foreach statement.execute
          connection.commit()
          statement.close()
       } catch {
