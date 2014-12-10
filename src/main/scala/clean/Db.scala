@@ -318,7 +318,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    else {
       if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
       log("batch write blob ... head: " + sqls.head, 10)
-      sqls foreach (m => log(m, 2))
+      //      sqls foreach (m => log(m, 2))
       var statement: Statement = null
       try {
          acquire()
