@@ -27,6 +27,8 @@ import ml.Pattern
 import ml.classifiers.Maj
 import weka.filters.Filter
 
+import scala.collection.mutable
+
 object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with RangeGenerator {
    val context = "meaApp"
    val arguments = superArguments
@@ -34,24 +36,25 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
    run()
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+      val fila = mutable.Queue[String]()
       //passiva
       for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
          val model = learner.build(pool)
          val CM = model.confusion(testSet)
-         Kappa(ds, Passive(pool), learner, run, fold)(-1).write(ds, CM)
-         BalancedAcc(ds, Passive(pool), learner, run, fold)(-1).write(ds, CM)
+         fila += Kappa(ds, Passive(pool), learner, run, fold)(-1).sqlToWrite(ds, CM)
+         fila += BalancedAcc(ds, Passive(pool), learner, run, fold)(-1).sqlToWrite(ds, CM)
       }
       for (flearner <- learnersFilterDependent(rnd.nextInt(99999))) {
          val model = flearner.build(fpool)
          val CM = model.confusion(ftestSet)
-         Kappa(ds, Passive(fpool), flearner, run, fold)(-1).write(ds, CM)
-         BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1).write(ds, CM)
+         fila += Kappa(ds, Passive(fpool), flearner, run, fold)(-1).sqlToWrite(ds, CM)
+         fila += BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1).sqlToWrite(ds, CM)
       }
 
       //majoritaria
       for ((ti, tf) <- maxRange(ds) +: ranges(ds)) {
-         ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).write(ds)
-         ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).write(ds)
+         fila += ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds)
+         fila += ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds)
       }
 
       //outras
@@ -59,10 +62,13 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          strat match {
             case Majoritary(Seq(), false) =>
             case s =>
-               ALCKappa(ds, s, learner, run, fold)(ti, tf).write(ds)
-               ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).write(ds)
+               fila += ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds)
+               fila += ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds)
          }
       }
+
+      ds.batchWrite(fila.toList)
+      fila.clear()
    }
 
    def datasetFinished(ds: Ds) {

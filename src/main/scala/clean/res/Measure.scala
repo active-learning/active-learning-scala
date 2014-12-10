@@ -33,7 +33,7 @@ trait Measure extends CM with Blob {
    val value: Option[Double]
    val context = "MeaTrait"
    protected val instantFun: (Array[Array[Int]]) => Double
-   protected lazy val pid = ds.poolId(s, l, r, f).getOrElse {
+   lazy val pid = ds.poolId(s, l, r, f).getOrElse {
       ds.log(s"Tentando criar pool ${(s, l, r, f)}", 30)
       s match {
          case Passive(s.pool, false) =>
@@ -57,6 +57,18 @@ trait Measure extends CM with Blob {
             case None => ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
          }
       }
+   }
+
+   def sqlToWrite(ds: Ds, cm: Array[Array[Int]] = null) = {
+      if (ds.read(s"select count(0) from r where m=$id and p=$pid") == List(Vector(0))) {
+         if (cm != null) s"insert into r values ($id, $pid, ${instantFun(cm)})"
+         else value match {
+            case Some(v) => s"insert into r values ($id, $pid, $v)"
+            case None =>
+               ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
+               "select 1"
+         }
+      } else "select 1"
    }
 
    //   protected def qs2hs(qs: Int) = qs - ds.nclasses + 1
