@@ -169,7 +169,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       } catch {
          case e: Throwable => //e.printStackTrace()
             val emsg = e.getMessage
-            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '$sql' in: $emsg}")
+            if (emsg.contains("Duplicate entry")) error(s"\nProblems executing SQL query '$sql' in: $emsg}")
             else log(s"\nProblems executing SQL query '$sql' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             release()
             Thread.sleep(connectionWait_ms)
@@ -259,7 +259,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       } catch {
          case e: Throwable => //e.printStackTrace()
             val emsg = e.getMessage
-            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '$sql' in: $emsg}")
+            if (emsg.contains("Duplicate entry")) error(s"\nProblems executing SQL query '$sql' in: $emsg}")
             else log(s"\nProblems executing SQL query '$sql' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             release()
             Thread.sleep(connectionWait_ms)
@@ -292,7 +292,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       } catch {
          case e: Throwable => //e.printStackTrace()
             val emsg = e.getMessage
-            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '${sqls.head}' in: $emsg}")
+            if (emsg.contains("Duplicate entry")) error(s"\nProblems executing SQL query '${sqls.head}' in: $emsg}")
             else log(s"\nProblems executing SQL batch query '${sqls.head}' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             if (connection != null) {
                try {
@@ -336,7 +336,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       } catch {
          case e: Throwable => //e.printStackTrace()
             val emsg = e.getMessage
-            if (emsg.contains("Duplicate entry") && emsg.split("-").size == 2) error(s"\nProblems executing SQL query '${sqls.head}' in: $emsg}")
+            if (emsg.contains("Duplicate entry")) error(s"\nProblems executing SQL query '${sqls.head}' in: $emsg}")
             else log(s"\nProblems executing SQL query '${sqls.head}' in: $emsg} .\nTrying againg in  $connectionWait_ms ms", 30)
             if (connection != null) {
                try {
