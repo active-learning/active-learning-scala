@@ -57,7 +57,13 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                val vls = rgs map { case (ti, tf) => measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)}
                vls.sum / vls.size
             }
-            if (vs.contains(-2d)) (-2d, -2d) else Stat.media_desvioPadrao(vs.toVector)
+
+            //por media
+            //            if (vs.contains(-2d)) (-2d, -2d) else Stat.media_desvioPadrao(vs.toVector)
+
+            //pela pior medida
+            if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
+
          }
          ds.close()
          (ds.dataset + l.toString.take(3)) -> sres
@@ -77,8 +83,8 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))
 
       //por 1-desvio
-      val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))
-      val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
+      //      val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))
+      //      val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
 
       StatTests.pairTable(pairs, "tablename", "acc")
    }
