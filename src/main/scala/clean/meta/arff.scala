@@ -79,6 +79,15 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
       val fw = new FileWriter("/home/davi/wcs/ucipp/uci/meta.arff")
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
+
+      /*
+      #estrutura de saida de cada aruqivo vindo do R (são apenas duas linhas):
+#"","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12","V13","V14","V15","V16","V17","V18"
+#"1",HiConnectivityY,HiDunnY,HiSilhouetteY,HiConnectivity1.5Y,HiDunn1.5Y,HiSilhouette1.5Y,HiConnectivity2Y,HiDunn2Y,HiSilhouette2Y,kmConnectivityY,kmDunnY,kmSilhouetteY,kmConnectivity1.5Y,kmDunn1.5Y,kmSilhouette1.5Y,kmConnectivity2Y,kmDunn2Y,kmSilhouette2Y
+
+      nome:
+/home/davi/wcs/als/caracteriz/arff-pools/normalizados/cardiotocography-10class-r1-f0-normalized-pool.arff.csv
+       */
    }
 
 }

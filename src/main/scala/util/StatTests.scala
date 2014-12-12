@@ -36,7 +36,7 @@ object StatTests {
     * Winners per row (dataset or pool).
     */
    def winners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
-      val ranked = FriedmanTest.CD(measures.map(_._2.map(-_).toArray).toArray, true)
+      val ranked = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
       strategies.zipWithIndex.filter { case (s, i) =>
          ranked.contains(i)
       }.map(_._1)
@@ -46,7 +46,7 @@ object StatTests {
     * Losers per row (dataset or pool).
     */
    def losers(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
-      val ranked = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+      val ranked = FriedmanTest.CD(measures.map(_._2.map(-_).toArray).toArray, true)
       strategies.zipWithIndex.filter { case (s, i) =>
          ranked.contains(i)
       }.map(_._1)
@@ -151,6 +151,17 @@ object StatTests {
 \end{center}
 \end{table}""")
    }
+
+   /**
+    * Winners per row (dataset or pool).
+    */
+   def clearWinners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
+      ???
+      val ranked = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+      strategies.zipWithIndex.filter { case (s, i) =>
+         ranked.contains(i)
+      }.map(_._1)
+   }
 }
 
 object FriedmanNemenyiTest extends App {
@@ -176,6 +187,8 @@ object FriedmanNemenyiTest extends App {
    //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4","e1", "e2", "e3", "e4")), "teste", "ALC")
    //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
    println("winners:" + StatTests.winners(m, Vector("e1", "e2", "e3", "e4", "e5")))
+   println("losers:" + StatTests.losers(m, Vector("e1", "e2", "e3", "e4", "e5")))
+   StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
    //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
    //  m0 foreach (x => println(x._2.mkString(" ")))
 }

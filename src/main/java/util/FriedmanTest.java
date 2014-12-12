@@ -170,7 +170,8 @@ public class FriedmanTest {
     }
 
     /**
-     * List is the ranking of avgs.
+     * Retorna lista-rank com um int em cada posição indicando o índice de cada estratégia.
+     * Contém apenas a melhor, as que não diferem estatisticamente dela e a primeira que difere (melhor das piores).
      */
     public static LinkedList<Number> CD(double[][] matriz, boolean asc) {
         LinkedList<Number> l = new LinkedList<Number>();
@@ -242,6 +243,7 @@ public class FriedmanTest {
                 l.add(orderedRank[j]);
                 j++;
             }
+            l.add(orderedRank[j]);
 
         } catch (Exception e) {
             System.out.println("|||erro calculando pvalue Friedman: " + "nc=" + nc + "--nl=" + nl + "--XF=" + chiFriedman + "--FF=" + F_Friedman + "\n" + e.getMessage());
