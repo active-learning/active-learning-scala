@@ -3,9 +3,9 @@ package util;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.text.DecimalFormat;
 import java.util.*;
 
+import scala.Tuple2;
 import weka.core.Utils;
 
 /**
@@ -170,17 +170,18 @@ public class FriedmanTest {
     }
 
     /**
-     * Retorna lista-rank com um int em cada posição indicando o índice de cada estratégia.
-     * Contém apenas a melhor, as que não diferem estatisticamente dela e a primeira que difere (melhor das piores).
+     * Retorna uma tupla com um mapa posicao-no-rank -> (algoritmo,rank-medio) e valor-CD.
+     * Todos os algoritmos retornados estão "empatados" com o primeiro, exceto o da última chave.
      */
-    public static LinkedList<Number> CD(double[][] matriz, boolean asc) {
-        LinkedList<Number> l = new LinkedList<Number>();
+    public static Tuple2<LinkedHashMap<Integer, Tuple2<Integer, Double>>, Double> CD(double[][] matriz, boolean asc) {
+        LinkedHashMap<Integer, Tuple2<Integer, Double>> l = new LinkedHashMap<Integer, Tuple2<Integer, Double>>();
 
         int nl = matriz.length;
         int nc = matriz[0].length;
         double[][] ranks = new double[nl][nc];
         double F_Friedman = Double.NaN;
         double chiFriedman = Double.NaN;
+        double critDiff = 0;
         try {
             for (int i = 0; i < nl; ++i) {
                 int[] sorts = Utils.sort(matriz[i]);
@@ -236,20 +237,21 @@ public class FriedmanTest {
             }
             chiFriedman *= (tmp - (nc * (((nc + 1) * (nc + 1)) / 4.0)));
             F_Friedman = ((nl - 1) * chiFriedman) / ((nl * (nc - 1)) - chiFriedman);
-            double critDiff = qAlpha10pct[nc - 2] * Math.sqrt((nc * (nc + 1.0)) / (6.0 * nl));
+            critDiff = qAlpha10pct[nc - 2] * Math.sqrt((nc * (nc + 1.0)) / (6.0 * nl));
             double limit = medRank[orderedRank[0]] + critDiff;
             int j = 0;
             while (j < nc && medRank[orderedRank[j]] <= limit) {
-                l.add(orderedRank[j]);
+                l.put(j, new Tuple2<Integer, Double>(orderedRank[j], medRank[orderedRank[j]]));
                 j++;
             }
-            l.add(orderedRank[j]);
+            l.put(j, new Tuple2<Integer, Double>(orderedRank[j], medRank[orderedRank[j]]));
 
         } catch (Exception e) {
             System.out.println("|||erro calculando pvalue Friedman: " + "nc=" + nc + "--nl=" + nl + "--XF=" + chiFriedman + "--FF=" + F_Friedman + "\n" + e.getMessage());
             e.printStackTrace();
         }
-        return l;
+
+        return new Tuple2<LinkedHashMap<Integer, Tuple2<Integer, Double>>, Double>(l, critDiff);
     }
 
 //    /**

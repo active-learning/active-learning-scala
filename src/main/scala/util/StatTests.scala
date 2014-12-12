@@ -1,5 +1,7 @@
 package util
 
+import scala.collection.mutable
+
 /*
  active-learning-scala: Active Learning library for Scala
  Copyright (c) 2014 Davi Pereira dos Santos
@@ -34,9 +36,14 @@ object StatTests {
 
    /**
     * Winners per row (dataset or pool).
+    * A ordem retornada é a mesma original.
     */
+
+   import collection.JavaConversions._
    def winners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
-      val ranked = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+      val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+      val m = lhm.toList.sortBy(_._1).map(_._2._1)
+      val ranked = m.dropRight(1)
       strategies.zipWithIndex.filter { case (s, i) =>
          ranked.contains(i)
       }.map(_._1)
@@ -44,9 +51,12 @@ object StatTests {
 
    /**
     * Losers per row (dataset or pool).
+    * A ordem retornada é a mesma original.
     */
    def losers(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
-      val ranked = FriedmanTest.CD(measures.map(_._2.map(-_).toArray).toArray, true)
+      val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, false)
+      val m = lhm.toList.sortBy(_._1).map(_._2._1)
+      val ranked = m.dropRight(1)
       strategies.zipWithIndex.filter { case (s, i) =>
          ranked.contains(i)
       }.map(_._1)
@@ -153,11 +163,30 @@ object StatTests {
    }
 
    /**
-    * Winners per row (dataset or pool).
+    * Winners per row (dataset or pool), eliminando quem estiver empatado com um não-vencedor.
+    * A ordem retornada é a mesma original.
     */
    def clearWinners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
-      ???
-      val ranked = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+      import collection.JavaConversions._
+      val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+      val m = lhm.toList.sortBy(_._1).map(_._2)
+      val limit = m.last._2 - cd
+      val ranked = m.takeWhile(_._2 < limit).map(_._1)
+      strategies.zipWithIndex.filter { case (s, i) =>
+         ranked.contains(i)
+      }.map(_._1)
+   }
+
+   /**
+    * Loosers per row (dataset or pool), eliminando quem estiver empatado com um não-perdedor.
+    * A ordem retornada é a mesma original.
+    */
+   def clearLosers(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
+      import collection.JavaConversions._
+      val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, false)
+      val m = lhm.toList.sortBy(_._1).map(_._2)
+      val limit = m.last._2 - cd
+      val ranked = m.takeWhile(_._2 < limit).map(_._1)
       strategies.zipWithIndex.filter { case (s, i) =>
          ranked.contains(i)
       }.map(_._1)
@@ -166,13 +195,13 @@ object StatTests {
 
 object FriedmanNemenyiTest extends App {
    val m0 = Seq(
-      "d1" -> Seq(5d, 4d, 3d, 2d, 0d),
-      "d2" -> Seq(5d, 4d, 3d, 2d, 0d),
-      "d3" -> Seq(5d, 4d, 3d, 2d, 0d),
-      "d4" -> Seq(5d, 4d, 3d, 22d, 10d),
-      "d5" -> Seq(5d, 4d, 3d, 22d, 10d),
-      "d6" -> Seq(5d, 4d, 3d, 22d, 10d),
-      "d7" -> Seq(5d, 4d, 0d, 22d, 5d),
+      "d1" -> Seq(5d, 4d, 30d, 2d, 0d),
+      "d2" -> Seq(5d, 4d, 30d, 2d, 0d),
+      "d3" -> Seq(5d, 4d, 30d, 2d, 0d),
+      "d4" -> Seq(5d, 4d, 30d, 22d, 10d),
+      "d5" -> Seq(5d, 4d, 30d, 22d, 10d),
+      "d6" -> Seq(5d, 4d, 30d, 22d, 10d),
+      "d7" -> Seq(5d, 4d, 30d, 22d, 5d),
       "d8" -> Seq(5d, 4d, 0d, 22d, 0d),
       "d9" -> Seq(500d, 4000d, 30d, 200000d, 200001d),
       "d10" -> Seq(50d, 40d, 3d, 2d, 0d),
@@ -191,4 +220,6 @@ object FriedmanNemenyiTest extends App {
    StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
    //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
    //  m0 foreach (x => println(x._2.mkString(" ")))
+   println("clearwinners:" + StatTests.clearWinners(m, Vector("e1", "e2", "e3", "e4", "e5")))
+   println("clearlosers:" + StatTests.clearLosers(m, Vector("e1", "e2", "e3", "e4", "e5")))
 }
