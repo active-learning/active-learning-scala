@@ -127,8 +127,8 @@ object StatTests {
     */
    def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, measure: String, seps: Int = 2, language: String = "pt") {
       val caption = language match {
-         case "pt" => s"Um contra um: cada asterisco indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.99."
-         case "en" => s"Pairwise comparison: each asterisk indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.99."
+         case "pt" => s"Um contra um: cada asterisco/cruz indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.99/0.95."
+         case "en" => s"Pairwise comparison: each asterisk/cross indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95."
       }
       println( """\begin{table}[h]
 \caption{""" + caption + """}
@@ -137,7 +137,12 @@ object StatTests {
 
       pairs.zipWithIndex.foreach { case ((s, l), i) =>
          val nr = i + 1
-         print(s"$nr - $s\t& " + l.map(x => if (x == 2) "*" else " ").mkString(" & ") + """ \\""")
+         print(s"$nr - $s\t& " + (l map {
+            case 3 => "*"
+            case 2 => "+"
+            case 1 => "."
+            case 0 => " "
+         }).mkString(" & ") + """ \\""")
          if (i % seps == seps - 1) println( """ \hline""") else println("")
       }
 

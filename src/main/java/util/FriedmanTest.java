@@ -23,6 +23,7 @@ public class FriedmanTest {
     static final double[] qAlpha10pct = {1.645, 2.052, 2.291, 2.460, 2.589, 2.693, 2.780, 2.855, 2.920, 2.978, 3.030, 3.077, 3.120, 3.159,
             3.196, 3.230, 3.261, 3.291, 3.319, 3.346, 3.371, 3.394, 3.417, 3.439, 3.459, 3.479, 3.498, 3.516};
 
+    static final double[] qAlphaMaiorMesmo = qAlpha10pct;
     static final double[] qAlphaMaior = qAlpha5pct;
     static final double[] qAlphaMenor = qAlpha1pct;
 
@@ -129,10 +130,10 @@ public class FriedmanTest {
 
 
             //monta "tabela" de comparação par a par
-            statsResults.append("\n\nTabela de Comparação (+ significa diferença estatística 90% e * 95%)\n");
-            statsResults.append("A marcação em uma célula indica que o algoritmo da linha foi pior que o da coluna\n");
-            statsResults.append("Os números nas linhas e colunas são referentes as colunas do arquivo de entrada " +
-                    "lembrando que cada coluna é considerada como um algoritmo\n\n");
+//            statsResults.append("\n\nTabela de Comparação (+ significa diferença estatística 90% e * 95%)\n");
+//            statsResults.append("A marcação em uma célula indica que o algoritmo da linha foi pior que o da coluna\n");
+//            statsResults.append("Os números nas linhas e colunas são referentes as colunas do arquivo de entrada " +
+//                    "lembrando que cada coluna é considerada como um algoritmo\n\n");
 
             statsResults.append(",,");
             for (int j = 1; j <= nc; ++j) {
@@ -145,10 +146,14 @@ public class FriedmanTest {
                 statsResults.append("\n,").append(i + 1).append(",");
                 for (int j = 0; j < nc; j++) {
                     double diff = medRank[i] - medRank[j];
-                    if (diff >= (qAlphaMaior[nc - 2] * critDiff) && diff < (qAlphaMenor[nc - 2] * critDiff)) {
+                    if (diff >= (qAlphaMaiorMesmo[nc - 2] * critDiff) && diff < (qAlphaMaior[nc - 2] * critDiff)) {
                         table[j][i] = 1;
-                    } else if (diff >= (qAlphaMenor[nc - 2] * critDiff)) {
-                        table[j][i] = 2;
+                    } else {
+                        if (diff >= (qAlphaMaior[nc - 2] * critDiff) && diff < (qAlphaMenor[nc - 2] * critDiff)) {
+                            table[j][i] = 2;
+                        } else if (diff >= (qAlphaMenor[nc - 2] * critDiff)) {
+                            table[j][i] = 3;
+                        }
                     }
                 }
             }
