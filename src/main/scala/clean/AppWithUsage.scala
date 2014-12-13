@@ -61,6 +61,8 @@ trait AppWithUsage extends App with Log with ArgParser {
    //    case "pg" => passiveGme()
    //  }
    lazy val memlimit = Global.memlimit
+   lazy val attsFromRNames = "HiConnectivityY,HiDunnY,HiSilhouetteY,HiConnectivity1.5Y,HiDunn1.5Y,HiSilhouette1.5Y,HiConnectivity2Y,HiDunn2Y,HiSilhouette2Y,kmConnectivityY,kmDunnY,kmSilhouetteY,kmConnectivity1.5Y,kmDunn1.5Y,kmSilhouette1.5Y,kmConnectivity2Y,kmDunn2Y,kmSilhouette2Y"
+   lazy val attsFromRNamesd = "HiConnectivityYd,HiDunnYd,HiSilhouetteYd,HiConnectivity1.5Yd,HiDunn1.5Yd,HiSilhouette1.5Yd,HiConnectivity2Yd,HiDunn2Yd,HiSilhouette2Yd,kmConnectivityYd,kmDunnYd,kmSilhouetteYd,kmConnectivity1.5Yd,kmDunn1.5Yd,kmSilhouette1.5Yd,kmConnectivity2Yd,kmDunn2Yd,kmSilhouette2Yd"
 
    def maxQueries(ds: Ds) = math.max(ds.nclasses, math.min(ds.expectedPoolSizes(folds).min, maxQueries0))
 

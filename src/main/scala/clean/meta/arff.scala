@@ -6,6 +6,8 @@ import clean._
 import clean.res.{ALCKappa, BalancedAcc}
 import util.Stat
 
+import scala.io.Source
+
 /*
  active-learning-scala: Active Learning library for Scala
  Copyright (c) 2014 Davi Pereira dos Santos
@@ -29,7 +31,7 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
    val measure = ALCKappa
    run()
 
-   def r(x: Double) = (x * 100).round / 100d
+   def ff(x: Double) = (x * 100).round / 100d
 
    override def run() = {
       super.run()
@@ -39,13 +41,16 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds)
+            val tmp = ranges(ds).take(5) //100 !!!
             ds.close()
             tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
          }
       } yield {
          val ds = Ds(name, readOnly = true)
          ds.open()
+         val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
+         val rattsmd = seqratts map Stat.media_desvioPadrao
+         val (rattsm, rattsd) = rattsmd.unzip
          val medidas = for {
             s <- allStrats()
          } yield {
@@ -53,10 +58,10 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
             val ms = for {
                r <- 0 until Global.runs
                f <- 0 until Global.folds
-            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-4d)
-            Stat.media_desvioPadrao(ms.toVector)
+            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(ds.quit(s" base incompleta."))
+            s.abr -> Stat.media_desvioPadrao(ms.toVector)
          }
-         val res = ((ds.metaAtts ++ Seq(budix)).map(_.toString), l.abr, medidas.maxBy(_._2)._1)
+         val res = ((ds.metaAtts ++ Seq(budix.toDouble) ++ rattsm ++ rattsd).map(x => "%4.2f".format(x)), l.abr, medidas.maxBy(_._2._1)._1)
          ds.close()
          res
       }
@@ -71,8 +76,8 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
       println(noms)
       val data = metadata.map { case (d, n, p) => d.mkString(",") + s",$n,$p"}
       //      val header = List("@relation data") ++ desc.dropRight(1).head.map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + noms.mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
-      val numAtts = "nclasses, nattributes, Uavg, nattsByUavg, nomCount, numCount, nomByNum, budgetIndex"
-      val header = List("@relation data") ++ numAtts.split(", ").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val numAtts = "nclasses,nattributes,Uavg,UavgByNatts,nomCount,numCount,nomByNum,budgetIndex,lgUavg,lgUavgByNatts" + attsFromRNames + attsFromRNamesd
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
@@ -80,14 +85,14 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
 
-      /*
-      #estrutura de saida de cada aruqivo vindo do R (são apenas duas linhas):
+   }
+}
+
+/*
+#estrutura de saida de cada aruqivo vindo do R (são apenas duas linhas):
 #"","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12","V13","V14","V15","V16","V17","V18"
 #"1",HiConnectivityY,HiDunnY,HiSilhouetteY,HiConnectivity1.5Y,HiDunn1.5Y,HiSilhouette1.5Y,HiConnectivity2Y,HiDunn2Y,HiSilhouette2Y,kmConnectivityY,kmDunnY,kmSilhouetteY,kmConnectivity1.5Y,kmDunn1.5Y,kmSilhouette1.5Y,kmConnectivity2Y,kmDunn2Y,kmSilhouette2Y
 
-      nome:
+nome:
 /home/davi/wcs/als/caracteriz/arff-pools/normalizados/cardiotocography-10class-r1-f0-normalized-pool.arff.csv
-       */
-   }
-
-}
+ */
