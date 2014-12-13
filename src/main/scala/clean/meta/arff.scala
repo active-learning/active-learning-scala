@@ -41,7 +41,7 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds).take(5) //100 !!!
+            val tmp = ranges(ds).take(4) //100 !!!
             ds.close()
             tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
          }
@@ -52,13 +52,13 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
          val rattsmd = seqratts map Stat.media_desvioPadrao
          val (rattsm, rattsd) = rattsmd.unzip
          val medidas = for {
-            s <- allStrats()
+            s <- stratsForTree()
          } yield {
             val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
             val ms = for {
                r <- 0 until Global.runs
                f <- 0 until Global.folds
-            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(ds.quit(s" base incompleta."))
+            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(ds.quit(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}."))
             s.abr -> Stat.media_desvioPadrao(ms.toVector)
          }
          val res = ((ds.metaAtts ++ Seq(budix.toDouble) ++ rattsm ++ rattsd).map(x => "%4.2f".format(x)), l.abr, medidas.maxBy(_._2._1)._1)
