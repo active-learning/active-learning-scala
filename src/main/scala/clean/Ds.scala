@@ -27,19 +27,12 @@ import weka.filters.Filter
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.io.Source
 
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
 case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM {
-   def isFinished(budget: Int) = read(s"select b from f") match {
-      case lista if lista.map(_.head).contains(budget) => true
-      case x => false
-   }
-
-   def markAsFinished(budget: Int): Unit = {
-      write(s"insert into f values ($budget)")
-   }
 
    override lazy val toString = dataset
    override val context = dataset
@@ -55,14 +48,25 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       val Us = expectedPoolSizes(5)
       Us.sum / Us.size.toDouble
    }
-   lazy val nattsByUavg = nattributes / Uavg
+   lazy val UavgByNatts = Uavg / nattributes
    //  lazy val QbyUavg = Q / Uavg
    lazy val nomCount = patterns.head.enumerateAttributes().count(_.isNominal)
    lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
    lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
-   lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, nattsByUavg, nomCount, numCount, nomByNum)
+   lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, UavgByNatts, nomCount, numCount, nomByNum, math.log10(Uavg), math.log10(UavgByNatts))
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
+
+   def attsFromR(r: Int, f: Int) = Source.fromFile(s"/home/davi/wcs/als/csv/$this-r1-f0-normalized-pool.arff.csv").getLines().toList.last.split(",").tail.map(_.toDouble)
+
+   def isFinished(budget: Int) = read(s"select b from f") match {
+      case lista if lista.map(_.head).contains(budget) => true
+      case x => false
+   }
+
+   def markAsFinished(budget: Int): Unit = {
+      write(s"insert into f values ($budget)")
+   }
 
    //  def passiveAcc(learner: Learner, r: Int, f: Int) = {
    //    if (learner.id > 3) {
