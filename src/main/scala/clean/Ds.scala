@@ -57,7 +57,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
-   def attsFromR(r: Int, f: Int) = Source.fromFile(s"/home/davi/wcs/als/csv/$this-r1-f0-normalized-pool.arff.csv").getLines().toList.last.split(",").tail.map(_.toDouble)
+   def attsFromR(r: Int, f: Int) = Source.fromFile(s"/home/davi/wcs/als/csv/$this-r1-f0-normalized-pool.arff.csv").getLines().toList.last.split(",").map(_.toDouble)
 
    def isFinished(budget: Int) = read(s"select b from f") match {
       case lista if lista.map(_.head).contains(budget) => true

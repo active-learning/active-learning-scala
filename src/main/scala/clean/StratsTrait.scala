@@ -79,11 +79,11 @@ trait StratsTrait {
       //      ,AgDensityWeightedLabelUtility1(pool, "maha") //66391
       //      , Uncertainty(learner, pool) //2
       //      , Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
-      //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      //      , Margin(learner, pool) //3
+      //      , DensityWeighted(learner, pool, 1, "eucl") //5
+      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+      //      //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
       //      DensityWeightedTrainingUtility(learner, pool, "maha") //9

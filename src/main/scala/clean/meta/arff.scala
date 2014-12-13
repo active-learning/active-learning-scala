@@ -61,22 +61,22 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
             } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(ds.quit(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}."))
             s.abr -> Stat.media_desvioPadrao(ms.toVector)
          }
-         val res = ((ds.metaAtts ++ Seq(budix.toDouble) ++ rattsm ++ rattsd).map(x => "%4.2f".format(x)), l.abr, medidas.maxBy(_._2._1)._1)
+         val res = (ds.metaAtts ++ Seq(budix.toDouble) ++ rattsm ++ rattsd, l.abr, medidas.maxBy(_._2._1)._1)
          ds.close()
          res
       }
       val metadata = metadata0.toList
-      metadata foreach println
+      //      metadata foreach println
 
       //cria ARFF
       val (descAtts, nomAtts, pred) = metadata.unzip3
       val labels = pred.distinct.sorted
-      println(labels)
+      //      println(labels)
       val noms = nomAtts.distinct.sorted
-      println(noms)
+      //      println(noms)
       val data = metadata.map { case (d, n, p) => d.mkString(",") + s",$n,$p"}
       //      val header = List("@relation data") ++ desc.dropRight(1).head.map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + noms.mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
-      val numAtts = "nclasses,nattributes,Uavg,UavgByNatts,nomCount,numCount,nomByNum,budgetIndex,lgUavg,lgUavgByNatts" + attsFromRNames + attsFromRNamesd
+      val numAtts = s"nclasses,nattributes,Uavg,UavgByNatts,nomCount,numCount,nomByNum,lgUavg,lgUavgByNatts,budgetIndex,$attsFromRNames,$attsFromRNamesd"
       val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
@@ -87,12 +87,3 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
 
    }
 }
-
-/*
-#estrutura de saida de cada aruqivo vindo do R (são apenas duas linhas):
-#"","V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12","V13","V14","V15","V16","V17","V18"
-#"1",HiConnectivityY,HiDunnY,HiSilhouetteY,HiConnectivity1.5Y,HiDunn1.5Y,HiSilhouette1.5Y,HiConnectivity2Y,HiDunn2Y,HiSilhouette2Y,kmConnectivityY,kmDunnY,kmSilhouetteY,kmConnectivity1.5Y,kmDunn1.5Y,kmSilhouette1.5Y,kmConnectivity2Y,kmDunn2Y,kmSilhouette2Y
-
-nome:
-/home/davi/wcs/als/caracteriz/arff-pools/normalizados/cardiotocography-10class-r1-f0-normalized-pool.arff.csv
- */

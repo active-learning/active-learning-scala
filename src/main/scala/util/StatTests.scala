@@ -40,6 +40,7 @@ object StatTests {
     */
 
    import collection.JavaConversions._
+
    def winners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
       val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
       val m = lhm.toList.sortBy(_._1).map(_._2._1)
@@ -146,12 +147,14 @@ object StatTests {
 \begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t& " + (1 to pairs.size).mkString(" & ") + """ \\""")
 
       pairs.zipWithIndex.foreach { case ((s, l), i) =>
+         val I = i
          val nr = i + 1
-         print(s"$nr - $s\t& " + (l map {
-            case 3 => "*"
-            case 2 => "+"
-            case 1 => "."
-            case 0 => " "
+         print(s"$nr - $s\t& " + (l.zipWithIndex map {
+            case (3, _) => "*"
+            case (2, _) => "+"
+            case (1, _) => "."
+            case (0, I) => "-"
+            case (0, _) => " "
          }).mkString(" & ") + """ \\""")
          if (i % seps == seps - 1) println( """ \hline""") else println("")
       }

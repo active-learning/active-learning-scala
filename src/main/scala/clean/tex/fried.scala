@@ -19,6 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import al.strategies.Passive
 import clean._
 import clean.meta.RangeGenerator
 import clean.res.{ALCBalancedAcc, ALCKappa}
@@ -35,6 +36,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
    override def run() = {
       super.run()
       val strats = allStrats()
+      //      val strats = Passive(Seq()) +: allStrats()
       val sl = strats.map(_.abr)
 
       val res0 = for {
@@ -53,7 +55,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                r <- 0 until runs
                f <- 0 until folds
             } yield {
-               val rgs = ranges(ds) takeWhile (x => x._2 <= 50)
+               val rgs = ranges(ds) takeWhile (x => x._2 <= 124)
                val vls = rgs map { case (ti, tf) => measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)}
                vls.sum / vls.size
             }
@@ -80,11 +82,11 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       val res = res0sorted.filter(!_._2.contains(-2d, -2d))
 
       //por medida
-//      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(1))
+      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(2)), sl.toVector.drop(2))
 
       //por 1-desvio
-            val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))
-            val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
+      //            val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))
+      //            val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
 
       StatTests.pairTable(pairs, "tablename", "acc")
    }
