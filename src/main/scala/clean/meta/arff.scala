@@ -43,7 +43,7 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds).take(2) // <- verificar!!! verificar tb argumentos do programa!!!
+            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
             ds.close()
             tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
          }
