@@ -65,7 +65,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                   //                     vls.sum / vls.size
 
                   case Passive(Seq(), false) => measure(ds, s, le, r, f)(-1).read(ds).getOrElse(-2d)
-                  case _ => measure(ds, s, le, r, f)(ranges(ds, 2).head._2).read(ds).getOrElse(-2d) // <- pegando acurácia na metade das queries!!! pode ser bom
+                  case _ => measure(ds, s, le, r, f)(ranges(ds, 2, 100).head._2).read(ds).getOrElse(-2d) // <- verificar!!!
                }
             }
 

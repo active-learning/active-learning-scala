@@ -39,23 +39,33 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
          name <- datasets.toList
 
          //para gerar arff-de-acurácia preciso fixar um aprendiz e fazer ALC completa
-         l <- allLearners().par
-         (ti, tf, budix) <- {
+         l <- allLearners().tail.take(1)
+         budix <- Seq(0)
+         (ti, tf) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
+            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar
             ds.close()
-            tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
+            tmp
          }
+
+      //         l <- allLearners().par
+      //         (ti, tf, budix) <- {
+      //            val ds = Ds(name, readOnly = true)
+      //            ds.open()
+      //            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
+      //            ds.close()
+      //            tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
+      //         }
 
       } yield {
          val ds = Ds(name, readOnly = true)
          ds.open()
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
          val rattsmd = seqratts map Stat.media_desvioPadrao
-         val (rattsm, rattsd) = rattsmd.unzip
+         val (rattsm, _) = rattsmd.unzip
          val medidas = for {
-            s <- stratsForTree()
+            s <- stratsForTree() // <- verificar!!!
          } yield {
             val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
             val ms = for {

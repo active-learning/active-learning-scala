@@ -21,7 +21,7 @@ package clean.meta
 import clean.{Global, Ds}
 
 trait RangeGenerator {
-   def ranges(ds: Ds, n: Int = 10, qmax: Int = 200) = {
+   def ranges(ds: Ds, n: Int, qmax: Int) = {
       val tmin = ds.nclasses - 1
       val tmax = math.min(ds.expectedPoolSizes(Global.folds).min - 1, qmax - 1)
       val delta = tmax - tmin
@@ -30,8 +30,8 @@ trait RangeGenerator {
       rs ++ Seq(rs.last._2 -> tmax)
    }
 
-   def maxRange(ds: Ds) = {
-      val rs = ranges(ds)
+   def maxRange(ds: Ds, n: Int, qmax: Int) = {
+      val rs = ranges(ds, n, qmax)
       rs.head._1 -> rs.last._2
    }
 }
