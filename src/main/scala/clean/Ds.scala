@@ -45,7 +45,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    //    if (r.isEmpty) error("Q not found.") else r.head.toInt
    //  }
    lazy val Uavg = {
-      val Us = expectedPoolSizes(5)
+      val Us = expectedPoolSizes(Global.folds)
       Us.sum / Us.size.toDouble
    }
    lazy val UavgByNatts = Uavg / nattributes
@@ -53,7 +53,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val nomCount = patterns.head.enumerateAttributes().count(_.isNominal)
    lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
    lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
-   lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, UavgByNatts, nomCount, numCount, nomByNum, math.log10(Uavg), math.log10(UavgByNatts))
+   lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, UavgByNatts, 100d * nomCount / nattributes, math.log10(Uavg), math.log10(UavgByNatts))
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 

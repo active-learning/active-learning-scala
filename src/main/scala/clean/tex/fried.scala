@@ -28,7 +28,8 @@ import util.{Stat, StatTests}
 object fried extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedtex"
-   //   val measure = ALCKappa
+   //      val measure = ALCKappa
+   //   val measure = BalancedAcc
    val measure = Kappa
    run()
 
@@ -36,8 +37,8 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
 
    override def run() = {
       super.run()
-      val strats = allStrats()
-      //      val strats = Passive(Seq()) +: allStrats()
+      //      val strats = allStrats()
+      val strats = Passive(Seq()) +: allStrats()
       val sl = strats.map(_.abr)
 
       val res0 = for {
@@ -62,8 +63,9 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                   //                     val rgs = ranges(ds) takeWhile (x => x._2 <= 149)
                   //                     val vls = rgs map { case (ti, tf) => measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)}
                   //                     vls.sum / vls.size
-                  //                  case Passive(Seq(), false) => measure(ds, s, le, r, f)(-1).read(ds).getOrElse(-2d)
-                  case _ => measure(ds, s, le, r, f)(49).read(ds).getOrElse(-2d)
+
+                  case Passive(Seq(), false) => measure(ds, s, le, r, f)(-1).read(ds).getOrElse(-2d)
+                  case _ => measure(ds, s, le, r, f)(ranges(ds, 2).head._2).read(ds).getOrElse(-2d) // <- pegando acurácia na metade das queries!!! pode ser bom
                }
             }
 
@@ -89,7 +91,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       val res = res0sorted.filter(!_._2.contains(-2d, -2d))
 
       //por medida
-      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1).drop(1)), sl.toVector.drop(2))
+      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector.drop(2))
 
       //por 1-desvio
       //            val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))

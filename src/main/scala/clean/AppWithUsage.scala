@@ -61,8 +61,9 @@ trait AppWithUsage extends App with Log with ArgParser {
    //    case "pg" => passiveGme()
    //  }
    lazy val memlimit = Global.memlimit
-   lazy val attsFromRNames = "HiConnectivityYm,HiDunnYm,HiSilhouetteYm,HiConnectivity1.5Ym,HiDunn1.5Ym,HiSilhouette1.5Ym,HiConnectivity2Ym,HiDunn2Ym,HiSilhouette2Ym,kmConnectivityYm,kmDunnYm,kmSilhouetteYm,kmConnectivity1.5Ym,kmDunn1.5Ym,kmSilhouette1.5Ym,kmConnectivity2Ym,kmDunn2Ym,kmSilhouette2Ym"
-   lazy val attsFromRNamesd = "HiConnectivityYd,HiDunnYd,HiSilhouetteYd,HiConnectivity1.5Yd,HiDunn1.5Yd,HiSilhouette1.5Yd,HiConnectivity2Yd,HiDunn2Yd,HiSilhouette2Yd,kmConnectivityYd,kmDunnYd,kmSilhouetteYd,kmConnectivity1.5Yd,kmDunn1.5Yd,kmSilhouette1.5Yd,kmConnectivity2Yd,kmDunn2Yd,kmSilhouette2Yd"
+   lazy val attsFromRNames = Seq("AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
+      "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
+      "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y").map(x => "\"" + x + "\"")
 
    def maxQueries(ds: Ds) = math.max(ds.nclasses, math.min(ds.expectedPoolSizes(folds).min, maxQueries0))
 
