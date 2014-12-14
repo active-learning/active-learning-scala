@@ -85,6 +85,18 @@ trait Measure extends CM with Blob {
    //   protected def t2hi(t: Int) = t - ds.nclasses
 }
 
+//object InstantMeasure {
+//   def apply() = 0
+//
+//   def unapply() = 0
+//}
+//
+//object RangeMeasure {
+//   def apply() = 0
+//
+//   def unapply() = 0
+//}
+
 sealed trait InstantMeasure extends Measure {
    val t: Int
    protected lazy val cms = {
