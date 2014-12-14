@@ -70,6 +70,7 @@ trait StratsTrait {
       ////, DensityWeightedLabelUtility(learner, pool, "maha") //39
    )
 
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       //      Majoritary(pool) //21
       RandomSampling(pool) //0

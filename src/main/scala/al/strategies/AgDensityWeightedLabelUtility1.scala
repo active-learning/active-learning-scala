@@ -40,13 +40,6 @@ case class AgDensityWeightedLabelUtility1(pool: Seq[Pattern], distance_name: Str
       selected
    }
 
-   /**
-    * um rótulo bem longe abaixa a similaridade geral.
-    * @param mapsL
-    * @param patt
-    * @param hist
-    * @return
-    */
    def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern, hist: Seq[Int]) = {
       math.pow(mapsL.zipWithIndex.map { case (m, lab) =>
          val n = hist(lab).toDouble

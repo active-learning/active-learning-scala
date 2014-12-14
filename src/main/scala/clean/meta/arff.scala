@@ -38,25 +38,25 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
       val metadata0 = for {
          name <- datasets.toList
 
-         //para gerar arff-de-acurácia preciso fixar um aprendiz e fazer ALC completa
-         l <- allLearners().tail.take(1)
-         budix <- Seq(0)
-         (ti, tf) <- {
+         //para gerar arff-de-acurácia preciso fixar um aprendiz e fazer ALC completa; muda os loops, muda tudo
+         //         l <- allLearners().tail.take(1)
+         //         budix <- Seq(0)
+         //         (ti, tf) <- {
+         //            val ds = Ds(name, readOnly = true)
+         //            ds.open()
+         //            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar
+         //            ds.close()
+         //            tmp
+         //         }
+
+         l <- allLearners().par
+         (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar
+            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
             ds.close()
-            tmp
+            tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
          }
-
-      //         l <- allLearners().par
-      //         (ti, tf, budix) <- {
-      //            val ds = Ds(name, readOnly = true)
-      //            ds.open()
-      //            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
-      //            ds.close()
-      //            tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
-      //         }
 
       } yield {
          val ds = Ds(name, readOnly = true)
