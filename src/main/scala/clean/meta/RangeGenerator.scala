@@ -1,7 +1,3 @@
-package clean.meta
-
-import clean.{Global, Ds}
-
 /*
 
 active-learning-scala: Active Learning library for Scala
@@ -20,13 +16,18 @@ Copyright (c) 2014 Davi Pereira dos Santos
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+package clean.meta
+
+import clean.{Global, Ds}
+
 trait RangeGenerator {
-   def ranges(ds: Ds) = {
-      val min = ds.nclasses - 1
-      val max = math.min(ds.expectedPoolSizes(Global.folds).min, 200)
-      val delta = max - min
-      val step = delta / 10
-      (min until max by step).map(x => (x, x + step)) take 9
+   def ranges(ds: Ds, n: Int = 10, qmax: Int = 200) = {
+      val tmin = ds.nclasses - 1
+      val tmax = math.min(ds.expectedPoolSizes(Global.folds).min - 1, qmax - 1)
+      val delta = tmax - tmin
+      val step = delta / n
+      val rs = (tmin until tmax by step).map(x => (x, x + step - 1)) take (n - 1)
+      rs ++ Seq(rs.last._2 -> tmax)
    }
 
    def maxRange(ds: Ds) = {
