@@ -37,14 +37,17 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
       super.run()
       val metadata0 = for {
          name <- datasets.toList
+
+         //para gerar arff-de-acurácia preciso fixar um aprendiz e fazer ALC completa
          l <- allLearners().par
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds).take(4) //100 !!!
+            val tmp = ranges(ds).take(2) // <- verificar!!! verificar tb argumentos do programa!!!
             ds.close()
             tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
          }
+
       } yield {
          val ds = Ds(name, readOnly = true)
          ds.open()
@@ -61,7 +64,7 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
             } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(ds.quit(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}."))
             s.abr -> Stat.media_desvioPadrao(ms.toVector)
          }
-         val res = (ds.metaAtts ++ Seq(budix.toDouble) ++ rattsm ++ rattsd, l.abr, medidas.maxBy(_._2._1)._1)
+         val res = (ds.metaAtts ++ rattsm, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
          ds.close()
          res
       }
@@ -69,15 +72,11 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
       //      metadata foreach println
 
       //cria ARFF
-      val (descAtts, nomAtts, pred) = metadata.unzip3
+      val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
-      //      println(labels)
-      val noms = nomAtts.distinct.sorted
-      //      println(noms)
-      val data = metadata.map { case (d, n, p) => d.mkString(",") + s",$n,$p"}
-      //      val header = List("@relation data") ++ desc.dropRight(1).head.map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + noms.mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
-      val numAtts = s"nclasses,nattributes,Uavg,UavgByNatts,nomCount,numCount,nomByNum,lgUavg,lgUavgByNatts,budgetIndex,$attsFromRNames,$attsFromRNamesd"
-      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
+      val numAtts = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," + attsFromRNames.mkString(",")
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 

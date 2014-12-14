@@ -60,7 +60,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       }
 
       //majoritaria
-      for ((ti, tf) <- maxRange(ds) +: ranges(ds, 2)) {
+      for ((ti, tf) <- maxRange(ds) +: (ranges(ds, 2) ++ ranges(ds, 2, 100))) {
          fila += ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds)
          fila += ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds)
          fila += Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(tf).sqlToWrite(ds)
@@ -68,7 +68,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       }
 
       //outras
-      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- maxRange(ds) +: ranges(ds, 2)) {
+      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- maxRange(ds) +: (ranges(ds, 2) ++ ranges(ds, 2, 100))) {
          strat match {
             case Majoritary(Seq(), false) => //jah foi acima
             case s =>
