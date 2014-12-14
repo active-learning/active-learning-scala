@@ -51,7 +51,7 @@ case class AgDensityWeightedLabelUtility1(pool: Seq[Pattern], distance_name: Str
    def simL(mapsL: => Seq[Map[Pattern, Double]], patt: Pattern, hist: Seq[Int]) = {
       math.pow(mapsL.zipWithIndex.map { case (m, lab) =>
          val n = hist(lab).toDouble
-         m(patt) / n
+         m(patt) / n //densidade do label atual para o dado exemplo
       }.product, 1d / nclasses)
    }
 }
