@@ -36,7 +36,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
    run()
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-      val fila = mutable.Queue[String]()
+      val fila = mutable.Set[String]()
       //passiva
       for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
          val k = Kappa(ds, Passive(pool), learner, run, fold)(-1)
