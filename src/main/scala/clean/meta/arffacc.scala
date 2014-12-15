@@ -3,7 +3,7 @@ package clean.meta
 import java.io.FileWriter
 
 import clean._
-import clean.res.{ALCKappa, BalancedAcc}
+import clean.res.{ALCBalancedAcc, ALCKappa, BalancedAcc}
 import util.Stat
 
 import scala.io.Source
@@ -25,10 +25,11 @@ import scala.io.Source
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-   val context = "metaAttsApp"
+object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
+   val context = "metaAttsAccApp"
    val arguments = superArguments
    val measure = ALCKappa
+   //   val measure = ALCBalancedAcc
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
@@ -38,24 +39,14 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
       val metadata0 = for {
          name <- datasets.toList
 
-         //para gerar arff-de-acurácia preciso fixar um aprendiz e fazer ALC completa; muda os loops, muda tudo
-         //         l <- allLearners().tail.take(1)
-         //         budix <- Seq(0)
-         //         (ti, tf) <- {
-         //            val ds = Ds(name, readOnly = true)
-         //            ds.open()
-         //            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar
-         //            ds.close()
-         //            tmp
-         //         }
-
-         l <- allLearners().par
-         (ti, tf, budix) <- {
+         //para gerar arff-de-acurácia preciso fixar um aprendiz (o melhor de cada base?) e fazer ALC completa; muda os loops, muda tudo, logo preciso tirar copia deste scala e alterar
+         l <- allLearners().tail.take(1) //knn
+         (ti, tf) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
+            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar trocar p/ 200?
             ds.close()
-            tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
+            tmp
          }
 
       } yield {
@@ -71,28 +62,32 @@ object arff extends AppWithUsage with StratsTrait with LearnerTrait with RangeGe
             val ms = for {
                r <- 0 until Global.runs
                f <- 0 until Global.folds
-            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(ds.quit(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}."))
+            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+                  ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+                  -2d
+               }
             s.abr -> Stat.media_desvioPadrao(ms.toVector)
          }
-         val res = (ds.metaAtts ++ rattsm, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
+         val res = if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, medidas.maxBy(_._2._1)._1)
          ds.close()
          res
       }
-      val metadata = metadata0.toList
+      val metadata = metadata0.flatten.toList
       //      metadata foreach println
 
       //cria ARFF
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
-      val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
+      val data = metadata.map { case (numericos, learner, vencedora) => numericos.mkString(",") + s",$learner,$vencedora"}
       val numAtts = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," + attsFromRNames.mkString(",")
-      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
       val fw = new FileWriter("/home/davi/wcs/ucipp/uci/meta.arff")
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
+      println(s"${data.size}")
 
    }
 }

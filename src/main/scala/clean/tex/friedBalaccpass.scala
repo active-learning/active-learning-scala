@@ -25,30 +25,26 @@ import clean.meta.RangeGenerator
 import clean.res._
 import util.{Stat, StatTests}
 
-object fried extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait with RangeGenerator {
+object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val context = "friedtex"
+   val context = "friedPasstex"
    //      val measure = ALCKappa
-   //   val measure = BalancedAcc
-   val measure = Kappa
+   val measure = BalancedAcc
+   //   val measure = Kappa
    run()
 
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
 
    override def run() = {
       super.run()
-      //      val strats = allStrats()
-      val strats = Passive(Seq()) +: allStrats()
+      val strats = allStrats()
       val sl = strats.map(_.abr)
-
       val res0 = for {
          dataset <- datasets
          l <- learners(learnersStr).par
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         //         val (ti, tf) = maxRange(ds)
-         //         ds.log("",30)
          val sres = for {
             s <- strats
          } yield {
@@ -57,20 +53,12 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
                r <- 0 until runs
                f <- 0 until folds
             } yield {
-               s match {
-                  //                  case _ =>
-                  //concatena ALCs
-                  //                     val rgs = ranges(ds) takeWhile (x => x._2 <= 149)
-                  //                     val vls = rgs map { case (ti, tf) => measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)}
-                  //                     vls.sum / vls.size
-
-                  case Passive(Seq(), false) => measure(ds, s, le, r, f)(-1).read(ds).getOrElse(-2d)
-                  case _ => measure(ds, s, le, r, f)(ranges(ds, 2, 100).head._2).read(ds).getOrElse(-2d) // <- verificar!!!
-               }
+               val pass = measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
+               100 * measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA * pass / 100) / pass
             }
 
             //por media
-            if (vs.contains(-2d)) (-2d, -2d) else Stat.media_desvioPadrao(vs.toVector)
+            if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
 
             //pela pior medida
             //            if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
@@ -80,7 +68,7 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
          (ds.dataset + l.toString.take(3)) -> sres
       }
 
-      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == -2d))
+      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == NA))
 
       println(s"")
       res0sorted.grouped(280).foreach { res1 =>
@@ -88,10 +76,10 @@ object fried extends AppWithUsage with LearnerTrait with StratsTrait with Measur
       }
 
       println(s"")
-      val res = res0sorted.filter(!_._2.contains(-2d, -2d))
+      val res = res0sorted.filter(!_._2.contains(NA, NA))
 
       //por medida
-      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector.drop(2))
+      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
 
       //por 1-desvio
       //            val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))

@@ -20,7 +20,7 @@ import scala.collection.mutable
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object StatTests {
-   def f(x: Double) = "%4.3f".format(x)
+   def f(x: Double) = "%6.3f".format(x)
 
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
 
