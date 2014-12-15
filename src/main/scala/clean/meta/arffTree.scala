@@ -78,7 +78,8 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
             s.abr -> Stat.media_desvioPadrao(ms.toVector)
          }
-         val res = if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
+         //         val res = if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
+         val res = if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAttsHuman, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
          ds.close()
          res
       }
@@ -89,7 +90,8 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
       val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
-      val numAtts = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," + attsFromRNames.mkString(",")
+      //      val numAtts = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," + attsFromRNames.mkString(",")
+      val numAtts = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"#exs\",\"#exs/#atrs\"," //+ attsFromRNames.mkString(",")
       val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
@@ -97,6 +99,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val fw = new FileWriter("/home/davi/wcs/ucipp/uci/meta.arff")
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
-
+      println(s"${data.size}")
    }
 }

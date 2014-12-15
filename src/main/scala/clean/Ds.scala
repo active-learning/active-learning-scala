@@ -54,6 +54,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
    lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
    lazy val metaAtts = List[Double](nclasses, nattributes, Uavg, UavgByNatts, 100d * nomCount / nattributes, math.log10(Uavg), math.log10(UavgByNatts))
+   lazy val metaAttsHuman = List[Double](nclasses, nattributes, Uavg, UavgByNatts, 100d * nomCount / nattributes, Uavg, UavgByNatts)
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
