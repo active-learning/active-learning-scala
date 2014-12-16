@@ -26,6 +26,7 @@ import scala.io.Source
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
+   val humano = true
    val context = "metaAttsTreeApp"
    val arguments = superArguments
    //   val measure = ALCKappa
@@ -38,17 +39,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       super.run()
       val metadata0 = for {
          name <- datasets.toList
-
-         //para gerar arff-de-acurácia preciso fixar um aprendiz (o melhor de cada base?) e fazer ALC completa; muda os loops, muda tudo, logo preciso tirar copia deste scala e alterar
-         //         l <- allLearners().tail.take(1)
-         //         budix <- Seq(0)
-         //         (ti, tf) <- {
-         //            val ds = Ds(name, readOnly = true)
-         //            ds.open()
-         //            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar
-         //            ds.close()
-         //            tmp
-         //         }
 
          l <- allLearners().par
          (ti, tf, budix) <- {
@@ -78,8 +68,11 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
             s.abr -> Stat.media_desvioPadrao(ms.toVector)
          }
-         //         val res = if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
-         val res = if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAttsHuman, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
+         val res = if (!humano) {
+            if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
+         } else {
+            if (medidas.exists(x => x._2._1 == -2d)) None else Some(ds.metaAttsHuman, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
+         }
          ds.close()
          res
       }
@@ -90,13 +83,13 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
       val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
-      //      val numAtts = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," + attsFromRNames.mkString(",")
-      val numAtts = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"#exs\",\"#exs/#atrs\"," //+ attsFromRNames.mkString(",")
+      val numAtts = if (!humano) "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," + attsFromRNames.mkString(",")
+      else "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"#exs\",\"#exs/#atrs\"," //+ attsFromRNames.mkString(",")
       val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
-      val fw = new FileWriter("/home/davi/wcs/ucipp/uci/meta.arff")
+      val fw = new FileWriter("/home/davi/wcs/ucipp/uci/metaTree" + (if (humano) "Human" else "") + ".arff")
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
       println(s"${data.size}")

@@ -43,7 +43,7 @@
 //            ds.open()
 //            try {
 //               val vs = for {
-//                  t <- Seq(0, 1)
+//                  t <- Seq(0, 1) //era p/ aumentar p-value, ilustrativo apenas
 //                  r <- 0 until runs
 //                  f <- 0 until folds
 //               } yield {

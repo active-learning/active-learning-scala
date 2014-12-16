@@ -169,16 +169,25 @@ object StatTests {
     * Winners per row (dataset or pool), eliminando quem estiver empatado com um não-vencedor.
     * A ordem retornada é a mesma original.
     */
-   def clearWinners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
-      import collection.JavaConversions._
-      val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
-      val m = lhm.toList.sortBy(_._1).map(_._2)
-      val limit = m.last._2 - cd
-      val ranked = m.takeWhile(_._2 < limit).map(_._1)
-      strategies.zipWithIndex.filter { case (s, i) =>
-         ranked.contains(i)
-      }.map(_._1)
-   }
+   def clearWinners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) =
+      if (measures.head._2.size != strategies.size) {
+         println(s"Erro: ${measures.head._2.size} != ${strategies.size}")
+         sys.exit(1)
+      } else {
+         import collection.JavaConversions._
+         val (linkedHM, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
+         val m = linkedHM.toList.sortBy(_._1).map(_._2)
+         if (m.last ==(-1, -1d)) {
+            println(s"Todos empataram, logo, todos venceram.")
+            strategies
+         } else {
+            val limit = m.last._2 - cd
+            val ranked = m.takeWhile(_._2 < limit).map(_._1)
+            strategies.zipWithIndex.filter { case (s, i) =>
+               ranked.contains(i)
+            }.map(_._1)
+         }
+      }
 
    /**
     * Loosers per row (dataset or pool), eliminando quem estiver empatado com um não-perdedor.
