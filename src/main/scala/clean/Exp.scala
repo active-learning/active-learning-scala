@@ -25,7 +25,7 @@ import weka.filters.Filter
 
 import scala.util.Random
 
-trait Exp extends AppWithUsage {
+trait Exp extends AppWithUsage with FilterTrait {
    val readOnly = false
    val ignoreNotDone: Boolean
 
@@ -82,29 +82,4 @@ trait Exp extends AppWithUsage {
    }
 
    def end(res: Map[String, Boolean])
-
-   def filterTr(tr: Seq[Pattern], fold: Int) = {
-      //bina
-      val binaf = Datasets.binarizeFilter(tr)
-      val binarizedTr = Datasets.applyFilter(binaf)(tr)
-
-      //tr
-      val zscof = Datasets.zscoreFilter(binarizedTr)
-      val pool = {
-         val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
-         new Random(fold).shuffle(filteredTr.sortBy(_.id))
-      }
-
-      (pool, binaf, zscof)
-   }
-
-   def filterTs(ts: Seq[Pattern], fold: Int, binaf: Filter, zscof: Filter) = {
-      //ts
-      val binarizedTs = Datasets.applyFilter(binaf)(ts)
-      val testSet = {
-         val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
-         new Random(fold).shuffle(filteredTs.sortBy(_.id))
-      }
-      testSet
-   }
 }

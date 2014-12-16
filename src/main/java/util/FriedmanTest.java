@@ -244,7 +244,8 @@ public class FriedmanTest {
                 l.put(j, new Tuple2<Integer, Double>(orderedRank[j], medRank[orderedRank[j]]));
                 j++;
             }
-            l.put(j, new Tuple2<Integer, Double>(orderedRank[j], medRank[orderedRank[j]]));
+            if (j == nc) l.put(j, new Tuple2<Integer, Double>(-1, -1d));
+            else l.put(j, new Tuple2<Integer, Double>(orderedRank[j], medRank[orderedRank[j]]));
 
         } catch (Exception e) {
             System.out.println("|||erro calculando pvalue Friedman: " + "nc=" + nc + "--nl=" + nl + "--XF=" + chiFriedman + "--FF=" + F_Friedman + "\n" + e.getMessage());

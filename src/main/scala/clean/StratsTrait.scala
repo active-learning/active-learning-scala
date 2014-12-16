@@ -33,8 +33,8 @@ trait StratsTrait {
    def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
 
    def stratsSemLearnerExterno_FilterFree(pool: Seq[Pattern]) = List[Strategy](
-      Majoritary(pool) //21
-      , RandomSampling(pool) //0
+      //      Majoritary(pool) //21
+      RandomSampling(pool) //0
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       //      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361
@@ -72,22 +72,27 @@ trait StratsTrait {
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-      //      Majoritary(pool) //21
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      //      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361
-      //      ,AgDensityWeightedLabelUtility1(pool, "maha") //66391
+      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
+      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
       //      , Uncertainty(learner, pool) //2
       //      , Entropy(learner, pool) //4
-      //      , Margin(learner, pool) //3
-      //      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , Margin(learner, pool) //3
+
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+
       //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
-      //      //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      //      , DensityWeightedLabelUtility(learner, pool, "eucl") //36
+
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
-      //      DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
    )
 
 }
