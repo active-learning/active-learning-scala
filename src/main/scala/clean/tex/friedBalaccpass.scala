@@ -37,7 +37,10 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      val strats = allStrats()
+
+      val strats = Passive(Seq()) +: allStrats()
+      //      val strats = allStrats()
+
       val sl = strats.map(_.abr)
       val res0 = for {
          dataset <- datasets
@@ -53,8 +56,14 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
                r <- 0 until runs
                f <- 0 until folds
             } yield {
-               val pass = measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
-               100 * measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA * pass / 100) / pass
+               lazy val pass = measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
+
+               s match {
+                  case Passive(Seq(), false) => pass
+                  case _ => measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA)
+               }
+               //               100 * measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA * pass / 100) / pass
+
             }
 
             //por media

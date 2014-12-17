@@ -133,6 +133,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
                   val ftestSet = filterTs(ts, fold, binaf, zscof)
 
                   val m = ninteraELM(learnerSeed).build(fpool)
+
                   val hitsELM = ftestSet map { p =>
                      p.nominalSplit(m.predict(p).toInt) == 1
                   }
