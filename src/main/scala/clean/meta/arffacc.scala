@@ -30,8 +30,8 @@ import scala.io.Source
 import scala.util.Random
 
 object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
-   val ties = false
-   val arq = "/home/davi/wcs/ucipp/uci/metaAcc" + (if (ties) "Ties" else "") + ".arff"
+   val modo = "Acc"
+   val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments
    val measure = ALCKappa
@@ -62,39 +62,56 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
          val rattsmd = seqratts map Stat.media_desvioPadrao
          val (rattsm, _) = rattsmd.unzip
 
-         val res = if (ties) {
-            val vs = for {
-               r <- 0 until runs
-               f <- 0 until folds
-            } yield {
-               val poolStr = (100 * r + f).toString
-               val medidas = for {
+         val res = modo match {
+            case "Acc" =>
+               val vs = for {
                   s <- stratsForTree() // <- verificar!!!
-               } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-                     ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
-                     -2d
-                  }
-               poolStr -> medidas
-            }
-            val winners = StatTests.clearWinners(vs, ss)
-            val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
-            if (vs.exists(x => x._2.contains(-2d))) None
-            else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"")
-         } else {
-            val vs = for {
-               s <- stratsForTree() // <- verificar!!!
-            } yield {
-               val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
-               val ms = for {
-                  r <- 0 until Global.runs
-                  f <- 0 until Global.folds
-               } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                     ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-                     -2d
-                  }
-               s.abr -> Stat.media_desvioPadrao(ms.toVector)
-            }
-            if (vs.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1)
+               } yield {
+                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
+                  val ms = for {
+                     r <- 0 until Global.runs
+                     f <- 0 until Global.folds
+                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+                        -2d
+                     }
+                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+               }
+               if (vs.exists(x => x._2._1 == -2d)) None
+               else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + vs.map(_._2._1).mkString(",") + "\"")
+            case "Ties" =>
+               val vs = for {
+                  r <- 0 until runs
+                  f <- 0 until folds
+               } yield {
+                  val poolStr = (100 * r + f).toString
+                  val medidas = for {
+                     s <- stratsForTree() // <- verificar!!!
+                  } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
+                        -2d
+                     }
+                  poolStr -> medidas
+               }
+               val winners = StatTests.clearWinners(vs, ss)
+               val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
+               if (vs.exists(x => x._2.contains(-2d))) None
+               else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"")
+            case "Winner" =>
+               val vs = for {
+                  s <- stratsForTree() // <- verificar!!!
+               } yield {
+                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
+                  val ms = for {
+                     r <- 0 until Global.runs
+                     f <- 0 until Global.folds
+                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+                        -2d
+                     }
+                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+               }
+               if (vs.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1)
          }
 
          ds.close()
@@ -119,7 +136,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
       println(s"${data.size}")
 
       //processa arff
-      if (ties) Datasets.arff(arq) match {
+      if (modo != "Winner") Datasets.arff(arq) match {
          case Left(str) => error("problemas abrindo arff")
          case Right(patterns) =>
             println(s"${patterns.size}")
@@ -135,17 +152,17 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
                   val m = ninteraELM(learnerSeed).build(fpool)
 
                   val hitsELM = ftestSet map { p =>
-                     p.nominalSplit(m.predict(p).toInt) == 1
+                     p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max
                   }
                   val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
 
                   val hitsRnd = ftestSet.zipWithIndex map { case (p, idx) =>
-                     p.nominalSplit(idx % p.nclasses) == 1
+                     p.nominalSplit(idx % p.nclasses) == p.nominalSplit.max
                   }
                   val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
 
                   val hitsMaj = ftestSet map { p =>
-                     p.nominalSplit(2) == 1
+                     p.nominalSplit(2) == p.nominalSplit.max
                   }
                   val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
 
