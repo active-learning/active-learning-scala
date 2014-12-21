@@ -36,6 +36,7 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
 
    override def run() = {
+      println(s"sou um bug")
       //mudei tudo
       super.run()
 
