@@ -16,6 +16,8 @@ libraryDependencies += "org.apache.commons" % "commons-io" % "1.3.2"
 
 libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.2.2"
 
+libraryDependencies += "org.apache.commons" % "commons-math3" % "3.3"
+
 //libraryDependencies += "com.googlecode.matrix-toolkits-java" % "mtj" % "1.0.1"
 
 //libraryDependencies += "org.slf4j" % "slf4j-nop" % "1.6.4"
