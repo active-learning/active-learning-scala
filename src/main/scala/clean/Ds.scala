@@ -21,6 +21,7 @@ package clean
 import al.strategies._
 import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import org.apache.commons.math3.stat.descriptive.moment.{Skewness, Kurtosis}
 import util.{Stat, Datasets}
 import weka.experiment.InstanceQuerySQLite
@@ -70,22 +71,27 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       val tmp = read(s"select ${numericAtts.map(x => "V" + (x + 1)).mkString(",")} from i").transpose.map(_.toArray)
       if (tmp.isEmpty) List(Array(0d)) else tmp
    }
-   lazy val (medias, desvios) = numericValues map (x => Stat.media_desvioPadrao(x.toVector))
+   lazy val (medias, desvios) = numericValues map (x => Stat.media_desvioPadrao(x.toVector)) unzip
    lazy val entropias = numericValues map (x => normalized_entropy(x.map(_ / n)))
-   lazy val entropiasavg = entropias.sum / numCount
    lazy val skewnesses = numericValues map (x => new Skewness().evaluate(x))
    lazy val kurtoses = numericValues map (x => new Kurtosis().evaluate(x))
+   lazy val correls = for (a1 <- numericValues; a2 <- numericValues) yield new PearsonsCorrelation().correlation(a1, a2)
+   lazy val mediasavg = medias.sum / numCount
+   lazy val desviosavg = desvios.sum / numCount
+   lazy val entropiasavg = entropias.sum / numCount
    lazy val skewavg = skewnesses.sum / numCount
    lazy val kurtavg = kurtoses.sum / numCount
+   lazy val correlsavg = correls.sum / numCount
    lazy val metaAtts = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
       skewnesses.min, skewavg, skewnesses.max, skewnesses.min / skewnesses.max,
       kurtoses.min, kurtavg, kurtoses.max, kurtoses.min / kurtoses.max,
       nominalValuesCount.min, nominalValuesCountAvg, nominalValuesCount.max, nominalValuesCount.min / nominalValuesCount.max,
+      medias.min, mediasavg, medias.max, medias.min / medias.max,
+      desvios.min, desviosavg, desvios.max, desvios.min / desvios.max,
       entropias.min, entropiasavg, entropias.max, entropias.min / entropias.max,
-      //min,avg,max de entropia,media,std
-      //min,avg,max de correlação
+      correls.min, correlsavg, correls.max, correls.min / correls.max,
       majority, minority, minority / majority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n

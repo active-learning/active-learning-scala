@@ -64,7 +64,17 @@ trait AppWithUsage extends App with Log with ArgParser {
    lazy val attsFromRNames = Seq("AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
       "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
       "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y").map(x => "\"" + x + "\"")
-   val nonHumanNumAttsNames = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," + attsFromRNames.mkString(",")
+   val nonHumanNumAttsNames = "\"#classes\",\"#atributos\",\"#exemplos\"," +
+      "\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," +
+      "skewnessesmin,skewavg,skewnessesmax,skewnessesminByskewnessesmax," +
+      "kurtosesmin,kurtavg,kurtosesmax,kurtosesminBykurtosesmax," +
+      "nominalValuesCountmin,nominalValuesCountAvg,nominalValuesCountmax,nominalValuesCountminBynominalValuesCountmax," +
+      "mediasmin,mediasavg,mediasmax,mediasminBymediasmax," +
+      "desviosmin,desviosavg,desviosmax,desviosminBydesviosmax," +
+      "entropiasmin,entropiasavg,entropiasmax,entropiasminByentropiasmax," +
+      "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax," +
+      "majority,minority,minorityBymajority,classEntropy" + attsFromRNames.mkString(",")
+   // <- class dependent metaatts
    val humanNumAttsNames = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"#exs/#atrs\",\"%majority\",\"%minority\",\"%minority/%majority\",\"class entropy\""
 
    def maxQueries(ds: Ds) = math.max(ds.nclasses, math.min(ds.expectedPoolSizes(folds).min, maxQueries0))
