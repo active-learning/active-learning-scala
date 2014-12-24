@@ -81,14 +81,14 @@ trait StratsTrait {
       //      , Entropy(learner, pool) //4
       , Margin(learner, pool) //3
 
-      , DensityWeighted(learner, pool, 1, "eucl") //5
+      //      , DensityWeighted(learner, pool, 1, "eucl") //5
 
       //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       //      , DensityWeightedLabelUtility(learner, pool, "eucl") //36
 
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      //            , ExpErrorReductionMargin(learner, pool, "balacc") //74
 
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15

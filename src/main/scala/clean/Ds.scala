@@ -56,9 +56,9 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
    lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
    lazy val hist = patterns.groupBy(_.label).toList.sortBy(_._1).map(_._2.size / n.toDouble).toArray
-   lazy val minority = hist.min
-   lazy val majority = hist.max
-   lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, poolSizeByNatts, majority, minority, minority / majority, normalized_entropy(hist))
+   lazy val minority = 100 * hist.min
+   lazy val majority = 100 * hist.max
+   lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, poolSizeByNatts, majority, minority, majority / minority, normalized_entropy(hist))
    lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).filter(_.isNominal).map(_.name())
    lazy val numericAtts = patterns.head.enumerateAttributes().toList.filter(_.isNumeric).map(_.name())
    lazy val nominalValues = if (nominalAtts.isEmpty) List(Array("", "")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)
@@ -86,7 +86,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       desvios.min, desviosavg, desvios.max, desvios.min / desvios.max,
       entropias.min, entropiasavg, entropias.max, entropias.min / entropias.max,
       correls.min, correlsavg, correls.max, correls.min / correls.max,
-      majority, minority, minority / majority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
+      majority, minority, majority / minority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
