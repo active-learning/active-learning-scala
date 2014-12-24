@@ -30,7 +30,7 @@ import scala.io.Source
 import scala.util.Random
 
 object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
-   val modo = "Acc"
+   val modo = "Winner"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments
@@ -56,6 +56,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
 
       } yield {
          val ds = Ds(name, readOnly = true)
+         println(s"$ds")
          ds.open()
          val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: não aceita estrats de learner único (basicamente SVMmulti e Majoritary)
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
@@ -63,7 +64,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
          val (rattsm, _) = rattsmd.unzip
 
          val res = modo match {
-            case "Acc" =>
+            case "Acc" => //prediz acc em cada strat
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
                } yield {
@@ -79,7 +80,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
                }
                if (vs.exists(x => x._2._1 == -2d)) None
                else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + vs.map(_._2._1).mkString(",") + "\"")
-            case "Ties" =>
+            case "Ties" => //prediz vencedores empatados
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
@@ -97,7 +98,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
                val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
                if (vs.exists(x => x._2.contains(-2d))) None
                else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"")
-            case "Winner" =>
+            case "Winner" => //prediz apenas o melhor
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
                } yield {

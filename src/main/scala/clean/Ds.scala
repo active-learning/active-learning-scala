@@ -59,19 +59,13 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val minority = hist.min
    lazy val majority = hist.max
    lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, poolSizeByNatts, majority, minority, minority / majority, normalized_entropy(hist))
-   lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).zipWithIndex.filter(_._1.isNominal).map(_._2)
-   lazy val nominalValues = {
-      val tmp = read(s"select ${nominalAtts.map(x => "V" + (x + 1)).mkString(",")} from i").transpose.map(_.toArray)
-      if (tmp.isEmpty) List(Array(0d)) else tmp
-   }
+   lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).filter(_.isNominal).map(_.name())
+   lazy val numericAtts = patterns.head.enumerateAttributes().toList.filter(_.isNumeric).map(_.name())
+   lazy val nominalValues = if (nominalAtts.isEmpty) List(Array("", "")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)
    lazy val nominalValuesCount = nominalValues.map(_.distinct.size)
    lazy val nominalValuesCountAvg = nominalValuesCount.sum / nominalValuesCount.size
-   lazy val numericAtts = patterns.head.enumerateAttributes().zipWithIndex.filter(_._1.isNumeric).map(_._2).toList
-   lazy val numericValues = {
-      val tmp = read(s"select ${numericAtts.map(x => "V" + (x + 1)).mkString(",")} from i").transpose.map(_.toArray)
-      if (tmp.isEmpty) List(Array(0d)) else tmp
-   }
-   lazy val (medias, desvios) = numericValues map (x => Stat.media_desvioPadrao(x.toVector)) unzip
+   lazy val numericValues = if (numericAtts.isEmpty) List(Array(0d, 0d)) else read(s"select ${numericAtts.mkString(",")} from i").transpose.map(_.toArray)
+   lazy val (medias, desvios) = numericValues.map(x => Stat.media_desvioPadrao(x.toVector)).unzip
    lazy val entropias = numericValues map (x => normalized_entropy(x.map(_ / n)))
    lazy val skewnesses = numericValues map (x => new Skewness().evaluate(x))
    lazy val kurtoses = numericValues map (x => new Kurtosis().evaluate(x))

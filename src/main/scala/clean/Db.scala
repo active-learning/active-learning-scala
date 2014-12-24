@@ -201,19 +201,22 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
       }
    }
 
-   def readString(sql: String): List[String] = {
+   def readString(sql: String): List[Vector[String]] = {
       test(sql)
       log(s"[$sql]", 5)
       try {
          val statement = connection.createStatement()
          val resultSet = statement.executeQuery(sql)
-         val queue = collection.mutable.Queue[String]()
+         val rsmd = resultSet.getMetaData
+         val numColumns = rsmd.getColumnCount
+         val queue = collection.mutable.Queue[Seq[String]]()
          while (resultSet.next()) {
-            queue.enqueue(resultSet.getString(1))
+            val seq = 1 to numColumns map { i => resultSet.getString(i)}
+            queue.enqueue(seq)
          }
          resultSet.close()
          statement.close()
-         queue.toList
+         queue.toList.map(_.toVector)
       } catch {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing SQL read styrings query '$sql': ${e.getMessage} .\nTrying againg in  $connectionWait_ms ms.\n", 30)

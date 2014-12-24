@@ -51,6 +51,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
       } yield {
          val ds = Ds(name, readOnly = true)
+         println(s"$ds")
          ds.open()
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
          val rattsmd = seqratts map Stat.media_desvioPadrao
