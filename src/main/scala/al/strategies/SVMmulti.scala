@@ -100,7 +100,10 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
          val ps = hist(labeled.toArray, n) map (x => x / n.toDouble)
          val ps_1 = ps map (x => 1 - x)
          val pscompl = ps_1 map (_ / ps_1.sum)
+
          val fdpscompl = fdp(pscompl, n)
+         //         val fdpscompl = fdp(ps, n)
+
          //         println(ps.mkString(" "))
          //         println(ps_1.mkString(" "))
          //         println(pscompl.mkString(" "))
@@ -128,17 +131,20 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
 object SVMmultiTest extends App with CM {
    val context = "SVMmultiTest"
    val ds = Ds("banana", readOnly = true)
-   val patts = new Random().shuffle(ds.patterns)
+   val patts = new Random(6294).shuffle(ds.patterns)
    val (tr, ts) = patts.splitAt(patts.size / 2)
    val strats = Seq(
       RandomSampling(tr)
+      , AgDensityWeightedLabelUtility1(tr, "eucl")
+      , AgDensityWeightedLabelUtility2(tr, "eucl")
       , SVMmulti(tr, "BALANCED_EEw")
       , SVMmulti(tr, "KFFw")
       , SVMmulti(tr, "SIMPLEw")
-      , SVMmulti(tr, "SELF_CONFw")).par
+      //      , SVMmulti(tr, "SELF_CONFw")
+   ).par
 
    val l = SVMLib()
-   val accss = (1 to tr.take(100).size) map { qs =>
+   val accss = (1 to tr.take(200).size) map { qs =>
       val accs = strats.map { x =>
          accBal(l.build(x.queries.take(qs)).confusion(ts))
       }

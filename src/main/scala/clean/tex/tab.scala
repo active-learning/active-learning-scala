@@ -63,7 +63,7 @@
 //                     }
 //                     Seq((Stat.media_desvioPadrao(vs.toVector)._1 * 100).round.toDouble -> -1d)
 //                  }).flatten
-//               } else if (s.id >= 17 && s.id <= 21 || s.id == 969) {
+//               } else if (s.id >= 17 && s.id <= 21 || s.id == 968) {
 //                  val learner = s.learner
 //                  sl += s"${s.abr} ${learner.toString.take(4)}"
 //                  if (ds.isMeasureComplete(measure, s.id, learner.id)) {

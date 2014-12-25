@@ -68,7 +68,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
                } yield {
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
+                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968) s.learner else l
                   val ms = for {
                      r <- 0 until Global.runs
                      f <- 0 until Global.folds
@@ -102,7 +102,7 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
                } yield {
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
+                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968) s.learner else l
                   val ms = for {
                      r <- 0 until Global.runs
                      f <- 0 until Global.folds

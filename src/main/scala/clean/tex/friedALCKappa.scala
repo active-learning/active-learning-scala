@@ -51,7 +51,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
          val sres = for {
             s <- strats
          } yield {
-            val le = if (s.id >= 17 && s.id <= 21 || s.id == 969) s.learner else l
+            val le = if (s.id >= 17 && s.id <= 21 || s.id == 968) s.learner else l
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
