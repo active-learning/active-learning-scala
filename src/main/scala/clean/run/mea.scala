@@ -19,12 +19,12 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import al.strategies.{Majoritary, Passive}
+import al.strategies.{SVMmulti, Majoritary, Passive}
 import clean._
 import clean.meta.RangeGenerator
 import clean.res._
 import ml.Pattern
-import ml.classifiers.Maj
+import ml.classifiers.{SVMLib, Maj}
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -59,15 +59,19 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          }
       }
 
-      //majoritaria
+      //majoritaria e svm
       for ((ti, tf) <- maxRange(ds, 2, 100) +: maxRange(ds, 2, 200) +: (ranges(ds, 2, 100) ++ ranges(ds, 2, 200))) {
          fila += ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds)
          fila += ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds)
+         fila += ALCKappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds)
+         fila += ALCBalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds)
       }
       val (i, f) = maxRange(ds, 2, 200)
       for (t <- i to f) {
          fila += Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds)
          fila += BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds)
+         fila += Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds)
+         fila += BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds)
       }
 
       //outras
