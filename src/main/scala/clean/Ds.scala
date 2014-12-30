@@ -67,8 +67,21 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val numericValues = if (numericAtts.isEmpty) List(Array(0d, 0d)) else read(s"select ${numericAtts.mkString(",")} from i").transpose.map(_.toArray)
    lazy val (medias, desvios) = numericValues.map(x => Stat.media_desvioPadrao(x.toVector)).unzip
    lazy val entropias = numericValues map (x => normalized_entropy(x.map(_ / n)))
-   lazy val skewnesses = numericValues map (x => new Skewness().evaluate(x))
-   lazy val kurtoses = numericValues map (x => new Kurtosis().evaluate(x))
+   lazy val skewnesses = numericValues map { x =>
+      val tmp = new Skewness().evaluate(x)
+      if (tmp.isNaN) {
+         println(s"skew NaN: ${x.toList}")
+         sys.exit(0)
+      }
+   }
+   lazy val kurtoses = numericValues map { x =>
+      val tmp = new Kurtosis().evaluate(x)
+      if (tmp.isNaN) {
+         println(s"kurt NaN: ${x.toList}")
+         sys.exit(0)
+      }
+   }
+
    lazy val correls = for (a1 <- numericValues; a2 <- numericValues) yield new PearsonsCorrelation().correlation(a1, a2)
    lazy val mediasavg = medias.sum / numCount
    lazy val desviosavg = desvios.sum / numCount
@@ -335,10 +348,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
    /**
     * Get the list of all CMs sorted by time.
-    * @param strat
-    * @param learner
-    * @param run
-    * @param fold
     * @return
     */
    def getCMs(pid: Int)(ti: Int, tf: Int) = {

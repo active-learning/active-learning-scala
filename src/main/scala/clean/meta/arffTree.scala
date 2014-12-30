@@ -26,6 +26,10 @@ import scala.io.Source
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
+   /*
+   Se colocar human=false, apenas um intervalo e apenas um learner,
+   dá na mesma que usar arffMeta.scala="Winner" com apenas um learner.
+    */
    val humano = true
    val context = "metaAttsTreeApp"
    val arguments = superArguments

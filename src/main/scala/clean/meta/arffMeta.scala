@@ -23,13 +23,18 @@ import java.io.FileWriter
 import clean._
 import clean.meta.arffTree._
 import clean.res.{ALCBalancedAcc, ALCKappa, BalancedAcc}
-import ml.classifiers.ninteraELM
+import ml.classifiers.{KNNBatch, ninteraELM}
 import util.{Datasets, StatTests, Stat}
 
 import scala.io.Source
 import scala.util.Random
 
-object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
+object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
+   /*
+   "Acc" => prediz acc em cada strat
+   "Ties" => prediz vencedores empatados
+   "Winner" => prediz apenas o melhor
+   */
    val modo = "Winner"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
@@ -58,7 +63,8 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
          val ds = Ds(name, readOnly = true)
          println(s"$ds")
          ds.open()
-         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: não aceita estrats de learner único (basicamente SVMmulti e Majoritary)
+         //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem semrpe com seus learners (basicamente SVMmulti e Majoritary)
+         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
          val rattsmd = seqratts map Stat.media_desvioPadrao
          val (rattsm, _) = rattsmd.unzip
@@ -88,8 +94,9 @@ object arffacc extends AppWithUsage with StratsTrait with LearnerTrait with Rang
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
                      s <- stratsForTree() // <- verificar!!!
-                  } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
+                     le = if (s.id >= 17 && s.id <= 21 || s.id == 968) s.learner else l
+                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
                         -2d
                      }
                   poolStr -> medidas
