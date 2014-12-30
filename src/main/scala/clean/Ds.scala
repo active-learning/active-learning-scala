@@ -61,44 +61,55 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, poolSizeByNatts, majority, minority, majority / minority, normalized_entropy(hist))
    lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).filter(_.isNominal).map(_.name())
    lazy val numericAtts = patterns.head.enumerateAttributes().toList.filter(_.isNumeric).map(_.name())
-   lazy val nominalValues = if (nominalAtts.isEmpty) List(Array("", "")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)
+   lazy val nominalValues = if (nominalAtts.isEmpty) List(Array("")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)
    lazy val nominalValuesCount = nominalValues.map(_.distinct.size)
    lazy val nominalValuesCountAvg = nominalValuesCount.sum / nominalValuesCount.size
-   lazy val numericValues = if (numericAtts.isEmpty) List(Array(0d, 0d)) else read(s"select ${numericAtts.mkString(",")} from i").transpose.map(_.toArray)
+   lazy val numericValues = if (numericAtts.isEmpty) List(Array(0d)) else read(s"select ${numericAtts.mkString(",")} from i").transpose.map(_.toArray)
    lazy val (medias, desvios) = numericValues.map(x => Stat.media_desvioPadrao(x.toVector)).unzip
-   lazy val entropias = numericValues map (x => normalized_entropy(x.map(_ / n)))
-   lazy val skewnesses = numericValues map { x =>
+   lazy val entropias = if (numericAtts.isEmpty) List(0d)
+   else numericValues map { x =>
+      val tmp = normalized_entropy(x.map(_ / n))
+      if (tmp.isNaN) 0d else tmp
+   }
+   lazy val skewnesses = if (numericValues.map(_.toList).sameElements(List(List(0d)))) List(0d)
+   else numericValues map { x =>
       val tmp = new Skewness().evaluate(x)
       if (tmp.isNaN) {
-         println(s"skew NaN: ${x.toList}")
+         println(s"skew NaN: ${x.toList} \n${patterns.head.enumerateAttributes().toList} \n${numericValues.map(_.toList)}")
          sys.exit(0)
       }
+      tmp
    }
-   lazy val kurtoses = numericValues map { x =>
+   lazy val kurtoses = if (numericValues.map(_.toList).sameElements(List(List(0d)))) List(0d)
+   else numericValues map { x =>
       val tmp = new Kurtosis().evaluate(x)
       if (tmp.isNaN) {
-         println(s"kurt NaN: ${x.toList}")
+         println(s"kurt NaN: ${x.toList} \n${patterns.head.enumerateAttributes().toList}")
          sys.exit(0)
       }
+      tmp
    }
 
-   lazy val correls = for (a1 <- numericValues; a2 <- numericValues) yield new PearsonsCorrelation().correlation(a1, a2)
-   lazy val mediasavg = medias.sum / numCount
-   lazy val desviosavg = desvios.sum / numCount
-   lazy val entropiasavg = entropias.sum / numCount
-   lazy val skewavg = skewnesses.sum / numCount
-   lazy val kurtavg = kurtoses.sum / numCount
-   lazy val correlsavg = correls.sum / numCount
+   lazy val correls = if (numericValues.size < 2) List(0d) else for (a1 <- numericValues; a2 <- numericValues) yield new PearsonsCorrelation().correlation(a1, a2)
+   lazy val mediasavg = medias.sum / medias.size
+   lazy val desviosavg = desvios.sum / desvios.size
+   lazy val entropiasavg = entropias.sum / entropias.size
+   lazy val skewavg = skewnesses.sum / skewnesses.size
+   lazy val kurtavg = kurtoses.sum / kurtoses.size
+   lazy val correlsavg = correls.sum / correls.size
+
+   def divide(a: Double, b: Double) = if (b == 0) 0d else a / b
+
    lazy val metaAtts = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
-      skewnesses.min, skewavg, skewnesses.max, skewnesses.min / skewnesses.max,
-      kurtoses.min, kurtavg, kurtoses.max, kurtoses.min / kurtoses.max,
-      nominalValuesCount.min, nominalValuesCountAvg, nominalValuesCount.max, nominalValuesCount.min / nominalValuesCount.max,
-      medias.min, mediasavg, medias.max, medias.min / medias.max,
-      desvios.min, desviosavg, desvios.max, desvios.min / desvios.max,
-      entropias.min, entropiasavg, entropias.max, entropias.min / entropias.max,
-      correls.min, correlsavg, correls.max, correls.min / correls.max,
+      skewnesses.min, skewavg, skewnesses.max, divide(skewnesses.min, skewnesses.max),
+      kurtoses.min, kurtavg, kurtoses.max, divide(kurtoses.min, kurtoses.max),
+      nominalValuesCount.min, nominalValuesCountAvg, nominalValuesCount.max, divide(nominalValuesCount.min, nominalValuesCount.max),
+      medias.min, mediasavg, medias.max, divide(medias.min, medias.max),
+      desvios.min, desviosavg, desvios.max, divide(desvios.min, desvios.max),
+      entropias.min, entropiasavg, entropias.max, divide(entropias.min, entropias.max),
+      correls.min, correlsavg, correls.max, divide(correls.min, correls.max),
       majority, minority, majority / minority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
