@@ -31,11 +31,14 @@ import scala.util.Random
 
 object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
    /*
-   "Acc" => prediz acc em cada strat
+   "Rank" => prediz ranking das strats
    "Ties" => prediz vencedores empatados
    "Winner" => prediz apenas o melhor
+   "Acc" => prediz acc em cada strat
+
+   Escolher mais abaixo se sorteia learner, budget ou nada.
    */
-   val modo = "Winner"
+   val modo = "Rank"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments
@@ -50,21 +53,29 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val ss = stratsForTree().map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList
-
-         (ti, tf) <- {
+         (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar trocar p/ 200?
-            ds.close()
-            tmp
-         }
 
+            //escolher se sorteia budget
+            //            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar trocar p/ 200?
+            //            ds.close()
+            //            Seq(tmp._1,tmp._2,0)
+
+            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
+            ds.close()
+            Seq(tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2)).apply(rnd.nextInt(2)))
+
+         }
       } yield {
          val ds = Ds(name, readOnly = true)
          println(s"$ds")
          ds.open()
+
+         //escolher se sorteia learner
          //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem semrpe com seus learners (basicamente SVMmulti e Majoritary)
          val l = KNNBatch(5, "eucl", Seq(), weighted = true)
+
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
          val rattsmd = seqratts map Stat.media_desvioPadrao
          val (rattsm, _) = rattsmd.unzip
@@ -85,7 +96,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   s.abr -> Stat.media_desvioPadrao(ms.toVector)
                }
                if (vs.exists(x => x._2._1 == -2d)) None
-               else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + vs.map(_._2._1).mkString(",") + "\"")
+               else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + vs.map(_._2._1).mkString(",") + "\"", if (budix == 0) "baixo" else "alto")
             case "Ties" => //prediz vencedores empatados
                val vs = for {
                   r <- 0 until runs
@@ -104,7 +115,24 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val winners = StatTests.clearWinners(vs, ss)
                val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
                if (vs.exists(x => x._2.contains(-2d))) None
-               else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"")
+               else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", if (budix == 0) "baixo" else "alto")
+            case "Rank" => //prediz ranking
+               val vs = for {
+                  s <- stratsForTree() // <- verificar!!!
+               } yield {
+                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968) s.learner else l
+                  val ms = for {
+                     r <- 0 until Global.runs
+                     f <- 0 until Global.folds
+                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+                        -2d
+                     }
+                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+               }
+               lazy val rank = vs.map(_._2._1).zipWithIndex.sortBy(_._1).map(_._2).zipWithIndex.sortBy(_._1).map(_._2)
+               if (vs.exists(x => x._2._1 == -2d)) None
+               else Some(ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + rank.mkString(",") + "\"", if (budix == 0) "baixo" else "alto")
             case "Winner" => //prediz apenas o melhor
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
@@ -119,7 +147,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                      }
                   s.abr -> Stat.media_desvioPadrao(ms.toVector)
                }
-               if (vs.exists(x => x._2._1 == -2d)) None else Some(ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1)
+               if (vs.exists(x => x._2._1 == -2d)) None
+               else Some(ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto")
          }
 
          ds.close()
@@ -132,8 +161,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //cria ARFF
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
-      val data = metadata.map { case (numericos, learner, vencedores) => numericos.mkString(",") + s",$learner,$vencedores"}
-      val header = List("@relation data") ++ nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val data = metadata.map { case (numericos, learner, vencedores, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedores"}
+      val header = List("@relation data") ++ nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
@@ -159,6 +188,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   val m = ninteraELM(learnerSeed).build(fpool)
 
                   val hitsELM = ftestSet map { p =>
+                     println(m.output(p).toList)
+                     println(p.nominalSplit.toList)
+                     println(s"")
                      p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max
                   }
                   val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble

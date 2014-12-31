@@ -37,7 +37,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
 
    override def run() = {
       super.run()
-      val strats = allStrats()
+      val strats = stratsForTree() //allStrats()
       val sl = strats.map(_.abr)
 
       val res0 = for {

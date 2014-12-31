@@ -94,7 +94,7 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , SVMmulti(pool, "KFFw") //968
+      //      , SVMmulti(pool, "KFFw") //968
    )
 
 }
