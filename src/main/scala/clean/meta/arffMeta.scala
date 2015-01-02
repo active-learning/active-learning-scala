@@ -21,9 +21,9 @@ package clean.meta
 import java.io.FileWriter
 
 import clean._
-import clean.meta.arffTree._
 import clean.res.{ALCBalancedAcc, ALCKappa, BalancedAcc}
 import ml.classifiers.{KNNBatch, ninteraELM}
+import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, StatTests, Stat}
 
 import scala.io.Source
@@ -58,13 +58,13 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             ds.open()
 
             //escolher se sorteia budget
-            //            val tmp = Seq(maxRange(ds, 2, 100)) // <-verificar trocar p/ 200?
-            //            ds.close()
-            //            Seq(tmp._1,tmp._2,0)
-
-            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
+            val tmp = maxRange(ds, 2, 100) // <-verificar trocar p/ 200?
             ds.close()
-            Seq(tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2)).apply(rnd.nextInt(2)))
+            Seq((tmp._1, tmp._2, 0))
+
+            //            val tmp = ranges(ds, 2, 100) // <- verificar!!! verificar tb argumentos do programa!!!
+            //            ds.close()
+            //            Seq(tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2)).apply(rnd.nextInt(2)))
 
          }
       } yield {
@@ -73,8 +73,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          ds.open()
 
          //escolher se sorteia learner
-         //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem semrpe com seus learners (basicamente SVMmulti e Majoritary)
-         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
+         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem semrpe com seus learners (basicamente SVMmulti e Majoritary)
+         //         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
 
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
          val rattsmd = seqratts map Stat.media_desvioPadrao
@@ -178,7 +178,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             println(s"${patterns.size}")
             val nestedRes = (0 until runs).par map { run =>
                val shuffled = new Random(run).shuffle(patterns)
-               Datasets.kfoldCV(shuffled, k = folds) { (tr, ts, fold, minSize) =>
+               Datasets.kfoldCV(shuffled, k = 94) { (tr, ts, fold, minSize) =>
                   //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
                   val learnerSeed = run * 10000 + fold
 
@@ -188,9 +188,11 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   val m = ninteraELM(learnerSeed).build(fpool)
 
                   val hitsELM = ftestSet map { p =>
-                     println(m.output(p).toList)
-                     println(p.nominalSplit.toList)
-                     println(s"")
+                     val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
+                     val spearMaj = new SpearmansCorrelation().correlation(new Random(System.currentTimeMillis()).shuffle(Array(0d, 3, 2, 4, 1, 5, 6).toList).toArray, p.nominalSplit)
+                     //                     println(m.output(p).toList)
+                     //                     println(p.nominalSplit.toList)
+                     println(s"$spear $spearMaj")
                      p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max
                   }
                   val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
@@ -205,7 +207,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                   val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
 
-                  println(s"$accELM $accMaj")
+                  //                  println(s"$accELM $accMaj")
                }
             }
          //            val res=nestedRes.flatten

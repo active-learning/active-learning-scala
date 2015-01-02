@@ -58,6 +58,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val hist = patterns.groupBy(_.label).toList.sortBy(_._1).map(_._2.size / n.toDouble).toArray
    lazy val minority = 100 * hist.min
    lazy val majority = 100 * hist.max
+   lazy val description = List[Double](poolSize, nclasses, nattributes, nomCount, majority, minority).map(x => x.round.toInt) -> normalized_entropy(hist)
    lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, poolSizeByNatts, majority, minority, majority / minority, normalized_entropy(hist))
    lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).filter(_.isNominal).map(_.name())
    lazy val numericAtts = patterns.head.enumerateAttributes().toList.filter(_.isNumeric).map(_.name())
@@ -109,8 +110,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       medias.min, mediasavg, medias.max, divide(medias.min, medias.max),
       desvios.min, desviosavg, desvios.max, divide(desvios.min, desvios.max),
       entropias.min, entropiasavg, entropias.max, divide(entropias.min, entropias.max),
-      correls.min, correlsavg, correls.max, divide(correls.min, correls.max),
-      majority, minority, majority / minority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
+      correls.min, correlsavg, correls.max, divide(correls.min, correls.max))
+   //      majority, minority, majority / minority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
 
