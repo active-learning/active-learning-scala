@@ -75,6 +75,9 @@ trait StratsTrait {
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
+
+      , SVMmulti(pool, "KFFw") //968
+
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
       //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
@@ -94,7 +97,6 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      //      , SVMmulti(pool, "KFFw") //968
    )
 
 }
