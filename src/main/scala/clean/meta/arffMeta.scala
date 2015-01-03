@@ -172,9 +172,42 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       println(s"${data.size}")
 
       //processa arff
-      if (modo != "Winner") Datasets.arff(arq) match {
+      if (modo != "Winner" && modo != "Rank") Datasets.arff(arq) match {
          case Left(str) => error("problemas abrindo arff")
          case Right(patterns) =>
+            println(s"${patterns.size}")
+            val nestedRes = (0 until runs).par map { run =>
+               val shuffled = new Random(run).shuffle(patterns)
+               Datasets.kfoldCV(shuffled, k = 94) { (tr, ts, fold, minSize) =>
+                  //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
+                  val learnerSeed = run * 10000 + fold
+
+                  val (fpool, binaf, zscof) = filterTr(tr, fold)
+                  val ftestSet = filterTs(ts, fold, binaf, zscof)
+
+                  val m = ninteraELM(learnerSeed).build(fpool)
+
+                  val hitsELM = ftestSet map { p => p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max}
+                  val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
+
+                  val hitsRnd = ftestSet.zipWithIndex map { case (p, idx) => p.nominalSplit(idx % p.nclasses) == p.nominalSplit.max}
+                  val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
+
+                  val hitsMaj = ftestSet map { p => p.nominalSplit(2) == p.nominalSplit.max}
+                  val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
+
+                  println(s"$accELM $accMaj")
+               }
+            }
+         //            val res=nestedRes.flatten
+         //            res foreach println
+      }
+
+      if (modo == "Rank") Datasets.arff(arq) match {
+         case Left(str) => error("problemas abrindo arff")
+         case Right(patterns) =>
+            println(s"Falta comparar com ranking medio.")
+            ???
             println(s"${patterns.size}")
             val nestedRes = (0 until runs).par map { run =>
                val shuffled = new Random(run).shuffle(patterns)
