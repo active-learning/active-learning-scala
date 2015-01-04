@@ -39,8 +39,8 @@ trait LearnerTrait {
       NB() //1
       , KNNBatch(5, "eucl", pool, weighted = true) //2
       , VFDT() //4
-      , SVMLib(learnerSeed) //5
       , C45() //3
+      , SVMLib(learnerSeed) //5
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
