@@ -6,7 +6,8 @@ Based on [machine-learning-scala](https://github.com/machine-learning-scala/mls 
 and [extreme-learning-machine-scala](https://github.com/extreme-learning-machine/elm-scala "elm-scala") frameworks.
 This is result of research.
 Therefore, if you use this software in your own research,
-please cite properly using the information given at the end of this document.
+please cite properly using the bibtex at the end and reference one of the alternatives provided by this DOI link:
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.13733.svg)](http://dx.doi.org/10.5281/zenodo.13733)
 
 Installation
 ------------
