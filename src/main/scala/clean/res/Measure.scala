@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.res
 
+import java.lang.Exception
+
 import al.strategies.{Passive, Strategy}
 import clean.{Global, Blob, CM, Ds}
 import ml.classifiers.Learner
@@ -44,7 +46,7 @@ trait Measure extends CM with Blob {
          case Passive(s.pool, false) =>
             ds.write(s"insert into p values (NULL, ${s.id}, ${l.id}, $r, $f)")
             ds.poolId(s, l, r, f).getOrElse(error(s"Could not create pid for ${(s, l, r, f)}."))
-         case _ => error(s"No pid for ${(s, l, r, f)}.")
+         case _ => throw new Error(s"No pid for ${(s, l, r, f)}.")
       }
    }
 
@@ -68,7 +70,12 @@ trait Measure extends CM with Blob {
       if (!existia) {
          if (cm != null) s"insert into r values ($id, $pid, ${instantFun(cm)})"
          else value match {
-            case Some(v) => s"insert into r values ($id, $pid, $v)"
+            case Some(v) =>
+               try {
+                  s"insert into r values ($id, $pid, $v)"
+               } catch {
+                  case exp: Exception => ds.log(exp.getMessage, 30); "select 1"
+               }
             case None =>
                ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
                "select 1"
