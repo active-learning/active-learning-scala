@@ -29,6 +29,7 @@ Citation
 --------
 [paper] (http://link.springer.com/chapter/10.1007/978-3-319-07617-1_54 "AL paper")
 
+```
 MLA	
 Santos, Davi P., and André CPLF de Carvalho. "Comparison of Active Learning Strategies and Proposal of a Multiclass Hypothesis Space Search." Hybrid Artificial Intelligence Systems. Springer International Publishing, 2014. 618-629.
 
@@ -46,3 +47,4 @@ Santos, Davi P., and André CPLF de Carvalho. "Comparison of Active Learning Str
   year={2014},
   publisher={Springer}
 }
+```
