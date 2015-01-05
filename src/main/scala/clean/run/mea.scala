@@ -58,6 +58,8 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             fila += b.sqlToWrite(ds, CM)
          }
       }
+      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+      fila.clear()
 
       //majoritaria e svm
       for ((ti, tf) <- maxRange(ds, 2, 100) +: maxRange(ds, 2, 200) +: (ranges(ds, 2, 100) ++ ranges(ds, 2, 200))) {
