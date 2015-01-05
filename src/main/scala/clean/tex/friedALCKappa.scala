@@ -29,16 +29,15 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappatex"
    val measure = ALCKappa
-   //      val measure = BalancedAcc
-   //   val measure = Kappa
+   //   val measure = ALCBalancedAcc
    run()
 
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
 
    override def run() = {
       super.run()
-      //      val strats = stratsForTree() //allStrats()
-      val strats = allStrats()
+      val strats = stratsForTree()
+      //      val strats = allStrats()
       val sl = strats.map(_.abr)
 
       val res0 = for {

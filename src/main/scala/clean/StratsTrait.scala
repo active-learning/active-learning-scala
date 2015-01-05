@@ -40,6 +40,7 @@ trait StratsTrait {
       //      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361
       , AgDensityWeightedLabelUtility2(pool, "eucl") //361
       , SVMmulti(pool, "KFFw") //968
+      , SVMmulti(pool, "BALANCED_EEw") //969
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
@@ -77,10 +78,11 @@ trait StratsTrait {
       , ClusterBased(pool) //1
 
       , SVMmulti(pool, "KFFw") //968
+      , SVMmulti(pool, "BALANCED_EEw") //969
 
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
-      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
+      , AgDensityWeightedLabelUtility2(pool, "maha") //391
       //      , Uncertainty(learner, pool) //2
       //      , Entropy(learner, pool) //4
       , Margin(learner, pool) //3
@@ -92,7 +94,7 @@ trait StratsTrait {
       //      , DensityWeightedLabelUtility(learner, pool, "eucl") //36
 
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      //            , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
 
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
