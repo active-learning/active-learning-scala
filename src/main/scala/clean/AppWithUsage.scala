@@ -76,7 +76,8 @@ trait AppWithUsage extends App with Log with ArgParser {
    //      "majority,minority,majorityByminority,classEntropy," + attsFromRNames.mkString(",")
    // <- class dependent metaatts
    val humanNumAttsNames = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"#exs/#atrs\",\"%majority\",\"%minority\",\"%majority/%minority\",\"class entropy\""
-   val descriptionNames = Seq("\\#exemplos ($|\\mathcal{U}|$)", "\\#classes ($|Y|$)", "\\#atributos", "\\#nominais", "\\%majoritária", "\\%minoritária", "entropia da distr. de classes")
+   //   val descriptionNames = Seq("""\pbox{20cm}{\#exemplos\\($|\mathcal{U}|$)}""", """\pbox{20cm}{\#classes\\($|Y|$)}""", "\\#atributos", "\\#nominais", "\\%majoritária", "\\%minoritária", """\pbox{20cm}{entropia da \\distr. de classes}""")
+   val descriptionNames = Seq( """$|\mathcal{U}|$""", """$|Y|$""", "atributos", "nominais", """\makecell{majoritária\\(\%)}""", """\makecell{minoritária\\(\%)}""", """\makecell{entropia da \\distr. de classes}""")
 
    def maxQueries(ds: Ds) = math.max(ds.nclasses, math.min(ds.expectedPoolSizes(folds).min, maxQueries0))
 

@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import java.io.{PrintWriter, FileWriter}
+
 import al.strategies.RandomSampling
 import clean.{Ds, Exp, Lock}
 import ml.Pattern
@@ -43,30 +45,43 @@ object datasetsdesc extends Exp with Lock {
 
    def datasetFinished(ds: Ds) {
       acquire()
-      m += ds.dataset.take(20) -> (ds.description._1.map(_.toString) ++ Seq("%5.2f".format(ds.description._2)))
+      m += ds.dataset.take(20) -> ds.description._1.map(_.toString) //++ Seq("%5.2f".format(ds.description._2)))
       release()
    }
 
-   def tabela(tableName: String, caption: String, core: Seq[(String, Seq[String])]): Unit = {
-      val cols = descriptionNames.size
-      println( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
+   def tabela(tableName: String, caption: String, core: Seq[(String, Seq[String])]) = {
+      val cols = descriptionNames.size - 1
+      """
 \begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}
-\begin{tabular}{l""" + Seq.fill(cols)("p{1cm}").mkString("|") + "}\n & " + descriptionNames.map(x => "\\rotatebox{60}{" + x + "}").mkString(" & ") + """\\ \hline """)
-      println(core.map(x => (x._1 +: x._2).mkString(" & ")).mkString( """\\ \hline """ + "\n"))
-      println( """\end{tabular}
+\begin{tabular}{l|""" + Seq.fill(cols)("r").mkString(" ") + "}\n & " + descriptionNames.dropRight(1).map(x => "\\rotatebox{0}{" + x + "}").mkString(" & ") + """\\ \hline """ +
+         core.zipWithIndex.map { case (x, i) => (x._1 +: x._2).mkString(" & ") + "\\\\" + (if (i % 3 - 1 == 2) "\\hline" else "")}.mkString("\n") +
+         """\end{tabular}
 \label{""" + tableName + """}
 \end{center}
-\end{table}""")
+\end{table}"""
    }
 
-   def end(res: Map[String, Boolean]): Unit = {
-      val caption = "Características das bases de dados."
+   def end(res: Map[String, Boolean]) {
+      val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables.tex", "ISO-8859-1")
+      val todas = m.toList.sortBy(_._1)
+      fw.write( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}""")
+      fw.write(tabela("tab:datasetsa", "Características das bases de dados (1/3).", todas.take(33)))
+      fw.write(tabela("tab:datasetsb", "Características das bases de dados (2/3).", todas.drop(33).take(33)))
+      fw.write(tabela("tab:datasetsc", "Características das bases de dados (3/3).", todas.drop(66)))
 
-      val core = m.toList.sortBy(_._1)
-      tabela("tab:datasetsa", caption, core.take(33))
-      tabela("tab:datasetsb", caption, core.drop(33).take(33))
-      tabela("tab:datasetsc", caption, core.drop(66))
+      val maisDesbalanceadas = m.filter(x => x._2(4).toDouble > 4 * x._2(5).toDouble).toList.sortBy(x => x._2(4).toDouble / x._2(5).toDouble).reverse
+      fw.write(tabela("tab:imb", "Bases de dados mais desbalanceadas.", maisDesbalanceadas))
+
+      val maisAtributos = m.filter(x => x._2(2).toDouble > 50).toList.sortBy(x => x._2(2).toDouble).reverse
+      fw.write(tabela("tab:x", "Bases de dados com mais atributos.", maisAtributos))
+
+      val maisClasses = m.filter(x => x._2(1).toDouble > 5).toList.sortBy(x => x._2(1).toDouble).reverse
+      fw.write(tabela("tab:y", "Bases de dados com mais classes.", maisClasses))
+
+      val maisExemplos = m.filter(x => x._2(0).toDouble > 1000).toList.sortBy(x => x._2(0).toDouble).reverse
+      fw.write(tabela("tab:n", "Bases de dados com mais exemplos.", maisExemplos))
+      fw.close()
    }
 }
