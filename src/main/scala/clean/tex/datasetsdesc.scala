@@ -56,7 +56,7 @@ object datasetsdesc extends Exp with Lock {
 \caption{""" + caption + """}
 \begin{center}
 \begin{tabular}{l|""" + Seq.fill(cols)("r").mkString(" ") + "}\n & " + descriptionNames.dropRight(1).map(x => "\\rotatebox{0}{" + x + "}").mkString(" & ") + """\\ \hline """ +
-         core.zipWithIndex.map { case (x, i) => (x._1 +: x._2).mkString(" & ") + "\\\\" + (if (i % 3 - 1 == 2) "\\hline" else "")}.mkString("\n") +
+         core.zipWithIndex.map { case (x, i) => (x._1 +: x._2).mkString(" & ") + "\\\\" + (if (i % 3 == 2) "\\hline" else "")}.mkString("\n") +
          """\end{tabular}
 \label{""" + tableName + """}
 \end{center}
