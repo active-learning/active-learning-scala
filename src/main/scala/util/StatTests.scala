@@ -1,7 +1,5 @@
 package util
 
-import scala.collection.mutable
-
 /*
  active-learning-scala: Active Learning library for Scala
  Copyright (c) 2014 Davi Pereira dos Santos
@@ -39,7 +37,7 @@ object StatTests {
     * A ordem retornada é a mesma original.
     */
 
-   import collection.JavaConversions._
+   import scala.collection.JavaConversions._
 
    def winners(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
       val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
@@ -71,9 +69,10 @@ object StatTests {
          sys.exit(1)
       }
       val caption = language match {
-         case "pt" => s"$measure para os Q exemplos consultados. Os maiores valores de medida e desvio padrão de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}}." +
-            s"Valores isolados estão sublinhados. Melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor."
-         case "en" => s"$measure for the first Q queried instances. Highest value(and std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined. Best (lowest) std. values are in \\textcolor{darkgreen}{green}."
+         case "pt" => s"$measure: Os maiores valores da média e desvio padrão de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente." +
+            s"Valores isolados estão sublinhados. Os menores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor."
+         case "en" => s"$measure: Highest average (std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined. " +
+            s"Lowest std. values are in \\textcolor{darkgreen}{green}. Bold face only number shows second best value."
       }
       println( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
 \begin{table}[h]
@@ -138,8 +137,8 @@ object StatTests {
     */
    def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, measure: String, seps: Int = 2, language: String = "pt") {
       val caption = language match {
-         case "pt" => s"Um contra um: cada asterisco/cruz indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.99/0.95."
-         case "en" => s"Pairwise comparison: each asterisk/cross indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95."
+         case "pt" => s"Um contra um: cada asterisco/cruz/ponto indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.99/0.95/0.90."
+         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
       println( """\begin{table}[h]
 \caption{""" + caption + """}
@@ -174,7 +173,7 @@ object StatTests {
          println(s"Erro: ${measures.head._2.size} != ${strategies.size}")
          sys.exit(1)
       } else {
-         import collection.JavaConversions._
+         import scala.collection.JavaConversions._
          val (linkedHM, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, true)
          val m = linkedHM.toList.sortBy(_._1).map(_._2)
          if (m.last ==(-1, -1d)) {
@@ -194,7 +193,7 @@ object StatTests {
     * A ordem retornada é a mesma original.
     */
    def clearLosers(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = {
-      import collection.JavaConversions._
+      import scala.collection.JavaConversions._
       val (lhm, cd) = FriedmanTest.CD(measures.map(_._2.toArray).toArray, false)
       val m = lhm.toList.sortBy(_._1).map(_._2)
       val limit = m.last._2 - cd
