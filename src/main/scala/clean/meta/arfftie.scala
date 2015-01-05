@@ -29,6 +29,9 @@
 //
 //   def r(x: Double) = (x * 100).round / 100d
 //
+/*
+Se me lembro bem, cria um arff pra cada strat.
+ */
 //   override def run() = {
 //      super.run()
 //      Seq(ALCaccBal(maxQueries0), null, null).dropRight(2) foreach { measure =>
@@ -51,7 +54,7 @@
 //                  val sres = for {
 //                     s <- strats
 //                  } yield {
-//                     val le = if (s.id >= 17 && s.id <= 21 || s.id == 968) s.learner else l
+//                     val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
 //                     if (!ds.isMeasureComplete(measure, s.id, le.id)) throw new Exception()
 //                     if (measure.id(ds) == 0) throw new Exception()
 //                     ds.getMeasure(measure, s, le, r, f) match {

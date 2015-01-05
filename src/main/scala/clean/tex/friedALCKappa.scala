@@ -25,7 +25,7 @@ import clean.meta.RangeGenerator
 import clean.res._
 import util.{Stat, StatTests}
 
-object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait with MeasuresTrait with RangeGenerator {
+object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappatex"
    val measure = ALCKappa
@@ -51,7 +51,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
          val sres = for {
             s <- strats
          } yield {
-            val le = if (s.id >= 17 && s.id <= 21 || s.id == 968) s.learner else l
+            val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
