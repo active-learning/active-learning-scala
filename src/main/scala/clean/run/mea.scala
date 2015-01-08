@@ -67,6 +67,8 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          fila += ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds)
          fila += ALCKappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds)
          fila += ALCBalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds)
+         fila += ALCKappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds)
+         fila += ALCBalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds)
       }
       val (i, f) = maxRange(ds, 2, 200)
       for (t <- i to f) {
@@ -74,12 +76,14 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          fila += BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds)
          fila += Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds)
          fila += BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds)
+         fila += Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds)
+         fila += BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds)
       }
 
       //outras
       for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- maxRange(ds, 2, 100) +: maxRange(ds, 2, 200) +: (ranges(ds, 2, 100) ++ ranges(ds, 2, 200))) {
          strat match {
-            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) => //jah foi acima
+            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>
                fila += ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds)
                fila += ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds)
@@ -87,7 +91,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       }
       for (strat <- allStrats(); learner <- allLearners(); t <- i to f) {
          strat match {
-            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) => //jah foi acima
+            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>
                fila += Kappa(ds, s, learner, run, fold)(i).sqlToWrite(ds)
                fila += BalancedAcc(ds, s, learner, run, fold)(f).sqlToWrite(ds)
