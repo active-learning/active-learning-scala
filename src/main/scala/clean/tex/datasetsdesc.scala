@@ -44,8 +44,14 @@ object datasetsdesc extends Exp with Lock {
    }
 
    def datasetFinished(ds: Ds) {
+      val reticencias = if (ds.dataset.size > 18) "..." else ""
+      val name = ds.dataset.take(5) match {
+         case "heart" => ds.dataset.replace("processed-", "")
+         case "conne" => ds.dataset.replace("connectionist", "connect.")
+         case _ => ds.dataset
+      }
       acquire()
-      m += ds.dataset.take(20) -> ds.description._1.map(_.toString) //++ Seq("%5.2f".format(ds.description._2)))
+      m += (name.take(18).split("-").mkString(" ") + reticencias) -> ds.description._1.map(_.toString) //++ Seq("%5.2f".format(ds.description._2)))
       release()
    }
 
@@ -64,23 +70,26 @@ object datasetsdesc extends Exp with Lock {
    }
 
    def end(res: Map[String, Boolean]) {
+      val todas = m.toList.sortBy(_._1).zipWithIndex.map { case ((d, l), i) =>
+         ((i + 1) + "-" + d) -> l
+      }
+      println(todas.size + " " + datasets.size)
       val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables.tex", "ISO-8859-1")
-      val todas = m.toList.sortBy(_._1)
       fw.write( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}""")
-      fw.write(tabela("tab:datasetsa", "Características das bases de dados (1/3).", todas.take(33)))
-      fw.write(tabela("tab:datasetsb", "Características das bases de dados (2/3).", todas.drop(33).take(33)))
-      fw.write(tabela("tab:datasetsc", "Características das bases de dados (3/3).", todas.drop(66)))
+      fw.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(33)))
+      fw.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(33).take(33)))
+      fw.write(tabela("tab:datasetsc", "Características das bases de dados (67-94).", todas.drop(66)))
 
-      val maisDesbalanceadas = m.filter(x => x._2(4).toDouble > 4 * x._2(5).toDouble).toList.sortBy(x => x._2(4).toDouble / x._2(5).toDouble).reverse
+      val maisDesbalanceadas = todas.filter(x => x._2(4).toDouble > 4 * x._2(5).toDouble).toList.sortBy(x => x._2(4).toDouble / x._2(5).toDouble).reverse
       fw.write(tabela("tab:imb", "Bases de dados mais desbalanceadas.", maisDesbalanceadas))
 
-      val maisAtributos = m.filter(x => x._2(2).toDouble > 50).toList.sortBy(x => x._2(2).toDouble).reverse
+      val maisAtributos = todas.filter(x => x._2(2).toDouble > 50).toList.sortBy(x => x._2(2).toDouble).reverse
       fw.write(tabela("tab:x", "Bases de dados com mais atributos.", maisAtributos))
 
-      val maisClasses = m.filter(x => x._2(1).toDouble > 5).toList.sortBy(x => x._2(1).toDouble).reverse
+      val maisClasses = todas.filter(x => x._2(1).toDouble > 5).toList.sortBy(x => x._2(1).toDouble).reverse
       fw.write(tabela("tab:y", "Bases de dados com mais classes.", maisClasses))
 
-      val maisExemplos = m.filter(x => x._2(0).toDouble > 1000).toList.sortBy(x => x._2(0).toDouble).reverse
+      val maisExemplos = todas.filter(x => x._2(0).toDouble > 1000).toList.sortBy(x => x._2(0).toDouble).reverse
       fw.write(tabela("tab:n", "Bases de dados com mais exemplos.", maisExemplos))
       fw.close()
    }
