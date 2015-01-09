@@ -60,11 +60,11 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , DensityWeightedLabelUtility(learner, pool, "eucl") //36
 
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-
       , new SGmulti(learner, pool, "consensus") //14
       , new SGmulti(learner, pool, "majority") //15
+
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
