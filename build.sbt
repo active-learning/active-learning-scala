@@ -2,7 +2,7 @@ name := "als"
 
 //version := "200+22s7l"
 
-version := "tudo+svmmulti"
+version := "final"
 
 scalaVersion := "2.10.4"
 
