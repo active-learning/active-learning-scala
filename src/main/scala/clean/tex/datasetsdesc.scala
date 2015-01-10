@@ -51,7 +51,7 @@ object datasetsdesc extends Exp with Lock {
          case _ => ds.dataset
       }
       acquire()
-      m += (name.take(18).split("-").mkString(" ") + reticencias) -> ds.description._1.map(_.toString) //++ Seq("%5.2f".format(ds.description._2)))
+      m += (name.take(18).split("-").mkString(" ") + reticencias) -> (ds.description._1.map(_.toString) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
       release()
    }
 
