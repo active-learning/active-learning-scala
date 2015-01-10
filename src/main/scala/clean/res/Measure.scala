@@ -19,10 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.res
 
-import java.lang.Exception
-
 import al.strategies.{Passive, Strategy}
-import clean.{Global, Blob, CM, Ds}
+import clean.{Blob, CM, Ds, Global}
 import ml.classifiers.Learner
 
 trait Measure extends CM with Blob {
@@ -41,6 +39,7 @@ trait Measure extends CM with Blob {
       tmp == 1
    }
    lazy val pid = ds.poolId(s, l, r, f).getOrElse {
+      if (ds.readOnly) throw new Exception(s"readOnly: Could not create pid for ${(s, l, r, f)}.")
       ds.log(s"Tentando criar pool ${(s, l, r, f)}", 30)
       s match {
          case Passive(s.pool, false) =>

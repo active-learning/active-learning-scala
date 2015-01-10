@@ -56,11 +56,21 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
                r <- 0 until runs
                f <- 0 until folds
             } yield {
-               lazy val pass = measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
+               lazy val pass = try {
+                  measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
+               } catch {
+                  case e: Throwable => NA
+               }
 
                s match {
                   case Passive(Seq(), false) => pass
-                  case _ => measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA)
+                  case _ =>
+                     val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
+                     try {
+                        measure(ds, s, le, r, f)(t).read(ds).getOrElse(NA)
+                     } catch {
+                        case e: Throwable => NA
+                     }
                }
                //               100 * measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA * pass / 100) / pass
 
