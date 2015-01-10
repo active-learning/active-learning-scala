@@ -22,7 +22,7 @@ import ml.Pattern
 import ml.classifiers.{ninteraELM, Learner}
 import ml.models.Model
 
-case class ExpNinteraChange(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
+case class ExpNinteraChange(pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyWithLearner {
    override val toString = "Expected ELM Change"
    val abr = "EMC"
@@ -31,6 +31,7 @@ case class ExpNinteraChange(learner: Learner, pool: Seq[Pattern], debug: Boolean
    def learner = ninteraELM()
 
    protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-      learner.EMC(current_model)(unlabeled)
+      ???
+      //      learner.EMC(current_model)(unlabeled)
    }
 }
