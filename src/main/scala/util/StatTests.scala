@@ -143,7 +143,7 @@ object StatTests {
       println( """\begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}
-\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t&         " + (1 to pairs.size).mkString(" & ") + """ \\""")
+\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + (1 to pairs.size).mkString(" & ") + """ \\""")
 
       pairs.zipWithIndex.foreach { case ((s, l), i) =>
          val I = i
