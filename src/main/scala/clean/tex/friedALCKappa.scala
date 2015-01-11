@@ -59,12 +59,16 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
                s match {
                   case _ =>
                      val (ti, tf) = maxRange(ds, 2, 100) //<- verificar se põe 200
-                     measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
+                     try {
+                        measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
+                     } catch {
+                        case e: Throwable => NA
+                     }
                }
             }
 
             //por media
-            if (vs.contains(-2d)) (-2d, -2d) else Stat.media_desvioPadrao(vs.toVector)
+            if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
 
             //pela pior medida
             //            if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)

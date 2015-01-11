@@ -62,17 +62,17 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
                   case e: Throwable => NA
                }
 
-               s match {
-                  case Passive(Seq(), false) => pass
-                  case _ =>
-                     val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
-                     try {
+               try {
+                  s match {
+                     case Passive(Seq(), false) => pass
+                     case _ =>
+                        val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
                         measure(ds, s, le, r, f)(t).read(ds).getOrElse(NA)
-                     } catch {
-                        case e: Throwable => NA
-                     }
+                  }
+                  //               100 * measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA * pass / 100) / pass
+               } catch {
+                  case e: Throwable => NA
                }
-               //               100 * measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA * pass / 100) / pass
 
             }
 

@@ -82,31 +82,37 @@ trait StratsTrait {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-      RandomSampling(pool) //0
-      , ClusterBased(pool) //1
-
-      , SVMmulti(pool, "KFFw") //968
-      , SVMmulti(pool, "BALANCED_EEw") //969
-
-      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      //      Majoritary(pool) //21
+      //      RandomSampling(pool) //0
+      //      , ClusterBased(pool) //1
+      AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      //      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361 //tava comentado
       , AgDensityWeightedLabelUtility2(pool, "eucl") //361
+      //      , SVMmulti(pool, "KFFw") //968
+      //      , SVMmulti(pool, "BALANCED_EEw") //969
+
+      //      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+      //      , AgDensityWeightedLabelUtility1(pool, "maha") //66391  //tava comentado
       , AgDensityWeightedLabelUtility2(pool, "maha") //391
+
       //      , Uncertainty(learner, pool) //2
       //      , Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
+      //      , Margin(learner, pool) //3
 
-      //      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , DensityWeighted(learner, pool, 1, "eucl") //5
 
-      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
-      //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      //      , DensityWeightedLabelUtility(learner, pool, "eucl") //36
+      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      , DensityWeightedLabelUtility(learner, pool, "eucl") //36
 
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-
-      , new SGmulti(learner, pool, "consensus") //14
+      //      , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
+      //
+      //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      //      , DensityWeightedLabelUtility(learner, pool, "maha") //39
    )
 
 }
