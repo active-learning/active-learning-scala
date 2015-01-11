@@ -103,20 +103,22 @@ object StatTests {
       table(core, nstrats, strategies, tableName, measure, language)
    }
 
-   def cor(ns0: Seq[Double], precision: Double) = {
+   def cor(ns0: Seq[Double], precision: Double, alto: String, baixo: String, baixo2: String = "") = {
       val ns = ns0 map ff(precision)
       val ns1 = ns.filter(_ > Double.MinValue).sorted.reverse
       val Mx = ns1.head
       val Snd = ns1.tail.head
+      val Sndmin = ns1.reverse.tail.head
       val Mn = ns1.last
       val Inf = ff(precision)(Double.MinValue)
       ns.zip(ns.map(x => f(x))).map {
          case (Inf, _) => ""
          case (Mn, s) if Mn == Mx => s"$s"
-         case (Mn, s) => s"\\textcolor{red}{\\textbf{$s}}"
-         case (Mx, s) if Snd == Mx => s"\\textcolor{blue}{\\textbf{$s}}"
-         case (Snd, s) => s"\\textbf{$s}"
-         case (Mx, s) if Snd < Mx => s"\\underline{\\textcolor{blue}{\\textbf{$s}}}"
+         case (Sndmin, s) if baixo2.nonEmpty => s"\\textcolor{$baixo2}{\\textbf{$s}}"
+         case (Mn, s) => s"\\textcolor{$baixo}{\\textbf{$s}}"
+         case (Mx, s) if Snd == Mx && baixo2.isEmpty => s"\\textcolor{$alto}{\\textbf{$s}}"
+         case (Snd, s) if baixo2.isEmpty => s"\\textcolor{black}{\\textbf{$s}}"
+         case (Mx, s) if Snd < Mx && baixo2.isEmpty => s"\\underline{\\textcolor{$alto}{\\textbf{$s}}}"
          case (_, s) => s"$s"
       }
    }
@@ -125,7 +127,7 @@ object StatTests {
       val nstrats = measures.head._2.length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip
-         val r = cor(vs, precision).zip(ds.map { case Double.MinValue => ""; case x => f(x)}) map { case ("", "") => ""; case x => x._1 + "/" + x._2}
+         val r = cor(vs, precision, "blue", "red").zip(cor(ds, precision, "black", "darkgreen", "black")) map { case ("", "") => ""; case x => x._1 + "/" + x._2}
          val vals = r.mkString(" & ")
          s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
       }.filter(_.nonEmpty).mkString("\n")

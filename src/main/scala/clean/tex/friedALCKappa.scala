@@ -58,7 +58,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
             } yield {
                s match {
                   case _ =>
-                     val (ti, tf) = maxRange(ds, 2, 100) //<- verificar se põe 200
+                     val (ti, tf) = maxRange(ds, 2, 200) //<- verificar 100 ou 200
                      try {
                         measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                      } catch {
@@ -71,14 +71,14 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
             if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
 
             //pela pior medida
-            //            if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
+            //            if (vs.contains(NA)) (NA, NA) else (vs.min, NA)
 
          }
          ds.close()
          (ds.dataset + l.toString.take(3)) -> sres
       }
 
-      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == -2d))
+      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == NA))
 
       println(s"")
       res0sorted.grouped(280).foreach { res1 =>
@@ -86,7 +86,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
       }
 
       println(s"")
-      val res = res0sorted.filter(!_._2.contains(-2d, -2d))
+      val res = res0sorted.filter(!_._2.contains(NA, NA))
 
       //por medida
       val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
@@ -96,5 +96,6 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
       //            val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
 
       StatTests.pairTable(pairs, "tablename", "acc")
+      println(s"\n\n${res.size} datasets completos")
    }
 }
