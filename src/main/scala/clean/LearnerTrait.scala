@@ -40,13 +40,13 @@ trait LearnerTrait {
       , KNNBatch(5, "eucl", pool, weighted = true) //2
       , VFDT() //4
       , C45() //3
-      , SVMLib(learnerSeed) //5
+      //      , SVMLib(learnerSeed) //5
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       IELM(learnerSeed) //6
       , CIELM(learnerSeed) //8
-      , ninteraELM(learnerSeed) //11  //tava comentado
+      //      , ninteraELM(learnerSeed) //11  //tava comentado
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
