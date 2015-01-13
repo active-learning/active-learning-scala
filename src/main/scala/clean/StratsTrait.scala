@@ -82,31 +82,33 @@ trait StratsTrait {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-      //      RandomSampling(pool) //0
-      //      , ClusterBased(pool) //1
-      //      , Uncertainty(learner, pool) //2
-      //      , Entropy(learner, pool) //4
-      //      , Margin(learner, pool) //3
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , Uncertainty(learner, pool) //2
+      , Entropy(learner, pool) //4
+      , Margin(learner, pool) //3
 
-      //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      DensityWeighted(learner, pool, 1, "eucl") //5
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+
+      , DensityWeighted(learner, pool, 1, "eucl") //5
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
 
-      //      , SVMmulti(pool, "KFFw") //968
-      //      , SVMmulti(pool, "BALANCED_EEw") //969
-      //      , new SGmulti(learner, pool, "consensus") //14
-      //      , new SGmulti(learner, pool, "majority") //15
+      , SVMmulti(pool, "KFFw") //968
+      , SVMmulti(pool, "BALANCED_EEw") //969
+      , new SGmulti(learner, pool, "consensus") //14
+      , new SGmulti(learner, pool, "majority") //15
+
       , DensityWeightedLabelUtility(learner, pool, "eucl") //36
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      //      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361 //tava comentado
+      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361 //tava comentado
       , AgDensityWeightedLabelUtility2(pool, "eucl") //361
-      //      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      //      , AgDensityWeightedLabelUtility1(pool, "maha") //66391  //tava comentado
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+      , AgDensityWeightedLabelUtility1(pool, "maha") //66391  //tava comentado
       , AgDensityWeightedLabelUtility2(pool, "maha") //391
-      //      , DensityWeightedLabelUtility(learner, pool, "maha") //39
+      , DensityWeightedLabelUtility(learner, pool, "maha") //39
    )
 
 }
