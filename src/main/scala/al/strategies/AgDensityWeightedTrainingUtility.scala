@@ -24,7 +24,8 @@ import ml.classifiers.Learner
 case class AgDensityWeightedTrainingUtility(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends AgStrategyMaps with MarginMeasure {
    override val toString = "Density Weighted AgTU a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "AgTU" + distance_name.take(3) + beta
+   val abr = "AgTU" + distance_name.take(3)
+   //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 601 + (100 * (1 - alpha)).toInt
       case "cheb" => 801 + (100 * (1 - alpha)).toInt
