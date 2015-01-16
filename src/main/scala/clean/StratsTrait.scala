@@ -103,11 +103,14 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       //            , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      //      , AgDensityWeightedTrainingUtility(pool, "manh") //701
       //      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
+      //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
       //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
       , AgDensityWeightedLabelUtility2(pool, "eucl") //361
       //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
    )
 
 }
