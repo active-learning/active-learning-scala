@@ -91,6 +91,9 @@ object datasetsdesc extends Exp with Lock {
 
       val maisExemplos = todas.filter(x => x._2(0).toDouble > 1000).toList.sortBy(x => x._2(0).toDouble).reverse
       fw.write(tabela("tab:n", "Bases de dados com mais exemplos.", maisExemplos))
+
+      val menosExemplos = todas.filter(x => x._2(0).toDouble < 400).toList.sortBy(x => x._2(0).toDouble)
+      fw.write(tabela("tab:nm", "Bases de dados com menos exemplos.", menosExemplos))
       fw.close()
    }
 }
