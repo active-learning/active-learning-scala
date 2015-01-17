@@ -46,8 +46,8 @@ trait StratsTrait {
       //      , AgDensityWeightedLabelUtility1(pool, "eucl") //66361 //tava comentado
       , AgDensityWeightedLabelUtility2(pool, "eucl") //361
       , AgDensityWeightedLabelUtility2(pool, "manh") //371
-      //      , SVMmulti(pool, "KFFw") //968
-      //      , SVMmulti(pool, "BALANCED_EEw") //969
+      , SVMmulti(pool, "KFFw") //968
+      , SVMmulti(pool, "BALANCED_EEw") //969
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](

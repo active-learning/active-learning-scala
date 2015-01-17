@@ -43,7 +43,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    Escolher mais abaixo se sorteia learner, budget ou nada.
    */
    val modo = "TiesDup"
-   //   val modo = "Winner"
+   //      val modo = "Winner"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments
@@ -57,7 +57,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       super.run()
       val ss = stratsForTree().map(_.abr).toVector
       val metadata0 = for {
-         name <- datasets.toList
+         name <- datasets.toList.filter(_ != "leaf") //<- VERIFICAR!!!!!!!!!!!!!!!!!!!
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -296,6 +296,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val ls = Seq(C45(),
                   NB(),
                   KNNBatch(5, "eucl", tr.flatten, weighted = false),
+                  KNNBatch(51, "eucl", tr.flatten, weighted = true),
                   //                  SVMLib(),
                   //                  NinteraELM(),
                   Maj())
