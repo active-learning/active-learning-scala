@@ -42,8 +42,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    Escolher mais abaixo se sorteia learner, budget ou nada.
    */
-   val modo = "TiesDup"
-   //      val modo = "Winner"
+   //   val modo = "TiesDup"
+   val modo = "Winner"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments
@@ -296,7 +296,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val ls = Seq(C45(),
                   NB(),
                   KNNBatch(5, "eucl", tr.flatten, weighted = false),
-                  KNNBatch(51, "eucl", tr.flatten, weighted = true),
+                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
+                  KNNBatch(500, "eucl", tr.flatten, weighted = true),
                   //                  SVMLib(),
                   //                  NinteraELM(),
                   Maj())
@@ -322,6 +323,16 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
             }
             println(accs.transpose.map(x => x.sum / x.size).mkString(" "))
+         //Dup:
+         //0.500768049155146 0.4116743471582181 0.511520737327189 0.5069124423963133 0.45852534562212
+         //qtd de metaexemplos: 5319
+         //qtd de grupos = 93
+
+         //Winner:
+         //0.19278033794162813 0.06298003072196622 0.18586789554531477 0.18279569892473113 0.1359447004608294
+         //qtd de metaexemplos: 1302
+         //qtd de grupos = 93
+
       }
    }
 }
