@@ -38,11 +38,11 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                 com learners que façam contagem (NB, C45, KNN, VFDT)
                 se a predição estiver entre os empatados, então acertou
    "Winner" => prediz apenas o melhor
-   "Acc" => prediz acc em cada strat
+   "Acc" => prediz acc em cada strat com ELM
 
    Escolher mais abaixo se sorteia learner, budget ou nada.
    */
-   //   val modo = "TiesDup"
+   //      val modo = "TiesDup"
    val modo = "Winner"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
@@ -287,8 +287,6 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       if (modo == "Winner" || modo == "TiesDup") Datasets.arff(arq, dedup = false) match {
          case Left(str) => error("problemas abrindo arff")
          case Right(patterns) =>
-            //atenção: escolher de acordo com estar ou não variando learner e budget
-            //            val grupos = patterns.groupBy(x => x).map(_._2).toArray
             val grupos = patterns.groupBy(x => x.vector.dropRight(2)).map(_._2).toArray
             println(s"qtd de grupos = ${grupos.size}")
 
@@ -297,9 +295,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   NB(),
                   KNNBatch(5, "eucl", tr.flatten, weighted = false),
                   KNNBatch(50, "eucl", tr.flatten, weighted = true),
-                  KNNBatch(500, "eucl", tr.flatten, weighted = true),
-                  //                  SVMLib(),
-                  //                  NinteraELM(),
+                  SVMLib(), //não tira proveito de exemplos duplicados
+                  NinteraELM(), //não tira proveito de exemplos duplicados
                   Maj())
                val trios = ls map {
                   case l: NinteraELM =>
@@ -324,12 +321,14 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             }
             println(accs.transpose.map(x => x.sum / x.size).mkString(" "))
          //Dup:
+         //c45               nb                 5nn               50nn               maj
          //0.500768049155146 0.4116743471582181 0.511520737327189 0.5069124423963133 0.45852534562212
          //qtd de metaexemplos: 5319
          //qtd de grupos = 93
 
          //Winner:
-         //0.19278033794162813 0.06298003072196622 0.18586789554531477 0.18279569892473113 0.1359447004608294
+         //c45                 nb                  5nn                 50nn                svm                 elm                maj
+         //0.19278033794162813 0.06298003072196622 0.18586789554531477 0.18279569892473113 0.08218125960061444 0.1804915514592934 0.1359447004608294
          //qtd de metaexemplos: 1302
          //qtd de grupos = 93
 
