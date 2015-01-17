@@ -40,7 +40,7 @@ trait LearnerTrait {
       , KNNBatch(5, "eucl", pool, weighted = true) //2
       , VFDT() //4
       , C45() //3
-      //      , SVMLib(learnerSeed) //5
+      , SVMLib(learnerSeed) //5
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
@@ -60,7 +60,7 @@ trait LearnerTrait {
       case "i" => IELM(learnerSeed)
       case "ei" => EIELM(learnerSeed)
       case "intera" => interaELM(learnerSeed)
-      case "nintera" => ninteraELM(learnerSeed)
+      case "nintera" => NinteraELM(learnerSeed)
       case "svm" => SVMLib(learnerSeed)
 
       //      case "NBz" => NB("")

@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{ninteraELM, Learner}
+import ml.classifiers.{NinteraELM, Learner}
 import ml.models.Model
 
 case class ExpNinteraChange(pool: Seq[Pattern], debug: Boolean = false)
@@ -28,7 +28,7 @@ case class ExpNinteraChange(pool: Seq[Pattern], debug: Boolean = false)
    val abr = "EMC"
    val id = 100
 
-   def learner = ninteraELM()
+   def learner = NinteraELM()
 
    protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       ???

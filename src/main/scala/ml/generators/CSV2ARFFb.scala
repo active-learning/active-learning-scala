@@ -66,7 +66,7 @@ object CSV2ARFFbCVTest extends App {
 
    println(s"t acc aacc")
    1 to patts0.size foreach { toTake =>
-      val bothhits = Datasets.LOO(patts0) { (tr0, p) =>
+      val bothhits = Datasets.LOO(patts0.toArray) { (tr0, p) =>
          val tr = tr0 //Datasets.applyFilter(f)(tr0)
 
          val learner = KNNBatch(1, "eucl", tr, weighted = true)

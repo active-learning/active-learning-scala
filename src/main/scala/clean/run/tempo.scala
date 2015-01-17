@@ -52,7 +52,7 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
       stratsemLearnerExterno(pool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
       stratcomLearnerExterno(IELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
       //      stratcomLearnerExterno(CIELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
-      stratcomLearnerExterno(ninteraELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
+      stratcomLearnerExterno(NinteraELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
       Seq(NB(), KNNBatch(5, "eucl", ds.patterns, weighted = true), SVMLib(System.currentTimeMillis().toInt)).foreach { learner =>
          stratsComLearnerExterno_FilterFree(pool, learner) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
          stratsComLearnerExterno_FilterDependent(fpool, learner) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
