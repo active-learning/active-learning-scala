@@ -79,6 +79,8 @@ trait AppWithUsage extends App with Log with ArgParser {
    //   val descriptionNames = Seq("""\pbox{20cm}{\#exemplos\\($|\mathcal{U}|$)}""", """\pbox{20cm}{\#classes\\($|Y|$)}""", "\\#atributos", "\\#nominais", "\\%majoritária", "\\%minoritária", """\pbox{20cm}{entropia da \\distr. de classes}""")
    val descriptionNames = Seq( """$|\mathcal{U}|$""", """$|Y|$""", "atributos", "nominais", """\makecell{majoritária\\(\%)}""", """\makecell{minoritária\\(\%)}""", """\makecell{entropia da \\distr. de classes}""")
 
+   def ff(precision: Double)(x: Double) = (x * precision).round / precision
+
    def maxQueries(ds: Ds) = math.max(ds.nclasses, math.min(ds.expectedPoolSizes(folds).min, maxQueries0))
 
    def memoryMonitor() = {

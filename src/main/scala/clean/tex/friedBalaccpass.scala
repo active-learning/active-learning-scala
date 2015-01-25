@@ -33,8 +33,6 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
    //   val measure = Kappa
    run()
 
-   def ff(precision: Double)(x: Double) = (x * precision).round / precision
-
    override def run() = {
       super.run()
 

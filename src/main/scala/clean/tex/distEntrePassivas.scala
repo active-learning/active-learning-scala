@@ -1,0 +1,68 @@
+/*
+
+active-learning-scala: Active Learning library for Scala
+Copyright (c) 2014 Davi Pereira dos Santos
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+package clean.tex
+
+import al.strategies.Passive
+import clean._
+import clean.meta.RangeGenerator
+import clean.res._
+import util.{Stat, StatTests}
+
+object distEntrePassivas extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
+   val context = "distEntrePassivastex"
+   //   val measure = Kappa
+   val measure = BalancedAcc
+   run()
+
+   override def run() = {
+      super.run()
+      val accs0 = for (l <- learners(learnersStr).par) yield {
+         val res0 = for {
+            dataset <- datasets
+         } yield {
+            val ds = Ds(dataset, readOnly = true)
+            ds.open()
+            val vs = for {
+               r <- 0 until runs
+               f <- 0 until folds
+            } yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.error("incompleto!"))
+            //            println(s"$ds $vs")
+            ds.close()
+            Stat.media_desvioPadrao(vs.toVector)._1
+         }
+         l.toString.split(" ").head -> res0
+      }
+      val accs = accs0.toList.sortBy(_._1)
+      val dists = for (a <- accs) yield {
+         val ds = for (b <- accs) yield {
+            val d = math.sqrt(a._2.zip(b._2).map { case (v1, v2) =>
+               val v = v1 - v2
+               v * v
+            }.sum)
+            ff(1000)(d)
+         }
+         a._1 -> ds
+      }
+      dists foreach println
+      println(s"")
+      StatTests.distTable(dists, "passiveDists", measure.toString + "s", measure.toString)
+   }
+}

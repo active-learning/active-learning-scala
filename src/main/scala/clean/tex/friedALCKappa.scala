@@ -32,8 +32,6 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
    //   val measure = ALCBalancedAcc
    run()
 
-   def ff(precision: Double)(x: Double) = (x * precision).round / precision
-
    override def run() = {
       super.run()
       val strats = stratsForTree()

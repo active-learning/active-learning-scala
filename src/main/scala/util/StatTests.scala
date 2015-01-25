@@ -204,6 +204,31 @@ object StatTests {
          ranked.contains(i)
       }.map(_._1)
    }
+
+   /**
+    * prints a Latex table for pairwise numerical comparisons
+    */
+   def distTable(pairs: List[(String, List[Double])], tableName: String, sujeitos: String, measure: String, seps: Int = 2, language: String = "pt") {
+      val caption = language match {
+         case "pt" => s"Distâncias entre $sujeitos no espaço $$\\mathbb{R}^{94}$$: cada medida $measure numa base de dados é representada por uma dimensão."
+         case "en" => s"escrever no scala a descricao em ingles!!."
+      }
+      println( """\begin{table}[h]
+\caption{""" + caption + """}
+\begin{center}
+\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + pairs.map(_._1).mkString(" & ") + """ \\""")
+      pairs.zipWithIndex.foreach { case ((s, l), i) =>
+         val nr = i + 1
+         print(s"$s\t& " + l.zipWithIndex.map {
+            case (ll, idx) => if (idx < i) ll else " "
+         }.mkString(" & ") + """ \\""")
+         if (i % seps == seps - 1) println( """ \hline""") else println("")
+      }
+      println( """\end{tabular}
+\label{""" + tableName + """}
+\end{center}
+\end{table}""")
+   }
 }
 
 object FriedmanNemenyiTest extends App {

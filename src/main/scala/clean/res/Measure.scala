@@ -107,7 +107,7 @@ sealed trait InstantMeasure extends Measure {
    val t: Int
    protected lazy val cms = {
       if (t < ds.nclasses - 1 || t >= ds.expectedPoolSizes(Global.folds).min)
-         ds.error(s"tf $t fora dos limites t:[${ds.nclasses};${ds.expectedPoolSizes(Global.folds).min}]")
+         ds.error(s"t $t fora dos limites t:[${ds.nclasses};${ds.expectedPoolSizes(Global.folds).min}]")
       ds.getCMs(pid)(t, t)
    }
    lazy val value = if (cms.isEmpty) None else Some(instantFun(cms(t)))
