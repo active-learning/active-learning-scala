@@ -118,4 +118,14 @@ trait AppWithUsage extends App with Log with ArgParser {
             justQuit("Erro: " + ex.getMessage)
       }
    }
+
+   def renomeia(ds: Ds) = {
+      val reticencias = if (ds.dataset.size > 18) "..." else ""
+      val name = ds.dataset.take(5) match {
+         case "heart" => ds.dataset.replace("processed-", "")
+         case "conne" => ds.dataset.replace("connectionist", "connect.")
+         case _ => ds.dataset
+      }
+      name.take(18).split("-").mkString(" ") + reticencias
+   }
 }

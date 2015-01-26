@@ -44,14 +44,8 @@ object datasetsdesc extends Exp with Lock {
    }
 
    def datasetFinished(ds: Ds) {
-      val reticencias = if (ds.dataset.size > 18) "..." else ""
-      val name = ds.dataset.take(5) match {
-         case "heart" => ds.dataset.replace("processed-", "")
-         case "conne" => ds.dataset.replace("connectionist", "connect.")
-         case _ => ds.dataset
-      }
       acquire()
-      m += (name.take(18).split("-").mkString(" ") + reticencias) -> (ds.description._1.map(_.toString) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
+      m += renomeia(ds) -> (ds.description._1.map(_.toString) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
       release()
    }
 
