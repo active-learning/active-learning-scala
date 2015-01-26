@@ -18,7 +18,9 @@ package util
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object StatTests {
-   def f(x: Double) = "%6.3f".format(x)
+   def f3(x: Double) = "%6.3f".format(x)
+
+   def f2(x: Double) = "%6.2f".format(x)
 
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
 
@@ -95,7 +97,7 @@ object StatTests {
       val nstrats = measures.head._2.length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val vals = l.map { xf =>
-            val x = f(xf)
+            val x = f3(xf)
             if (xf == l.max) s"\\textbf{$x}" else x
          }.mkString(" & ")
          s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
@@ -111,7 +113,7 @@ object StatTests {
       val Sndmin = ns1.reverse.tail.head
       val Mn = ns1.last
       val Inf = ff(precision)(Double.MinValue)
-      ns.zip(ns.map(x => f(x))).map {
+      ns.zip(ns.map(x => f3(x))).map {
          case (Inf, _) => ""
          case (Mn, s) if Mn == Mx => s"$s"
          case (Sndmin, s) if baixo2.nonEmpty => s"\\textcolor{$baixo2}{\\textbf{$s}}"
@@ -208,26 +210,24 @@ object StatTests {
    /**
     * prints a Latex table for pairwise numerical comparisons
     */
-   def distTable(pairs: List[(String, List[Double])], tableName: String, sujeitos: String, measure: String, seps: Int = 2, language: String = "pt") {
+   def distTable(pairs: List[(String, List[Double])], tableName: String, sujeitos: String, measure: String, seps: Int = 2, language: String = "pt") = {
       val caption = language match {
-         case "pt" => s"Distâncias entre $sujeitos no espaço $$\\mathbb{R}^{94}$$: cada medida $measure numa base de dados é representada por uma dimensão."
+         case "pt" => s"Similaridade entre $sujeitos de acordo com a acurácia balanceada para as 94 bases de dados."
          case "en" => s"escrever no scala a descricao em ingles!!."
       }
-      println( """\begin{table}[h]
+      """\begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}
-\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + pairs.map(_._1).mkString(" & ") + """ \\""")
-      pairs.zipWithIndex.foreach { case ((s, l), i) =>
-         val nr = i + 1
-         print(s"$s\t& " + l.zipWithIndex.map {
-            case (ll, idx) => if (idx < i) ll else " "
-         }.mkString(" & ") + """ \\""")
-         if (i % seps == seps - 1) println( """ \hline""") else println("")
-      }
-      println( """\end{tabular}
+\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + pairs.map(_._1).mkString(" & ") + """ \\""" +
+         pairs.zipWithIndex.map { case ((s, l), i) =>
+            s"$s\t& " + l.zipWithIndex.map {
+               case (ll, idx) => if (idx != i) f2(ll) else "-"
+            }.mkString(" & ") + """ \\""" + (if (i % seps == seps - 1) " \\hline" else "")
+         }.mkString("\n") +
+         """\end{tabular}
 \label{""" + tableName + """}
 \end{center}
-\end{table}""")
+\end{table}"""
    }
 }
 

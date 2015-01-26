@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import java.io.PrintWriter
+
 import al.strategies.Passive
 import clean._
 import clean.meta.RangeGenerator
@@ -57,12 +59,12 @@ object distEntrePassivas extends AppWithUsage with LearnerTrait with StratsTrait
                val v = v1 - v2
                v * v
             }.sum)
-            ff(1000)(d)
+            1 / (1 + d)
          }
          a._1 -> ds
       }
-      dists foreach println
-      println(s"")
-      StatTests.distTable(dists, "passiveDists", measure.toString + "s", measure.toString)
+      val fw = new PrintWriter("/home/davi/wcs/tese/passiveDists.tex", "ISO-8859-1")
+      fw.write(StatTests.distTable(dists, "passiveDists", "algoritmos de aprendizado", measure.toString))
+      fw.close()
    }
 }
