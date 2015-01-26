@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import java.io.PrintWriter
+
 import al.strategies.Passive
 import clean._
 import clean.meta.RangeGenerator
@@ -49,19 +51,19 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
             Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()
-         ds.dataset -> lres
+         renomeia(ds) -> lres
       }
-      val sorted = res0.toList.sortBy(_._1)
+      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => x._2.toString -> x._1._2)
 
-      println(s"")
+      val fw = new PrintWriter("/home/davi/wcs/tese/classifsTabFried.tex", "ISO-8859-1")
       sorted.grouped(280).foreach { res1 =>
-         StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), ls, "tab:balaccClassif", measure.toString, 7)
+         fw.write(StatTests.extensiveTable2(100, res1.toSeq, ls, "tab:balaccClassif", measure.toString, 7))
       }
 
-      println(s"")
       val res = sorted.filter(!_._2.contains(NA, NA))
       val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), ls)
 
-      println(StatTests.pairTable(pairs, "tablename", "acc"))
+      fw.write(StatTests.pairTable(pairs, "tablename", "acc"))
+      fw.close()
    }
 }

@@ -1,5 +1,7 @@
 package util
 
+import clean.tex.tabwinners
+
 /*
  active-learning-scala: Active Learning library for Scala
  Copyright (c) 2014 Davi Pereira dos Santos
@@ -65,7 +67,7 @@ object StatTests {
 
    def winsLossesTies(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = ???
 
-   private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") {
+   private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") = {
       if (nstrats != strategies.size) {
          println(s"Inconsistency #measures-in-the-first-row != strategies.size: $nstrats != ${strategies.size}: $strategies")
          sys.exit(1)
@@ -76,33 +78,16 @@ object StatTests {
          case "en" => s"$measure: Highest average (std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined. " +
             s"Lowest std. values are in \\textcolor{darkgreen}{green}. Bold face only number shows second best value."
       }
-      println( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
+      """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
 \begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}
-\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + """\\ \hline """)
-      println(core)
-      println( """\end{tabular}
+\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + """\\ \hline """ +
+         core +
+         """\end{tabular}
 \label{""" + tableName + """}
 \end{center}
-\end{table}""")
-   }
-
-   /**
-    * prints a Latex table with all data,
-    * rows: datasets
-    * columns: strategies
-    */
-   def extensiveTable(measures: Seq[(String, Seq[Double])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") {
-      val nstrats = measures.head._2.length
-      val core = measures.zipWithIndex.map { case ((d, l), i) =>
-         val vals = l.map { xf =>
-            val x = f3(xf)
-            if (xf == l.max) s"\\textbf{$x}" else x
-         }.mkString(" & ")
-         s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
-      }.mkString("\n")
-      table(core, nstrats, strategies, tableName, measure, language)
+\end{table}"""
    }
 
    def cor(ns0: Seq[Double], precision: Double, alto: String, baixo: String, baixo2: String = "") = {
@@ -113,7 +98,7 @@ object StatTests {
       val Sndmin = ns1.reverse.tail.head
       val Mn = ns1.last
       val Inf = ff(precision)(Double.MinValue)
-      ns.zip(ns.map(x => f3(x))).map {
+      ns.zip(ns.map(x => f2(x))).map {
          case (Inf, _) => ""
          case (Mn, s) if Mn == Mx => s"$s"
          case (Sndmin, s) if baixo2.nonEmpty => s"\\textcolor{$baixo2}{\\textbf{$s}}"
@@ -125,47 +110,49 @@ object StatTests {
       }
    }
 
-   def extensiveTable2(precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt"): Unit = {
+   def extensiveTable2(precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
       val nstrats = measures.head._2.length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip
-         val r = cor(vs, precision, "blue", "red").zip(cor(ds, precision, "black", "darkgreen", "black")) map { case ("", "") => ""; case x => x._1 + "/" + x._2}
+         val r = cor(vs, precision, "blue", "red").zip(cor(ds, precision, "black", "darkgreen", "black")) map {
+            case ("", "") => ""
+            case (x, y) if y.contains("-2") => x
+            case (x, y) => x + "/" + y
+         }
          val vals = r.mkString(" & ")
          s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
       }.filter(_.nonEmpty).mkString("\n")
-      if (core.nonEmpty) table(core, nstrats, strategies, tableName, measure, language)
+      if (core.nonEmpty) table(core, nstrats, strategies, tableName, measure, language) else ""
    }
 
    /**
     * prints a Latex table for pairwise comparisons
     */
-   def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, measure: String, seps: Int = 2, language: String = "pt") {
+   def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, measure: String, seps: Int = 2, language: String = "pt") = {
       val caption = language match {
          case "pt" => s"Um contra um: cada asterisco/cruz/ponto indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.99/0.95/0.90."
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
-      println( """\begin{table}[h]
+      """\begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}
-\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + (1 to pairs.size).mkString(" & ") + """ \\""")
-
-      pairs.zipWithIndex.foreach { case ((s, l), i) =>
+\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + (1 to pairs.size).mkString(" & ") + """ \\""" +
+         pairs.zipWithIndex.map { case ((s, l), i) =>
          val I = i
          val nr = i + 1
-         print(s"$nr - $s\t& " + (l.zipWithIndex map {
+            s"$nr - $s\t& " + (l.zipWithIndex map {
             case (3, _) => "*"
             case (2, _) => "+"
             case (1, _) => "."
             case (0, I) => "-"
             case (0, _) => " "
-         }).mkString(" & ") + """ \\""")
-         if (i % seps == seps - 1) println( """ \hline""") else println("")
-      }
-
-      println( """\end{tabular}
+            }).mkString(" & ") + """ \\""" +
+               (if (i % seps == seps - 1) """ \hline""" else "")
+         }.mkString("\n") +
+         """\end{tabular}
 \label{""" + tableName + """}
 \end{center}
-\end{table}""")
+\end{table}"""
    }
 
    /**

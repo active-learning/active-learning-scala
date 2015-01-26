@@ -87,7 +87,7 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
 
       println(s"")
       res0sorted.grouped(280).foreach { res1 =>
-         StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString, 7)
+         println(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString, 7))
       }
 
       println(s"")
