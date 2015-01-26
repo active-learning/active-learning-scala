@@ -28,9 +28,7 @@ import util.{Stat, StatTests}
 object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedPasstex"
-   //      val measure = ALCKappa
    val measure = BalancedAcc
-   //   val measure = Kappa
    run()
 
    override def run() = {
