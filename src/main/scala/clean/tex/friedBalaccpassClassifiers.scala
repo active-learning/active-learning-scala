@@ -51,17 +51,16 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
             Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()
-         renomeia(ds) -> lres
+         renomeia(ds) -> lres.map(_._1 -> NA)
       }
-      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => x._2.toString -> x._1._2)
+      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => (x._2.toString + "-" + x._1._1) -> x._1._2)
 
       val fw = new PrintWriter("/home/davi/wcs/tese/classifsTabFried.tex", "ISO-8859-1")
-      sorted.grouped(280).foreach { res1 =>
+      sorted.grouped(33).foreach { res1 =>
          fw.write(StatTests.extensiveTable2(100, res1.toSeq, ls, "tab:balaccClassif", measure.toString, 7))
       }
 
-      val res = sorted.filter(!_._2.contains(NA, NA))
-      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), ls)
+      val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls)
 
       fw.write(StatTests.pairTable(pairs, "tablename", "acc"))
       fw.close()
