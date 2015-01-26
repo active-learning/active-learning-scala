@@ -75,7 +75,6 @@ object datasetsdesc extends Exp with Lock {
       }
       println(todas.size + " " + datasets.size)
       val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables.tex", "ISO-8859-1")
-      fw.write( """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}""")
       fw.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(33)))
       fw.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(33).take(33)))
       fw.write(tabela("tab:datasetsc", "Características das bases de dados (67-94).", todas.drop(66)))
