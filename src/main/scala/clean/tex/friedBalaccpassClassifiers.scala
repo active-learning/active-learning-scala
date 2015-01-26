@@ -56,8 +56,8 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
       val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => (x._2.toString + "-" + x._1._1) -> x._1._2)
 
       val fw = new PrintWriter("/home/davi/wcs/tese/classifsTabFried.tex", "ISO-8859-1")
-      sorted.grouped(33).foreach { res1 =>
-         fw.write(StatTests.extensiveTable2(100, res1.toSeq, ls, "tab:balaccClassif", measure.toString, 7))
+      sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
+         fw.write(StatTests.extensiveTable2(100, res1.toSeq, ls, "tab:balaccClassif" + i, measure.toString, 7))
       }
 
       val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls)
