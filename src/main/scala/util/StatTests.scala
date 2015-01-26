@@ -255,7 +255,7 @@ object FriedmanNemenyiTest extends App {
    //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
    println("winners:" + StatTests.winners(m, Vector("e1", "e2", "e3", "e4", "e5")))
    println("losers:" + StatTests.losers(m, Vector("e1", "e2", "e3", "e4", "e5")))
-   StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
+   println(StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC"))
    //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
    //  m0 foreach (x => println(x._2.mkString(" ")))
    println("clearwinners:" + StatTests.clearWinners(m, Vector("e1", "e2", "e3", "e4", "e5")))

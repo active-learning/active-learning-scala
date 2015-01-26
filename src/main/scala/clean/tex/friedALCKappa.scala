@@ -93,7 +93,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
       //            val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))
       //            val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
 
-      StatTests.pairTable(pairs, "tablename", "acc")
+      println(StatTests.pairTable(pairs, "tablename", "acc"))
       println(s"\n\n${res.size} datasets completos")
    }
 }
