@@ -68,15 +68,16 @@ object StatTests {
    def winsLossesTies(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = ???
 
    private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") = {
+      val contemStdDev = if (core.contains("/")) " Os menores valores de desvio padrão estão em \\\\textcolor{darkgreen}{verde}." else ""
       if (nstrats != strategies.size) {
          println(s"Inconsistency #measures-in-the-first-row != strategies.size: $nstrats != ${strategies.size}: $strategies")
          sys.exit(1)
       }
       val caption = language match {
          case "pt" => s"$measure: Os maiores valores da média e desvio padrão de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente." +
-            s"Valores isolados estão sublinhados. Os menores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor."
-         case "en" => s"$measure: Highest average (std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined. " +
-            s"Lowest std. values are in \\textcolor{darkgreen}{green}. Bold face only number shows second best value."
+            s" Valores isolados estão sublinhados.$contemStdDev Apenas negrito indica segundo melhor valor."
+         case "en" => s"$measure: Highest average (std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined." +
+            s" Lowest std. values are in \\textcolor{darkgreen}{green}. Bold face only number shows second best value."
       }
       """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
 \begin{table}[h]
@@ -130,8 +131,8 @@ object StatTests {
     */
    def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, measure: String, seps: Int = 2, language: String = "pt") = {
       val caption = language match {
-         case "pt" => s"Um contra um: cada asterisco/cruz/ponto indica quando a estratégia na linha tem melhor $measure que a estratégia na coluna com intervalo de confiança de 0.99/0.95/0.90."
-         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the strategy at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
+         case "pt" => s"Um contra um: cada asterisco/cruz/ponto indica quando o algoritmo na linha tem melhor $measure que o algoritmo na coluna com intervalo de confiança de 0.99/0.95/0.90."
+         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
       """\begin{table}[h]
 \caption{""" + caption + """}

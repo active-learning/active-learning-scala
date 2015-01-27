@@ -53,7 +53,7 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
          ds.close()
          renomeia(ds) -> lres.map(_._1 -> NA)
       }
-      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => (x._2.toString + "-" + x._1._1) -> x._1._2)
+      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
 
       val fw = new PrintWriter("/home/davi/wcs/tese/classifsTabFried.tex", "ISO-8859-1")
       sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
@@ -62,7 +62,7 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
 
       val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls)
 
-      fw.write(StatTests.pairTable(pairs, "tablename", "acc"))
+      fw.write(StatTests.pairTable(pairs, "tab:friedClassif", "acc"))
       fw.close()
    }
 }
