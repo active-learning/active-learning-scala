@@ -16,14 +16,14 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package clean
+package clean.lib
 
 import al.strategies._
 import ml.classifiers.Learner
 import ml.{Pattern, PatternParent}
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
-import org.apache.commons.math3.stat.descriptive.moment.{Skewness, Kurtosis}
-import util.{Stat, Datasets}
+import org.apache.commons.math3.stat.descriptive.moment.{Kurtosis, Skewness}
+import util.{Datasets, Stat}
 import weka.experiment.InstanceQuerySQLite
 import weka.filters.Filter
 

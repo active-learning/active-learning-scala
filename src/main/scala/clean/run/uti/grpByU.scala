@@ -22,7 +22,7 @@ package clean.run.uti
 import java.io.FileWriter
 
 import al.strategies.RandomSampling
-import clean.{Lock, Ds, Exp}
+import clean.lib.{Ds, Exp, Lock}
 import ml.Pattern
 import weka.filters.Filter
 

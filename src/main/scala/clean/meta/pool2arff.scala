@@ -17,10 +17,11 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.meta
 
 import java.io.FileWriter
 
+import clean.lib.{Ds, Exp, LearnerTrait, StratsTrait}
 import ml.Pattern
 import weka.filters.Filter
 

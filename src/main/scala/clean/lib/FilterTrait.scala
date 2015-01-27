@@ -16,7 +16,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package clean
+package clean.lib
 
 import ml.Pattern
 import util.Datasets

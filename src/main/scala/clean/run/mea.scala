@@ -19,12 +19,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import al.strategies.{SVMmulti, Majoritary, Passive}
-import clean._
-import clean.meta.RangeGenerator
-import clean.res._
+import al.strategies.{Majoritary, Passive, SVMmulti}
+import clean.lib._
 import ml.Pattern
-import ml.classifiers.{SVMLib, Maj}
+import ml.classifiers.{Maj, SVMLib}
 import weka.filters.Filter
 
 import scala.collection.mutable

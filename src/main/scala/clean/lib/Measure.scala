@@ -17,10 +17,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean.res
+package clean.lib
 
 import al.strategies.{Passive, Strategy}
-import clean.{Blob, CM, Ds, Global}
 import ml.classifiers.Learner
 
 trait Measure extends CM with Blob {

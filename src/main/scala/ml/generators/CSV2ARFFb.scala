@@ -21,12 +21,9 @@ package ml.generators
 import java.io.FileWriter
 
 import al.strategies._
-import clean.CM
 import ml.classifiers._
-import ml.models.ELMModel
-import util.{Datasets, Stat, Tempo}
+import util.Datasets
 
-import scala.collection.mutable
 import scala.io.Source
 import scala.util.Random
 

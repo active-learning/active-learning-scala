@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import al.strategies.Strategy
-import clean._
+import clean.lib._
 import ml.Pattern
 import ml.classifiers._
 import util.Tempo

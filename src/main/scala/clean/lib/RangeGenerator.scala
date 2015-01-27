@@ -16,9 +16,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package clean.meta
-
-import clean.{Global, Ds}
+package clean.lib
 
 trait RangeGenerator {
    def ranges(ds: Ds, n: Int, qmax: Int) = {

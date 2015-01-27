@@ -16,10 +16,10 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package clean
+package clean.lib
 
-import java.sql.{Timestamp, Connection, DriverManager, Statement}
-import java.util.{UUID, Calendar}
+import java.sql.{Connection, DriverManager, Statement, Timestamp}
+import java.util.{Calendar, UUID}
 
 
 /**

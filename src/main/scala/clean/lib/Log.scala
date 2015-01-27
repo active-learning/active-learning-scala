@@ -1,4 +1,4 @@
-package clean
+package clean.lib
 
 import java.util.Calendar
 
@@ -21,26 +21,26 @@ Copyright (c) 2014 Davi Pereira dos Santos
 */
 
 trait Log {
-  val context: String
+   val context: String
 
-  def log(msg: String, level: Int = 10) {
-    level match {
-       case x if x >= 30 - Global.debug => println(s"${java.net.InetAddress.getLocalHost.getHostName} $context : $msg    ${Calendar.getInstance().getTime}")
-      case x =>
-    }
-  }
+   def log(msg: String, level: Int = 10) {
+      level match {
+         case x if x >= 30 - Global.debug => println(s"${java.net.InetAddress.getLocalHost.getHostName} $context : $msg    ${Calendar.getInstance().getTime}")
+         case x =>
+      }
+   }
 
-  def error(msg: String) = {
-    Global.running = false
-    Thread.sleep(10)
-    new Throwable().printStackTrace()
-     justQuit(s"${java.net.InetAddress.getLocalHost.getHostName} $context : Error: $msg")
-  }
+   def error(msg: String) = {
+      Global.running = false
+      Thread.sleep(10)
+      new Throwable().printStackTrace()
+      justQuit(s"${java.net.InetAddress.getLocalHost.getHostName} $context : Error: $msg")
+   }
 
-  def justQuit(msg: String) = {
-     log(s"${java.net.InetAddress.getLocalHost.getHostName} $context : Quiting: $msg", 30)
-    Global.running = false
-    Thread.sleep(10)
-    sys.exit(1)
-  }
+   def justQuit(msg: String) = {
+      log(s"${java.net.InetAddress.getLocalHost.getHostName} $context : Quiting: $msg", 30)
+      Global.running = false
+      Thread.sleep(10)
+      sys.exit(1)
+   }
 }

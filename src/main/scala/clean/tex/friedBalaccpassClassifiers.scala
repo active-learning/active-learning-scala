@@ -22,9 +22,7 @@ package clean.tex
 import java.io.PrintWriter
 
 import al.strategies.Passive
-import clean._
-import clean.meta.RangeGenerator
-import clean.res._
+import clean.lib._
 import util.{Stat, StatTests}
 
 object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {

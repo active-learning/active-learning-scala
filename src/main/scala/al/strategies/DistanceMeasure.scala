@@ -18,10 +18,9 @@
 
 package al.strategies
 
-import clean.Log
+import clean.lib.Log
 import ml.Pattern
 import ml.classifiers.Learner
-import ml.neural.elm
 import ml.neural.old.Neural
 import no.uib.cipr.matrix.{MatrixSingularException, DenseMatrix, DenseVector}
 import org.math.array.StatisticSample
@@ -29,85 +28,85 @@ import util.Datasets
 import weka.core._
 
 trait DistanceMeasure extends Log {
-  val learner: Learner
-  val pool: Seq[Pattern]
-  val distance_name: String
-  val debug: Boolean
-  //acho que eu havia colocado .head.dataset aqui para acelerar o carregamento da estratégia, mas parece que o cálculo de dist do weka fica zoado e irreprodutível.
-  lazy val dataset = Datasets.patterns2instances(pool)
-  //.head.dataset
-  lazy val natts = dataset.numAttributes() - 1
-  lazy val size = dataset.numInstances()
-  lazy val d = distance_to(distance_name)
+   val learner: Learner
+   val pool: Seq[Pattern]
+   val distance_name: String
+   val debug: Boolean
+   //acho que eu havia colocado .head.dataset aqui para acelerar o carregamento da estratégia, mas parece que o cálculo de dist do weka fica zoado e irreprodutível.
+   lazy val dataset = Datasets.patterns2instances(pool)
+   //.head.dataset
+   lazy val natts = dataset.numAttributes() - 1
+   lazy val size = dataset.numInstances()
+   lazy val d = distance_to(distance_name)
 
-  lazy val instances_matrix = {
-    val it = dataset.iterator()
-    var list = List[Array[Double]]()
-    while (it.hasNext) list = it.next.toDoubleArray.dropRight(1) :: list
-    list.toArray
-  }
-  //TODO: CovarianceOps.invert() do EJML pode tirar vantagem na hora de inverter uma matrix de covariancia.
-  //  Por outro lado, não se trata de um pinv()
-  //  lazy val CovMatrixInv =     Neural.toArray(Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix))))
-  lazy val CovMatrixInv = Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix)))
-  lazy val rougherCovMatrixInv = Neural.rougherPinv(new DenseMatrix(StatisticSample.covariance(instances_matrix)))
-  lazy val euclidean_ruler = new EuclideanDistance(dataset)
-  lazy val minkowski_ruler = new MinkowskiDistance(dataset)
-  lazy val manhattan_ruler = new ManhattanDistance(dataset)
-  lazy val chebyshev = new ChebyshevDistance(dataset)
+   lazy val instances_matrix = {
+      val it = dataset.iterator()
+      var list = List[Array[Double]]()
+      while (it.hasNext) list = it.next.toDoubleArray.dropRight(1) :: list
+      list.toArray
+   }
+   //TODO: CovarianceOps.invert() do EJML pode tirar vantagem na hora de inverter uma matrix de covariancia.
+   //  Por outro lado, não se trata de um pinv()
+   //  lazy val CovMatrixInv =     Neural.toArray(Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix))))
+   lazy val CovMatrixInv = Neural.pinv(new DenseMatrix(StatisticSample.covariance(instances_matrix)))
+   lazy val rougherCovMatrixInv = Neural.rougherPinv(new DenseMatrix(StatisticSample.covariance(instances_matrix)))
+   lazy val euclidean_ruler = new EuclideanDistance(dataset)
+   lazy val minkowski_ruler = new MinkowskiDistance(dataset)
+   lazy val manhattan_ruler = new ManhattanDistance(dataset)
+   lazy val chebyshev = new ChebyshevDistance(dataset)
 
-  /**
-   * Global Mahalanobis distance of a point to another.
-   * @return
-   */
-  def mahadist(pa: Pattern, pb: Pattern) = {
-    //todo: testar
-    val x = pa.vector
-    val y = pb.vector
-    val diff = new DenseMatrix(1, pa.nattributes)
-    val difft = new DenseVector(pa.nattributes)
-    var i = 0
-    val xl = pa.nattributes
-    while (i < xl) {
-      val v = x(i) - y(i)
-      diff.set(0, i, v)
-      difft.set(i, v)
-      i += 1
-    }
-    val result = new DenseMatrix(1, pa.nattributes)
-    try {
-      diff.mult(CovMatrixInv, result)
-      val result2 = new DenseVector(1)
-      result.mult(difft, result2)
-      Math.sqrt(result2.get(0))
-    } catch {
-      case _: MatrixSingularException => log("Trying with a pinv less prone to singular exceptions...")
-        try {
-          diff.mult(rougherCovMatrixInv, result)
-          val result2 = new DenseVector(1)
-          result.mult(difft, result2)
-          Math.sqrt(result2.get(0))
-        } catch {
-          case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}!")
-        }
-    }
-  }
+   /**
+    * Global Mahalanobis distance of a point to another.
+    * @return
+    */
+   def mahadist(pa: Pattern, pb: Pattern) = {
+      //todo: testar
+      val x = pa.vector
+      val y = pb.vector
+      val diff = new DenseMatrix(1, pa.nattributes)
+      val difft = new DenseVector(pa.nattributes)
+      var i = 0
+      val xl = pa.nattributes
+      while (i < xl) {
+         val v = x(i) - y(i)
+         diff.set(0, i, v)
+         difft.set(i, v)
+         i += 1
+      }
+      val result = new DenseMatrix(1, pa.nattributes)
+      try {
+         diff.mult(CovMatrixInv, result)
+         val result2 = new DenseVector(1)
+         result.mult(difft, result2)
+         Math.sqrt(result2.get(0))
+      } catch {
+         case _: MatrixSingularException => log("Trying with a pinv less prone to singular exceptions...")
+            try {
+               diff.mult(rougherCovMatrixInv, result)
+               val result2 = new DenseVector(1)
+               result.mult(difft, result2)
+               Math.sqrt(result2.get(0))
+            } catch {
+               case _: MatrixSingularException => error(s"Singular matrix on mahalanobis calculation  in ${pool.head.dataset().relationName()}!")
+            }
+      }
+   }
 
 
-  /**
-   * Like Weka distances,
-   * "maha" distance considers all brother patterns to be part of the distribution.
-   * It is unclear whether or not the weka distances accept instances outside
-   * the initial Instances object passed to the ruler's constructor.
-   * @param distance_name
-   * @return
-   */
-  def distance_to(distance_name: String) =
-    distance_name match {
-      case "eucl" => (pa: Pattern, pb: Pattern) => euclidean_ruler.distance(pa, pb)
-      case "manh" => (pa: Pattern, pb: Pattern) => manhattan_ruler.distance(pa, pb)
-      case "cheb" => (pa: Pattern, pb: Pattern) => chebyshev.distance(pa, pb)
-      case "maha" => (pa: Pattern, pb: Pattern) => mahadist(pa, pb)
-      case "mink" => (pa: Pattern, pb: Pattern) => minkowski_ruler.distance(pa, pb)
-    }
+   /**
+    * Like Weka distances,
+    * "maha" distance considers all brother patterns to be part of the distribution.
+    * It is unclear whether or not the weka distances accept instances outside
+    * the initial Instances object passed to the ruler's constructor.
+    * @param distance_name
+    * @return
+    */
+   def distance_to(distance_name: String) =
+      distance_name match {
+         case "eucl" => (pa: Pattern, pb: Pattern) => euclidean_ruler.distance(pa, pb)
+         case "manh" => (pa: Pattern, pb: Pattern) => manhattan_ruler.distance(pa, pb)
+         case "cheb" => (pa: Pattern, pb: Pattern) => chebyshev.distance(pa, pb)
+         case "maha" => (pa: Pattern, pb: Pattern) => mahadist(pa, pb)
+         case "mink" => (pa: Pattern, pb: Pattern) => minkowski_ruler.distance(pa, pb)
+      }
 }

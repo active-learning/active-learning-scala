@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import al.strategies.RandomSampling
-import clean.{Ds, Exp}
+import clean.lib.{Ds, Exp}
 import ml.Pattern
 import ml.classifiers._
 import weka.filters.Filter

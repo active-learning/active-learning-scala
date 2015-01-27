@@ -18,7 +18,7 @@
 
 package al.strategies
 
-import clean.{CM, Ds}
+import clean.lib.{CM, Ds}
 import ml.Pattern
 import ml.classifiers.SVMLib
 import svmal.SVMStrategymulti

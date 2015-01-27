@@ -17,11 +17,11 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.lib
 
 import al.strategies._
 import ml.Pattern
-import ml.classifiers.{NoLearner, Learner}
+import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
    def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)

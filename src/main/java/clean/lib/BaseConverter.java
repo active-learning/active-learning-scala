@@ -1,4 +1,4 @@
-package clean;
+package clean.lib;
 /*
 active-learning-scala: Active Learning library for Scala
 Copyright (c) 2014 Davi Pereira dos Santos

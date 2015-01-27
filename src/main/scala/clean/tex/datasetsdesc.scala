@@ -19,10 +19,10 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import java.io.{PrintWriter, FileWriter}
+import java.io.PrintWriter
 
 import al.strategies.RandomSampling
-import clean.{Ds, Exp, Lock}
+import clean.lib.{Ds, Exp, Lock}
 import ml.Pattern
 import weka.filters.Filter
 

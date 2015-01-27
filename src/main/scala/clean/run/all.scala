@@ -20,6 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import clean._
+import clean.lib.{StratsTrait, LearnerTrait, Exp, Ds}
 import ml.Pattern
 import weka.filters.Filter
 

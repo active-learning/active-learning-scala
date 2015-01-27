@@ -19,9 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import clean._
-import clean.meta.RangeGenerator
-import clean.res.{ALCBalancedAcc, ALCKappa}
+import clean.lib._
 import util.StatTests
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {

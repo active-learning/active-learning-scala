@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run.uti
 
-import clean.{AppWithUsage, Ds}
+import clean.lib.{AppWithUsage, Ds}
 
 object sql extends AppWithUsage {
    lazy val arguments = superArguments ++ List("sql")

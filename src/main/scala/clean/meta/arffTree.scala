@@ -2,11 +2,8 @@ package clean.meta
 
 import java.io.FileWriter
 
-import clean._
-import clean.res.{ALCBalancedAcc, ALCKappa, BalancedAcc}
-import util.{StatTests, Stat}
-
-import scala.io.Source
+import clean.lib._
+import util.{Stat, StatTests}
 
 /*
  active-learning-scala: Active Learning library for Scala

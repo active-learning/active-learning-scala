@@ -19,10 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import al.strategies.Passive
-import clean._
-import clean.meta.RangeGenerator
-import clean.res._
+import clean.lib._
 import util.{Stat, StatTests}
 
 object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {

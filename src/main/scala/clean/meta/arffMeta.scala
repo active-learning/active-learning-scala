@@ -20,8 +20,7 @@ package clean.meta
 
 import java.io.FileWriter
 
-import clean._
-import clean.res.ALCKappa
+import clean.lib._
 import ml.Pattern
 import ml.classifiers._
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation

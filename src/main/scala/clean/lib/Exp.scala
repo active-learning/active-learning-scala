@@ -17,7 +17,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package clean
+package clean.lib
 
 import ml.Pattern
 import util.Datasets
