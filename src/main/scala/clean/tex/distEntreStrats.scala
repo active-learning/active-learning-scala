@@ -28,28 +28,28 @@ import util.{Stat, StatTests}
 object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntreStratstex"
-   //   val measure = Kappa
-   val measure = BalancedAcc
+   val measure = ALCKappa
    run()
 
    override def run() = {
-      ???
       super.run()
-      val accs0 = for (l <- learners(learnersStr).par) yield {
+      val accs0 = for (s <- stratsForTreeSemSVM) yield {
          val res0 = for {
             dataset <- datasets
+            l <- learners(learnersStr)
          } yield {
             val ds = Ds(dataset, readOnly = true)
             ds.open()
+            val (ti, tf) = maxRange(ds, 2, 200) //<- verificar 100 ou 200
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.error("incompleto!"))
+               } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse(ds.error(s"incompleto para ${(ds, s, l, r, f)}!"))
             //            println(s"$ds $vs")
             ds.close()
             Stat.media_desvioPadrao(vs.toVector)._1
          }
-         l.toString.split(" ").head -> res0
+         s.abr -> res0
       }
       val accs = accs0.toList.sortBy(_._1)
       val dists = for (a <- accs) yield {
@@ -62,8 +62,8 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
          }
          a._1 -> ds
       }
-      val fw = new PrintWriter("/home/davi/wcs/tese/passiveDists.tex", "ISO-8859-1")
-      fw.write(StatTests.distTable(dists, "passiveDists", "algoritmos de aprendizado", measure.toString))
+      val fw = new PrintWriter("/home/davi/wcs/tese/stratDists.tex", "ISO-8859-1")
+      fw.write(StatTests.distTable(dists, "stratDists", "estratégias", measure.toString))
       fw.close()
    }
 }
