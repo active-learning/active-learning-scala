@@ -28,7 +28,7 @@ import util.{Stat, StatTests}
 object distEntrePassivas extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntrePassivastex"
-   //   val measure = Kappa
+   //      val measure = Kappa
    val measure = BalancedAcc
    run()
 
