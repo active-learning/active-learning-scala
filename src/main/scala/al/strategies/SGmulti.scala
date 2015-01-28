@@ -26,51 +26,51 @@ import util.{ALDatasets, Datasets}
 import scala.util.Random
 
 case class SGmulti(learner: Learner, pool: Seq[Pattern], agreement: String, debug: Boolean = false)
-  extends StrategySGmulti {
-  override val toString = "SGmulti (" + agreement + ")"
-   val abr = "SG"
+   extends StrategySGmulti {
+   override val toString = "SGmulti (" + agreement + ")"
+   val abr = "SGmulti"
    //+ agreement.take(3)
-  val id = agreement match {
-    case "consensus" => 14
-    case "majority" => 15
-  }
+   val id = agreement match {
+      case "consensus" => 14
+      case "majority" => 15
+   }
 
 
-  def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
-    agreement match {
-      case "consensus" => unlabeled find {
-        pa =>
-          val preds = current_models.map(mo => mo.predict(pa))
-          preds.exists(_ != preds.head)
-      } match {
-        case Some(pattern) => pattern
-        case None => unlabeled.head
+   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
+      agreement match {
+         case "consensus" => unlabeled find {
+            pa =>
+               val preds = current_models.map(mo => mo.predict(pa))
+               preds.exists(_ != preds.head)
+         } match {
+            case Some(pattern) => pattern
+            case None => unlabeled.head
+         }
+         case "majority" => unlabeled minBy {
+            pa =>
+               val preds = current_models.map(mo => mo.predict(pa).toInt)
+               most_votes(preds)
+         }
       }
-      case "majority" => unlabeled minBy {
-        pa =>
-          val preds = current_models.map(mo => mo.predict(pa).toInt)
-          most_votes(preds)
-      }
-    }
 
-  def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
-    if (selected != null) {
-      for ((plot, i) <- plots.zipWithIndex) {
-        plot.zera()
-        for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p).toInt, 9)
-        for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-        plot.bola(selected.x, selected.y, -1, 15)
-        plot.mostra()
+   def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) {
+      if (selected != null) {
+         for ((plot, i) <- plots.zipWithIndex) {
+            plot.zera()
+            for (p <- distinct_pool) plot.bola(p.x, p.y, models_to_visualize(i).predict(p).toInt, 9)
+            for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
+            plot.bola(selected.x, selected.y, -1, 15)
+            plot.mostra()
+         }
+         plot.bola(selected.x, selected.y, -1, 15)
+         plot.mostra()
+      } else {
+         plot.zera()
+         if (models_to_visualize.head != null) for (p <- distinct_pool) plot.bola(p.x, p.y, if (models_to_visualize.map(mo => mo.predict(p).toInt).exists(_ != models_to_visualize(0).predict(p).toInt)) 15 else models_to_visualize(0).predict(p).toInt, 9)
+         for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
+         plot.mostra()
       }
-      plot.bola(selected.x, selected.y, -1, 15)
-      plot.mostra()
-    } else {
-      plot.zera()
-      if (models_to_visualize.head != null) for (p <- distinct_pool) plot.bola(p.x, p.y, if (models_to_visualize.map(mo => mo.predict(p).toInt).exists(_ != models_to_visualize(0).predict(p).toInt)) 15 else models_to_visualize(0).predict(p).toInt, 9)
-      for (p <- labeled) plot.bola(p.x, p.y, p.label.toInt + 5, 6)
-      plot.mostra()
-    }
-    Thread.sleep((delay * 1000).round.toInt)
-  }
+      Thread.sleep((delay * 1000).round.toInt)
+   }
 
 }
