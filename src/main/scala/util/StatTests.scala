@@ -139,14 +139,14 @@ object StatTests {
 \begin{center}
 \begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + (1 to pairs.size).mkString(" & ") + """ \\""" +
          pairs.zipWithIndex.map { case ((s, l), i) =>
-         val I = i
-         val nr = i + 1
+            val I = i
+            val nr = i + 1
             s"$nr - $s\t& " + (l.zipWithIndex map {
-            case (3, _) => "*"
-            case (2, _) => "+"
-            case (1, _) => "."
-            case (0, I) => "-"
-            case (0, _) => " "
+               case (3, _) => "*"
+               case (2, _) => "+"
+               case (1, _) => "."
+               case (0, I) => "-"
+               case (0, _) => " "
             }).mkString(" & ") + """ \\""" +
                (if (i % seps == seps - 1) """ \hline""" else "")
          }.mkString("\n") +
@@ -200,20 +200,27 @@ object StatTests {
     */
    def distTable(pairs: List[(String, List[Double])], tableName: String, sujeitos: String, measure: String, seps: Int = 2, language: String = "pt") = {
       val caption = language match {
-         case "pt" => s"Similaridade entre $sujeitos de acordo com a acurácia balanceada para as 94 bases de dados."
+         case "pt" => s"Similaridade entre $sujeitos de acordo com a acurácia balanceada para as 94 bases de dados." +
+            s" O maior e menor valor de cada linha está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente."
          case "en" => s"escrever no scala a descricao em ingles!!."
       }
+      val header = if (pairs.size > 10) pairs.map(x => "\\begin{sideways}" + x._1 + "\\end{sideways}") else pairs.map(_._1)
       """\begin{table}[h]
 \caption{""" + caption + """}
-\begin{center}
-\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + pairs.map(_._1).mkString(" & ") + """ \\""" +
+\begin{center}""" + (if (header.head.contains("sideways")) """\scalebox{0.84}{""" else "") +
+         """\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + header.mkString(" & ") + """ \\""" +
          pairs.zipWithIndex.map { case ((s, l), i) =>
+            val Mx = l.filter(_ != 1).max
+            val Mn = l.min
             s"$s\t& " + l.zipWithIndex.map {
-               case (ll, idx) => if (idx != i) f2(ll) else "-"
+               case (_, idx) if idx == i => "-"
+               case (Mx, _) => "\\textcolor{blue}{\\textbf{" + f2(Mx) + "}}"
+               case (Mn, _) => "\\textcolor{red}{\\textbf{" + f2(Mn) + "}}"
+               case (ll, _) => f2(ll)
             }.mkString(" & ") + """ \\""" + (if (i % seps == seps - 1) " \\hline" else "")
          }.mkString("\n") +
-         """\end{tabular}
-\label{""" + tableName + """}
+         """\end{tabular}""" + (if (header.head.contains("sideways")) "}" else "") +
+         """\label{""" + tableName + """}
 \end{center}
 \end{table}"""
    }

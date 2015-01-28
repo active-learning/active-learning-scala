@@ -57,7 +57,7 @@ object distEntrePassivas extends AppWithUsage with LearnerTrait with StratsTrait
                val v = v1 - v2
                v * v
             }.sum)
-            1 / (1 + d)
+            ff(100)(1 / (1 + d))
          }
          a._1 -> ds
       }

@@ -33,7 +33,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      val accs0 = for (s <- stratsForTreeSemSVM) yield {
+      val accs0 = for (s <- stratsForTreeSemSVM.par) yield {
          val res0 = for {
             dataset <- datasets
             l <- learners(learnersStr)
@@ -51,14 +51,14 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
          }
          s.abr -> res0
       }
-      val accs = accs0.toList.sortBy(_._1)
+      val accs = accs0.toList //.sortBy(_._1)
       val dists = for (a <- accs) yield {
          val ds = for (b <- accs) yield {
             val d = math.sqrt(a._2.zip(b._2).map { case (v1, v2) =>
                val v = v1 - v2
                v * v
             }.sum)
-            1 / (1 + d)
+            ff(100)(1 / (1 + d))
          }
          a._1 -> ds
       }

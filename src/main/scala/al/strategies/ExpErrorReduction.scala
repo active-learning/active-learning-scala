@@ -36,83 +36,83 @@ import scala.util.Random
  * @param debug
  */
 case class ExpErrorReduction(learner: Learner, pool: Seq[Pattern], criterion: String, sample: Int, debug: Boolean = false)
-  extends StrategyWithLearner with Sample with EntropyMeasure {
-  lazy val criterionInt = criterion match {
-    case "entropy" => Ventropy
-    case "accuracy" => Vaccuracy
-    //    case "gmeans" => Vgmeans
-    case "gmeans+residual" => VgmeansResidual
-  }
-  override val toString = "Expected Error Reduction s" + sample + " (" + criterion + ")"
-  val abr = "EER" + criterion.take(3)
-  val id = -350
-  //Strategy with empty pool exists only to provide its name.
-  val Ventropy = 0
-  val Vaccuracy = 1
-  val Vgmeans = 2
-  val VgmeansResidual = 3
+   extends StrategyWithLearner with Sample with EntropyMeasure {
+   lazy val criterionInt = criterion match {
+      case "entropy" => Ventropy
+      case "accuracy" => Vaccuracy
+      //    case "gmeans" => Vgmeans
+      case "gmeans+residual" => VgmeansResidual
+   }
+   override val toString = "Expected Error Reduction s" + sample + " (" + criterion + ")"
+   val abr = "EERnoM" + criterion.take(3)
+   val id = -350
+   //Strategy with empty pool exists only to provide its name.
+   val Ventropy = 0
+   val Vaccuracy = 1
+   val Vgmeans = 2
+   val VgmeansResidual = 3
 
-  protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    val res = if (labeled.last.missed) {
-      Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled) //todo: for multiclass, margin is better than unc. but the original paper don't do it this way.
-    } else {
-      val unlabeledSize = unlabeled.size
-      val rnd = new Random(unlabeledSize)
-      val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
-      lazy val optimistic_patterns = unlabeledSamp.map { p =>
-        p.relabeled_reweighted(current_model.predict(p), 1, new_missed = false)
-      }.toVector
+   protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val res = if (labeled.last.missed) {
+         Uncertainty(learner, distinct_pool).next(current_model, unlabeled, labeled) //todo: for multiclass, margin is better than unc. but the original paper don't do it this way.
+      } else {
+         val unlabeledSize = unlabeled.size
+         val rnd = new Random(unlabeledSize)
+         val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
+         lazy val optimistic_patterns = unlabeledSamp.map { p =>
+            p.relabeled_reweighted(current_model.predict(p), 1, new_missed = false)
+         }.toVector
 
-      val (selected, label_estimate, _) = (
-        for (pattern <- unlabeledSamp; c <- 0 until nclasses) yield {
-          lazy val artificially_labeled_pattern = pattern.relabeled_reweighted(c, 1, new_missed = false)
-          lazy val art_model = learner.update(current_model)(artificially_labeled_pattern)
-          criterionInt match {
-            case Ventropy => (pattern, c, criterion_entropy(art_model, unlabeledSamp))
-            case Vgmeans => (pattern, c, 1 - criterion_gmeans(art_model, optimistic_patterns))
-            case VgmeansResidual => (pattern, c, 1 - criterion_gmeansResidual(art_model, optimistic_patterns))
-            case Vaccuracy => (pattern, c, 1 - criterion_accuracy(art_model, optimistic_patterns))
-          }
-        }).minBy(_._3)
-      selected.relabeled_reweighted(selected.label, selected.weight, label_estimate != selected.label)
+         val (selected, label_estimate, _) = (
+            for (pattern <- unlabeledSamp; c <- 0 until nclasses) yield {
+               lazy val artificially_labeled_pattern = pattern.relabeled_reweighted(c, 1, new_missed = false)
+               lazy val art_model = learner.update(current_model)(artificially_labeled_pattern)
+               criterionInt match {
+                  case Ventropy => (pattern, c, criterion_entropy(art_model, unlabeledSamp))
+                  case Vgmeans => (pattern, c, 1 - criterion_gmeans(art_model, optimistic_patterns))
+                  case VgmeansResidual => (pattern, c, 1 - criterion_gmeansResidual(art_model, optimistic_patterns))
+                  case Vaccuracy => (pattern, c, 1 - criterion_accuracy(art_model, optimistic_patterns))
+               }
+            }).minBy(_._3)
+         selected.relabeled_reweighted(selected.label, selected.weight, label_estimate != selected.label)
 
-    }
-    res
-  }
+      }
+      res
+   }
 
-  private def criterion_accuracy(m: Model, label_estimated_patterns: Vector[Pattern]) =
-    m.hits(label_estimated_patterns) / label_estimated_patterns.length.toDouble
+   private def criterion_accuracy(m: Model, label_estimated_patterns: Vector[Pattern]) =
+      m.hits(label_estimated_patterns) / label_estimated_patterns.length.toDouble
 
-  private def criterion_gmeans(m: Model, label_estimated_patterns: Vector[Pattern]) = {
-    val pseudo_accuracies_per_class = (0 until nclasses) map {
-      c =>
-        val only_this_class = label_estimated_patterns.filter(_.label == c)
-        val hits = only_this_class count m.hit
-        hits.toDouble / only_this_class.length
-    }
-    //    math.sqrt(pseudo_accuracies_per_class.product)
-    pseudo_accuracies_per_class.product //faster
-  }
+   private def criterion_gmeans(m: Model, label_estimated_patterns: Vector[Pattern]) = {
+      val pseudo_accuracies_per_class = (0 until nclasses) map {
+         c =>
+            val only_this_class = label_estimated_patterns.filter(_.label == c)
+            val hits = only_this_class count m.hit
+            hits.toDouble / only_this_class.length
+      }
+      //    math.sqrt(pseudo_accuracies_per_class.product)
+      pseudo_accuracies_per_class.product //faster
+   }
 
-  private def criterion_gmeansResidual(m: Model, label_estimated_patterns: Vector[Pattern]) = {
-    val pseudo_accuracies_per_class = (0 until nclasses) map {
-      c =>
-        val only_this_class = label_estimated_patterns.filter(_.label == c)
-        val hits = only_this_class count m.hit
-        hits.toDouble / only_this_class.length
-    }
-    pseudo_accuracies_per_class.map(_ + 0.00001).product
-  }
+   private def criterion_gmeansResidual(m: Model, label_estimated_patterns: Vector[Pattern]) = {
+      val pseudo_accuracies_per_class = (0 until nclasses) map {
+         c =>
+            val only_this_class = label_estimated_patterns.filter(_.label == c)
+            val hits = only_this_class count m.hit
+            hits.toDouble / only_this_class.length
+      }
+      pseudo_accuracies_per_class.map(_ + 0.00001).product
+   }
 
-  /**
-   * O exemplo que causa a menor entropia é o desejado,
-   * pois isso indica que ele e o rótulo vão conferir mais certeza com relação ao pool.
-   * @param m
-   * @param unlabeled
-   * @return
-   */
-  private def criterion_entropy(m: Model, unlabeled: Seq[Pattern]) = unlabeled.map {
-    u => val d = m.distribution(u)
-      entropy(d)
-  }.sum
+   /**
+    * O exemplo que causa a menor entropia é o desejado,
+    * pois isso indica que ele e o rótulo vão conferir mais certeza com relação ao pool.
+    * @param m
+    * @param unlabeled
+    * @return
+    */
+   private def criterion_entropy(m: Model, unlabeled: Seq[Pattern]) = unlabeled.map {
+      u => val d = m.distribution(u)
+         entropy(d)
+   }.sum
 }

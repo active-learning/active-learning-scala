@@ -27,7 +27,8 @@ import scala.util.Random
 case class DensityWeighted(learner: Learner, pool: Seq[Pattern], beta: Double = 1, distance_name: String = "eucl", debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure {
    override val toString = "Density Weighted b" + beta + " (" + distance_name + ")"
-   val abr = "DW" + distance_name.take(3) + beta
+   val abr = "DW" + distance_name.take(3)
+   //+ beta
    val id = if (distance_name == "eucl" && (beta == 1 || beta == 0.5)) (5 + (1 - beta) * 10000).toInt else throw new Error("Parametros inesperados para DW.")
 
 

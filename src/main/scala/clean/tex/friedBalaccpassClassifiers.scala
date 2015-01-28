@@ -46,7 +46,14 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
+            } yield {
+               try {
+                  measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(throw new Error("passiva não encontrada"))
+               } catch {
+                  case e: Throwable => println(s"pid não encontrado")
+                     NA
+               }
+            }
             Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()
