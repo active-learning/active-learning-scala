@@ -207,7 +207,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       println(s"qtd de metaexemplos: ${data.size}")
 
       //processa arff
-      if (modo != "Winner" && modo != "Rank" && modo != "TiesDup") Datasets.arff(arq) match {
+      if (modo == "Ties" || modo == "Acc") Datasets.arff(arq) match {
          case Left(str) => error("problemas abrindo arff")
          case Right(patterns) =>
             println(s"${patterns.size}")
