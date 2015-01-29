@@ -83,6 +83,7 @@ trait StratsTrait {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    val stratsForTreeSemSVM = stratsForTree().take(7) ++ stratsForTree().drop(9)
+   val stratsForTreeSemSVMRedux = stratsForTreeRedux().take(5) ++ stratsForTreeRedux().drop(7)
 
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
@@ -110,8 +111,24 @@ trait StratsTrait {
       , DensityWeightedLabelUtility2(learner, pool, "manh") //37
       , DensityWeightedLabelUtility2(learner, pool, "maha") //39
       , AgDensityWeightedLabelUtility2(pool, "eucl") //361
-      , AgDensityWeightedLabelUtility2(pool, "maha") //391
       , AgDensityWeightedLabelUtility2(pool, "manh") //371
+      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+   )
+
+   def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , Margin(learner, pool) //3
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      , SVMmulti(pool, "KFFw") //968
+      , SVMmulti(pool, "BALANCED_EEw") //969
+      , new SGmulti(learner, pool, "consensus") //14
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
    )
 
 }

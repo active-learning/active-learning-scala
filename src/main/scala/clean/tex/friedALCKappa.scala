@@ -70,10 +70,12 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
 
          }
          ds.close()
+         //         (l.toString.take(3)+ds.dataset ) -> sres
          (ds.dataset + l.toString.take(3)) -> sres
       }
 
       val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == NA))
+      //      val res0sorted = res0.toList.sortBy(_._1)
 
       println(s"")
       res0sorted.grouped(280).foreach { res1 =>
@@ -91,6 +93,6 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
       //            val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
 
       println(StatTests.pairTable(pairs, "tablename", "acc"))
-      println(s"\n\n${res.size} datasets completos")
+      println(s"${res.size} datasets completos")
    }
 }

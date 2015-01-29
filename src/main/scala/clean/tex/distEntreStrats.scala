@@ -29,11 +29,12 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntreStratstex"
    val measure = ALCKappa
+   val redux = true
    run()
 
    override def run() = {
       super.run()
-      val accs0 = for (s <- stratsForTreeSemSVM.par) yield {
+      val accs0 = for (s <- if (redux) stratsForTreeSemSVMRedux.par else stratsForTreeSemSVM.par) yield {
          val res0 = for {
             dataset <- datasets
             l <- learners(learnersStr)
@@ -42,8 +43,8 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             ds.open()
             val (ti, tf) = maxRange(ds, 2, 200) //<- verificar 100 ou 200
             val vs = for {
-               r <- 0 until runs
-               f <- 0 until folds
+                  r <- 0 until runs
+                  f <- 0 until folds
                } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse(ds.error(s"incompleto para ${(ds, s, l, r, f)}!"))
             //            println(s"$ds $vs")
             ds.close()
@@ -53,17 +54,17 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
       }
       val accs = accs0.toList //.sortBy(_._1)
       val dists = for (a <- accs) yield {
-         val ds = for (b <- accs) yield {
-            val d = math.sqrt(a._2.zip(b._2).map { case (v1, v2) =>
-               val v = v1 - v2
-               v * v
-            }.sum)
-            ff(100)(1 / (1 + d))
+            val ds = for (b <- accs) yield {
+               val d = math.sqrt(a._2.zip(b._2).map { case (v1, v2) =>
+                  val v = v1 - v2
+                  v * v
+               }.sum)
+               ff(100)(1 / (1 + d))
+            }
+            a._1 -> ds
          }
-         a._1 -> ds
-      }
-      val fw = new PrintWriter("/home/davi/wcs/tese/stratDists.tex", "ISO-8859-1")
-      fw.write(StatTests.distTable(dists, "stratDists", "estratégias", measure.toString))
+      val fw = new PrintWriter("/home/davi/wcs/tese/stratDists" + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
+      fw.write(StatTests.distTable(dists, "stratDists" + (if (redux) "Redux" else ""), "estratégias", measure.toString))
       fw.close()
    }
 }
