@@ -207,7 +207,7 @@ object StatTests {
       val header = if (pairs.size > 10) pairs.map(x => "\\begin{sideways}" + x._1 + "\\end{sideways}") else pairs.map(_._1)
       """\begin{table}[h]
 \caption{""" + caption + """}
-\begin{center}""" + (if (header.head.contains("sideways")) """\scalebox{0.8}{""" else "") +
+\begin{center}""" + (if (header.head.contains("sideways")) if (pairs.size > 10) """\scalebox{0.8}{""" else """\scalebox{0.9}{""" else "") +
          """\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + header.mkString(" & ") + """ \\""" +
          pairs.zipWithIndex.map { case ((s, l), i) =>
             val Mx = l.filter(_ != 1).max
