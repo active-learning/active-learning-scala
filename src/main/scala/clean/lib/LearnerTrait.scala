@@ -31,13 +31,15 @@ trait LearnerTrait {
 
    def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
+   def allLearnersRedux(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed).drop(1).take(1)
+
    def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
       NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
    )
 
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-      Maj() //13
-      , NB() //1
+      //      Maj() //13
+      NB() //1
       , KNNBatch(5, "eucl", pool, weighted = true) //2
       , VFDT() //4
       , C45() //3

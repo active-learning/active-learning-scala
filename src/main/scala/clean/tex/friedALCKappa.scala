@@ -26,7 +26,6 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappatex"
    val measure = ALCKappa
-   //   val measure = ALCBalancedAcc
    run()
 
    override def run() = {
@@ -53,7 +52,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
             } yield {
                s match {
                   case _ =>
-                     val (ti, tf) = maxRange(ds, 2, 200) //<- verificar 100 ou 200
+                     val (ti, tf) = maxRange(ds, 2, 200)
                      try {
                         measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                      } catch {

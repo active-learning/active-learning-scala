@@ -33,48 +33,42 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    val ties = true
    val context = "metaAttsTreeApp"
    val arguments = superArguments
-   //   val measure = ALCKappa
-   val measure = ALCBalancedAcc
+   val measure = ALCKappa
+   //   val measure = ALCBalancedAcc
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
 
    override def run() = {
       super.run()
-      val ss = stratsForTree().map(_.abr).toVector
+      val ss = stratsForTreeSemSVMRedux.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList
 
-         l <- allLearners().par
+         l <- allLearnersRedux().par
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds, 2, 200) // <- verificar!!! verificar tb argumentos do programa!!!
+            val tmp = ranges(ds, 2, 200)
             ds.close()
             tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
          }
 
       } yield {
          val ds = Ds(name, readOnly = true)
-         println(s"$ds")
+         //         println(s"$ds")
          ds.open()
-         val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
-         val rattsmd = seqratts map Stat.media_desvioPadrao
-         val (rattsm, _) = rattsmd.unzip
          val res = if (ties) {
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            //               duplicadorDeAmostra <- 0 to 1
+               duplicadorDeAmostra <- 0 to 3
             } yield {
                val poolStr = (100 * r + f).toString
-               val medidas = for {
-                  s <- stratsForTree() // <- verificar!!!
-                  le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-               } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                     ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-                     -2d
-                  }
+               val medidas = for (s <- stratsForTreeSemSVMRedux) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+                  ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
+                  -2d
+               }
                poolStr -> medidas
             }
             val winners = StatTests.clearWinners(vs, ss)
@@ -83,15 +77,12 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                else None
             }.flatten
          } else {
-            val medidas = for {
-               s <- stratsForTree() // <- verificar!!!
-            } yield {
-               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+            val medidas = for (s <- stratsForTreeSemSVMRedux) yield {
                val ms = for {
                   r <- 0 until Global.runs
                   f <- 0 until Global.folds
-               } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                     ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+               } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+                     ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
                      -2d
                   }
                s.abr -> Stat.media_desvioPadrao(ms.toVector)
@@ -109,7 +100,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val labels = pred.distinct.sorted
       val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
       val numAtts = humanNumAttsNames
-      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearnersRedux().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
@@ -119,3 +110,32 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       println(s"${data.size}")
    }
 }
+
+/*
+learner = NB
+|   %nominais <= 33.333333: ATUeuc (328.0/264.0)
+|   %nominais > 33.333333: SGmulti (77.0/61.0)
+learner = 5NN
+|   #classes <= 3
+|   |   #exemplos/#atributos <= 47.054545: EERent (135.0/105.0)
+|   |   #exemplos/#atributos > 47.054545: ATUmah (81.0/67.0)
+|   #classes > 3: ATUeuc (115.0/88.0)
+learner = VFDT
+|   orçamento = baixo: ATUeuc (169.0/123.0)
+|   orçamento = alto
+|   |   entropia da classe <= 0.947361: Rnd (130.0/114.0)
+|   |   entropia da classe > 0.947361: TUeuc (88.0/75.0)
+learner = C4.5
+|   orçamento = baixo: ATUeuc (172.0/130.0)
+|   orçamento = alto
+|   |   #exemplos <= 614.4: ATUeuc (140.0/122.0)
+|   |   #exemplos > 614.4: ATUmah (82.0/64.0)
+learner = SVM: ATUmah (350.0/217.0)
+learner = CIELM
+|   entropia da classe <= 0.805125: TUeuc (74.0/56.0)
+|   entropia da classe > 0.805125: TUmah (304.0/225.0)
+
+Number of Leaves  : 	14
+
+Size of the tree : 	23
+ */
