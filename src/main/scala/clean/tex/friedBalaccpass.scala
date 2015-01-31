@@ -54,8 +54,8 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
                         case _ => measure(ds, s, le, r, f)(t).read(ds).getOrElse(NA)
                      }
 
-                  if (vs.contains(NA, NA)) throw new Error("NA")
-                  if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, -2d)
+                  if (vs.contains(NA)) throw new Error("NA")
+                  if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
                }
             ds.close()
             //         (ds.dataset + l.toString.take(3)) -> sres
