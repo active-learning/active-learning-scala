@@ -93,6 +93,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
          val res = modo match {
             case "Acc" => //prediz acc em cada strat
+               println(s"filtrar sVMmulti com learner errado");
+               ???
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
                } yield {
@@ -117,12 +119,12 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
                      s <- stratsForTree() // <- verificar!!!
-                  } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969)) -4d
-                     else measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+                  } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969)) None
+                     else Some(measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                         ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
                         NA
-                     }
-                  poolStr -> medidas.filter(_ > -4d)
+                     })
+                  poolStr -> medidas.flatten
                }
                if (vs.exists(_._2.contains(NA))) ???
                val winners = StatTests.clearWinners(vs, ss)
@@ -131,6 +133,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   else None
                }.flatten
             case "Ties" => //prediz vencedores empatados
+               println(s"filtrar sVMmulti com learner errado");
+               ???
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
@@ -151,6 +155,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                if (vs.exists(x => x._2.contains(-2d))) Seq()
                else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", if (budix == 0) "baixo" else "alto"))
             case "Rank" => //prediz ranking
+               println(s"filtrar sVMmulti com learner errado");
+               ???
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
                } yield {

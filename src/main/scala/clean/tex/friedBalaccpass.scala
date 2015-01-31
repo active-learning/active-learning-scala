@@ -34,10 +34,7 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-
-      val strats = Passive(Seq()) +: allStrats()
-      //      val strats = allStrats()
-
+      val strats = Passive(Seq()) +: stratsForTree()
       val sl = strats.map(_.abr)
       val res0 = for {
          dataset <- datasets
@@ -45,56 +42,54 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
+         val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
          val sres = for {
-            s <- strats
-         } yield {
-            val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-            val vs = for {
-               r <- 0 until runs
-               f <- 0 until folds
+               s <- strats
             } yield {
-               lazy val pass = try {
-                  measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
-               } catch {
-                  case e: Throwable => NA
-               }
-
-               try {
-                  s match {
-                     case Passive(Seq(), false) => pass
-                     case _ =>
-                        val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
-                        measure(ds, s, le, r, f)(t).read(ds).getOrElse(NA)
+               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+               val vs = for {
+                  r <- 0 until runs
+                  f <- 0 until folds
+               } yield {
+                  lazy val pass = try {
+                     measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
+                  } catch {
+                     case e: Throwable => NA
                   }
-                  //               100 * measure(ds, s, le, r, f)(ranges(ds, 2, 200).last._2).read(ds).getOrElse(NA * pass / 100) / pass
-               } catch {
-                  case e: Throwable => NA
+
+                  try {
+                     s match {
+                        case Passive(Seq(), false) => pass
+                        case _ => measure(ds, s, le, r, f)(t).read(ds).getOrElse(NA)
+                     }
+                  } catch {
+                     case e: Throwable => NA
+                  }
+
                }
 
+               if (!risco) {
+                  if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
+               } else {
+                  if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
+               }
             }
-
-            if (!risco) {
-               if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
-            } else {
-               if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
-            }
-         }
          ds.close()
          (ds.dataset + l.toString.take(3)) -> sres
       }
 
       val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == NA))
-      var fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAccFried.tex", "ISO-8859-1")
+      var fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAcc.tex", "ISO-8859-1")
       res0sorted.grouped(280).foreach { res1 =>
-         fw.write(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "stratsBalAccFried", "acurácia balanceada", 7))
+         fw.write(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "stratsBalAcc", "acurácia balanceada", 7))
       }
       fw.close()
 
       val res = res0sorted.filter(!_._2.contains(NA, NA))
       val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-      fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAcc" + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
-      fw.write(StatTests.pairTable(pairs, "stratsBalAcc", "acurácia balanceada"))
+      fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAccFried" + learnersStr.mkString("") + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
+      fw.write(StatTests.pairTable(pairs, "stratsBalAccFried", "acurácia balanceada"))
       fw.close()
 
       println(s"${res.size} datasets completos")

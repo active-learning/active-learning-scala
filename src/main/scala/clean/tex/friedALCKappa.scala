@@ -34,17 +34,14 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
    override def run() = {
       super.run()
       val strats = stratsForTree()
-      //      val strats = allStrats()
       val sl = strats.map(_.abr)
-
       val res0 = for {
          dataset <- datasets
          l <- learners(learnersStr).par
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         //         val (ti, tf) = maxRange(ds)
-         //         ds.log("",30)
+         val (ti, tf) = maxRange(ds, 2, 200)
          val sres = for {
             s <- strats
          } yield {
@@ -55,7 +52,6 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
             } yield {
                s match {
                   case _ =>
-                     val (ti, tf) = maxRange(ds, 2, 200)
                      try {
                         measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                      } catch {
@@ -76,17 +72,17 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
       }
 
       val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == NA))
-      var fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFried.tex", "ISO-8859-1")
+      var fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappa.tex", "ISO-8859-1")
       res0sorted.grouped(280).foreach { res1 =>
-         fw.write(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "stratsALCKappaFried", "ALCKappa", 7))
+         fw.write(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "stratsALCKappa", "ALCKappa", 7))
       }
       fw.close()
 
       val res = res0sorted.filter(!_._2.contains(NA, NA))
       val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-      fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappa" + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
-      fw.write(StatTests.pairTable(pairs, "stratsALCKappa", "ALCKappa"))
+      fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFried" + learnersStr.mkString("") + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
+      fw.write(StatTests.pairTable(pairs, "stratsALCKappaFried", "ALCKappa"))
       fw.close()
 
       println(s"${res.size} datasets completos")
