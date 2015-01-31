@@ -68,7 +68,7 @@ object StatTests {
    def winsLossesTies(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = ???
 
    private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") = {
-      val contemStdDev = if (core.contains("/")) " Os menores valores de desvio padrão estão em \\\\textcolor{darkgreen}{verde}." else ""
+      val contemStdDev = if (core.contains("/")) " Os menores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}." else ""
       if (nstrats != strategies.size) {
          println(s"Inconsistency #measures-in-the-first-row != strategies.size: $nstrats != ${strategies.size}: $strategies")
          sys.exit(1)
@@ -82,11 +82,11 @@ object StatTests {
       """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
 \begin{table}[h]
 \caption{""" + caption + """}
-\begin{center}
-\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + """\\ \hline """ +
+\begin{center}""" + (if (strategies.size > 8) "\\scalebox{0.7}{" else "") +
+         """\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + """\\ \hline """ +
          core +
-         """\end{tabular}
-\label{""" + tableName + """}
+         """\end{tabular}""" + (if (strategies.size > 8) "}" else "") +
+         """\label{""" + tableName + """}
 \end{center}
 \end{table}"""
    }

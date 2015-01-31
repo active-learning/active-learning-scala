@@ -34,64 +34,49 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      val strats = Passive(Seq()) +: stratsForTree()
-      val sl = strats.map(_.abr)
-      val res0 = for {
-         dataset <- datasets
-         l <- learners(learnersStr).par
-      } yield {
-         val ds = Ds(dataset, readOnly = true)
-         ds.open()
-         val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
-         val sres = for {
-               s <- strats
-            } yield {
-               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-               val vs = for {
-                  r <- 0 until runs
-                  f <- 0 until folds
+      for (le <- learners(learnersStr).par) {
+         val strats = Passive(Seq()) +: (if (le.abr == "svm") stratsForTree() else stratsForTreeSemSVM)
+         val sl = strats.map(_.abr)
+         val res0 = for {
+            dataset <- datasets
+         } yield {
+            val ds = Ds(dataset, readOnly = true)
+            ds.open()
+            val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
+            val sres = for {
+                  s <- strats
                } yield {
-                  lazy val pass = try {
-                     measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
-                  } catch {
-                     case e: Throwable => NA
-                  }
-
-                  try {
-                     s match {
-                        case Passive(Seq(), false) => pass
+                  val vs = for {
+                     r <- 0 until runs
+                     f <- 0 until folds
+                  } yield s match {
+                        case Passive(Seq(), false) => measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
                         case _ => measure(ds, s, le, r, f)(t).read(ds).getOrElse(NA)
                      }
-                  } catch {
-                     case e: Throwable => NA
-                  }
 
+                  if (vs.contains(NA, NA)) throw new Error("NA")
+                  if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, -2d)
                }
+            ds.close()
+            //         (ds.dataset + l.toString.take(3)) -> sres
+            renomeia(ds) -> sres
+         }
 
-               if (!risco) {
-                  if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
-               } else {
-                  if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
-               }
-            }
-         ds.close()
-         (ds.dataset + l.toString.take(3)) -> sres
+         val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
+         val fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAcc" + le.abr + ".tex", "ISO-8859-1")
+         sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
+            fw.write(StatTests.extensiveTable2(100, res1.toSeq.map(x => x._1 -> x._2.take(11)), sl.take(11).toVector.map(_.toString), s"stratsBalAcc${i}a" + le.abr, "acurácia balanceada para " + le.abr, 7))
+            fw.write(StatTests.extensiveTable2(100, res1.toSeq.map(x => x._1 -> x._2.drop(11)), sl.drop(11).toVector.map(_.toString), s"stratsBalAcc${i}b" + le.abr, "acurácia balanceada para " + le.abr, 7))
+         }
+         fw.close()
+
+         //         val res = sorted.filter(!_._2.contains(NA, NA))
+         //         val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
+         //         else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
+         //         fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAccFried" + learnersStr.mkString("") + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
+         //         fw.write(StatTests.pairTable(pairs, "stratsBalAccFried", "acurácia balanceada"))
+         //         fw.close()
+         //         println(s"${res.size} datasets completos")
       }
-
-      val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == NA))
-      var fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAcc.tex", "ISO-8859-1")
-      res0sorted.grouped(280).foreach { res1 =>
-         fw.write(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "stratsBalAcc", "acurácia balanceada", 7))
-      }
-      fw.close()
-
-      val res = res0sorted.filter(!_._2.contains(NA, NA))
-      val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-      else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-      fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAccFried" + learnersStr.mkString("") + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
-      fw.write(StatTests.pairTable(pairs, "stratsBalAccFried", "acurácia balanceada"))
-      fw.close()
-
-      println(s"${res.size} datasets completos")
    }
 }
