@@ -19,6 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import java.io.PrintWriter
+
 import al.strategies.Passive
 import clean.lib._
 import util.{Stat, StatTests}
@@ -27,6 +29,7 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedPasstex"
    val measure = BalancedAcc
+   val risco = false
    run()
 
    override def run() = {
@@ -70,34 +73,30 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
 
             }
 
-            //por media
-            if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
-
-            //pela pior medida
-            //            if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
-
+            if (!risco) {
+               if (vs.contains(NA)) (NA, NA) else Stat.media_desvioPadrao(vs.toVector)
+            } else {
+               if (vs.contains(-2d)) (-2d, -2d) else (vs.min, -2d)
+            }
          }
          ds.close()
          (ds.dataset + l.toString.take(3)) -> sres
       }
 
       val res0sorted = res0.toList.sortBy(x => x._2.count(_._1 == NA))
-
-      println(s"")
+      var fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAccFried.tex", "ISO-8859-1")
       res0sorted.grouped(280).foreach { res1 =>
-         println(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "nomeTab", measure.toString, 7))
+         fw.write(StatTests.extensiveTable2(1000, res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), sl.toVector.map(_.toString), "stratsBalAccFried", "acurácia balanceada", 7))
       }
+      fw.close()
 
-      println(s"")
       val res = res0sorted.filter(!_._2.contains(NA, NA))
+      val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
+      else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
+      fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAcc" + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
+      fw.write(StatTests.pairTable(pairs, "stratsBalAcc", "acurácia balanceada"))
+      fw.close()
 
-      //por medida
-      val pairs = StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-
-      //por 1-desvio
-      //            val res2 = res.map(x => x._1 -> x._2.map(1 - _._2).drop(1))
-      //            val pairs = StatTests.friedmanNemenyi(res2, sl.toVector.drop(1))
-
-      println(StatTests.pairTable(pairs, "tablename", "acc"))
+      println(s"${res.size} datasets completos")
    }
 }

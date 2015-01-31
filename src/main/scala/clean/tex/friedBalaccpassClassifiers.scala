@@ -70,7 +70,7 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
       val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls)
 
       fw = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex", "ISO-8859-1")
-      fw.write(StatTests.pairTable(pairs, "tab:friedClassif", "acc"))
+      fw.write(StatTests.pairTable(pairs, "tab:friedClassif", "acurácia balanceada"))
       fw.close()
    }
 }
