@@ -44,6 +44,7 @@ object mea2 extends Exp with LearnerTrait with StratsTrait with Lock with CM wit
 
       //svm
       val t = ranges(ds, 4, 400).apply(1)._2 //metade de U, mas limitado por 200
+      ds.log(s"$t", 40)
       poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
       poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
       poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
