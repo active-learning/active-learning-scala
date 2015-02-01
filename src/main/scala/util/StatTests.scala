@@ -112,7 +112,7 @@ object StatTests {
    }
 
    def extensiveTable2(take11: Boolean, precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
-      val nstrats = measures.head._2.length
+      val nstrats = if (take11) 11 else measures.head._2.drop(11).length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip
          val r = cor(vs, precision, "blue", "red").zip(cor(ds, precision, "black", "darkgreen", "black")) map {

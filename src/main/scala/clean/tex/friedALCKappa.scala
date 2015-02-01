@@ -28,9 +28,11 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappatex"
    val measure = ALCKappa
-   val fried = true
-   val risco = false
    run()
+   //   val fried = true
+   val fried = false
+   //   val risco = true
+   val risco = false
 
    override def run() = {
       super.run()
@@ -73,8 +75,8 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
          if (!fried) {
             val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappa" + le.abr + ".tex", "ISO-8859-1")
             sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-               fw.write(StatTests.extensiveTable2(take11 = true, 100, res1.toSeq.map(x => x._1 -> x._2.take(11)), sl.take(11).toVector.map(_.toString), s"stratsALCKappa${i}a" + le.abr, "ALCKappa para " + le.abr, 7))
-               fw.write(StatTests.extensiveTable2(take11 = false, 100, res1.toSeq.map(x => x._1 -> x._2.drop(11)), sl.drop(11).toVector.map(_.toString), s"stratsALCKappa${i}b" + le.abr, "ALCKappa para " + le.abr, 7))
+               fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}a" + le.abr, "ALCKappa para " + le.abr, 7))
+               fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}b" + le.abr, "ALCKappa para " + le.abr, 7))
             }
             fw.close()
          } else {

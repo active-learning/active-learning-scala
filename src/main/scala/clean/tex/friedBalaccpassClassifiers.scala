@@ -28,7 +28,6 @@ import util.{Stat, StatTests}
 object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedBalaccpassClassifierstex"
-   //         val measure = Kappa
    val measure = BalancedAcc
    run()
 
@@ -63,7 +62,7 @@ object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with St
 
       var fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")
       sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
-         fw.write(StatTests.extensiveTable2(take11 = true, 100, res1.toSeq, ls, "tab:balaccClassif" + i, measure.toString, 7))
+         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq, ls, "tab:balaccClassif" + i, measure.toString, 7))
       }
       fw.close()
 
