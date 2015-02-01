@@ -65,8 +65,10 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
       fila.clear()
 
+      val (tmin, thalf, tmax, tpass) = ranges(ds)
+
       //majoritaria e svm
-      for ((ti, tf) <- maxRange(ds, 2, 100) +: maxRange(ds, 2, 200) +: (ranges(ds, 2, 100) ++ ranges(ds, 2, 200))) {
+      for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
          poeNaFila(fila, ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
          poeNaFila(fila, ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
          poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
@@ -74,8 +76,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
          poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
       }
-      val (i, f) = maxRange(ds, 2, 200)
-      for (t <- i to f) {
+      for (t <- tmin to tmax) {
          poeNaFila(fila, Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
          poeNaFila(fila, BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
          poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
@@ -85,7 +86,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       }
 
       //outras
-      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- maxRange(ds, 2, 100) +: maxRange(ds, 2, 200) +: (ranges(ds, 2, 100) ++ ranges(ds, 2, 200))) {
+      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
          strat match {
             case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>
@@ -93,7 +94,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
                poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
          }
       }
-      for (strat <- allStrats(); learner <- allLearners(); t <- i to f) {
+      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
          strat match {
             case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>

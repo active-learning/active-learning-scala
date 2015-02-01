@@ -51,7 +51,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                   s <- strats
                } yield {
                   val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-                  val (ti, tf) = maxRange(ds, 2, 100) //<- verificar se põe 200
+                  val (ti, th, tf, tpass) = ranges(ds)
                   measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
                }
                poolStr -> sres

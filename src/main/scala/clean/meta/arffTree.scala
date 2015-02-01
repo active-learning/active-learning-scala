@@ -49,9 +49,9 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val tmp = ranges(ds, 2, 200)
+            val (tmin, thalf, tmax, tpass) = ranges(ds)
             ds.close()
-            tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
+            Seq((tmin, thalf, 0), (thalf, tmax, 1))
          }
 
       } yield {

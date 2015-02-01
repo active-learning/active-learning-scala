@@ -46,7 +46,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
          } yield {
             val ds = Ds(dataset, readOnly = true)
             ds.open()
-            val (ti, tf) = maxRange(ds, 2, 200)
+            val (ti, th, tf, tpass) = ranges(ds)
             val sres = for {
                s <- strats
             } yield {

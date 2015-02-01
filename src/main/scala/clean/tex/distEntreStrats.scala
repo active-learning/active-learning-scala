@@ -41,11 +41,11 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
          } yield {
             val ds = Ds(dataset, readOnly = true)
             ds.open()
-            val (ti, tf) = maxRange(ds, 2, 200) //<- verificar 100 ou 200
+            val (ti, th, tf, tpass) = ranges(ds)
             val vs = for {
-                  r <- 0 until runs
-                  f <- 0 until folds
-               } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse(ds.error(s"incompleto para ${(ds, s, l, r, f)}!"))
+               r <- 0 until runs
+               f <- 0 until folds
+            } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse(ds.error(s"incompleto para ${(ds, s, l, r, f)}!"))
             //            println(s"$ds $vs")
             ds.close()
             Stat.media_desvioPadrao(vs.toVector)._1

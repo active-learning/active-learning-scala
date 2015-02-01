@@ -71,9 +71,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //            Seq(tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2)).apply(rnd.nextInt(2)))
 
             //varia budget(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
-            val tmp = ranges(ds, 2, 200) // <- verificar!!! verificar tb argumentos do programa!!!
+            val (tmin, thalf, tmax, tpass) = ranges(ds)
             ds.close()
-            tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2))
+            Seq((tmin, thalf, 0), (thalf, tmax, 1))
          }
 
          //varia learner(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
