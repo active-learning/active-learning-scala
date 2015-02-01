@@ -44,20 +44,20 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
             ds.open()
             val (ti, t, tf, tpass) = ranges(ds)
             val sres = for {
-                  s <- strats
-               } yield {
-                  val vs = for {
-                     r <- 0 until runs
-                     f <- 0 until folds
-                  } yield s match {
-                        case Passive(Seq(), false) => measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
-                        case _ => measure(ds, s, le, r, f)(t).read(ds).getOrElse {
-                           //                           ds.quit("NA: " + measure(ds, s, le, r, f)(t) + s" $t")
-                           NA
-                        }
+               s <- strats
+            } yield {
+               val vs = for {
+                  r <- 0 until runs
+                  f <- 0 until folds
+               } yield s match {
+                     case Passive(Seq(), false) => measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
+                     case _ => measure(ds, s, le, r, f)(t).read(ds).getOrElse {
+                        ds.quit("NA: " + measure(ds, s, le, r, f)(t) + s" $t")
+                        //                           NA
                      }
-                  if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
-               }
+                  }
+               if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
+            }
             ds.close()
             //         (ds.dataset + l.toString.take(3)) -> sres
             renomeia(ds) -> sres
