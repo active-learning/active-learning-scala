@@ -42,7 +42,9 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
          } yield {
             val ds = Ds(dataset, readOnly = true)
             ds.open()
-            val t = ranges(ds, 2, 200).head._2 //metade de U, mas limitado por 200
+            println(s"$ds")
+            ranges(ds, 4, 400) foreach println
+            val t = ranges(ds, 4, 400).apply(1)._2 //metade de U, mas limitado por 200
             val sres = for {
                   s <- strats
                } yield {
@@ -51,10 +53,10 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
                      f <- 0 until folds
                   } yield s match {
                         case Passive(Seq(), false) => measure(ds, Passive(Seq()), le, r, f)(-1).read(ds).getOrElse(ds.quit("passiva não encontrada"))
-                        case _ => measure(ds, s, le, r, f)(t).read(ds).getOrElse(NA)
+                        case _ => measure(ds, s, le, r, f)(t).read(ds).getOrElse {
+                           ds.quit("NA: " + measure(ds, s, le, r, f)(t) + s" $t")
+                        }
                      }
-
-                  if (vs.contains(NA)) throw new Error("NA")
                   if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
                }
             ds.close()

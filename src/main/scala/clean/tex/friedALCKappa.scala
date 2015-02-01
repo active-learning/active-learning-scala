@@ -35,7 +35,7 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
    override def run() = {
       super.run()
       for (le <- learners(learnersStr).par) {
-         val strats = if (le.abr == "svm") {
+         val strats = if (le.abr == "SVM") {
             if (fried) stratsForTreeRedux() else stratsForTree()
          } else {
             if (fried) stratsForTreeSemSVMRedux else stratsForTreeSemSVM
