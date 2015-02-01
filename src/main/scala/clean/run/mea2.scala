@@ -33,10 +33,8 @@ object mea2 extends Exp with LearnerTrait with StratsTrait with Lock with CM wit
    val ignoreNotDone = false
    run()
 
-   def poeNaFila(fila: mutable.Set[String], f: => String): Unit = try {
+   def poeNaFila(fila: mutable.Set[String], f: => String): Unit = {
       fila += f
-   } catch {
-      case e: Throwable =>
    }
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
