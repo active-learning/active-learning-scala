@@ -66,8 +66,8 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
          val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
          val fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAcc" + le.abr + ".tex", "ISO-8859-1")
          sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-            fw.write(StatTests.extensiveTable2(100, res1.toSeq.map(x => x._1 -> x._2.take(11)), sl.take(11).toVector.map(_.toString), s"stratsBalAcc${i}a" + le.abr, "acurácia balanceada para " + le.abr, 7))
-            fw.write(StatTests.extensiveTable2(100, res1.toSeq.map(x => x._1 -> x._2.drop(11)), sl.drop(11).toVector.map(_.toString), s"stratsBalAcc${i}b" + le.abr, "acurácia balanceada para " + le.abr, 7))
+            fw.write(StatTests.extensiveTable2(take11 = true, 100, res1.toSeq.map(x => x._1 -> x._2.take(11)), sl.take(11).toVector.map(_.toString), s"stratsBalAcc${i}a" + le.abr, "acurácia balanceada para " + le.abr, 7))
+            fw.write(StatTests.extensiveTable2(take11 = false, 100, res1.toSeq.map(x => x._1 -> x._2.drop(11)), sl.drop(11).toVector.map(_.toString), s"stratsBalAcc${i}b" + le.abr, "acurácia balanceada para " + le.abr, 7))
          }
          fw.close()
 

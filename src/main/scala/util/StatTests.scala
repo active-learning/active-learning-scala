@@ -111,7 +111,7 @@ object StatTests {
       }
    }
 
-   def extensiveTable2(precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
+   def extensiveTable2(take11: Boolean, precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
       val nstrats = measures.head._2.length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip
@@ -120,10 +120,10 @@ object StatTests {
             case (x, y) if y.contains("-2") => x
             case (x, y) => x + "/" + y
          }
-         val vals = r.mkString(" & ")
+         val vals = (if (take11) r.take(11) else r.drop(11)).mkString(" & ")
          s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
       }.filter(_.nonEmpty).mkString("\n")
-      if (core.nonEmpty) table(core, nstrats, strategies, tableName, measure, language) else ""
+      if (core.nonEmpty) table(core, nstrats, if (take11) strategies.take(11) else strategies.drop(11), tableName, measure, language) else ""
    }
 
    /**
