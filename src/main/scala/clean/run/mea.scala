@@ -76,16 +76,14 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
          poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
       }
-
-      //mudar aqui se for rodar pra todos ts 1/2
-      //      for (t <- tmin to tmax) {
-      poeNaFila(fila, Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(thalf).sqlToWrite(ds))
-      poeNaFila(fila, BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(thalf).sqlToWrite(ds))
-      poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(thalf).sqlToWrite(ds))
-      poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(thalf).sqlToWrite(ds))
-      poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(thalf).sqlToWrite(ds))
-      poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(thalf).sqlToWrite(ds))
-      //      }
+      for (t <- tmin to tmax) {
+         poeNaFila(fila, Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
+         poeNaFila(fila, BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
+         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      }
 
       //outras
       for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
@@ -96,8 +94,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
                poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
          }
       }
-      //mudar aqui se for rodar pra todos ts 2/2
-      for (strat <- allStrats(); learner <- allLearners(); t <- Seq(thalf)) {
+      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
          strat match {
             case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>
