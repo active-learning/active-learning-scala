@@ -2,6 +2,7 @@ package clean.meta
 
 import java.io.FileWriter
 
+import al.strategies.Passive
 import clean.lib._
 import util.{Stat, StatTests}
 
@@ -31,6 +32,8 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    Caso contrário, apenas o melhor vencedor serve de rótulo.
     */
    val ties = true
+   //   val ties = false
+   val bestLearner = true
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val measure = ALCKappa
@@ -45,7 +48,15 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val metadata0 = for {
          name <- datasets.toList
 
-         l <- learners(learnersStr).par
+         l <- if (bestLearner) Seq(learners(learnersStr).map { l =>
+            val ds = Ds(name, readOnly = true)
+            ds.open()
+            val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
+            ds.close()
+            l -> Stat.media_desvioPadrao(vs.toVector)._1
+         }.maxBy(_._2)._1)
+         else learners(learnersStr)
+
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -62,7 +73,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-               duplicadorDeAmostra <- 0 to 3
+               duplicadorDeAmostra <- 0 to 7
             } yield {
                val poolStr = (100 * r + f).toString
                val medidas = for (s <- stratsForTreeSemSVMRedux) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
@@ -100,42 +111,13 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val labels = pred.distinct.sorted
       val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
       val numAtts = humanNumAttsNames
-      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + learners(learnersStr).map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
-      val fw = new FileWriter("/home/davi/wcs/ucipp/uci/metaTree" + (if (ties) "Ties" else "") + ".arff")
+      val fw = new FileWriter("/home/davi/wcs/ucipp/uci/metaTree" + (if (ties) "Ties" else "") + (if (bestLearner) "Best" else "") + ".arff")
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
       println(s"${data.size}")
    }
 }
-
-/*
-learner = NB
-|   %nominais <= 33.333333: ATUeuc (328.0/264.0)
-|   %nominais > 33.333333: SGmulti (77.0/61.0)
-learner = 5NN
-|   #classes <= 3
-|   |   #exemplos/#atributos <= 47.054545: EERent (135.0/105.0)
-|   |   #exemplos/#atributos > 47.054545: ATUmah (81.0/67.0)
-|   #classes > 3: ATUeuc (115.0/88.0)
-learner = VFDT
-|   orçamento = baixo: ATUeuc (169.0/123.0)
-|   orçamento = alto
-|   |   entropia da classe <= 0.947361: Rnd (130.0/114.0)
-|   |   entropia da classe > 0.947361: TUeuc (88.0/75.0)
-learner = C4.5
-|   orçamento = baixo: ATUeuc (172.0/130.0)
-|   orçamento = alto
-|   |   #exemplos <= 614.4: ATUeuc (140.0/122.0)
-|   |   #exemplos > 614.4: ATUmah (82.0/64.0)
-learner = SVM: ATUmah (350.0/217.0)
-learner = CIELM
-|   entropia da classe <= 0.805125: TUeuc (74.0/56.0)
-|   entropia da classe > 0.805125: TUmah (304.0/225.0)
-
-Number of Leaves  : 	14
-
-Size of the tree : 	23
- */
