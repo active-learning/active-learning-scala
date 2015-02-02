@@ -156,6 +156,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", if (budix == 0) "baixo" else "alto"))
             case "Rank" => //prediz ranking
                println(s"filtrar sVMmulti com learner errado");
+               println(s"arrumar ranking, pois não está verificando empate de posições (ou nem arrumar caso não existam empates)")
                ???
                val vs = for {
                   s <- stratsForTree() // <- verificar!!!
