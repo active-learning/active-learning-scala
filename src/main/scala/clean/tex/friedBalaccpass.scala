@@ -29,9 +29,9 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedPasstex"
    val measure = BalancedAcc
-   run()
    //   val risco = true
    val risco = false
+   run()
 
    override def run() = {
       super.run()

@@ -29,11 +29,11 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappabest"
    val measure = ALCKappa
-   run()
-   val fried = true
-   //   val fried = false
+   //   val fried = true
+   val fried = false
    //   val risco = true
    val risco = false
+   run()
 
    override def run() = {
       super.run()
@@ -52,7 +52,6 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
          val sres = for {
             s <- strats
          } yield {
-            //               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
@@ -60,12 +59,12 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
             if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
          }
          ds.close()
-         //         (ds.dataset + l.toString.take(3)) -> sres
          renomeia(ds) -> sres
       }
-
+      println(s"adfdaf")
       val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
       if (!fried) {
+         println(!fried + s"dszfczxdfv" + fried)
          val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappabest.tex", "ISO-8859-1")
          sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
             fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}besta", "ALCKappa para melhor aprendiz", 7))
@@ -73,6 +72,7 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
          }
          fw.close()
       } else {
+         println(s"dfsdf")
          val res = sorted.filter(!_._2.contains(NA, NA))
          val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
          else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
