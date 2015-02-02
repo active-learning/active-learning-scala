@@ -42,9 +42,9 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          ds.open()
          try {
             val vs = for {
-               t <- Seq(0, 1)
                r <- 0 until runs
                f <- 0 until folds
+               multiplicadorDeAmostra <- 0 to 7
             } yield {
                val poolStr = (100 * r + f).toString
                val sres = for {

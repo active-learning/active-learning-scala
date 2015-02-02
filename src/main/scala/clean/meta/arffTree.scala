@@ -73,7 +73,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-               duplicadorDeAmostra <- 0 to 7
+               multiplicadorDeAmostra <- 0 to 7
             } yield {
                val poolStr = (100 * r + f).toString
                val medidas = for (s <- stratsForTreeSemSVMRedux) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {

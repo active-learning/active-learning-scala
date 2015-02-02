@@ -29,13 +29,14 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappabest"
    val measure = ALCKappa
+   val redux = true
    //   val risco = true
    val risco = false
    run()
 
    override def run() = {
       super.run()
-      val strats = stratsForTreeSemSVM //if (fried) stratsForTreeSemSVMRedux else stratsForTreeSemSVM
+      val strats = if (redux) stratsForTreeSemSVMRedux else stratsForTreeSemSVM
       val sl = strats.map(_.abr)
       val res0 = for {
          dataset <- datasets
@@ -61,18 +62,18 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
       }
 
       val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-      val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappabest.tex", "ISO-8859-1")
+      val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappabest" + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
       sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}besta", "ALCKappa para melhor aprendiz", 7))
-         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}bestb", "ALCKappa para melhor aprendiz", 7))
+         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}best" + (if (redux) "Redux" else "") + "a", "ALCKappa para melhor aprendiz", 7))
+         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}best" + (if (redux) "Redux" else "") + "b", "ALCKappa para melhor aprendiz", 7))
       }
       fw.close()
 
       val res = sorted.filter(!_._2.contains(NA, NA))
       val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-      val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
-      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedbest" + (if (risco) "Risco" else ""), "ALCKappa para melhor aprendiz"))
+      val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
+      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), "ALCKappa para melhor aprendiz"))
       fw2.close()
       println(s"${res.size} datasets completos")
    }
