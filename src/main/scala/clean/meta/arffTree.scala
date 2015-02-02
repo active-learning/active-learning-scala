@@ -32,7 +32,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
     */
    val ties = true
    val context = "metaAttsTreeApp"
-   val arguments = superArguments
+   val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val measure = ALCKappa
    //   val measure = ALCBalancedAcc
    run()
@@ -45,7 +45,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val metadata0 = for {
          name <- datasets.toList
 
-         l <- allLearnersRedux().par
+         l <- learners(learnersStr).par
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -100,7 +100,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val labels = pred.distinct.sorted
       val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
       val numAtts = humanNumAttsNames
-      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearnersRedux().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + learners(learnersStr).map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 

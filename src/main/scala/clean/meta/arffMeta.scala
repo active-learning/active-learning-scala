@@ -45,7 +45,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    val modo = "Winner"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
-   val arguments = superArguments
+   val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val measure = ALCKappa
    //   val measure = ALCBalancedAcc
    run()
@@ -77,7 +77,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          }
 
          //varia learner(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
-         l <- allLearners()
+         l <- learners(learnersStr)
       } yield {
          val ds = Ds(name, readOnly = true)
          println(s"$ds")
@@ -203,7 +203,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
       val data = metadata.map { case (numericos, learner, vencedores, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedores"}
-      val header = List("@relation data") ++ nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + allLearners().map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + learners(learnersStr).map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 

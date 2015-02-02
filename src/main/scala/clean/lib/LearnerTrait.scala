@@ -31,8 +31,6 @@ trait LearnerTrait {
 
    def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
-   def allLearnersRedux(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed).drop(1).take(1)
-
    def specialLearners(pool: Seq[Pattern] = Seq()) = List[Learner](
       NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()
    )
@@ -47,8 +45,8 @@ trait LearnerTrait {
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      //      IELM(learnerSeed) //6
-      CIELM(learnerSeed) //8
+      IELM(learnerSeed) //6
+      , CIELM(learnerSeed) //8
       //      , NinteraELM(learnerSeed) //11  //tava comentado
    )
 
