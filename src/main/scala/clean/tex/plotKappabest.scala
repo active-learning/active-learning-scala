@@ -32,6 +32,8 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
    val redux = true
    //   val risco = true
    val risco = false
+   //   val rank = true
+   val porRank = false
    run()
 
    override def run() = {
@@ -70,11 +72,20 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
             ts.reverse.padTo(200, fst).reverse
          }
          ds.close()
-         val rank = sres.transpose.maa
+         lazy val rank = sres.transpose.map { vs =>
+            val idxERank = vs.zipWithIndex.sortBy(_._1).reverse.zipWithIndex
+            val idxEAvrRank = idxERank.groupBy { case ((v, idx), ra) => ff(1000)(v)}.toList.map { case (k, g) =>
+               val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / g.size
+               g.map { case ((v, idx), ra) => idx -> avrRa}
+            }.flatten
+            idxEAvrRank.sortBy(_._1).map(_._2)
+         }
+         if (porRank) rank.transpose else sres
       }
       val plot = res0.transpose.map { re =>
          re.foldLeft(Seq.fill(200)(0d))((b, list) => b.zip(list).map(x => x._1 + x._2)).map(_ / dss.size)
       }
+      println(sl.mkString(" "))
       plot.transpose foreach { re =>
          println(re.mkString(" "))
       }
