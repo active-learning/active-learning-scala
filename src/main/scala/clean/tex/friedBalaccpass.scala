@@ -72,13 +72,13 @@ object friedBalaccpass extends AppWithUsage with LearnerTrait with StratsTrait w
          }
          fw.close()
 
-         //         val res = sorted.filter(!_._2.contains(NA, NA))
-         //         val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-         //         else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-         //         fw = new PrintWriter("/home/davi/wcs/tese/stratsBalAccFried" + learnersStr.mkString("") + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
-         //         fw.write(StatTests.pairTable(pairs, "stratsBalAccFried", "acurácia balanceada"))
-         //         fw.close()
-         //         println(s"${res.size} datasets completos")
+         //                  val res = sorted.filter(!_._2.contains(NA, NA))
+         //                  val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
+         //                  else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
+         //                  val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsBalAccFried" + learnersStr.mkString("") + (if (risco) "Risco" else "") + ".tex", "ISO-8859-1")
+         //                  fw2.write(StatTests.pairTable(pairs, "stratsBalAccFried", "acurácia balanceada"))
+         //                  fw2.close()
+         //                  println(s"${res.size} datasets completos")
       }
    }
 }
