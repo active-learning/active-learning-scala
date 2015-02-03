@@ -25,7 +25,7 @@ import ml.models.Model
 case class AgDensityWeightedLabelUtility2(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends AgStrategyWithMapsLU with MarginMeasure {
    override val toString = "Density Weighted AgLU2 a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "ALU" + distance_name.take(3)
+   val abr = "\\textbf{ALU" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 361 + (100 * (1 - alpha)).toInt
