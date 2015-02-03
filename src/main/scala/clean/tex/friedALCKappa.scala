@@ -28,8 +28,8 @@ object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait wit
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappatex"
    val measure = ALCKappa
-   //   val redux = true
-   val redux = false
+   val redux = true
+   //   val redux = false
    //
    // val risco = true
    val risco = false

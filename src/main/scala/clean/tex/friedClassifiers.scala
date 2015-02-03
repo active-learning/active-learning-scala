@@ -25,7 +25,7 @@ import al.strategies.Passive
 import clean.lib._
 import util.{Stat, StatTests}
 
-object friedBalaccpassClassifiers extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object friedClassifiers extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedBalaccpassClassifierstex"
    val measure = BalancedAcc

@@ -136,8 +136,9 @@ object StatTests {
       }
       """\begin{table}[h]
 \caption{""" + caption + """}
-\begin{center}
-\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t& " + (1 to pairs.size).mkString(" & ") + "\\\\\n" +
+\begin{center}""" +
+         (if (pairs.size > 10 && pairs.size < 20) "\\scalebox{0.7}{")
+      """\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t& " + (1 to pairs.size).mkString(" & ") + "\\\\\n" +
          pairs.zipWithIndex.map { case ((s, l), i) =>
             val I = i
             val nr = i + 1
@@ -150,7 +151,9 @@ object StatTests {
             }).mkString(" & ") + """ \\""" +
                (if (i % seps == seps - 1) """ \hline""" else "")
          }.mkString("\n") +
-         """\end{tabular}
+         """\end{tabular}""" +
+         (if (pairs.size > 10 && pairs.size < 20) "\\scalebox{0.7}{")
+      """
 \label{""" + tableName + """}
 \end{center}
 \end{table}"""
