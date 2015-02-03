@@ -32,8 +32,8 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
    val redux = true
    //   val risco = true
    val risco = false
-   //   val rank = true
-   val porRank = false
+   val porRank = true
+   //   val porRank = false
    run()
 
    override def run() = {
@@ -51,7 +51,7 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
          dataset <- dss.par
       } yield {
          val ds = Ds(dataset, readOnly = true)
-         println(s"$ds")
+         //         println(s"$ds")
          ds.open()
          val le = learners(learnersStr).map { l =>
             val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
@@ -72,22 +72,22 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
             ts.reverse.padTo(200, fst).reverse
          }
          ds.close()
-         lazy val rank = sres.transpose.map { vs =>
-            val idxERank = vs.zipWithIndex.sortBy(_._1).reverse.zipWithIndex
+         lazy val rank = sres.transpose.map { vsAtT =>
+            val idxERank = vsAtT.zipWithIndex.sortBy(_._1).reverse.zipWithIndex
             val idxEAvrRank = idxERank.groupBy { case ((v, idx), ra) => ff(1000)(v)}.toList.map { case (k, g) =>
                val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / g.size
                g.map { case ((v, idx), ra) => idx -> avrRa}
             }.flatten
             idxEAvrRank.sortBy(_._1).map(_._2)
          }
-         if (porRank) rank.transpose else sres
+         if (porRank) rank else sres.transpose
       }
-      val plot = res0.transpose.map { re =>
-         re.foldLeft(Seq.fill(200)(0d))((b, list) => b.zip(list).map(x => x._1 + x._2)).map(_ / dss.size)
-      }
+      val plot = res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
+         m.flatten.zip(l).map(x => x._1 + x._2)
+      }.grouped(sl.size)
       println(sl.mkString(" "))
-      plot.transpose foreach { re =>
-         println(re.mkString(" "))
+      plot foreach { re =>
+         println(re.map(_ / dss.size).mkString(" "))
       }
 
       //
