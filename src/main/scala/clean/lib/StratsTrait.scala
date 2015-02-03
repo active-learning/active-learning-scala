@@ -125,10 +125,13 @@ trait StratsTrait {
       //      , SVMmulti(pool, "BALANCED_EEw") //969
       , new SGmulti(learner, pool, "consensus") //14
       , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+
+      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+      , AgDensityWeightedLabelUtility2(pool, "manh") //371
+      , AgDensityWeightedLabelUtility2(pool, "maha") //391
    )
 
 }
