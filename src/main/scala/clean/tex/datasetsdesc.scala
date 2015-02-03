@@ -68,11 +68,13 @@ object datasetsdesc extends Exp with Lock {
          ((i + 1) + "-" + d) -> l
       }
       println(todas.size + " " + datasets.size)
-      val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables.tex", "ISO-8859-1")
-      fw.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(33)))
-      fw.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(33).take(33)))
-      fw.write(tabela("tab:datasetsc", "Características das bases de dados (67-94).", todas.drop(66)))
+      val fw2 = new PrintWriter("/home/davi/wcs/tese/dataset-tables.tex", "ISO-8859-1")
+      fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(33)))
+      fw2.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(33).take(33)))
+      fw2.write(tabela("tab:datasetsc", "Características das bases de dados (67-94).", todas.drop(66)))
+      fw2.close()
 
+      val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables-reduxes.tex", "ISO-8859-1")
       val maisDesbalanceadas = todas.filter(x => x._2(4).toDouble > 4 * x._2(5).toDouble).toList.sortBy(x => x._2(4).toDouble / x._2(5).toDouble).reverse
       fw.write(tabela("tab:imb", "Bases de dados mais desbalanceadas.", maisDesbalanceadas))
 
