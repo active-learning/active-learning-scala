@@ -130,12 +130,14 @@ sealed trait RangeMeasure extends Measure {
 
 case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
    extends InstantMeasure {
+   override val toString = "acurácia balanceada"
    val id = 100000000 + t * 10000
    protected val instantFun = accBal _
 }
 
 case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
    extends InstantMeasure {
+   override val toString = "Kappa"
    val id = 200000000 + t * 10000
    protected val instantFun = kappa _
 }
@@ -149,6 +151,7 @@ case class ALCBalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t
 
 case class ALCKappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val ti: Int, val tf: Int)
    extends RangeMeasure {
+   override val toString = "ALCKappa"
    val id = 400000000 + ti * 10000 + tf
    protected val instantFun = kappa _
    protected val rangeFun = ALC _

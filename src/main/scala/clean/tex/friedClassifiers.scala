@@ -33,6 +33,10 @@ object friedClassifiers extends AppWithUsage with LearnerTrait with StratsTrait 
 
    override def run() = {
       super.run()
+      val caption = language match {
+         case "pt" => s"\\textbf{Um contra um}. Medida: $measure. \\textit{Cada asterisco/cruz/ponto indica quando o algoritmo na linha tem melhor desempenho que o algoritmo na coluna com intervalo de confiança de 0.99/0.95/0.90.}"
+         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
+      }
       val ls = learners(learnersStr).map(_.abr).toVector
       val res0 = for {
          dataset <- datasets
@@ -69,7 +73,7 @@ object friedClassifiers extends AppWithUsage with LearnerTrait with StratsTrait 
       val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls)
 
       fw = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex", "ISO-8859-1")
-      fw.write(StatTests.pairTable(pairs, "tab:friedClassif", "acurácia balanceada"))
+      fw.write(StatTests.pairTable(pairs, "tab:friedClassif", 2, caption))
       fw.close()
    }
 }

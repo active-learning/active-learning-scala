@@ -36,6 +36,10 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
 
    override def run() = {
       super.run()
+      val caption = language match {
+         case "pt" => s"Um contra um para melhor algoritmo de aprendizado. Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
+         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
+      }
       val strats = if (redux) stratsForTreeRedux() else stratsForTree()
       val sl = strats.map(_.abr)
       val res0 = for {
@@ -73,7 +77,7 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
       val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
       val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
-      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), "ALCKappa para melhor aprendiz"))
+      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), 2, caption))
       fw2.close()
       println(s"${res.size} datasets completos")
    }

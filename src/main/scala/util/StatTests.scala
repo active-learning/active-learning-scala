@@ -129,16 +129,12 @@ object StatTests {
    /**
     * prints a Latex table for pairwise comparisons
     */
-   def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, measure: String, seps: Int = 2, language: String = "pt") = {
-      val caption = language match {
-         case "pt" => s"Um contra um: cada asterisco/cruz/ponto indica quando o algoritmo na linha tem melhor $measure que o algoritmo na coluna com intervalo de confiança de 0.99/0.95/0.90."
-         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
-      }
+   def pairTable(pairs: Vector[(String, Vector[Int])], tableName: String, seps: Int, caption: String = "CAPTION") = {
       """\begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}""" +
-         (if (pairs.size > 10 && pairs.size < 20) "\\scalebox{0.7}{")
-      """\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t& " + (1 to pairs.size).mkString(" & ") + "\\\\\n" +
+         (if (pairs.size > 10 && pairs.size < 20) "\\scalebox{0.9}{" else "") +
+         """\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t& " + (1 to pairs.size).mkString(" & ") + "\\\\\n" +
          pairs.zipWithIndex.map { case ((s, l), i) =>
             val I = i
             val nr = i + 1
@@ -152,8 +148,8 @@ object StatTests {
                (if (i % seps == seps - 1) """ \hline""" else "")
          }.mkString("\n") +
          """\end{tabular}""" +
-         (if (pairs.size > 10 && pairs.size < 20) "\\scalebox{0.7}{")
-      """
+         (if (pairs.size > 10 && pairs.size < 20) "}" else "") +
+         """
 \label{""" + tableName + """}
 \end{center}
 \end{table}"""
@@ -254,7 +250,7 @@ object FriedmanNemenyiTest extends App {
    //  StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC")
    println("winners:" + StatTests.winners(m, Vector("e1", "e2", "e3", "e4", "e5")))
    println("losers:" + StatTests.losers(m, Vector("e1", "e2", "e3", "e4", "e5")))
-   println(StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", "ALC"))
+   println(StatTests.pairTable(StatTests.friedmanNemenyi(m, Vector("e1", "e2", "e3", "e4", "e5")), "teste", 2, "sdfsdf"))
    //  StatTests.extensiveTable(m, Vector("e1", "e2", "e3", "e4"), "teste", "ALC")
    //  m0 foreach (x => println(x._2.mkString(" ")))
    println("clearwinners:" + StatTests.clearWinners(m, Vector("e1", "e2", "e3", "e4", "e5")))
