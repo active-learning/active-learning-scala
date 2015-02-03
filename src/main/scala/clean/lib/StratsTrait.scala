@@ -45,8 +45,8 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , AgDensityWeightedLabelUtility2(pool, "eucl") //361
       , AgDensityWeightedLabelUtility2(pool, "manh") //371
-      , SVMmulti(pool, "KFFw") //968
-      , SVMmulti(pool, "BALANCED_EEw") //969
+      //      , SVMmulti(pool, "KFFw") //968
+      //      , SVMmulti(pool, "BALANCED_EEw") //969
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
@@ -82,8 +82,8 @@ trait StratsTrait {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   val stratsForTreeSemSVM = stratsForTree().take(7) ++ stratsForTree().drop(9)
-   val stratsForTreeSemSVMRedux = stratsForTreeRedux().take(5) ++ stratsForTreeRedux().drop(7)
+   //   val stratsForTreeSemSVM = stratsForTree().take(7) ++ stratsForTree().drop(9)
+   //   val stratsForTreeSemSVMRedux = stratsForTreeRedux().take(5) ++ stratsForTreeRedux().drop(7)
 
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
@@ -95,8 +95,8 @@ trait StratsTrait {
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       //
-      , SVMmulti(pool, "KFFw") //968
-      , SVMmulti(pool, "BALANCED_EEw") //969
+      //      , SVMmulti(pool, "KFFw") //968
+      //      , SVMmulti(pool, "BALANCED_EEw") //969
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
 
@@ -121,8 +121,8 @@ trait StratsTrait {
       , Margin(learner, pool) //3
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , SVMmulti(pool, "KFFw") //968
-      , SVMmulti(pool, "BALANCED_EEw") //969
+      //      , SVMmulti(pool, "KFFw") //968
+      //      , SVMmulti(pool, "BALANCED_EEw") //969
       , new SGmulti(learner, pool, "consensus") //14
       , DensityWeighted(learner, pool, 1, "eucl") //5
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //6

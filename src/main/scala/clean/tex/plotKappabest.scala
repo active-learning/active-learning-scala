@@ -38,7 +38,7 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
 
    override def run() = {
       super.run()
-      val strats = if (redux) stratsForTreeSemSVMRedux else stratsForTreeSemSVM
+      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
       val sl = strats.map(_.abr)
       val dss = datasets.filter { d =>
          val ds = Ds(d, readOnly = true)

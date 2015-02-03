@@ -35,7 +35,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      val accs0 = for (s <- if (redux) stratsForTreeSemSVMRedux.par else stratsForTreeSemSVM.par) yield {
+      val accs0 = for (s <- if (redux) stratsForTreeRedux().par else stratsForTree().par) yield {
          val res0 = for {
             dataset <- datasets
             l <- learners(learnersStr)

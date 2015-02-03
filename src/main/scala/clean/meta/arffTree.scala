@@ -44,7 +44,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    override def run() = {
       super.run()
-      val ss = stratsForTreeSemSVMRedux.map(_.abr).toVector
+      val ss = stratsForTreeRedux().map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList
 
@@ -76,7 +76,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                multiplicadorDeAmostra <- 0 to 7
             } yield {
                val poolStr = (100 * r + f).toString
-               val medidas = for (s <- stratsForTreeSemSVMRedux) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+               val medidas = for (s <- stratsForTreeRedux()) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                   ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
                   -2d
                }
@@ -88,7 +88,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                else None
             }.flatten
          } else {
-            val medidas = for (s <- stratsForTreeSemSVMRedux) yield {
+            val medidas = for (s <- stratsForTreeRedux()) yield {
                val ms = for {
                   r <- 0 until Global.runs
                   f <- 0 until Global.folds

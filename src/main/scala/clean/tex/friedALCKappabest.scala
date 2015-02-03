@@ -36,7 +36,7 @@ object friedALCKappabest extends AppWithUsage with LearnerTrait with StratsTrait
 
    override def run() = {
       super.run()
-      val strats = if (redux) stratsForTreeSemSVMRedux else stratsForTreeSemSVM
+      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
       val sl = strats.map(_.abr)
       val res0 = for {
          dataset <- datasets

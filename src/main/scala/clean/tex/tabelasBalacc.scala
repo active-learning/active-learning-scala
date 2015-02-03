@@ -36,7 +36,7 @@ object tabelasBalacc extends AppWithUsage with LearnerTrait with StratsTrait wit
    override def run() = {
       super.run()
       for (le <- learners(learnersStr).par) {
-         val strats = Passive(Seq()) +: (if (le.abr == "svm") stratsForTree() else stratsForTreeSemSVM)
+         val strats = Passive(Seq()) +: stratsForTree()
          val sl = strats.map(_.abr)
          val res0 = for {
             dataset <- datasets
