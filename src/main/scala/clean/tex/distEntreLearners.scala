@@ -25,15 +25,17 @@ import al.strategies.Passive
 import clean.lib._
 import util.{Stat, StatTests}
 
-object distEntrePassivas extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object distEntreLearners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val context = "distEntrePassivastex"
+   val context = "distEntreLearnerstex"
    val measure = BalancedAcc
    run()
 
    override def run() = {
       super.run()
-      val accs0 = for (l <- learners(learnersStr).par) yield {
+      val ls0 = learners(learnersStr).sortBy(_.abr)
+      val ls = ls0.dropRight(2) ++ ls0.takeRight(2).reverse
+      val accs0 = for (l <- ls.par) yield {
          val res0 = for {
             dataset <- datasets
          } yield {
@@ -47,9 +49,9 @@ object distEntrePassivas extends AppWithUsage with LearnerTrait with StratsTrait
             ds.close()
             Stat.media_desvioPadrao(vs.toVector)._1
          }
-         l.toString.split(" ").head -> res0
+         l.abr -> res0
       }
-      val accs = accs0.toList.sortBy(_._1)
+      val accs = accs0.toList
       val dists = for (a <- accs) yield {
          val ds = for (b <- accs) yield {
             val d = math.sqrt(a._2.zip(b._2).map { case (v1, v2) =>

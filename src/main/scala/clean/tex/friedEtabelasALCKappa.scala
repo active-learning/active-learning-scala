@@ -24,7 +24,7 @@ import java.io.PrintWriter
 import clean.lib._
 import util.{Stat, StatTests}
 
-object friedALCKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappatex"
    val measure = ALCKappa

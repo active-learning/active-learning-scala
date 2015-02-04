@@ -25,9 +25,9 @@ import al.strategies.Passive
 import clean.lib._
 import util.{Stat, StatTests}
 
-object friedClassifiers extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val context = "friedBalaccpassClassifierstex"
+   val context = "friedLearnerstex"
    val measure = BalancedAcc
    run()
 
@@ -37,14 +37,15 @@ object friedClassifiers extends AppWithUsage with LearnerTrait with StratsTrait 
          case "pt" => s"\\textbf{Um contra um}. Medida: $measure. \\textit{Cada asterisco/cruz/ponto indica quando o algoritmo na linha tem melhor desempenho que o algoritmo na coluna com intervalo de confiança de 0.99/0.95/0.90.}"
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
-      val ls = learners(learnersStr).map(_.abr).toVector
+      val ls0 = learners(learnersStr).sortBy(_.abr).toVector
+      val ls = ls0.dropRight(2) ++ ls0.takeRight(2).reverse
       val res0 = for {
          dataset <- datasets
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val lres = for {
-            l <- learners(learnersStr).sortBy(_.abr)
+            l <- ls
          } yield {
             val vs = for {
                r <- 0 until runs
@@ -66,11 +67,11 @@ object friedClassifiers extends AppWithUsage with LearnerTrait with StratsTrait 
 
       var fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")
       sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
-         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq, ls, "tab:balaccClassif" + i, measure.toString, 7))
+         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq, ls.map(_.abr), "tab:balaccClassif" + i, measure.toString, 5))
       }
       fw.close()
 
-      val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls)
+      val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls.map(_.abr))
 
       fw = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex", "ISO-8859-1")
       fw.write(StatTests.pairTable(pairs, "tab:friedClassif", 2, caption))

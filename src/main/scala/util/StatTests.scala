@@ -200,7 +200,8 @@ object StatTests {
    def distTable(pairs: List[(String, List[Double])], tableName: String, sujeitos: String, measure: String, seps: Int = 2, language: String = "pt") = {
       val caption = language match {
          case "pt" => s"Similaridade entre $sujeitos de acordo com a acurácia balanceada para as 94 bases de dados." +
-            " O maior e o menor valor de cada linha está em \\textcolor{blue}{\\textbf{azul}} e \\textcolor{red}{\\textbf{vermelho}} respectivamente. Valores iguais ou acima de $0,5$ estão em negrito."
+            " O maior e o menor valor de cada linha está em \\textcolor{blue}{\\textbf{azul}} e \\textcolor{red}{\\textbf{vermelho}} respectivamente." +
+            (if (pairs.size > 7) " Valores iguais ou acima de $0,50$ estão em negrito." else "")
          case "en" => s"escrever no scala a descricao em ingles!!."
       }
       val header = if (pairs.size > 10) pairs.map(x => "\\begin{sideways}" + x._1 + "\\end{sideways}") else pairs.map(_._1)
