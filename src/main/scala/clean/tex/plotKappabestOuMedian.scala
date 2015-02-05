@@ -23,23 +23,27 @@ import java.io.PrintWriter
 
 import al.strategies.Passive
 import clean.lib._
+import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
-object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappabest"
    val measure = Kappa
-   val redux = true
-   //   val risco = true
-   val risco = false
    val porRank = true
-   //   val porRank = false
+   //   val tipo = "best"
+   //      val tipo="median"
+   val tipo = "all"
    run()
 
    override def run() = {
       super.run()
-      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
+      val strats = stratsForTreeRedux()
       val sl = strats.map(_.abr)
+      val ls = tipo match {
+         case "best" | "median" => Seq(NoLearner())
+         case "all" => learners(learnersStr)
+      }
       val dss = datasets.filter { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
@@ -48,15 +52,23 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
          U > 200
       }
       val res0 = for {
-         dataset <- dss.par
+         dataset <- dss.take(1000).par
+         le0 <- ls
       } yield {
          val ds = Ds(dataset, readOnly = true)
-         //         println(s"$ds")
          ds.open()
-         val le = learners(learnersStr).map { l =>
-            val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
-            l -> Stat.media_desvioPadrao(vs.toVector)._1
-         }.maxBy(_._2)._1
+         val le = tipo match {
+            case "median" => ls.map { l =>
+               val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
+               l -> Stat.media_desvioPadrao(vs.toVector)._1
+            }.sortBy(_._2).apply(ls.size / 2)._1
+            case "best" => ls.map { l =>
+               val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
+               l -> Stat.media_desvioPadrao(vs.toVector)._1
+            }.maxBy(_._2)._1
+            case "all" => le0
+         }
+
          val (ti, th, tf, tpass) = ranges(ds)
          val sres = for {
             s <- strats
@@ -82,13 +94,20 @@ object plotKappabest extends AppWithUsage with LearnerTrait with StratsTrait wit
          }
          if (porRank) rank else sres.transpose
       }
-      val plot = res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
+      val plot0 = res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
          m.flatten.zip(l).map(x => x._1 + x._2)
-      }.grouped(sl.size)
-      println(sl.mkString(" "))
-      plot foreach { re =>
-         println(re.map(_ / dss.size).mkString(" "))
+      }.grouped(sl.size).toList.map(_.toList)
+
+      val plot = plot0.toList.transpose.map { x =>
+         x.sliding(10).map(y => y.sum / y.size).toList
+      }.transpose
+
+      val fw = new PrintWriter(s"/home/davi/wcs/tese/kappa$tipo" + (if (porRank) "Rank" else "") + ".plot", "ISO-8859-1")
+      fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
+      plot.zipWithIndex foreach { case (re, i) =>
+         fw.write(i + " " + re.map(_ / (ls.size * dss.size)).mkString(" ") + "\n")
       }
+      fw.close()
 
       //
       //      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
