@@ -29,21 +29,17 @@ import util.{Stat, StatTests}
 object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappabest"
-   val measure = Kappa
    val porRank = true
-   //   val tipo = "best"
+   val tipo = "best"
    //      val tipo="median"
-   val tipo = "all"
+   //   val tipo = "all"
    run()
 
    override def run() = {
       super.run()
-      val strats = stratsForTreeRedux()
+      val strats = stratsForTree()
       val sl = strats.map(_.abr)
-      val ls = tipo match {
-         case "best" | "median" => Seq(NoLearner())
-         case "all" => learners(learnersStr)
-      }
+      val ls = learners(learnersStr)
       val dss = datasets.filter { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
@@ -53,7 +49,10 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
       }
       val res0 = for {
          dataset <- dss.take(1000).par
-         le0 <- ls
+         le0 <- tipo match {
+            case "best" | "median" => Seq(NoLearner())
+            case "all" => ls
+         }
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
@@ -77,7 +76,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
-               } yield measure(ds, s, le, r, f)(t).read(ds).getOrElse(throw new Error("NA"))
+               } yield Kappa(ds, s, le, r, f)(t).read(ds).getOrElse(throw new Error("NA"))
                Stat.media_desvioPadrao(vs.toVector)._1
             }
             val fst = ts.head
@@ -87,7 +86,8 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          lazy val rank = sres.transpose.map { vsAtT =>
             val idxERank = vsAtT.zipWithIndex.sortBy(_._1).reverse.zipWithIndex
             val idxEAvrRank = idxERank.groupBy { case ((v, idx), ra) => ff(1000)(v)}.toList.map { case (k, g) =>
-               val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / g.size
+               val gsize = g.size
+               val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / gsize
                g.map { case ((v, idx), ra) => idx -> avrRa}
             }.flatten
             idxEAvrRank.sortBy(_._1).map(_._2)
