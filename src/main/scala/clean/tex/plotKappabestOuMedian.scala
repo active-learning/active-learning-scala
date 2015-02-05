@@ -30,16 +30,21 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappabest"
    val porRank = true
+   val redux = !true
    val tipo = "best"
+   //         val tipo = "all"
    //      val tipo="median"
-   //   val tipo = "all"
    run()
 
    override def run() = {
       super.run()
-      val strats = stratsForTree()
+      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
       val sl = strats.map(_.abr)
       val ls = learners(learnersStr)
+      val ls2 = tipo match {
+         case "best" | "median" => Seq(NoLearner())
+         case "all" => ls
+      }
       val dss = datasets.filter { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
@@ -49,10 +54,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
       }
       val res0 = for {
          dataset <- dss.take(1000).par
-         le0 <- tipo match {
-            case "best" | "median" => Seq(NoLearner())
-            case "all" => ls
-         }
+         le0 <- ls2
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
@@ -102,12 +104,14 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          x.sliding(10).map(y => y.sum / y.size).toList
       }.transpose
 
-      val fw = new PrintWriter(s"/home/davi/wcs/tese/kappa$tipo" + (if (porRank) "Rank" else "") + ".plot", "ISO-8859-1")
+      val arq = s"/home/davi/wcs/tese/kappa$tipo$redux" + (if (porRank) "Rank" else "") + ".plot"
+      val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
-         fw.write(i + " " + re.map(_ / (ls.size * dss.size)).mkString(" ") + "\n")
+         fw.write(i + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
       }
       fw.close()
+      println(s"$arq")
 
       //
       //      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
