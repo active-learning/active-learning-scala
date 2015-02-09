@@ -128,10 +128,10 @@ trait StratsTrait {
 
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
-      , AgDensityWeightedLabelUtility2(pool, "manh") //371
+      //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
    )
 
 }
