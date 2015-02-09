@@ -42,6 +42,7 @@ trait LearnerTrait {
       , VFDT() //4
       , C45() //3
       , SVMLib(learnerSeed) //5
+      , RF(learnerSeed)
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
@@ -64,6 +65,7 @@ trait LearnerTrait {
       case "intera" => interaELM(learnerSeed)
       case "nintera" => NinteraELM(learnerSeed)
       case "svm" => SVMLib(learnerSeed)
+      case "rf" => RF(learnerSeed)
 
       //      case "NBz" => NB("")
       //      case "C45z" => C45("")

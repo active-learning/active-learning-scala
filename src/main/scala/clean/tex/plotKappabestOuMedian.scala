@@ -30,9 +30,9 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappabest"
    val porRank = true
-   val redux = !true
-   val tipo = "best"
-   //         val tipo = "all"
+   val redux = true
+   //   val tipo = "best"
+   val tipo = "all"
    //      val tipo="median"
    run()
 
@@ -57,6 +57,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          le0 <- ls2
       } yield {
          val ds = Ds(dataset, readOnly = true)
+         println(s"$ds")
          ds.open()
          val le = tipo match {
             case "median" => ls.map { l =>
@@ -89,7 +90,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
             val idxERank = vsAtT.zipWithIndex.sortBy(_._1).reverse.zipWithIndex
             val idxEAvrRank = idxERank.groupBy { case ((v, idx), ra) => ff(1000)(v)}.toList.map { case (k, g) =>
                val gsize = g.size
-               val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / gsize
+               val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / gsize + 1 // +1 pra corrigir o índice zero
                g.map { case ((v, idx), ra) => idx -> avrRa}
             }.flatten
             idxEAvrRank.sortBy(_._1).map(_._2)
@@ -104,7 +105,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          x.sliding(10).map(y => y.sum / y.size).toList
       }.transpose
 
-      val arq = s"/home/davi/wcs/tese/kappa$tipo$redux" + (if (porRank) "Rank" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa$tipo" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + ".plot"
       val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
