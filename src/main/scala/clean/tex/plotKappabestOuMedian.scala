@@ -32,16 +32,25 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
    val porRank = true
    val redux = true
    //   val tipo = "best"
-   val tipo = "all"
+   val tipoLearner = "all"
    //      val tipo="median"
+   val tipoSumariz = "median"
+   //   val tipoSumariz = "mean"
+   val strats = if (redux) stratsForTreeRedux() else stratsForTree()
+   val sl = strats.map(_.abr)
    run()
+
+   def res0ToPlot0(res0: List[Seq[Seq[Double]]]) = tipoSumariz match {
+      case "mean" => res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
+         m.flatten.zip(l).map(x => x._1 + x._2)
+      }.grouped(sl.size).toList.map(_.toList)
+      case "median" => res0.map(_.flatten).transpose.map(x => x.sorted.toList(x.size / 2)).grouped(sl.size).toList.map(_.toList)
+   }
 
    override def run() = {
       super.run()
-      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
-      val sl = strats.map(_.abr)
       val ls = learners(learnersStr)
-      val ls2 = tipo match {
+      val ls2 = tipoLearner match {
          case "best" | "median" => Seq(NoLearner())
          case "all" => ls
       }
@@ -53,13 +62,13 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          U > 200
       }
       val res0 = for {
-         dataset <- dss.take(1000).par
+         dataset <- dss.take(1000) //.par
          le0 <- ls2
       } yield {
          val ds = Ds(dataset, readOnly = true)
          println(s"$ds")
          ds.open()
-         val le = tipo match {
+         val le = tipoLearner match {
             case "median" => ls.map { l =>
                val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
                l -> Stat.media_desvioPadrao(vs.toVector)._1
@@ -83,7 +92,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
                Stat.media_desvioPadrao(vs.toVector)._1
             }
             val fst = ts.head
-            ts.reverse.padTo(200, fst).reverse
+            ts.reverse.padTo(200, fst).reverse.toList
          }
          ds.close()
          lazy val rank = sres.transpose.map { vsAtT =>
@@ -95,17 +104,16 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
             }.flatten
             idxEAvrRank.sortBy(_._1).map(_._2)
          }
-         if (porRank) rank else sres.transpose
+         val tmp = if (porRank) rank else sres.transpose
+         tmp
       }
-      val plot0 = res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
-         m.flatten.zip(l).map(x => x._1 + x._2)
-      }.grouped(sl.size).toList.map(_.toList)
+      val plot0 = res0ToPlot0(res0.toList)
 
       val plot = plot0.toList.transpose.map { x =>
          x.sliding(10).map(y => y.sum / y.size).toList
       }.transpose
 
-      val arq = s"/home/davi/wcs/tese/kappa$tipo" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + ".plot"
       val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
@@ -113,22 +121,5 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
       }
       fw.close()
       println(s"$arq")
-
-      //
-      //      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-      //      val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappabest" + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
-      //      sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-      //         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}best" + (if (redux) "Redux" else "") + "a", "ALCKappa para melhor aprendiz", 7))
-      //         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}best" + (if (redux) "Redux" else "") + "b", "ALCKappa para melhor aprendiz", 7))
-      //      }
-      //      fw.close()
-      //
-      //      val res = sorted.filter(!_._2.contains(NA, NA))
-      //      val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-      //      else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-      //      val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
-      //      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedbest" + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), "ALCKappa para melhor aprendiz"))
-      //      fw2.close()
-      //      println(s"${res.size} datasets completos")
    }
 }
