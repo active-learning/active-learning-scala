@@ -67,23 +67,23 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
 
       val (tmin, thalf, tmax, tpass) = ranges(ds)
 
-      //majoritaria e svm
-      for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
-         poeNaFila(fila, ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-      }
-      for (t <- tmin to tmax) {
-         poeNaFila(fila, Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-      }
+      //      //majoritaria e svm
+      //      for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
+      //         poeNaFila(fila, ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //      }
+      //      for (t <- tmin to tmax) {
+      //         poeNaFila(fila, Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //      }
 
       //outras
       for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {

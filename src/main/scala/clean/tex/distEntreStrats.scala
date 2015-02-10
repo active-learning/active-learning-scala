@@ -29,8 +29,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntreStratstex"
    val measure = ALCKappa
-   //   val redux = true
-   val redux = false
+   val redux = true
    run()
 
    override def run() = {

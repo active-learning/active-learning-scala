@@ -29,9 +29,6 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
    val context = "friedALCKappatex"
    val measure = ALCKappa
    val redux = true
-   //   val redux = false
-   //
-   // val risco = true
    val risco = false
    run()
 
