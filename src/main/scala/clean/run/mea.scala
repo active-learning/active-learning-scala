@@ -65,7 +65,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
       fila.clear()
 
-      val (tmin, thalf, tmax, tpass) = ranges(ds)
+      lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
 
       //      //majoritaria e svm
       //      for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
@@ -85,23 +85,23 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       //         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
       //      }
 
-      //outras
-      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
-         strat match {
-            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
-            case s =>
-               poeNaFila(fila, ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
-               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
-         }
-      }
-      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
-         strat match {
-            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
-            case s =>
-               poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
-               poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
-         }
-      }
+      //      //outras
+      //      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
+      //         strat match {
+      //            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
+      //            case s =>
+      //               poeNaFila(fila, ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
+      //               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
+      //         }
+      //      }
+      //      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
+      //         strat match {
+      //            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
+      //            case s =>
+      //               poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+      //               poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+      //         }
+      //      }
 
       if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
       fila.clear()
