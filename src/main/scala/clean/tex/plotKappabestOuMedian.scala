@@ -62,7 +62,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          U > 200
       }
       val res0 = for {
-         dataset <- dss.take(1000) //.par
+         dataset <- dss.take(1000).par
          le0 <- ls2
       } yield {
          val ds = Ds(dataset, readOnly = true)
