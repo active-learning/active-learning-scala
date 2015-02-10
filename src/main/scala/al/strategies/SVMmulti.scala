@@ -20,7 +20,7 @@ package al.strategies
 
 import clean.lib.{CM, Ds}
 import ml.Pattern
-import ml.classifiers.SVMLib
+import ml.classifiers.{CIELM, RF, SVMLib}
 import svmal.SVMStrategymulti
 
 import scala.util.Random
@@ -130,23 +130,24 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
 
 object SVMmultiTest extends App with CM {
    val context = "SVMmultiTest"
-   val ds = Ds("banana", readOnly = true)
+   val ds = Ds("abalone-3class", readOnly = true)
    val patts = new Random(6294).shuffle(ds.patterns)
-   val (tr, ts) = patts.splitAt(patts.size / 2)
+   val (tr, ts) = patts.splitAt(patts.size / 3)
+   val l = RF()
    val strats = Seq(
-      RandomSampling(tr)
-      , AgDensityWeightedLabelUtility1(tr, "eucl")
-      , AgDensityWeightedLabelUtility2(tr, "eucl")
-      , SVMmulti(tr, "BALANCED_EEw")
-      , SVMmulti(tr, "KFFw")
-      , SVMmulti(tr, "SIMPLEw")
+      //      RandomSampling(tr)
+      DensityWeightedTrainingUtility(l, tr, "maha")
+      , AgDensityWeightedLabelUtility2(tr, "manh")
+      //      , SVMmulti(tr, "BALANCED_EEw")
+      //      , SVMmulti(tr, "KFFw")
+      //      , SVMmulti(tr, "SIMPLEw")
       //      , SVMmulti(tr, "SELF_CONFw")
    ).par
-
-   val l = SVMLib()
-   val accss = (1 to tr.take(200).size) map { qs =>
+   val accss = (tr.head.nclasses to tr.take(400).size).par map { qs =>
       val accs = strats.map { x =>
-         accBal(l.build(x.queries.take(qs)).confusion(ts))
+         //         accBal(l.build(x.queries.take(qs)).confusion(ts))
+         val labeled = x.queries.take(qs)
+         l.build(labeled).predictionEntropy(ts)._1
       }
       accs.mkString(" ")
    }

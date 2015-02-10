@@ -29,13 +29,13 @@ import util.{Stat, StatTests}
 object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappabest"
-   val porRank = true
-   val redux = true
+   val porRank = !true
    //   val tipo = "best"
    val tipoLearner = "all"
    //      val tipo="median"
    val tipoSumariz = "median"
    //   val tipoSumariz = "mean"
+   val redux = true
    val strats = if (redux) stratsForTreeRedux() else stratsForTree()
    val sl = strats.map(_.abr)
    run()
