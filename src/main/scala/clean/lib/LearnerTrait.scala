@@ -43,14 +43,14 @@ trait LearnerTrait {
       //      , C45() //3
       //      , SVMLib(learnerSeed) //5
       //      ,
-      RF(learnerSeed)
+      //      RF(learnerSeed)
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       //      IELM(learnerSeed) //6
       //      ,
       //      CIELM(learnerSeed) //8
-      //      , NinteraELM(learnerSeed) //11  //tava comentado
+      NinteraELM(learnerSeed) //11  //tava comentado
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
