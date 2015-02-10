@@ -1,6 +1,6 @@
 name := "als"
 
-version := "elmp"
+version := "elm"
 
 scalaVersion := "2.10.4"
 
