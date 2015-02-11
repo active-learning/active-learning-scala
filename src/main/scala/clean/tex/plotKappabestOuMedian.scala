@@ -30,12 +30,13 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappabest"
    val porRank = !true
-   //   val tipo = "best"
+   //   val tipoLearner = "best"
    val tipoLearner = "all"
    //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val redux = porRank
+   val risco = true
    val strats = if (redux) stratsForTreeRedux() else stratsForTree()
    val sl = strats.map(_.abr)
    run()
@@ -49,7 +50,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (risco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
       val ls2 = tipoLearner match {
@@ -91,7 +92,8 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
                   r <- 0 until runs
                   f <- 0 until folds
                } yield Kappa(ds, s, le, r, f)(t).read(ds).getOrElse(throw new Error("NA"))
-               Stat.media_desvioPadrao(vs.toVector)._1
+               if (risco) Stat.media_desvioPadrao(vs.toVector)._2 * (if (porRank) -1 else 1)
+               else Stat.media_desvioPadrao(vs.toVector)._1
             }
             val fst = ts.head
             ts.reverse.padTo(200, fst).reverse.toList
