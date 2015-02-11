@@ -132,25 +132,30 @@ object SVMmultiTest extends App with CM {
    val context = "SVMmultiTest"
    val ds = Ds("abalone-3class", readOnly = true)
    val patts = new Random(6294).shuffle(ds.patterns)
-   val (tr, ts) = patts.splitAt(patts.size / 3)
+   val (tr, ts) = patts.splitAt(patts.size / 4)
    val l = RF()
    val strats = Seq(
       //      RandomSampling(tr)
-      DensityWeightedTrainingUtility(l, tr, "maha")
-      , AgDensityWeightedLabelUtility2(tr, "manh")
+      DensityWeightedTrainingUtility(l, tr, "eucl")
+      , AgDensityWeightedTrainingUtility(tr, "eucl")
       //      , SVMmulti(tr, "BALANCED_EEw")
       //      , SVMmulti(tr, "KFFw")
       //      , SVMmulti(tr, "SIMPLEw")
       //      , SVMmulti(tr, "SELF_CONFw")
    ).par
-   val accss = (tr.head.nclasses to tr.take(400).size).par map { qs =>
-      val accs = strats.map { x =>
+   val accs = strats.par.map { x =>
+      val ques = x.queries.take(400)
+      var m = l.build(ques.take(tr.head.nclasses))
+      var old = m.predictionEntropy(tr)._1
+      ques.map { q =>
          //         accBal(l.build(x.queries.take(qs)).confusion(ts))
-         val labeled = x.queries.take(qs)
-         l.build(labeled).predictionEntropy(ts)._1
+         m = l.update(m)(q)
+         val ne = m.predictionEntropy(tr)._2
+         val r = old - ne
+         old = ne
+         r
       }
-      accs.mkString(" ")
-   }
+   }.transpose.map(_.mkString(" "))
    println(strats.map(_.abr).mkString(" "))
-   accss foreach println
+   accs foreach println
 }

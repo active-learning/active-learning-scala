@@ -32,26 +32,28 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
    val porRank = !true
    //   val tipo = "best"
    val tipoLearner = "all"
-   //      val tipo="median"
-   val tipoSumariz = "median"
-   //   val tipoSumariz = "mean"
-   val redux = true
+   //      val tipo="mediano"
+   //   val tipoSumariz = "mediana"
+   val tipoSumariz = "media"
+   val redux = porRank
    val strats = if (redux) stratsForTreeRedux() else stratsForTree()
    val sl = strats.map(_.abr)
    run()
 
    def res0ToPlot0(res0: List[Seq[Seq[Double]]]) = tipoSumariz match {
-      case "mean" => res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
+      case "media" => res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
          m.flatten.zip(l).map(x => x._1 + x._2)
       }.grouped(sl.size).toList.map(_.toList)
-      case "median" => res0.map(_.flatten).transpose.map(x => x.sorted.toList(x.size / 2)).grouped(sl.size).toList.map(_.toList)
+      case "mediana" => res0.map(_.flatten).transpose.map(x => x.sorted.toList(x.size / 2)).grouped(sl.size).toList.map(_.toList)
    }
 
    override def run() = {
       super.run()
+      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + ".plot"
+      println(s"$arq")
       val ls = learners(learnersStr)
       val ls2 = tipoLearner match {
-         case "best" | "median" => Seq(NoLearner())
+         case "best" | "mediano" => Seq(NoLearner())
          case "all" => ls
       }
       val dss = datasets.filter { d =>
@@ -69,7 +71,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          println(s"$ds")
          ds.open()
          val le = tipoLearner match {
-            case "median" => ls.map { l =>
+            case "mediano" => ls.map { l =>
                val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
                l -> Stat.media_desvioPadrao(vs.toVector)._1
             }.sortBy(_._2).apply(ls.size / 2)._1
@@ -113,7 +115,6 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
          x.sliding(10).map(y => y.sum / y.size).toList
       }.transpose
 
-      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + ".plot"
       val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
