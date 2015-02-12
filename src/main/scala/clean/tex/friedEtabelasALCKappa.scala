@@ -58,10 +58,9 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
                   try {
                      measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                   } catch {
-                     case e: Throwable => NA
+                     case e: Throwable => println("NA:" + (ds, s.abr, le, r, f))
+                        NA //sys.exit(1)
                   }
-
-               if (vs.contains(NA)) throw new Error("NA")
                if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
             }
             ds.close()
