@@ -35,7 +35,7 @@ object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsT
    //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
-   val redux = porRank
+   val redux = true
    val risco = true
    val strats = if (redux) stratsForTreeRedux() else stratsForTree()
    val sl = strats.map(_.abr)

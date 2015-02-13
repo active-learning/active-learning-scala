@@ -43,15 +43,15 @@ trait StratsTrait {
       , ClusterBased(pool) //1
       //      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
-      //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
-      //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
+      //            , AgDensityWeightedLabelUtility2(pool, "eucl") //361
+      //            , AgDensityWeightedLabelUtility2(pool, "manh") //371
       //      , SVMmulti(pool, "KFFw") //968
       //      , SVMmulti(pool, "BALANCED_EEw") //969
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
       AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      //            , AgDensityWeightedLabelUtility2(pool, "maha") //391
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -64,7 +64,7 @@ trait StratsTrait {
       //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       //      , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
-      //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
+      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
 
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
@@ -75,7 +75,7 @@ trait StratsTrait {
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
+      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
    )
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////

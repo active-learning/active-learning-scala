@@ -58,7 +58,7 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
                   try {
                      measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                   } catch {
-                     case e: Throwable => println("NA:" + (ds, s.abr, le, r, f))
+                     case e: Throwable => println("NA:" +(ds, s.abr, le, r, f))
                         NA //sys.exit(1)
                   }
                if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
@@ -69,14 +69,12 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
          }
 
          val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-         if (!redux) {
-            val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappa" + le.abr + ".tex", "ISO-8859-1")
-            sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-               fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}a" + le.abr, "ALCKappa para " + le.abr, 7))
-               fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}b" + le.abr, "ALCKappa para " + le.abr, 7))
-            }
-            fw.close()
+         val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
+         sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
+            fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}a" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
+            if (!redux) fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}b" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
          }
+         fw.close()
          val res = sorted.filter(!_._2.contains(NA, NA))
          val pairs = if (!risco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
          else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
