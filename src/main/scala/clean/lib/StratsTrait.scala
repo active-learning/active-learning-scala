@@ -65,6 +65,8 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
       , DensityWeightedLabelUtility2(learner, pool, "manh") //37
+      //      , GATU(learner, pool, "eucl") //
+      , GATU(learner, pool, "manh") //
 
       , new SGmulti(learner, pool, "consensus") //14
       //      , new SGmulti(learner, pool, "majority") //15
@@ -76,6 +78,7 @@ trait StratsTrait {
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , DensityWeightedLabelUtility2(learner, pool, "maha") //39
+      , GATU(learner, pool, "maha") //
    )
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +116,8 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       , DensityWeightedLabelUtility2(learner, pool, "maha") //39
       , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      , GATU(learner, pool, "manh") //
+      , GATU(learner, pool, "maha") //
    )
 
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
@@ -132,6 +137,8 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      , GATU(learner, pool, "manh") //
+      , GATU(learner, pool, "maha") //
    )
 
 }
