@@ -59,7 +59,6 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
          olde = e
          res
       }.getOrElse(agnostico = true)
-      println(s"$agnostico")
 
       val selected = unlabeled maxBy { x =>
          val similarityU = mapU(x) / mapU.size.toDouble
