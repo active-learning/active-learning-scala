@@ -26,17 +26,17 @@ import clean.lib._
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
-object plotKappabestOuMedian extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappabest"
-   val porRank = !true
+   val porRank = true
    //   val tipoLearner = "best"
    val tipoLearner = "all"
    //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val redux = true
-   val risco = true
+   val risco = false
    val strats = if (redux) stratsForTreeRedux() else stratsForTree()
    val sl = strats.map(_.abr)
    run()
