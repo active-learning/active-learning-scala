@@ -60,11 +60,11 @@ trait Exp extends AppWithUsage with FilterTrait {
 
                      //Ordena pool e testSet e cria filtros.
                      val pool = new Random(fold).shuffle(tr.sortBy(_.id))
-                     val (fpool, binaf, zscof) = filterTr(tr, fold)
+                     val (fpool, binaf, zscof) = criaFiltro(tr, fold)
 
                      //ts
                      val testSet = new Random(fold).shuffle(ts.sortBy(_.id))
-                     val ftestSet = filterTs(ts, fold, binaf, zscof)
+                     val ftestSet = aplicaFiltro(ts, fold, binaf, zscof)
 
                      //opera no ds // find (&& x.learner.id == strat.learner.id) desnecessario
                      op(ds, pool, testSet, fpool, ftestSet, learnerSeed, run, fold, binaf, zscof)

@@ -69,6 +69,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          val ds = Ds(name, readOnly = true)
          //         println(s"$ds")
          ds.open()
+         //         val suav = ds.suavidade(l)
          val res = if (ties) {
             val vs = for {
                r <- 0 until runs
@@ -109,7 +110,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //cria ARFF
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
-      val data = metadata.map { case (numericos, learner, vencedora, budget, attPref, boundaryType) => numericos.mkString(",") + s",$budget,$learner,$vencedora,$attPref,$boundaryType"}
+      val data = metadata.map { case (numericos, learner, vencedora, budget, attPref, boundaryType) => numericos.mkString(",") + s",$budget,$learner,$attPref,$boundaryType," + "\"" + vencedora + "\""}
       val numAtts = humanNumAttsNames
       val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
       val pronto = header ++ data

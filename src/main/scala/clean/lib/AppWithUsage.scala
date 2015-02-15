@@ -76,9 +76,9 @@ trait AppWithUsage extends App with Log with ArgParser {
       "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax," + attsFromRNames.mkString(",")
    //      "majority,minority,majorityByminority,classEntropy," + attsFromRNames.mkString(",")
    // <- class dependent metaatts
-   val humanNumAttsNames = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"#exs/#atrs\",\"%majoritária\",\"%minoritária\",\"%majoritária/%minoritária\",\"entropia da predição\""
+   val humanNumAttsNames = "\"#classes\",\"#atributos\",\"#exemplos\",\"#exemplos/#atributos\",\"%nominais\",\"#exs/#atrs\",\"%majoritária\",\"%minoritária\",\"%majoritária/%minoritária\",\"entropia da distr. de classes\""
    //   val descriptionNames = Seq("""\pbox{20cm}{\#exemplos\\($|\mathcal{U}|$)}""", """\pbox{20cm}{\#classes\\($|Y|$)}""", "\\#atributos", "\\#nominais", "\\%majoritária", "\\%minoritária", """\pbox{20cm}{entropia da \\distr. de classes}""")
-   val descriptionNames = Seq( """$|\mathcal{U}|$""", """$|Y|$""", "atributos", "nominais", """\makecell{majoritária\\(\%)}""", """\makecell{minoritária\\(\%)}""", """\makecell{entropia da \\predição}""")
+   val descriptionNames = Seq( """$|\mathcal{U}|$""", """$|Y|$""", "atributos", "nominais", """\makecell{majoritária\\(\%)}""", """\makecell{minoritária\\(\%)}""", """\makecell{entropia da \\distr. de classes}""")
 
    def ff(precision: Double)(x: Double) = (x * precision).round / precision
 

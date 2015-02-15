@@ -25,7 +25,7 @@ import weka.filters.Filter
 import scala.util.Random
 
 trait FilterTrait {
-   def filterTr(tr: Seq[Pattern], fold: Int) = {
+   def criaFiltro(tr: Seq[Pattern], fold: Int) = {
       //bina
       val binaf = Datasets.binarizeFilter(tr)
       val binarizedTr = Datasets.applyFilter(binaf)(tr)
@@ -40,7 +40,7 @@ trait FilterTrait {
       (pool, binaf, zscof)
    }
 
-   def filterTs(ts: Seq[Pattern], fold: Int, binaf: Filter, zscof: Filter) = {
+   def aplicaFiltro(ts: Seq[Pattern], fold: Int, binaf: Filter, zscof: Filter) = {
       //ts
       val binarizedTs = Datasets.applyFilter(binaf)(ts)
       val testSet = {

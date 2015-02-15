@@ -23,11 +23,7 @@ import ml.Pattern
 import ml.classifiers._
 
 trait LearnerTrait {
-   val learnerStr: String
-
    def learners(learnersStr: Seq[String]) = learnersStr map str2learner()
-
-   def fixedLearner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1): Learner = str2learner(pool, learnerSeed)(learnerStr)
 
    def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 

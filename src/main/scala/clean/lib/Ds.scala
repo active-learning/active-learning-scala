@@ -19,7 +19,7 @@
 package clean.lib
 
 import al.strategies._
-import ml.classifiers.Learner
+import ml.classifiers.{CIELM, Learner}
 import ml.{Pattern, PatternParent}
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import org.apache.commons.math3.stat.descriptive.moment.{Kurtosis, Skewness}
@@ -30,11 +30,12 @@ import weka.filters.Filter
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Random
 
 /**
  * Cada instancia desta classe representa um ML dataset.
  */
-case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM with EntropyMeasure {
+case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM with EntropyMeasure with FilterTrait with LearnerTrait {
 
    override lazy val toString = dataset
    override val context = dataset
@@ -381,9 +382,11 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     * @param zscof
     * @return
     */
-   def queries(strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
-      val patts = read(s"SELECT i.id FROM i, q, p where i.id=q.i and p.id=p and p.s=${strat.id} and p.l=${strat.learner.id} and p.r=$run and p.f=$fold order by t asc") match {
-         case List() => quit("No queries found!")
+   def queries(strat: Strategy, run: Int, fold: Int, binaf: Filter, zscof: Filter): List[Pattern] = queries(strat.id, strat.learner.id, run, fold, binaf, zscof)
+
+   def queries(stratid: Int, lid: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
+      val patts = read(s"SELECT i.id FROM i, q, p where i.id=q.i and p.id=p and p.s=$stratid and p.l=$lid and p.r=$run and p.f=$fold order by t asc") match {
+         case List() => quit("No queries found!" +(stratid, lid, run, fold))
          case list: List[Vector[Double]] =>
             val ids = list.map(_.head.toInt)
             val m = (patterns map (p => p.id -> p)).toMap
@@ -467,62 +470,19 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       foldSizes map (n - _)
    }
 
-   //   def getMeasure(measure: Measure, strategy: Strategy, learner: Learner, run: Int, fold: Int) = {
-   //      val pid = poolId(strategy, learner, run, fold).getOrElse(quit(s"Pool ${(strategy, learner, run, fold)} not found!"))
-   //      read(s"select v from r where p=$pid and m=${measure.id(this)}") match {
-   //         case List() => None
-   //         case List(seq) => Some(seq.head)
-   //      }
-   //   }
-
    def pids(sid: Int, lid: Int) = read(s"SELECT id FROM p WHERE s=$sid and l=$lid") match {
       case List() => None
       case l => Some(l.map(_.head.toInt))
    }
 
-   //   def isMeasureComplete(measure: Measure, sid: Int, lid: Int) = {
-   //      val Nrpools = Global.runs * Global.folds
-   //      pids(sid, lid) match {
-   //         case Some(l) if l.size == Nrpools => read(s"select count(v) from r where p in (${l.mkString(",")}) and m=${measure.id(this)}") match {
-   //            case List(Vector(Nrpools)) => true
-   //            case _ => false
-   //         }
-   //         case _ => false
-   //      }
-   //   }
-   //
-   //   def measureToSQL(measure: Measure, value: Double, sid: Int, learner: Learner, run: Int, fold: Int) = {
-   //      val pid = poolId(sid, learner.id, run, fold).getOrElse(quit(s"Pool ${(abr(sid), learner, run, fold)} not found!"))
-   //      s"insert into r values (${measure.id(this)}, $pid, $value)"
-   //   }
-   //
-   //   def putMeasureValue(measure: Measure, value: Double, strategy: Strategy, learner: Learner, run: Int, fold: Int) {
-   //      write(measureToSQL(measure, value, strategy.id, learner, run, fold))
-   //   }
-
-
-   //   //todo: completar abreviacoes pra novas estrats (apenas para pretty print e evitar unmatched key)
-   //   lazy val abr = Seq(RandomSampling(Seq()),
-   //      ClusterBased(Seq()),
-   //      Uncertainty(NoLearner(), Seq()),
-   //      Entropy(NoLearner(), Seq()),
-   //      Margin(NoLearner(), Seq()),
-   //      DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
-   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),
-   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "eucl"),
-   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "maha"),
-   //      DensityWeightedTrainingUtility(NoLearner(), Seq(), "manh"),
-   //      MahalaWeightedTrainingUtility(NoLearner(), Seq(), 1, 1),
-   //      ExpErrorReductionMargin(NoLearner(), Seq(), "entropy"),
-   //      ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual"),
-   //      ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy"),
-   //      new SGmulti(NoLearner(), Seq(), "consensus"),
-   //      new SGmulti(NoLearner(), Seq(), "majority"),
-   //      new SGmultiJS(NoLearner(), Seq()),
-   //      SVMmulti(Seq(), "SELF_CONF"),
-   //      SVMmulti(Seq(), "KFF"),
-   //      SVMmulti(Seq(), "BALANCED_EE"),
-   //      SVMmulti(Seq(), "BALANCED_EEw"),
-   //      SVMmulti(Seq(), "SIMPLE")
-   //   ).map(s => s.id -> s.abr).toMap
+   def suavidade(l: Learner) = {
+      val le = allLearners(patterns, 42).find(_.id == l.id).getOrElse(quit("suavidade problems"))
+      val ts = new Random(0).shuffle(patterns).take(15 * nclasses)
+      val (fts, binaf, zscof) = criaFiltro(patterns, 0)
+      val tr = queries(3, l.id, 0, 0, null, null).take(nclasses)
+      lazy val ftr = aplicaFiltro(tr, 0, binaf, zscof)
+      val tr2 = if (Seq(6, 8, 11).contains(l.id)) ftr else tr
+      val ts2 = if (Seq(6, 8, 11).contains(l.id)) fts else ts
+      le.build(tr2).predictionEntropy(ts2)._1
+   }
 }

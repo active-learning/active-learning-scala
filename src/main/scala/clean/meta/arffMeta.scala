@@ -56,7 +56,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       super.run()
       val ss = stratsForTree().map(_.abr).toVector
       val metadata0 = for {
-         name <- datasets.toList.filter(_ != "leaf") //<- VERIFICAR!!!!!!!!!!!!!!!!!!!
+         name <- datasets.toList
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -224,8 +224,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
                   val learnerSeed = run * 10000 + fold
 
-                  val (fpool, binaf, zscof) = filterTr(tr, fold)
-                  val ftestSet = filterTs(ts, fold, binaf, zscof)
+                  val (fpool, binaf, zscof) = criaFiltro(tr, fold)
+                  val ftestSet = aplicaFiltro(ts, fold, binaf, zscof)
 
                   val m = NinteraELM(learnerSeed).build(fpool)
 
@@ -257,8 +257,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
                   val learnerSeed = run * 10000 + fold
 
-                  val (fpool, binaf, zscof) = filterTr(tr, fold)
-                  val ftestSet = filterTs(ts, fold, binaf, zscof)
+                  val (fpool, binaf, zscof) = criaFiltro(tr, fold)
+                  val ftestSet = aplicaFiltro(ts, fold, binaf, zscof)
 
                   val m = NinteraELM(learnerSeed).build(fpool)
 
@@ -306,8 +306,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   Maj())
                val trios = ls map {
                   case l: NinteraELM =>
-                     val (fpool, binaf, zscof) = filterTr(tr.flatten, 1)
-                     val ftestSet = filterTs(ts, 1, binaf, zscof)
+                     val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
+                     val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
                      (l, fpool, ftestSet)
                   case l => (l, tr.flatten, ts)
                }
