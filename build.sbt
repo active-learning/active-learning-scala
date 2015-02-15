@@ -1,6 +1,6 @@
 name := "als"
 
-version := "final-nintera"
+version := "gatu-nintera"
 
 scalaVersion := "2.10.4"
 
