@@ -25,21 +25,24 @@ import ml.models.Model
  * Created by davi on 10/06/14.
  */
 case class NoLearner() extends Learner {
-  override val toString = "NoLearner"
-  val id = 0
-  val abr = toString
+   override val toString = "NoLearner"
+   val id = 0
+   val abr = toString
 
-  def EMC(model: Model)(patterns: Seq[Pattern]) = ???
+   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
-  def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???
+   def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???
 
-  def expected_change(model: Model)(pattern: Pattern) = ???
+   def expected_change(model: Model)(pattern: Pattern) = ???
 
-  /**
-   * Every call to build generates a model from scratch
-   * (and reinstanciate all needed internal mutable objects, if any).
-   * @param pool
-   * @return
-   */
-  def build(pool: Seq[Pattern]) = ???
+   /**
+    * Every call to build generates a model from scratch
+    * (and reinstanciate all needed internal mutable objects, if any).
+    * @param pool
+    * @return
+    */
+   def build(pool: Seq[Pattern]) = ???
+
+   val attPref: String = ""
+   val boundaryType: String = ""
 }

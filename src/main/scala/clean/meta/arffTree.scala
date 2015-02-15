@@ -32,8 +32,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    Caso contrário, apenas o melhor vencedor serve de rótulo.
     */
    val ties = true
-   //   val ties = false
-   val bestLearner = true
+   val bestLearner = false
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val measure = ALCKappa
@@ -44,9 +43,10 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    override def run() = {
       super.run()
-      val ss = stratsForTreeRedux().map(_.abr).toVector
+      val sss = stratsForTreeRedux().dropRight(4)
+      val ss = sss.map(_.abr).toVector
       val metadata0 = for {
-         name <- datasets.toList
+         name <- datasets.toList.par
 
          l <- if (bestLearner) Seq(learners(learnersStr).map { l =>
             val ds = Ds(name, readOnly = true)
@@ -62,7 +62,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             ds.open()
             val (tmin, thalf, tmax, tpass) = ranges(ds)
             ds.close()
-            Seq((tmin, thalf, 0), (thalf, tmax, 1))
+            Seq((tmin, thalf, "\"$\\cent\\leq 50$\""), (tmin, thalf, "baixo"), (thalf, tmax, "alto"))
          }
 
       } yield {
@@ -76,7 +76,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                multiplicadorDeAmostra <- 0 to 7
             } yield {
                val poolStr = (100 * r + f).toString
-               val medidas = for (s <- stratsForTreeRedux()) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+               val medidas = for (s <- sss) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                   ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
                   -2d
                }
@@ -84,7 +84,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             }
             val winners = StatTests.clearWinners(vs, ss)
             ss.map { x =>
-               if (winners.contains(x)) Option(ds.metaAttsHumanAndKnowingLabels, l.abr, x, if (budix == 0) "baixo" else "alto")
+               if (winners.contains(x)) Option(ds.metaAttsHumanAndKnowingLabels, l.abr, x, budix, l.attPref, l.boundaryType)
                else None
             }.flatten
          } else {
@@ -98,7 +98,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                s.abr -> Stat.media_desvioPadrao(ms.toVector)
             }
-            if (medidas.exists(x => x._2._1 == -2d)) Seq() else Seq((ds.metaAttsHumanAndKnowingLabels, l.abr, medidas.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto"))
+            if (medidas.exists(x => x._2._1 == -2d)) Seq() else Seq((ds.metaAttsHumanAndKnowingLabels, l.abr, medidas.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType))
          }
          ds.close()
          res
@@ -109,9 +109,9 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //cria ARFF
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
-      val data = metadata.map { case (numericos, learner, vencedora, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedora"}
+      val data = metadata.map { case (numericos, learner, vencedora, budget, attPref, boundaryType) => numericos.mkString(",") + s",$budget,$learner,$vencedora,$attPref,$boundaryType"}
       val numAtts = humanNumAttsNames
-      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
       val pronto = header ++ data
       pronto foreach println
 
