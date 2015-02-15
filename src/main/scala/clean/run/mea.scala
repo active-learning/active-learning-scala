@@ -42,51 +42,51 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
       val fila = mutable.Set[String]()
       //passiva
-      for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
-         val k = Kappa(ds, Passive(pool), learner, run, fold)(-1)
-         val b = BalancedAcc(ds, Passive(pool), learner, run, fold)(-1)
-         if (!k.existia || !b.existia) {
-            val model = learner.build(pool)
-            val CM = model.confusion(testSet)
-            poeNaFila(fila, k.sqlToWrite(ds, CM))
-            poeNaFila(fila, b.sqlToWrite(ds, CM))
-         }
-      }
-      for (flearner <- learnersFilterDependent(rnd.nextInt(99999))) {
-         val k = Kappa(ds, Passive(fpool), flearner, run, fold)(-1)
-         val b = BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1)
-         if (!k.existia || !b.existia) {
-            val model = flearner.build(fpool)
-            val CM = model.confusion(ftestSet)
-            poeNaFila(fila, k.sqlToWrite(ds, CM))
-            poeNaFila(fila, b.sqlToWrite(ds, CM))
-         }
-      }
-      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-      fila.clear()
+      //      for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
+      //         val k = Kappa(ds, Passive(pool), learner, run, fold)(-1)
+      //         val b = BalancedAcc(ds, Passive(pool), learner, run, fold)(-1)
+      //         if (!k.existia || !b.existia) {
+      //            val model = learner.build(pool)
+      //            val CM = model.confusion(testSet)
+      //            poeNaFila(fila, k.sqlToWrite(ds, CM))
+      //            poeNaFila(fila, b.sqlToWrite(ds, CM))
+      //         }
+      //      }
+      //      for (flearner <- learnersFilterDependent(rnd.nextInt(99999))) {
+      //         val k = Kappa(ds, Passive(fpool), flearner, run, fold)(-1)
+      //         val b = BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1)
+      //         if (!k.existia || !b.existia) {
+      //            val model = flearner.build(fpool)
+      //            val CM = model.confusion(ftestSet)
+      //            poeNaFila(fila, k.sqlToWrite(ds, CM))
+      //            poeNaFila(fila, b.sqlToWrite(ds, CM))
+      //         }
+      //      }
+      //      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+      //      fila.clear()
 
       lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
 
-      //majoritaria e svm
-      for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
-         poeNaFila(fila, ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
-      }
-      for (t <- tmin to tmax) {
-         poeNaFila(fila, Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
-      }
+      //      //majoritaria e svm
+      //      for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 50))) {
+      //         poeNaFila(fila, ALCKappa(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCBalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCKappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //         poeNaFila(fila, ALCBalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(ti, tf).sqlToWrite(ds))
+      //      }
+      //      for (t <- tmin to tmax) {
+      //         poeNaFila(fila, Kappa(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, BalancedAcc(ds, Majoritary(Seq()), Maj(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "KFFw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, Kappa(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //         poeNaFila(fila, BalancedAcc(ds, SVMmulti(Seq(), "BALANCED_EEw"), SVMLib(), run, fold)(t).sqlToWrite(ds))
+      //      }
 
       //outras
-      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax))) {
+      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 50))) {
          strat match {
             case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>

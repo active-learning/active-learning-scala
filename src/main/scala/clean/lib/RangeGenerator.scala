@@ -21,9 +21,9 @@ package clean.lib
 trait RangeGenerator {
    def ranges(ds: Ds) = {
       val tmin = ds.nclasses - 1
-      val tmax = math.min(ds.expectedPoolSizes(Global.folds).min, 200) - 1 //maximiza utilidade do experimento pra calcular ALC
+      val tmax = math.min(ds.expectedPoolSizes(Global.folds).min, 200) - 1 //maximiza utilidade do experimento pra calcular ALC = máximo de exemplos
       val thalf = tmax / 2
-      val tpass = math.min(ds.expectedPoolSizes(Global.folds).min / 2, 199) //maximiza utilidade do experimento pra comparar com passiva
+      val tpass = math.min(ds.expectedPoolSizes(Global.folds).min / 2, 199) //maximiza utilidade do experimento pra comparar com passiva = metade do pool, pra evitar ser a passiva propriamente dita
       (tmin, thalf, tmax, tpass)
    }
 }
