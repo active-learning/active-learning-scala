@@ -29,7 +29,7 @@ import util.{Datasets, Stat, StatTests}
 import scala.collection.mutable
 import scala.util.Random
 
-object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
+object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait with Lock {
    /*
    "Rank" => prediz ranking das strats
    "Ties" => prediz vencedores empatados (via multirrótulo no ARFF) com ELM
@@ -56,11 +56,12 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    override def run() = {
       super.run()
-      val mapa = mutable.Map[(Ds, Learner), Double]()
+      val mapaAtts = mutable.Map[Ds, List[Double]]()
+      val mapaSuav = mutable.Map[(Ds, Learner), Double]()
       val strats = if (redux) stratsForTreeRedux().dropRight(4) else stratsForTree()
       val ss = strats.map(_.abr).toVector
       val metadata0 = for {
-         name <- datasets.toList.par
+         name <- datasets.toList.take(500).par
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -84,9 +85,12 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          l <- learners(learnersStr)
       } yield {
          val ds = Ds(name, readOnly = true)
-         println(s"$ds")
+         println(s"${l.abr} $ds")
          ds.open()
-         val suav = mapa.getOrElseUpdate((ds, l), ds.suavidade(l))
+         acquire()
+         val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.metaAtts)
+         val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
+         release()
          //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
          //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente SVMmulti e Majoritary)
          //         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
@@ -133,7 +137,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                if (vs.exists(_._2.contains(NA))) ???
                val winners = StatTests.clearWinners(vs, ss)
                ss.map { x =>
-                  if (winners.contains(x)) Option(ds.metaAtts ++ rattsm, l.abr, x, budix, l.attPref, l.boundaryType, suav)
+                  if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, l.attPref, l.boundaryType, suav)
                   else None
                }.flatten
             case "Ties" => //prediz vencedores empatados
@@ -300,7 +304,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       if (modo == "Winner" || modo == "TiesDup") Datasets.arff(arq, dedup = false) match {
          case Left(str) => error("problemas abrindo arff:" + str)
          case Right(patterns) =>
-            val grupos = patterns.groupBy(x => x.vector.dropRight(2)).map(_._2).toArray
+            val grupos = patterns.groupBy(x => x.vector.dropRight(5)).map(_._2).toArray
             println(s"qtd de grupos = ${grupos.size}")
 
             val accs = Datasets.LOO(grupos) { (tr: Seq[Vector[Pattern]], ts: Vector[Pattern]) =>
