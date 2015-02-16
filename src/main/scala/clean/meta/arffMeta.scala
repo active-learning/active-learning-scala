@@ -307,7 +307,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val ls = Seq(C45(),
                   NB(),
                   KNNBatch(5, "eucl", tr.flatten, weighted = false),
-                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
+                  //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
                   //                  SVMLib(), //não tira proveito de exemplos duplicados
                   //                  NinteraELM(), //não tira proveito de exemplos duplicados
                   Maj())
