@@ -41,7 +41,7 @@ trait StratsTrait {
       //            Majoritary(pool) //21
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      //      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
       //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
@@ -55,17 +55,17 @@ trait StratsTrait {
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      //      Uncertainty(learner, pool) //2
-      //      , Entropy(learner, pool) //4
-      Margin(learner, pool) //3
+      Uncertainty(learner, pool) //2
+      , Entropy(learner, pool) //4
+      , Margin(learner, pool) //3
 
       , DensityWeighted(learner, pool, 1, "eucl") //5
 
-      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       //      , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
       //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
-      //      , GATU(learner, pool, "eucl") //
+      , GATU(learner, pool, "eucl") //
       , GATU0(learner, pool, "manh") //
       , GATU(learner, pool, "manh") //
 
