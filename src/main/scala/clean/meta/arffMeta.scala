@@ -139,7 +139,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                if (vs.exists(_._2.contains(NA))) ???
                val winners = StatTests.clearWinners(vs, ss)
                ss.map { x =>
-                  if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, l.attPref, l.boundaryType, suav)
+                  if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, 0, 0, 0) //l.attPref, l.boundaryType, suav)
                   else None
                }.flatten
             case "Ties" => //prediz vencedores empatados
@@ -316,6 +316,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val ls = Seq(C45(),
                   NB(),
                   KNNBatch(5, "eucl", tr.flatten, weighted = true),
+                  KNNBatch(5, "eucl", tr.flatten, weighted = false),
                   //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
                   //                  SVMLib(), //não tira proveito de exemplos duplicados
                   //                  NinteraELM(), //não tira proveito de exemplos duplicados
@@ -349,7 +350,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          //qtd de grupos = 93
 
          //c45                nb                  5nn                maj
-         //
+         //0.25734549138804436 0.08358662613981759 0.2902735562310028 0.2608915906788245
+
 
          //Winner:
          //c45                 nb                  5nn                 50nn                svm                 elm                maj
