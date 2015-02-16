@@ -201,8 +201,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
-               else Option(metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav)
-            //else Option(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0)
+               //               else Option(metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav)
+               else Option(metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, 0, 0, 0)
+            //            else Option(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0)
             //else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
@@ -347,7 +348,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          //Winner:
          //                          c45                 nb                  5nnw                5nn                 maj
          //sem rf, com 3atts sem lea 0.24881796690307328 0.07860520094562644 0.24468085106382984 0.25827423167848684 0.18853427895981079
-         //com rf, com 3atts sem lea
+         //com rf, com 3atts sem lea 0.21428571428571405 0.06079027355623095 0.24113475177304950 0.25785207700101280 0.19199594731509614
          //sem rf, com 3atts com lea 0.24881796690307328 0.07860520094562644 0.24468085106382984 0.25827423167848684 0.18853427895981079
          //com rf, com 3atts com lea 0.21428571428571405 0.06079027355623095 0.24113475177304950 0.25785207700101280 0.19199594731509614
          //sem rf, sem 3atts sem lea
