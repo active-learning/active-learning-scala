@@ -26,6 +26,7 @@ import ml.classifiers._
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat, StatTests}
 
+import scala.collection.mutable
 import scala.util.Random
 
 object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
@@ -48,15 +49,18 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val measure = ALCKappa
    //   val measure = ALCBalancedAcc
+   val redux = true
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
 
    override def run() = {
       super.run()
-      val ss = stratsForTree().map(_.abr).toVector
+      val mapa = mutable.Map[(Ds, Learner), Double]()
+      val strats = if (redux) stratsForTreeRedux().dropRight(4) else stratsForTree()
+      val ss = strats.map(_.abr).toVector
       val metadata0 = for {
-         name <- datasets.toList
+         name <- datasets.toList.par
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -73,7 +77,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //varia budget(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
             val (tmin, thalf, tmax, tpass) = ranges(ds)
             ds.close()
-            Seq((tmin, thalf, 0), (thalf, tmax, 1))
+            Seq((tmin, thalf, "\"$\\cent\\leq 50$\""), (tmin, thalf, "baixo"), (thalf, tmax, "alto"))
          }
 
          //varia learner(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
@@ -82,7 +86,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          val ds = Ds(name, readOnly = true)
          println(s"$ds")
          ds.open()
-
+         val suav = mapa.getOrElseUpdate((ds, l), ds.suavidade(l))
          //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
          //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente SVMmulti e Majoritary)
          //         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
@@ -96,7 +100,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                println(s"filtrar sVMmulti com learner errado");
                ???
                val vs = for {
-                  s <- stratsForTree() // <- verificar!!!
+                  s <- strats
                } yield {
                   val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
                   val ms = for {
@@ -109,8 +113,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   s.abr -> Stat.media_desvioPadrao(ms.toVector)
                }
                if (vs.exists(x => x._2._1 == NA)) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + vs.map(_._2._1).mkString(",") + "\"", if (budix == 0) "baixo" else "alto"))
-            case "TiesDup" => //qualquer learner que conte prediz vencedores empatados
+               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + vs.map(_._2._1).mkString(",") + "\"", budix, l.attPref, l.boundaryType, suav))
+            case "TiesDup" => //qualquer metalearner que conte prediz vencedores empatados
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
@@ -118,7 +122,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                } yield {
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
-                     s <- stratsForTree() // <- verificar!!!
+                     s <- strats
                   } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969)) None
                      else Some(measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                         ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
@@ -129,7 +133,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                if (vs.exists(_._2.contains(NA))) ???
                val winners = StatTests.clearWinners(vs, ss)
                ss.map { x =>
-                  if (winners.contains(x)) Option(ds.metaAtts ++ rattsm, l.abr, x, if (budix == 0) "baixo" else "alto")
+                  if (winners.contains(x)) Option(ds.metaAtts ++ rattsm, l.abr, x, budix, l.attPref, l.boundaryType, suav)
                   else None
                }.flatten
             case "Ties" => //prediz vencedores empatados
@@ -142,7 +146,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                } yield {
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
-                     s <- stratsForTree() // <- verificar!!!
+                     s <- strats
                      le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
                   } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
                         ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
@@ -153,13 +157,13 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val winners = StatTests.clearWinners(vs, ss)
                val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
                if (vs.exists(x => x._2.contains(-2d))) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", if (budix == 0) "baixo" else "alto"))
+               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", budix, l.attPref, l.boundaryType, suav))
             case "Rank" => //prediz ranking
                println(s"filtrar sVMmulti com learner errado");
                println(s"arrumar ranking, pois não está verificando empate de posições (ou nem arrumar caso não existam empates)")
                ???
                val vs = for {
-                  s <- stratsForTree() // <- verificar!!!
+                  s <- strats
                } yield {
                   val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
                   val ms = for {
@@ -173,10 +177,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
                lazy val rank = vs.map(_._2._1).zipWithIndex.sortBy(_._1).map(_._2).zipWithIndex.sortBy(_._1).map(_._2)
                if (vs.exists(x => x._2._1 == -2d)) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + rank.mkString(",") + "\"", if (budix == 0) "baixo" else "alto"))
+               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + rank.mkString(",") + "\"", budix, l.attPref, l.boundaryType, suav))
             case "Winner" => //qualquer learner prediz apenas o melhor
                val vs0 = for {
-                  s <- stratsForTree() // <- verificar!!!
+                  s <- strats
                } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969)) None
                   else {
                      val ms = for {
@@ -190,7 +194,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
-               else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, if (budix == 0) "baixo" else "alto"))
+               else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
          ds.close()
@@ -203,8 +207,11 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //cria ARFF
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
-      val data = metadata.map { case (numericos, learner, vencedores, budget) => numericos.mkString(",") + s",$budget,$learner,$vencedores"}
-      val header = List("@relation data") ++ nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {baixo,alto}", "@attribute learner {" + learners(learnersStr).map(_.abr).mkString(",") + "}", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val data = metadata.map { case (numericos, learner, vencedores, budget, attPref, boundaryType, suavidade) => numericos.mkString(",") + s",$budget,$learner,$attPref,$boundaryType,$suavidade," + "\"" + vencedores + "\""}
+      val header = List("@relation data") ++
+         nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
+         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "suavidade", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+
       val pronto = header ++ data
       pronto foreach println
 
@@ -301,8 +308,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   NB(),
                   KNNBatch(5, "eucl", tr.flatten, weighted = false),
                   KNNBatch(50, "eucl", tr.flatten, weighted = true),
-                  SVMLib(), //não tira proveito de exemplos duplicados
-                  NinteraELM(), //não tira proveito de exemplos duplicados
+                  //                  SVMLib(), //não tira proveito de exemplos duplicados
+                  //                  NinteraELM(), //não tira proveito de exemplos duplicados
                   Maj())
                val trios = ls map {
                   case l: NinteraELM =>

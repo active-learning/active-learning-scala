@@ -67,9 +67,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
       } yield {
          val ds = Ds(name, readOnly = true)
-         //         println(s"$ds")
          ds.open()
-         //         val suav = ds.suavidade(l)
          val res = if (ties) {
             val vs = for {
                r <- 0 until runs
