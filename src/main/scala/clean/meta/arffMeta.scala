@@ -139,7 +139,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                if (vs.exists(_._2.contains(NA))) ???
                val winners = StatTests.clearWinners(vs, ss)
                ss.map { x =>
-                  if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, 0, 0, 0) //l.attPref, l.boundaryType, suav)
+                  if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, l.attPref, l.boundaryType, suav)
+                  //if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, 0, 0, 0)
                   else None
                }.flatten
             case "Ties" => //prediz vencedores empatados
@@ -344,13 +345,11 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             }
             println(accs.transpose.map(x => x.sum / x.size).mkString(" "))
          //Dup:
-         //c45               nb                 5nn               50nn               maj
-         //0.500768049155146 0.4116743471582181 0.511520737327189 0.5069124423963133 0.45852534562212
-         //qtd de metaexemplos: 5319
-         //qtd de grupos = 93
+         //                  c45                 nb                  5nnw                5nn                 maj
+         //sem rf, sem 3atts 0.24881796690307328 0.07860520094562644 0.24468085106382984 0.25827423167848684 0.18853427895981079
+         //com rf, sem 3atts 0.21428571428571405 0.06079027355623095 0.24113475177304950 0.25785207700101280 0.19199594731509614
 
-         //c45                nb                  5nn                maj
-         //0.25734549138804436 0.08358662613981759 0.2902735562310028 0.2608915906788245
+
 
 
          //Winner:
