@@ -219,7 +219,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val header = List("@relation data") ++
          nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
          List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" +
-            learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+            learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + ",na}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
 
       val pronto = header ++ data
       pronto foreach println
