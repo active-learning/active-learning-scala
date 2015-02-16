@@ -82,7 +82,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          }
 
          //varia learner(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
-         l <- learners(learnersStr).par
+         l <- learners(learnersStr)
       } yield {
          val ds = Ds(name, readOnly = true)
          println(s"${l.abr} $ds")
