@@ -147,6 +147,29 @@ trait StratsTrait {
       , GATU(learner, pool, "maha") //
    )
 
+   def stratsForTreeUltraRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , Margin(learner, pool) //3
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      //      , SVMmulti(pool, "KFFw") //968
+      //      , SVMmulti(pool, "BALANCED_EEw") //969
+      , new SGmulti(learner, pool, "consensus") //14
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+
+      //   , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      //   , AgDensityWeightedTrainingUtility(pool, "manh") //701
+      //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
+      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+      , GATU0(learner, pool, "manh") //
+      , GATU0(learner, pool, "maha") //
+      , GATU(learner, pool, "manh") //
+      , GATU(learner, pool, "maha") //
+   )
+
 }
 
 /* ids:

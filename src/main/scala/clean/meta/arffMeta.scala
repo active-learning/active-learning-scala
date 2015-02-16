@@ -58,7 +58,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       super.run()
       val mapaAtts = mutable.Map[Ds, List[Double]]()
       val mapaSuav = mutable.Map[(Ds, Learner), Double]()
-      val strats = if (redux) stratsForTreeRedux().dropRight(4) else stratsForTree()
+      val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
       val ss = strats.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList.take(500).par
@@ -342,6 +342,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          //0.500768049155146 0.4116743471582181 0.511520737327189 0.5069124423963133 0.45852534562212
          //qtd de metaexemplos: 5319
          //qtd de grupos = 93
+
+         //c45                nb                  5nn                maj
+         //
 
          //Winner:
          //c45                 nb                  5nn                 50nn                svm                 elm                maj
