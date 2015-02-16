@@ -343,19 +343,13 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
             }
             println(accs.transpose.map(x => x.sum / x.size).mkString(" "))
-         //Winner:
-         //                          c45                 nb                  5nnw                5nn                 maj
-         //sem rf, com 3atts sem lea 0.24881796690307328 0.07860520094562644 0.24468085106382984 0.25827423167848684 0.18853427895981079
-         //com rf, com 3atts sem lea 0.21428571428571405 0.06079027355623095 0.24113475177304950 0.25785207700101280 0.19199594731509614
-         //sem rf, com 3atts com lea 0.24881796690307328 0.07860520094562644 0.24468085106382984 0.25827423167848684 0.18853427895981079
-         //com rf, com 3atts com lea 0.21428571428571405 0.06079027355623095 0.24113475177304950 0.25785207700101280 0.19199594731509614
-         //sem rf, sem 3atts sem lea
-         //com rf, sem 3atts sem lea
-         //sem rf, sem 3atts com lea
-         //com rf, sem 3atts com lea
+         //Winner:                   c45                 nb                  5nnw                5nn                 maj
+         //3 buds, sem 3atts sem lea
+         //3 buds, sem 3atts com lea
+         //3 buds, com 3atts com lea
+         //3 buds, com 3atts sem lea
 
-         //TiesDup:
-         //                          c45                 nb                  5nnw                5nn                 maj
+         //TiesDup:                  c45                 nb                  5nnw                5nn                 maj
          //sem rf, sem 3atts com lea
          //com rf, sem 3atts com lea
          //sem rf, com 3atts sem lea
