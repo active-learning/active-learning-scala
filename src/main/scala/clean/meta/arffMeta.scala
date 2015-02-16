@@ -29,7 +29,7 @@ import util.{Datasets, Stat, StatTests}
 import scala.collection.mutable
 import scala.util.Random
 
-object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait with Lock {
+object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
    /*
    "Rank" => prediz ranking das strats
    "Ties" => prediz vencedores empatados (via multirrótulo no ARFF) com ELM
@@ -59,7 +59,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val mapaAtts = mutable.Map[Ds, List[Double]]()
       val mapaSuav = mutable.Map[(Ds, Learner), Double]()
       //      val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
-      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
+      val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
       val ss = strats.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList.take(500).par
@@ -88,12 +88,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          val ds = Ds(name, readOnly = true)
          println(s"${l.abr} $ds")
          ds.open()
-         val dsmetaAtts = mapaAtts.getOrElse(ds, ds.metaAtts)
-         val dssuavidade = mapaSuav.getOrElse((ds, l), ds.suavidade(l))
-         acquire()
-         val metaAtts = mapaAtts.getOrElseUpdate(ds, dsmetaAtts)
-         val suav = mapaSuav.getOrElseUpdate((ds, l), dssuavidade)
-         release()
+         val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.metaAtts)
+         val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
          //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
          //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente SVMmulti e Majoritary)
          //         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
@@ -342,23 +338,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
             }
             println(s"qtd de grupos = ${grupos.size}")
-            println(accs.transpose.map(x => x.sum / x.size).mkString(" "))
+            println(accs.transpose.map(x => "%5.1f".format(x.sum / x.size)).mkString(" "))
             println(s"$modo")
-         //Winner:                   c45                 nb                   5nnw                5nn                maj
-         //3 buds, sem 3atts sem lea 0.16869300911854088 0.05065856129685913 0.15045592705167166 0.15045592705167166 0.19199594731509606
-         //3 buds, sem 3atts com lea 0.22441742654508590 0.05116514690982773 0.24518743667679818 0.25430597771023270 0.1919959473150961
-         //3 buds, com 3atts sem lea 0.20111448834853068 0.05471124620060786 0.23150962512664613 0.2315096251266462 0.1919959473150961
-
-         //TiesDup:                  c45                 nb                  5nnw                5nn                 maj
-         //3 buds, sem 3atts sem lea
-         //3 buds, sem 3atts com lea
-         //3 buds, com 3atts sem lea
-
-         //Winner (sem rf, só 2 buds, sem 3atts, com lea):
-         //c45                 nb                  5nn                 50nn                svm                 elm                maj
-         //0.19278033794162813 0.06298003072196622 0.18586789554531477 0.18279569892473113 0.08218125960061444 0.1804915514592934 0.1359447004608294
-         //qtd de metaexemplos: 1302
-         //qtd de grupos = 93
       }
       pronto foreach println
       println(s"qtd de metaexemplos: ${data.size}")
