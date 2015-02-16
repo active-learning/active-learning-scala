@@ -29,7 +29,7 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
    val context = "friedALCKappatex"
    val measure = ALCKappa
    val risco = false
-   val redux = false
+   val redux = true
    run()
 
    override def run() = {

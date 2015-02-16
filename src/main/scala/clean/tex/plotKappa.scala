@@ -28,7 +28,7 @@ import util.{Stat, StatTests}
 
 object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val context = "plotKappabest"
+   val context = "plotKappa"
    val porRank = true
    //   val tipoLearner = "best"
    val tipoLearner = "all"
@@ -91,7 +91,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
-               } yield Kappa(ds, s, le, r, f)(t).read(ds).getOrElse(throw new Error("NA"))
+               } yield Kappa(ds, s, le, r, f)(t).read(ds).getOrElse(throw new Error(s"NA: ${(ds, s, le.abr, r, f)}"))
                if (risco) Stat.media_desvioPadrao(vs.toVector)._2 * (if (porRank) -1 else 1)
                else Stat.media_desvioPadrao(vs.toVector)._1
             }
