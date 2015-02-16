@@ -201,7 +201,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
-               else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
+               else Option(metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav)
+            //else Option(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0)
+            //else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
          ds.close()
@@ -344,15 +346,21 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
             }
             println(accs.transpose.map(x => x.sum / x.size).mkString(" "))
-         //Dup:
-         //                  c45                 nb                  5nnw                5nn                 maj
-         //sem rf, sem 3atts 0.24881796690307328 0.07860520094562644 0.24468085106382984 0.25827423167848684 0.18853427895981079
-         //com rf, sem 3atts 0.21428571428571405 0.06079027355623095 0.24113475177304950 0.25785207700101280 0.19199594731509614
-
-
-
-
          //Winner:
+         //                          c45                 nb                  5nnw                5nn                 maj
+         //sem rf, sem 3atts com lea
+         //com rf, sem 3atts com lea
+         //sem rf, com 3atts sem lea 0.24881796690307328 0.07860520094562644 0.24468085106382984 0.25827423167848684 0.18853427895981079
+         //com rf, com 3atts sem lea 0.21428571428571405 0.06079027355623095 0.24113475177304950 0.25785207700101280 0.19199594731509614
+
+         //TiesDup:
+         //                          c45                 nb                  5nnw                5nn                 maj
+         //sem rf, sem 3atts com lea
+         //com rf, sem 3atts com lea
+         //sem rf, com 3atts sem lea
+         //com rf, com 3atts sem lea
+
+         //Winner (sem rf, só 2 buds, sem 3atts, com lea):
          //c45                 nb                  5nn                 50nn                svm                 elm                maj
          //0.19278033794162813 0.06298003072196622 0.18586789554531477 0.18279569892473113 0.08218125960061444 0.1804915514592934 0.1359447004608294
          //qtd de metaexemplos: 1302
