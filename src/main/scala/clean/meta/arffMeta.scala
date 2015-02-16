@@ -210,7 +210,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val data = metadata.map { case (numericos, learner, vencedores, budget, attPref, boundaryType, suavidade) => numericos.mkString(",") + s",$budget,$learner,$attPref,$boundaryType,$suavidade," + "\"" + vencedores + "\""}
       val header = List("@relation data") ++
          nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
-         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "suavidade", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
 
       val pronto = header ++ data
       pronto foreach println
@@ -298,7 +298,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
       //NB, C45, KNN, VFDT
       if (modo == "Winner" || modo == "TiesDup") Datasets.arff(arq, dedup = false) match {
-         case Left(str) => error("problemas abrindo arff")
+         case Left(str) => error("problemas abrindo arff:" + str)
          case Right(patterns) =>
             val grupos = patterns.groupBy(x => x.vector.dropRight(2)).map(_._2).toArray
             println(s"qtd de grupos = ${grupos.size}")
