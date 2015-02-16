@@ -43,7 +43,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    override def run() = {
       super.run()
-      val sss = stratsForTreeRedux().dropRight(4)
+      val sss = stratsForTreeRedux()
       val ss = sss.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList.par

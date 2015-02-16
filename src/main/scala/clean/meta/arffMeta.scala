@@ -43,7 +43,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    Escolher mais abaixo se sorteia learner, budget ou nada.
    */
    //      val modo = "TiesDup"
-   val modo = "Winner"
+   val modo = "TiesDup"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -58,7 +58,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       super.run()
       val mapaAtts = mutable.Map[Ds, List[Double]]()
       val mapaSuav = mutable.Map[(Ds, Learner), Double]()
-      val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
+      //      val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
+      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
       val ss = strats.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList.take(500).par
@@ -124,7 +125,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
-               //                  duplicadorDeAmostra <- 0 to 1
+                  duplicadorDeAmostra <- 0 to 1
                } yield {
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
@@ -139,8 +140,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                if (vs.exists(_._2.contains(NA))) ???
                val winners = StatTests.clearWinners(vs, ss)
                ss.map { x =>
-                  if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, l.attPref, l.boundaryType, suav)
-                  //if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, 0, 0, 0)
+                  if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, "ambos", "nenhuma", 0d)
+                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, "ambos", "nenhuma", 0d)
+                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, l.attPref, l.boundaryType, suav)
                   else None
                }.flatten
             case "Ties" => //prediz vencedores empatados
@@ -201,10 +203,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
-               //               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
-               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0))
-            //            else Seq("(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix,  "ambos", "nenhuma", 0))
-            //else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
+               //                              else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
+               else Seq((metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
+            //               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
          ds.close()
@@ -224,12 +225,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + ",na}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
 
       val pronto = header ++ data
-      pronto foreach println
 
       val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
-      println(s"qtd de metaexemplos: ${data.size}")
 
       //processa arff
       if (modo == "Ties" || modo == "Acc") Datasets.arff(arq) match {
@@ -312,8 +311,6 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          case Left(str) => error("problemas abrindo arff:" + str)
          case Right(patterns) =>
             val grupos = patterns.groupBy(x => x.vector.dropRight(5)).map(_._2).toArray
-            println(s"qtd de grupos = ${grupos.size}")
-
             val accs = Datasets.LOO(grupos) { (tr: Seq[Vector[Pattern]], ts: Vector[Pattern]) =>
                val ls = Seq(C45(),
                   NB(),
@@ -344,25 +341,26 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                }
             }
+            println(s"qtd de grupos = ${grupos.size}")
             println(accs.transpose.map(x => x.sum / x.size).mkString(" "))
-         //Winner:                   c45                 nb                  5nnw                5nn                 maj
-         //3 buds, sem 3atts sem lea
-         //3 buds, sem 3atts com lea
-         //3 buds, com 3atts com lea
-         //3 buds, com 3atts sem lea
+            println(s"$modo")
+         //Winner:                   c45                 nb                   5nnw                5nn                maj
+         //3 buds, sem 3atts sem lea 0.16869300911854088 0.05065856129685913 0.15045592705167166 0.15045592705167166 0.19199594731509606
+         //3 buds, sem 3atts com lea 0.22441742654508590 0.05116514690982773 0.24518743667679818 0.25430597771023270 0.1919959473150961
+         //3 buds, com 3atts sem lea 0.20111448834853068 0.05471124620060786 0.23150962512664613 0.2315096251266462 0.1919959473150961
 
          //TiesDup:                  c45                 nb                  5nnw                5nn                 maj
-         //sem rf, sem 3atts com lea
-         //com rf, sem 3atts com lea
-         //sem rf, com 3atts sem lea
-         //com rf, com 3atts sem lea
+         //3 buds, sem 3atts sem lea
+         //3 buds, sem 3atts com lea
+         //3 buds, com 3atts sem lea
 
          //Winner (sem rf, só 2 buds, sem 3atts, com lea):
          //c45                 nb                  5nn                 50nn                svm                 elm                maj
          //0.19278033794162813 0.06298003072196622 0.18586789554531477 0.18279569892473113 0.08218125960061444 0.1804915514592934 0.1359447004608294
          //qtd de metaexemplos: 1302
          //qtd de grupos = 93
-
       }
+      pronto foreach println
+      println(s"qtd de metaexemplos: ${data.size}")
    }
 }
