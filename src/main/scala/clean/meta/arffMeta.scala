@@ -82,14 +82,16 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          }
 
          //varia learner(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
-         l <- learners(learnersStr)
+         l <- learners(learnersStr).par
       } yield {
          val ds = Ds(name, readOnly = true)
          println(s"${l.abr} $ds")
          ds.open()
+         val dsmetaAtts = mapaAtts.getOrElse(ds, ds.metaAtts)
+         val dssuavidade = mapaSuav.getOrElse((ds, l), ds.suavidade(l))
          acquire()
-         val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.metaAtts)
-         val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
+         val metaAtts = mapaAtts.getOrElseUpdate(ds, dsmetaAtts)
+         val suav = mapaSuav.getOrElseUpdate((ds, l), dssuavidade)
          release()
          //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
          //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente SVMmulti e Majoritary)
@@ -161,7 +163,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val winners = StatTests.clearWinners(vs, ss)
                val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
                if (vs.exists(x => x._2.contains(-2d))) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", budix, l.attPref, l.boundaryType, suav))
+               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", budix, 0, 0, 0)) //l.attPref, l.boundaryType, suav))
             case "Rank" => //prediz ranking
                println(s"filtrar sVMmulti com learner errado");
                println(s"arrumar ranking, pois não está verificando empate de posições (ou nem arrumar caso não existam empates)")
@@ -211,10 +213,13 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //cria ARFF
       val pred = metadata.map(_._3)
       val labels = pred.distinct.sorted
-      val data = metadata.map { case (numericos, learner, vencedores, budget, attPref, boundaryType, suavidade) => numericos.mkString(",") + s",$budget,$learner,$attPref,$boundaryType,$suavidade," + "\"" + vencedores + "\""}
+      val data = metadata.map { case (numericos, learner, vencedores, budget, attPref, boundaryType, suavidade) =>
+         numericos.mkString(",") + s",$budget,$learner,$attPref,$boundaryType,$suavidade," + "\"" + vencedores + "\""
+      }
       val header = List("@relation data") ++
          nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
-         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" +
+            learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
 
       val pronto = header ++ data
       pronto foreach println
