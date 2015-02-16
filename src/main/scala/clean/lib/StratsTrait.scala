@@ -148,6 +148,8 @@ trait StratsTrait {
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , new SGmulti(learner, pool, "consensus") //14
+      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       , GATU0(learner, pool, "manh") //
       , GATU0(learner, pool, "maha") //
       , GATU(learner, pool, "manh") //

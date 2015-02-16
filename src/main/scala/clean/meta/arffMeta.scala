@@ -38,12 +38,14 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                 com learners que façam contagem (NB, C45, KNN, VFDT)
                 se a predição estiver entre os empatados, então acertou
    "Winner" => prediz apenas o melhor
+   "WinnerDP" => prediz apenas o melhor, mas roda LOO várias vezes sorteando aprendiz; pode retornar Desvio Padrão no futuro
    "Acc" => prediz acc em cada strat com ELM
 
    Escolher mais abaixo se sorteia learner, budget ou nada.
+   Escolher tb quais metaatts fazem parte (suav etc)
    */
-   //      val modo = "TiesDup"
-   val modo = "TiesDup"
+   val modo = "Ties"
+   //   val modo = "WinnerDP"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -56,6 +58,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    override def run() = {
       super.run()
+      val ls = learners(learnersStr)
       val mapaAtts = mutable.Map[Ds, List[Double]]()
       val mapaSuav = mutable.Map[(Ds, Learner), Double]()
       //      val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
@@ -66,12 +69,6 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
-
-            //escolher se sorteia budget
-            //            val tmp = maxRange(ds, 2, 200) // <-verificar trocar p/ 200?
-            //            ds.close()
-            //            Seq((tmp._1, tmp._2, 0))
-
             //            val tmp = ranges(ds, 2, 200) // <- verificar!!! verificar tb argumentos do programa!!!
             //            ds.close()
             //            Seq(tmp.zipWithIndex.map(x => (x._1._1, x._1._2, x._2)).apply(rnd.nextInt(2)))
@@ -79,17 +76,17 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //varia budget(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
             val (tmin, thalf, tmax, tpass) = ranges(ds)
             ds.close()
-            Seq((tmin, thalf, "\"$\\cent\\leq 50$\""), (tmin, thalf, "baixo"), (thalf, tmax, "alto"))
+            //            Seq((tmin, thalf, "\"$\\cent\\leq 50$\""), (tmin, thalf, "baixo"), (thalf, tmax, "alto"))
+            //            Seq((tmin, thalf, "baixo"), (thalf, tmax, "alto"))
+            Seq((tmin, tmax, "alto"))
          }
-
-         //varia learner(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
-         l <- learners(learnersStr)
+         l <- if (modo != "WinnerDP") ls else Seq(ls(rnd.nextInt(ls.size)))
       } yield {
          val ds = Ds(name, readOnly = true)
          println(s"${l.abr} $ds")
          ds.open()
          val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.metaAtts)
-         val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
+         lazy val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
          //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
          //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente SVMmulti e Majoritary)
          //         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
@@ -116,12 +113,12 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   s.abr -> Stat.media_desvioPadrao(ms.toVector)
                }
                if (vs.exists(x => x._2._1 == NA)) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + vs.map(_._2._1).mkString(",") + "\"", budix, l.attPref, l.boundaryType, suav))
+               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + vs.map(_._2._1).mkString(","), budix, l.attPref, l.boundaryType, suav))
             case "TiesDup" => //qualquer metalearner que conte prediz vencedores empatados
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
-                  duplicadorDeAmostra <- 0 to 1
+               //                  duplicadorDeAmostra <- 0 to 20
                } yield {
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
@@ -142,8 +139,6 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   else None
                }.flatten
             case "Ties" => //prediz vencedores empatados
-               println(s"filtrar sVMmulti com learner errado");
-               ???
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
@@ -162,7 +157,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val winners = StatTests.clearWinners(vs, ss)
                val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
                if (vs.exists(x => x._2.contains(-2d))) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
+               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
+            //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
+            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, l.attPref, l.boundaryType, suav))
+            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
             case "Rank" => //prediz ranking
                println(s"filtrar sVMmulti com learner errado");
                println(s"arrumar ranking, pois não está verificando empate de posições (ou nem arrumar caso não existam empates)")
@@ -182,8 +180,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                }
                lazy val rank = vs.map(_._2._1).zipWithIndex.sortBy(_._1).map(_._2).zipWithIndex.sortBy(_._1).map(_._2)
                if (vs.exists(x => x._2._1 == -2d)) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + rank.mkString(",") + "\"", budix, l.attPref, l.boundaryType, suav))
-            case "Winner" => //qualquer learner prediz apenas o melhor
+               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + rank.mkString(","), budix, l.attPref, l.boundaryType, suav))
+            case "Winner" | "WinnerDP" => //qualquer learner prediz apenas o melhor
                val vs0 = for {
                   s <- strats
                } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969)) None
@@ -199,9 +197,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
-               //                              else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
-               else Seq((metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
-            //               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
+               //                                             else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
+               //               else Seq((metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
+               //                           else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
+               else Seq((metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
          ds.close()
@@ -218,24 +217,31 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val header = List("@relation data") ++
          nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
          List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" +
-            learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + ",na}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+            ls.map(x => "\"" + x.abr + "\"").mkString(",") + ",na}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
 
       val pronto = header ++ data
 
+      println(s"$arq")
       val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
+      pronto foreach println
 
       //processa arff
-      if (modo == "Ties" || modo == "Acc") Datasets.arff(arq) match {
+      println(s"${data.size}")
+      println(labels.size)
+      if (modo == "Ties" || modo == "Acc") Datasets.arff(arq, dedup = false) match {
          case Left(str) => error("problemas abrindo arff")
          case Right(patterns) =>
             println(s"${patterns.size}")
+            val hist = new Array[Int](patterns.head.nclasses)
+            patterns foreach (p => p.nominalSplit.zipWithIndex.foreach { case (x, i) => hist(i) += x.toInt})
+            val best = hist.zipWithIndex.maxBy(_._1)._2
             val nestedRes = (0 until runs).par map { run =>
-               val shuffled = new Random(run).shuffle(patterns)
-               Datasets.kfoldCV(shuffled, k = 94) { (tr, ts, fold, minSize) =>
+               val shuffled = patterns //new Random(run).shuffle(patterns)
+            val hits = Datasets.kfoldCV(shuffled, k = 94) { (tr, ts, fold, minSize) =>
                   //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
-                  val learnerSeed = run * 10000 + fold
+                  val learnerSeed = 0 * run * 10000 + fold
 
                   val (fpool, binaf, zscof) = criaFiltro(tr, fold)
                   val ftestSet = aplicaFiltro(ts, fold, binaf, zscof)
@@ -246,19 +252,21 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
 
                   val hitsRnd = ftestSet.zipWithIndex map { case (p, idx) => p.nominalSplit(idx % p.nclasses) == p.nominalSplit.max}
-                  val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
+                  //                  val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
 
-                  val hitsMaj = ftestSet map { p => p.nominalSplit(2) == p.nominalSplit.max}
+                  val hitsMaj = ftestSet map { p => p.nominalSplit(best) == p.nominalSplit.max}
                   val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
 
-                  println(s"$accELM $accMaj")
+                  (accELM, accMaj)
                }
+               val (he, hm) = hits.unzip
+               println((he.sum / he.size) + " " + (hm.sum / hm.size))
             }
          //            val res=nestedRes.flatten
          //            res foreach println
       }
 
-      if (modo == "Rank") Datasets.arff(arq) match {
+      if (modo == "Rank") Datasets.arff(arq, dedup = false) match {
          case Left(str) => error("problemas abrindo arff")
          case Right(patterns) =>
             println(s"Falta comparar com ranking medio.")
@@ -303,14 +311,14 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       }
 
       //NB, C45, KNN, VFDT
-      if (modo == "Winner" || modo == "TiesDup") Datasets.arff(arq, dedup = false) match {
+      if (modo == "Winner" || modo == "WinnerDP" || modo == "TiesDup") Datasets.arff(arq, dedup = false) match {
          case Left(str) => error("problemas abrindo arff:" + str)
          case Right(patterns) =>
             val grupos = patterns.groupBy(x => x.vector.dropRight(5)).map(_._2).toArray
             val accs = Datasets.LOO(grupos) { (tr: Seq[Vector[Pattern]], ts: Vector[Pattern]) =>
                val ls = Seq(C45(),
-                  NB(),
-                  KNNBatch(5, "eucl", tr.flatten, weighted = true),
+                  //                  NB(),
+                  //                  KNNBatch(5, "eucl", tr.flatten, weighted = true),
                   KNNBatch(5, "eucl", tr.flatten, weighted = false),
                   //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
                   //                  SVMLib(), //não tira proveito de exemplos duplicados
@@ -331,17 +339,15 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                      }
                      hitsByDupGroup.sum / hitsByDupGroup.size
                   }
-                  case "Winner" => trios map { case (lea, tre, tes) =>
+                  case "Winner" | "WinnerDP" => trios map { case (lea, tre, tes) =>
                      val m = lea.build(tre)
                      m.accuracy(tes)
                   }
                }
             }
-            println(s"qtd de grupos = ${grupos.size}")
-            println(accs.transpose.map(x => "%5.1f".format(x.sum / x.size)).mkString(" "))
-            println(s"$modo")
+            print(accs.transpose.map(x => "%5.3f".format(x.sum / x.size)).mkString(" "))
+            print(s" qtd de grupos = ${grupos.size} ")
       }
-      pronto foreach println
-      println(s"qtd de metaexemplos: ${data.size}")
+      println(s"qtd de metaexemplos: ${data.size} $modo")
    }
 }
