@@ -164,7 +164,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val winners = StatTests.clearWinners(vs, ss)
                val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
                if (vs.exists(x => x._2.contains(-2d))) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", budix, 0, 0, 0)) //l.attPref, l.boundaryType, suav))
+               else Seq((ds.metaAtts ++ rattsm, l.abr, "\"multilabel" + binario.mkString(",") + "\"", budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
             case "Rank" => //prediz ranking
                println(s"filtrar sVMmulti com learner errado");
                println(s"arrumar ranking, pois não está verificando empate de posições (ou nem arrumar caso não existam empates)")
@@ -202,8 +202,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
                //               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
-               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, 0, 0, 0))
-            //            else Seq("(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0))
+               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0))
+            //            else Seq("(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix,  "ambos", "nenhuma", 0))
             //else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
