@@ -87,11 +87,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          val ds = Ds(name, readOnly = true)
          println(s"${l.abr} $ds")
          ds.open()
-         val dsmetaAtts = mapaAtts.getOrElse(ds, ds.metaAtts)
-         val dssuavidade = mapaSuav.getOrElse((ds, l), ds.suavidade(l))
          acquire()
-         val metaAtts = mapaAtts.getOrElseUpdate(ds, dsmetaAtts)
-         val suav = mapaSuav.getOrElseUpdate((ds, l), dssuavidade)
+         val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.metaAtts)
+         val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
          release()
          //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
          //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente SVMmulti e Majoritary)
@@ -201,9 +199,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   }
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
-               //               else Option(metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav)
+               //               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
                else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, 0, 0, 0))
-            //            else Option(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0))
+            //            else Seq("(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0))
             //else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
