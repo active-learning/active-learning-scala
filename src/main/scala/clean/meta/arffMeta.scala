@@ -202,8 +202,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
                //               else Option(metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav)
-               else Option(metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, 0, 0, 0)
-            //            else Option(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0)
+               else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, 0, 0, 0))
+            //            else Option(metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, 0, 0, 0))
             //else Seq((ds.metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
          }
 
