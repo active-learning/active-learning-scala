@@ -86,14 +86,14 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       //      }
 
       //outras
-      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
-         strat match {
-            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
-            case s =>
-               poeNaFila(fila, ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
-            //               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
-         }
-      }
+      //      for (strat <- allStrats(); learner <- allLearners(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
+      //         strat match {
+      //            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
+      //            case s =>
+      //               poeNaFila(fila, ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
+      //            //               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
+      //         }
+      //      }
       for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
          //      for (strat <- allStrats(); learner <- allLearners()) {
          //         val t = tpass
@@ -101,7 +101,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>
                poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
-               poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+            //               poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
          }
       }
 
