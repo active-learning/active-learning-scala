@@ -79,7 +79,7 @@ trait StratsTrait {
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       //      DensityWeightedTrainingUtility(learner, pool, "maha") //9
       //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
-      , GATU0(learner, pool, "maha") //
+      GATU0(learner, pool, "maha") //
       , GATU(learner, pool, "maha") //
    )
 
