@@ -23,6 +23,7 @@ import java.io.FileWriter
 import clean.lib._
 import ml.Pattern
 import ml.classifiers._
+import ml.models.ELMModel
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat, StatTests}
 
@@ -43,8 +44,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    Escolher mais abaixo se sorteia learner, budget ou nada.
    Escolher tb quais metaatts fazem parte (suav etc)
    */
-   val modo = "Rank"
-   //   val modo = "Ties"
+   //   val modo = "Rank"
+   //      val modo = "Ties"
+   //      val modo = "TiesDup"
+   val modo = "Winner"
    //   val modo = "WinnerDP"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
@@ -65,7 +68,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
       val ss = strats.map(_.abr).toVector
       val metadata0 = for {
-         name <- datasets.toList.take(999).par
+         name <- datasets.toList.take(150).par
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -233,6 +236,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          case Left(str) => error("problemas abrindo arff:" + str)
          case Right(patterns) =>
             val grupos = patterns.groupBy(x => x.vector.dropRight(5)).map(_._2).toArray
+            print(s" qtd de grupos = ${grupos.size} ")
             val accs = Datasets.LOO(grupos) { (tr: Seq[Vector[Pattern]], ts: Vector[Pattern]) =>
                modo match {
                   case "Rank" | "Ties" =>
@@ -240,7 +244,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                      val learnerSeed = 0
                      val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
                      val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
-                     val m = NinteraELM(learnerSeed).build(fpool)
+                     val l = NinteraELM(learnerSeed)
+                     var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
+                     m = l.modelSelectionFull(m)
                      val rankMedio = media(ftestSet.toSeq map (p => p.nominalSplit))
                      val hitsELMeSpears = ftestSet map { p =>
                         val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
@@ -256,7 +262,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                      }
                   case "Winner" | "WinnerDP" | "TiesDup" =>
                      val ls = Seq(C45(),
-                        //                  NB(),
+                        NBBatch(),
                         //                  KNNBatch(5, "eucl", tr.flatten, weighted = true),
                         KNNBatch(5, "eucl", tr.flatten, weighted = false),
                         //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
@@ -267,19 +273,21 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                         case l: NinteraELM =>
                            val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
                            val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
-                           (l, fpool, ftestSet)
-                        case l => (l, tr.flatten, ts)
+                           var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
+                           m = l.modelSelectionFull(m)
+                           (m, ftestSet)
+                        case l =>
+                           val m = l.build(tr.flatten)
+                           (m, ts)
                      }
                      modo match {
-                        case "TiesDup" => trios map { case (lea, tre, tes) =>
-                           val m = lea.build(tre)
+                        case "TiesDup" => trios map { case (m, tes) =>
                            val hitsByDupGroup = tes.groupBy(x => x) map { case (pat, pats) =>
                               if (pats.map(_.label).contains(m.predict(pat))) 1d else 0d
                            }
                            hitsByDupGroup.sum / hitsByDupGroup.size
                         }
-                        case "Winner" | "WinnerDP" => trios map { case (lea, tre, tes) =>
-                           val m = lea.build(tre)
+                        case "Winner" | "WinnerDP" => trios map { case (m, tes) =>
                            m.accuracy(tes)
                         }
                      }
