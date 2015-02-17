@@ -27,9 +27,8 @@ import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat, StatTests}
 
 import scala.collection.mutable
-import scala.util.Random
 
-object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait {
+object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait with Rank {
    /*
    "Rank" => prediz ranking das strats
    "Ties" => prediz vencedores empatados (via multirrótulo no ARFF) com ELM
@@ -44,7 +43,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    Escolher mais abaixo se sorteia learner, budget ou nada.
    Escolher tb quais metaatts fazem parte (suav etc)
    */
-   val modo = "Ties"
+   val modo = "Rank"
+   //   val modo = "Ties"
    //   val modo = "WinnerDP"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
@@ -65,7 +65,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val strats = if (redux) stratsForTreeUltraRedux().dropRight(4) else stratsForTree()
       val ss = strats.map(_.abr).toVector
       val metadata0 = for {
-         name <- datasets.toList.take(500).par
+         name <- datasets.toList.take(999).par
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -162,9 +162,6 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, l.attPref, l.boundaryType, suav))
             //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
             case "Rank" => //prediz ranking
-               println(s"filtrar sVMmulti com learner errado");
-               println(s"arrumar ranking, pois não está verificando empate de posições (ou nem arrumar caso não existam empates)")
-               ???
                val vs = for {
                   s <- strats
                } yield {
@@ -178,7 +175,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                      }
                   s.abr -> Stat.media_desvioPadrao(ms.toVector)
                }
-               lazy val rank = vs.map(_._2._1).zipWithIndex.sortBy(_._1).map(_._2).zipWithIndex.sortBy(_._1).map(_._2)
+               lazy val rank = ranqueia(vs.map(_._2._1))
                if (vs.exists(x => x._2._1 == -2d)) Seq()
                else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + rank.mkString(","), budix, l.attPref, l.boundaryType, suav))
             case "Winner" | "WinnerDP" => //qualquer learner prediz apenas o melhor
@@ -228,121 +225,70 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       pronto foreach println
 
       //processa arff
-      println(s"${data.size}")
-      println(labels.size)
-      if (modo == "Ties" || modo == "Acc") Datasets.arff(arq, dedup = false) match {
-         case Left(str) => error("problemas abrindo arff")
-         case Right(patterns) =>
-            println(s"${patterns.size}")
-            val hist = new Array[Int](patterns.head.nclasses)
-            patterns foreach (p => p.nominalSplit.zipWithIndex.foreach { case (x, i) => hist(i) += x.toInt})
-            val best = hist.zipWithIndex.maxBy(_._1)._2
-            val nestedRes = (0 until runs).par map { run =>
-               val shuffled = patterns //new Random(run).shuffle(patterns)
-            val hits = Datasets.kfoldCV(shuffled, k = 94) { (tr, ts, fold, minSize) =>
-                  //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
-                  val learnerSeed = 0 * run * 10000 + fold
-
-                  val (fpool, binaf, zscof) = criaFiltro(tr, fold)
-                  val ftestSet = aplicaFiltro(ts, fold, binaf, zscof)
-
-                  val m = NinteraELM(learnerSeed).build(fpool)
-
-                  val hitsELM = ftestSet map { p => p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max}
-                  val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
-
-                  val hitsRnd = ftestSet.zipWithIndex map { case (p, idx) => p.nominalSplit(idx % p.nclasses) == p.nominalSplit.max}
-                  //                  val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
-
-                  val hitsMaj = ftestSet map { p => p.nominalSplit(best) == p.nominalSplit.max}
-                  val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
-
-                  (accELM, accMaj)
-               }
-               val (he, hm) = hits.unzip
-               println((he.sum / he.size) + " " + (hm.sum / hm.size))
-            }
-         //            val res=nestedRes.flatten
-         //            res foreach println
-      }
-
-      if (modo == "Rank") Datasets.arff(arq, dedup = false) match {
-         case Left(str) => error("problemas abrindo arff")
-         case Right(patterns) =>
-            println(s"Falta comparar com ranking medio.")
-            ???
-            println(s"${patterns.size}")
-            val nestedRes = (0 until runs).par map { run =>
-               val shuffled = new Random(run).shuffle(patterns)
-               Datasets.kfoldCV(shuffled, k = 94) { (tr, ts, fold, minSize) =>
-                  //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
-                  val learnerSeed = run * 10000 + fold
-
-                  val (fpool, binaf, zscof) = criaFiltro(tr, fold)
-                  val ftestSet = aplicaFiltro(ts, fold, binaf, zscof)
-
-                  val m = NinteraELM(learnerSeed).build(fpool)
-
-                  val hitsELM = ftestSet map { p =>
-                     val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
-                     val spearMaj = new SpearmansCorrelation().correlation(new Random(System.currentTimeMillis()).shuffle(Array(0d, 3, 2, 4, 1, 5, 6).toList).toArray, p.nominalSplit)
-                     //                     println(m.output(p).toList)
-                     //                     println(p.nominalSplit.toList)
-                     println(s"$spear $spearMaj")
-                     p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max
-                  }
-                  val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
-
-                  val hitsRnd = ftestSet.zipWithIndex map { case (p, idx) =>
-                     p.nominalSplit(idx % p.nclasses) == p.nominalSplit.max
-                  }
-                  val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
-
-                  val hitsMaj = ftestSet map { p =>
-                     p.nominalSplit(2) == p.nominalSplit.max
-                  }
-                  val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
-
-                  //                  println(s"$accELM $accMaj")
-               }
-            }
-         //            val res=nestedRes.flatten
-         //            res foreach println
-      }
+      println(s"${data.size} metaexemplos")
+      println(labels.size + " pseudoclasses")
 
       //NB, C45, KNN, VFDT
-      if (modo == "Winner" || modo == "WinnerDP" || modo == "TiesDup") Datasets.arff(arq, dedup = false) match {
+      Datasets.arff(arq, dedup = false) match {
          case Left(str) => error("problemas abrindo arff:" + str)
          case Right(patterns) =>
             val grupos = patterns.groupBy(x => x.vector.dropRight(5)).map(_._2).toArray
             val accs = Datasets.LOO(grupos) { (tr: Seq[Vector[Pattern]], ts: Vector[Pattern]) =>
-               val ls = Seq(C45(),
-                  //                  NB(),
-                  //                  KNNBatch(5, "eucl", tr.flatten, weighted = true),
-                  KNNBatch(5, "eucl", tr.flatten, weighted = false),
-                  //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
-                  //                  SVMLib(), //não tira proveito de exemplos duplicados
-                  //                  NinteraELM(), //não tira proveito de exemplos duplicados
-                  Maj())
-               val trios = ls map {
-                  case l: NinteraELM =>
+               modo match {
+                  case "Rank" | "Ties" =>
+                     //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
+                     val learnerSeed = 0
                      val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
                      val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
-                     (l, fpool, ftestSet)
-                  case l => (l, tr.flatten, ts)
-               }
-               modo match {
-                  case "TiesDup" => trios map { case (lea, tre, tes) =>
-                     val m = lea.build(tre)
-                     val hitsByDupGroup = tes.groupBy(x => x) map { case (pat, pats) =>
-                        if (pats.map(_.label).contains(m.predict(pat))) 1d else 0d
+                     val m = NinteraELM(learnerSeed).build(fpool)
+                     val rankMedio = media(ftestSet.toSeq map (p => p.nominalSplit))
+                     val hitsELMeSpears = ftestSet map { p =>
+                        val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
+                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.nominalSplit)
+                        (p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max, (spear, spearMaj))
                      }
-                     hitsByDupGroup.sum / hitsByDupGroup.size
-                  }
-                  case "Winner" | "WinnerDP" => trios map { case (lea, tre, tes) =>
-                     val m = lea.build(tre)
-                     m.accuracy(tes)
-                  }
+                     val (hitsELM, spears) = hitsELMeSpears.unzip
+                     val (spearELM, spearMaj) = spears.unzip
+                     val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
+                     //                     val hitsRnd = ftestSet.zipWithIndex map { case (p, idx) =>              p.nominalSplit(idx % p.nclasses) == p.nominalSplit.max               }
+                     //                     val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
+                     val hitsMaj = ftestSet map { p =>
+                        p.nominalSplit(2) == p.nominalSplit.max
+                     }
+                     val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
+                     modo match {
+                        case "Rank" => Seq(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
+                        case "Ties" => Seq(accELM, accMaj)
+                     }
+                  case "Winner" | "WinnerDP" | "TiesDup" =>
+                     val ls = Seq(C45(),
+                        //                  NB(),
+                        //                  KNNBatch(5, "eucl", tr.flatten, weighted = true),
+                        KNNBatch(5, "eucl", tr.flatten, weighted = false),
+                        //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
+                        //                  SVMLib(), //não tira proveito de exemplos duplicados
+                        //                  NinteraELM(), //não tira proveito de exemplos duplicados
+                        Maj())
+                     val trios = ls map {
+                        case l: NinteraELM =>
+                           val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
+                           val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
+                           (l, fpool, ftestSet)
+                        case l => (l, tr.flatten, ts)
+                     }
+                     modo match {
+                        case "TiesDup" => trios map { case (lea, tre, tes) =>
+                           val m = lea.build(tre)
+                           val hitsByDupGroup = tes.groupBy(x => x) map { case (pat, pats) =>
+                              if (pats.map(_.label).contains(m.predict(pat))) 1d else 0d
+                           }
+                           hitsByDupGroup.sum / hitsByDupGroup.size
+                        }
+                        case "Winner" | "WinnerDP" => trios map { case (lea, tre, tes) =>
+                           val m = lea.build(tre)
+                           m.accuracy(tes)
+                        }
+                     }
                }
             }
             print(accs.transpose.map(x => "%5.3f".format(x.sum / x.size)).mkString(" "))

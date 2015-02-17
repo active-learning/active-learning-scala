@@ -26,7 +26,7 @@ import clean.lib._
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
-object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappa"
    val porRank = true
@@ -99,15 +99,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
             ts.reverse.padTo(200, fst).reverse.toList
          }
          ds.close()
-         lazy val rank = sres.transpose.map { vsAtT =>
-            val idxERank = vsAtT.zipWithIndex.sortBy(_._1).reverse.zipWithIndex
-            val idxEAvrRank = idxERank.groupBy { case ((v, idx), ra) => ff(1000)(v)}.toList.map { case (k, g) =>
-               val gsize = g.size
-               val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / gsize + 1 // +1 pra corrigir o índice zero
-               g.map { case ((v, idx), ra) => idx -> avrRa}
-            }.flatten
-            idxEAvrRank.sortBy(_._1).map(_._2)
-         }
+         lazy val rank = sres.transpose map ranqueia
          val tmp = if (porRank) rank else sres.transpose
          tmp
       }
