@@ -76,9 +76,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //varia budget(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
             val (tmin, thalf, tmax, tpass) = ranges(ds)
             ds.close()
-            //            Seq((tmin, thalf, "\"$\\cent\\leq 50$\""), (tmin, thalf, "baixo"), (thalf, tmax, "alto"))
+            Seq((tmin, thalf, "\"$\\cent\\leq 50$\""), (tmin, thalf, "baixo"), (thalf, tmax, "alto"))
             //            Seq((tmin, thalf, "baixo"), (thalf, tmax, "alto"))
-            Seq((tmin, tmax, "alto"))
+            //            Seq((tmin, tmax, "alto"))
          }
          l <- if (modo != "WinnerDP") ls else Seq(ls(rnd.nextInt(ls.size)))
       } yield {
@@ -245,20 +245,14 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                      val hitsELMeSpears = ftestSet map { p =>
                         val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
                         val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.nominalSplit)
-                        (p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max, (spear, spearMaj))
+                        (if (p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max) 1d else 0d, (spear, spearMaj))
                      }
                      val (hitsELM, spears) = hitsELMeSpears.unzip
                      val (spearELM, spearMaj) = spears.unzip
-                     val accELM = hitsELM.count(_ == true) / ftestSet.size.toDouble
-                     //                     val hitsRnd = ftestSet.zipWithIndex map { case (p, idx) =>              p.nominalSplit(idx % p.nclasses) == p.nominalSplit.max               }
-                     //                     val accRnd = hitsRnd.count(_ == true) / ftestSet.size.toDouble
-                     val hitsMaj = ftestSet map { p =>
-                        p.nominalSplit(2) == p.nominalSplit.max
-                     }
-                     val accMaj = hitsMaj.count(_ == true) / ftestSet.size.toDouble
+                     val hitsMaj = ftestSet map { p => if (p.nominalSplit(2) == p.nominalSplit.max) 1d else 0d}
                      modo match {
                         case "Rank" => Seq(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
-                        case "Ties" => Seq(accELM, accMaj)
+                        case "Ties" => Seq(Stat.media_desvioPadrao(hitsELM)._1, Stat.media_desvioPadrao(hitsMaj)._1)
                      }
                   case "Winner" | "WinnerDP" | "TiesDup" =>
                      val ls = Seq(C45(),
@@ -291,7 +285,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                      }
                }
             }
-            print(accs.transpose.map(x => "%5.3f".format(x.sum / x.size)).mkString(" "))
+            print(accs.transpose.map { x =>
+               val (m, d) = Stat.media_desvioPadrao(x.toVector)
+               "%5.3f".format(m) + "/" + "%5.3f".format(d)
+            }.mkString(" "))
             print(s" qtd de grupos = ${grupos.size} ")
       }
       println(s"qtd de metaexemplos: ${data.size} $modo")
