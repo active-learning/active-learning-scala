@@ -1,6 +1,6 @@
 name := "als"
 
-version := "NBBatchRedux"
+version := "all"
 
 scalaVersion := "2.10.4"
 
