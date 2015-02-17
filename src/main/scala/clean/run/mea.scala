@@ -94,9 +94,9 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             //               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
          }
       }
-      //      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
-      for (strat <- allStrats(); learner <- allLearners()) {
-         val t = tpass
+      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
+         //      for (strat <- allStrats(); learner <- allLearners()) {
+         //         val t = tpass
          strat match {
             case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
             case s =>
