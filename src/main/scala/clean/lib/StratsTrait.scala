@@ -66,7 +66,7 @@ trait StratsTrait {
       //      //      , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
       //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
       //      , GATU(learner, pool, "eucl") //
-      , GATU0(learner, pool, "manh") //
+      GATU0(learner, pool, "manh") //
       , GATU(learner, pool, "manh") //
 
       //      , new SGmulti(learner, pool, "consensus") //14
