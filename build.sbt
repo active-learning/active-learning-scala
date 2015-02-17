@@ -1,6 +1,6 @@
 name := "als"
 
-version := "all-nintera"
+version := "NBBatchRedux"
 
 scalaVersion := "2.10.4"
 
