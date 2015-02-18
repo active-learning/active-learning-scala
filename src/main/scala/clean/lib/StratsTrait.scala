@@ -67,20 +67,20 @@ trait StratsTrait {
       //      //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
       //      //      , GATU(learner, pool, "eucl") //
       //      , GATU0(learner, pool, "manh") //
-      //      , GATU(learner, pool, "manh") //
+      GATU(learner, pool, "manh") //
       //
       //      , new SGmulti(learner, pool, "consensus") //14
       //      //      , new SGmulti(learner, pool, "majority") //15
       //      //
-      ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       //      DensityWeightedTrainingUtility(learner, pool, "maha") //9
       //      //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
       //      , GATU0(learner, pool, "maha") //
-      //      , GATU(learner, pool, "maha") //
+      GATU(learner, pool, "maha") //
    )
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////

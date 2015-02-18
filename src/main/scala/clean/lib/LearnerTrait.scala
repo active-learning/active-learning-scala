@@ -34,12 +34,12 @@ trait LearnerTrait {
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
       //      Maj() //13
       //            NB() //1
-      //            , KNNBatch(5, "eucl", pool, weighted = true) //2
-      //            , VFDT() //4
-      //            , C45() //3
-      //            , SVMLib(learnerSeed) //5
-      //            , RF(learnerSeed)
-      //            ,
+      KNNBatch(5, "eucl", pool, weighted = true) //2
+      , VFDT() //4
+      , C45() //3
+      , SVMLib(learnerSeed) //5
+      , RF(learnerSeed)
+      ,
       NBBatch()
    )
 

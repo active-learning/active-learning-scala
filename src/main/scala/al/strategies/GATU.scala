@@ -31,10 +31,10 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
    val abr = "\\textbf{GATU" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 514326 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 514328 + (100000 * (1 - alpha)).toInt
-      case "maha" => 514329 + (100000 * (1 - alpha)).toInt
-      case "manh" => 514327 + (100000 * (1 - alpha)).toInt
+      case "eucl" => 524326 + (100000 * (1 - alpha)).toInt
+      case "cheb" => 524328 + (100000 * (1 - alpha)).toInt
+      case "maha" => 524329 + (100000 * (1 - alpha)).toInt
+      case "manh" => 524327 + (100000 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para GATU.")
    var agnostico = true
 
@@ -54,7 +54,7 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
       }
       var agnostico = false
       var olde = entropias.headOption.getOrElse(-1d)
-      entropias.drop(nclasses).find { e =>
+      entropias.find { e =>
          val res = e < olde
          olde = e
          res

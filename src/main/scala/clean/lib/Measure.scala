@@ -48,6 +48,12 @@ trait Measure extends CM with Blob {
       }
    }
 
+   def readAll(ds: Ds) = ds.read(s"select v from r where m div 100000000=${id / 100000000} and p=$pid order by m") match {
+      case lst => Some(lst.map(_.head))
+      case List() => None
+      case x => ds.error(s"Retorno estranho: $x.")
+   }
+
    def read(ds: Ds) = ds.read(s"select v from r where m=$id and p=$pid") match {
       case List(Vector(v)) => Some(v)
       case List() => None

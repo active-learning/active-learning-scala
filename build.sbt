@@ -1,6 +1,6 @@
 name := "als"
 
-version := "nbbcibEER"
+version := "gatus"
 
 scalaVersion := "2.10.4"
 

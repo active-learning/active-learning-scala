@@ -30,7 +30,7 @@ object friedEtabelasALCKappaAll extends AppWithUsage with LearnerTrait with Stra
    val measure = ALCKappa
    val redux = true
    val risco = false
-   val comprimento = "50"
+   val comprimento = "all"
    run()
 
    override def run() = {
@@ -39,7 +39,7 @@ object friedEtabelasALCKappaAll extends AppWithUsage with LearnerTrait with Stra
          case "pt" => s"Um contra um para todos os algoritmos de aprendizado. Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
-      val strats = if (redux) stratsForTreeRedux().dropRight(4) else stratsForTree()
+      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
       val sl = strats.map(_.abr)
       val res0 = for {
          dataset <- datasets
