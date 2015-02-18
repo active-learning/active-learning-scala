@@ -44,10 +44,10 @@ trait LearnerTrait {
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      IELM(learnerSeed) //6
-      , CIELM(learnerSeed) //8
-      , IELMBatch(learnerSeed)
-      , CIELMBatch(learnerSeed)
+      //      IELM(learnerSeed) //6
+      //      , CIELM(learnerSeed) //8
+      //      , IELMBatch(learnerSeed)
+      CIELMBatch(learnerSeed)
       //            , NinteraELM(learnerSeed) //11  //tava comentado
    )
 
