@@ -1,6 +1,6 @@
 name := "als"
 
-version := "all"
+version := "gatusrf"
 
 scalaVersion := "2.10.4"
 

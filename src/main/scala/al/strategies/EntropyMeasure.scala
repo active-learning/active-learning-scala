@@ -19,27 +19,29 @@
 package al.strategies
 
 trait EntropyMeasure {
-  protected def log2(x: Double) = if (x == 0) 0d else math.log(x) / math.log(2d)
+   protected def desb(P: Array[Double]) = (P.max - P.min) / (P.max + P.min)
 
-  protected def log(x: Double) = if (x == 0) 0d else math.log(x)
+   protected def log2(x: Double) = if (x == 0) 0d else math.log(x) / math.log(2d)
 
-  protected def entropy(P: Array[Double]) = {
-    //     println(P.toList + " P")
-    //     println(P.map(x => x * log2(x)).toList )
-    -P.map(x => x * log2(x)).sum
-  }
+   protected def log(x: Double) = if (x == 0) 0d else math.log(x)
 
-  /*
-  normalized_entropy:
-  @article{ l e w i n 2 0 0 4 q u a n t i t a t i v e,
- title={Quantitative DNA methylation analysis based on four-dye trace data from direct sequencing of PCR amplificates},
- author={Lewin, J{\"o}rn and Schmitt, Armin O and Adorj{\'a}n, P{\'e}ter and Hildmann, Thomas and Piepenbrock, Christian},
- journal={Bioinformatics},
- volume={20},
- number={17},
- pages={3005--3012},
- year={2004},
- publisher={Oxford Univ Press}
- }*/
-  protected def normalized_entropy(P: Array[Double]) = -P.map(x => x * log(x)).sum / log(P.length)
+   protected def entropy(P: Array[Double]) = {
+      //     println(P.toList + " P")
+      //     println(P.map(x => x * log2(x)).toList )
+      -P.map(x => x * log2(x)).sum
+   }
+
+   /*
+   normalized_entropy:
+   @article{ l e w i n 2 0 0 4 q u a n t i t a t i v e,
+  title={Quantitative DNA methylation analysis based on four-dye trace data from direct sequencing of PCR amplificates},
+  author={Lewin, J{\"o}rn and Schmitt, Armin O and Adorj{\'a}n, P{\'e}ter and Hildmann, Thomas and Piepenbrock, Christian},
+  journal={Bioinformatics},
+  volume={20},
+  number={17},
+  pages={3005--3012},
+  year={2004},
+  publisher={Oxford Univ Press}
+  }*/
+   protected def normalized_entropy(P: Array[Double]) = -P.map(x => x * log(x)).sum / log(P.length)
 }

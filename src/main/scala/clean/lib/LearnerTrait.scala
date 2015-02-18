@@ -34,20 +34,21 @@ trait LearnerTrait {
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
       //      Maj() //13
       //            NB() //1
-      KNNBatch(5, "eucl", pool, weighted = true) //2
-      , VFDT() //4
-      , C45() //3
-      , SVMLib(learnerSeed) //5
-      , RF(learnerSeed)
-      ,
-      NBBatch()
+      //      KNNBatch(5, "eucl", pool, weighted = true) //2
+      //      , VFDT() //4
+      //      , C45() //3
+      //      , SVMLib(learnerSeed) //5
+      //      ,
+      RF(learnerSeed)
+      //      ,
+      //      NBBatch()
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       //      IELM(learnerSeed) //6
       //      , CIELM(learnerSeed) //8
       //      , IELMBatch(learnerSeed)
-      CIELMBatch(learnerSeed)
+      //      CIELMBatch(learnerSeed)
       //            , NinteraELM(learnerSeed) //11  //tava comentado
    )
 
