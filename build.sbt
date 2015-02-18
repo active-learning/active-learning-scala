@@ -1,6 +1,6 @@
 name := "als"
 
-version := "nbbcib"
+version := "all"
 
 scalaVersion := "2.10.4"
 
