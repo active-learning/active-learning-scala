@@ -1,6 +1,6 @@
 name := "als"
 
-version := "gatus"
+version := "elmbatchpass"
 
 scalaVersion := "2.10.4"
 

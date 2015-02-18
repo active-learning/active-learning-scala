@@ -42,28 +42,28 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
       val fila = mutable.Set[String]()
       //passiva
-      //      for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
-      //         val k = Kappa(ds, Passive(pool), learner, run, fold)(-1)
-      //         val b = BalancedAcc(ds, Passive(pool), learner, run, fold)(-1)
-      //         if (!k.existia || !b.existia) {
-      //            val model = learner.build(pool)
-      //            val CM = model.confusion(testSet)
-      //            poeNaFila(fila, k.sqlToWrite(ds, CM))
-      //            poeNaFila(fila, b.sqlToWrite(ds, CM))
-      //         }
-      //      }
-      //      for (flearner <- learnersFilterDependent(rnd.nextInt(99999))) {
-      //         val k = Kappa(ds, Passive(fpool), flearner, run, fold)(-1)
-      //         val b = BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1)
-      //         if (!k.existia || !b.existia) {
-      //            val model = flearner.build(fpool)
-      //            val CM = model.confusion(ftestSet)
-      //            poeNaFila(fila, k.sqlToWrite(ds, CM))
-      //            poeNaFila(fila, b.sqlToWrite(ds, CM))
-      //         }
-      //      }
-      //      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-      //      fila.clear()
+      for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
+         val k = Kappa(ds, Passive(pool), learner, run, fold)(-1)
+         val b = BalancedAcc(ds, Passive(pool), learner, run, fold)(-1)
+         if (!k.existia || !b.existia) {
+            val model = learner.build(pool)
+            val CM = model.confusion(testSet)
+            poeNaFila(fila, k.sqlToWrite(ds, CM))
+            poeNaFila(fila, b.sqlToWrite(ds, CM))
+         }
+      }
+      for (flearner <- learnersFilterDependent(rnd.nextInt(99999))) {
+         val k = Kappa(ds, Passive(fpool), flearner, run, fold)(-1)
+         val b = BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1)
+         if (!k.existia || !b.existia) {
+            val model = flearner.build(fpool)
+            val CM = model.confusion(ftestSet)
+            poeNaFila(fila, k.sqlToWrite(ds, CM))
+            poeNaFila(fila, b.sqlToWrite(ds, CM))
+         }
+      }
+      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+      fila.clear()
 
       lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
 
@@ -94,16 +94,16 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       //            //               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
       //         }
       //      }
-      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
-         //      for (strat <- allStrats(); learner <- allLearners()) {
-         //         val t = tpass
-         strat match {
-            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
-            case s =>
-               poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
-            //               poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
-         }
-      }
+      //      for (strat <- allStrats(); learner <- allLearners(); t <- tmin to tmax) {
+      //         //      for (strat <- allStrats(); learner <- allLearners()) {
+      //         //         val t = tpass
+      //         strat match {
+      //            case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
+      //            case s =>
+      //               poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+      //            //               poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+      //         }
+      //      }
 
       if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
       fila.clear()
