@@ -39,8 +39,8 @@ trait StratsTrait {
 
    def stratsSemLearnerExterno_FilterFree(pool: Seq[Pattern]) = List[Strategy](
       //      //            Majoritary(pool) //21
-      //      RandomSampling(pool) //0
-      //      , ClusterBased(pool) //1
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
       //      //            , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       //      , AgDensityWeightedTrainingUtility(pool, "manh") //701
       //      //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
@@ -55,35 +55,35 @@ trait StratsTrait {
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
+      Margin(learner, pool) //3
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      , new SGmulti(learner, pool, "consensus") //14
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
       //      //      Uncertainty(learner, pool) //2
       //      //      , Entropy(learner, pool) //4
-      //      Margin(learner, pool) //3
       //      //
-      //      , DensityWeighted(learner, pool, 1, "eucl") //5
       //      //
       //      //      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
-      //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       //      //      //      , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
       //      //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
       //      //      , GATU(learner, pool, "eucl") //
-      GATU0(learner, pool, "manh") //
-      , GATU(learner, pool, "manh") //
-      , GATU1(learner, pool, "manh") //
-      , GATU2(learner, pool, "manh") //
-      , GATU3(learner, pool, "manh") //
-      , GATU4(learner, pool, "manh") //
-      , GATU3b(learner, pool, "manh") //
-      , GATU4b(learner, pool, "manh") //
+      //      GATU0(learner, pool, "manh") //
+      //      , GATU(learner, pool, "manh") //
+      //      , GATU1(learner, pool, "manh") //
+      //      , GATU2(learner, pool, "manh") //
+      //      , GATU3(learner, pool, "manh") //
+      //      , GATU4(learner, pool, "manh") //
+      //      , GATU3b(learner, pool, "manh") //
+      //      , GATU4b(learner, pool, "manh") //
       //
-      //      , new SGmulti(learner, pool, "consensus") //14
       //      //      , new SGmulti(learner, pool, "majority") //15
       //      //
       //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      //      DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      DensityWeightedTrainingUtility(learner, pool, "maha") //9
       //      //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
       //      , GATU0(learner, pool, "maha") //
       //      , GATU(learner, pool, "maha") //
