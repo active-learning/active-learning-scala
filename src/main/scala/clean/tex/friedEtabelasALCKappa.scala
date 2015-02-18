@@ -61,14 +61,15 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
                      case e: Throwable => println("NA:" +(ds, s.abr, le, r, f))
                         NA //sys.exit(1)
                   }
-               if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
+               if (vs.contains(NA)) (NA, NA)
+               else if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
             }
             ds.close()
             //         (ds.dataset + l.toString.take(3)) -> sres
             renomeia(ds) -> sres
          }
 
-         val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
+         val sorted = res0.filter(!_._2.contains(NA, NA)).toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
          val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
          sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
             fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}a" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
