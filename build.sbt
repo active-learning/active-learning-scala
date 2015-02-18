@@ -1,6 +1,6 @@
 name := "als"
 
-version := "elmbatchpass"
+version := "nbbcib"
 
 scalaVersion := "2.10.4"
 
