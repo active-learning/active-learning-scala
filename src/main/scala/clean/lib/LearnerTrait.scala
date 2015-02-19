@@ -47,7 +47,7 @@ trait LearnerTrait {
       //      , CIELM(learnerSeed) //8
       //      , IELMBatch(learnerSeed)
       CIELMBatch(learnerSeed)
-      //            , NinteraELM(learnerSeed) //11  //tava comentado
+      , NinteraELM(learnerSeed) //11  //tava comentado
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {

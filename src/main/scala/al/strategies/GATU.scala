@@ -20,8 +20,9 @@ package al.strategies
 
 import clean.lib.{Ds, CM}
 import ml.Pattern
-import ml.classifiers.{RF, Learner}
+import ml.classifiers._
 import ml.models.Model
+import util.Tempo
 
 import scala.util.Random
 
@@ -73,10 +74,30 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
 
 object GATUTest extends App with CM {
    val context = "GATUTest"
-   val ds = Ds("banana", readOnly = true)
+   val ds = Ds("abalone-3class", readOnly = true)
    val patts = new Random(6294).shuffle(ds.patterns)
-   val (tr, ts) = patts.splitAt(patts.size / 2)
-   val l = RF()
-   val s = GATU(l, tr, "eucl")
-   s.queries.take(200).toList
+   val (tr0, ts) = patts.splitAt(patts.size / 2)
+   val tr = tr0
+   //   val res = Seq(C45(), KNNBatch(5, "eucl", tr, true), NinteraELM(), CIELMBatch(), NBBatch(), RF()) map { l =>
+   val res = Seq(NinteraELM()) map { l =>
+      val r = l.abr -> Tempo.timev {
+         val s = ExpErrorReductionMargin(l, tr, "accuracy")
+         val qs = s.queries.drop(tr.head.nclasses).take(50).toList
+         "%5.3f".format(l.build(qs).accuracy(ts))
+      }
+      println(r._1 + "\t\t\t" + r._2)
+      r
+   }
+   println(s"")
+   res.sortBy(_._2) foreach println
 }
+
+// RF antigo, aba11, |tr|=100
+//(5NN,        (0.198,6.559))
+//(C4.5w,      (0.250,5.655))
+//(CIELMBatch, (0.222,11.27))
+//(ELM,        (0.218,7.385))
+//(NBBatch,    (0.234,15.571))
+//(RF,         (0.239,33.805))
+
+// RF antigo, aba11, |tr| livre
