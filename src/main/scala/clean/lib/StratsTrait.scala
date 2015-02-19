@@ -131,16 +131,16 @@ trait StratsTrait {
    )
 
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-      //      RandomSampling(pool) //0
-      //      , ClusterBased(pool) //1
-      //      , Margin(learner, pool) //3
-      //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      //      , new SGmulti(learner, pool, "consensus") //14
-      DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , Margin(learner, pool) //3
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      , new SGmulti(learner, pool, "consensus") //14
+      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
-      //      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      //      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       //      , GATU0(learner, pool, "manh") //
       //      , GATU0(learner, pool, "maha") //
       //      , GATU(learner, pool, "manh") //
@@ -164,10 +164,10 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      , GATU0(learner, pool, "manh") //
-      , GATU0(learner, pool, "maha") //
-      , GATU(learner, pool, "manh") //
-      , GATU(learner, pool, "maha") //
+      //      , GATU0(learner, pool, "manh") //
+      //      , GATU0(learner, pool, "maha") //
+      //      , GATU(learner, pool, "manh") //
+      //      , GATU(learner, pool, "maha") //
    )
 
 }
