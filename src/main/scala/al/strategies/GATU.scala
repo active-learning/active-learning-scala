@@ -74,25 +74,25 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
 
 object GATUTest extends App with CM {
    val context = "GATUTest"
-   val ds = Ds("abalone-3class", readOnly = true)
+   val ds = Ds("abalone-11class", readOnly = true)
    val patts = new Random(6294).shuffle(ds.patterns)
    val (tr0, ts) = patts.splitAt(patts.size / 2)
-   val tr = tr0
-   //   val res = Seq(C45(), KNNBatch(5, "eucl", tr, true), NinteraELM(), CIELMBatch(), NBBatch(), RF()) map { l =>
-   val res = Seq(NinteraELM()) map { l =>
+   val tr = tr0.take(9000)
+   val res = Seq(C45(), KNNBatch(5, "eucl", tr, true), NinteraELM(), CIELMBatch(), NBBatch(), RF()) map { l =>
+      //   val res = Seq(NinteraELM()) map { l =>
       val r = l.abr -> Tempo.timev {
          val s = ExpErrorReductionMargin(l, tr, "accuracy")
+         //         val s = SGmulti(l, tr, "consensus")
          val qs = s.queries.drop(tr.head.nclasses).take(50).toList
          "%5.3f".format(l.build(qs).accuracy(ts))
       }
-      println(r._1 + "\t\t\t" + r._2)
-      r
+      r._1 + "\t\t\t" + r._2
    }
    println(s"")
-   res.sortBy(_._2) foreach println
+   res foreach println
 }
 
-// RF antigo, aba11, |tr|=100
+// RF antigo, aba11, |tr|=100, take 200
 //(5NN,        (0.198,6.559))
 //(C4.5w,      (0.250,5.655))
 //(CIELMBatch, (0.222,11.27))
@@ -100,4 +100,10 @@ object GATUTest extends App with CM {
 //(NBBatch,    (0.234,15.571))
 //(RF,         (0.239,33.805))
 
-// RF antigo, aba11, |tr| livre
+// RF antigo, aba11, |tr| livre, take 50
+//(CIELMBatch,(0.183,18.891))
+//(5NN,(0.206,9.532))
+//(ELM,(0.213,8.372))
+//(C4.5w,(0.219,6.848))
+//(RF,(0.225,40.101))
+//(NBBatch,(0.233,27.509))
