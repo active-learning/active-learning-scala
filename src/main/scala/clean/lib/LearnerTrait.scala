@@ -32,14 +32,10 @@ trait LearnerTrait {
    )
 
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-      //      Maj() //13
-      //            NB() //1
-      KNNBatch(5, "eucl", pool, weighted = true) //2
-      //      , VFDT() //4
-      , C45() //3
-      //      , SVMLib(learnerSeed) //5
-      , RF(learnerSeed)
-      , NBBatch()
+      //      KNNBatch(5, "eucl", pool, weighted = true) //2
+      //      , C45() //3
+      //      , RF(learnerSeed)
+      //      , NBBatch()
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
@@ -56,7 +52,7 @@ trait LearnerTrait {
       case "c45" => C45()
       case "cib" => CIELMBatch(learnerSeed)
       case "rf" => RF(learnerSeed)
-      case "nintera" => NinteraELM(learnerSeed)
+      case "elm" => NinteraELM(learnerSeed)
       //      case "maj" => Maj()
       //      case "nb" => NB()
       //      case "vfdt" => VFDT()

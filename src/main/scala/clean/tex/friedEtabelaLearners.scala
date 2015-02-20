@@ -58,12 +58,13 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
                      NA
                }
             }
-            Stat.media_desvioPadrao(vs.toVector)
+            if (vs.contains(NA)) (NA, NA)
+            else Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()
          renomeia(ds) -> lres.map(_._1 -> NA)
       }
-      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
+      val sorted = res0.toList.filter(!_._2.contains(NA, NA)).sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
 
       var fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")
       sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
@@ -76,5 +77,6 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
       fw = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex", "ISO-8859-1")
       fw.write(StatTests.pairTable(pairs, "tab:friedClassif", 2, caption))
       fw.close()
+      println(s"${sorted.size} datasets completos")
    }
 }
