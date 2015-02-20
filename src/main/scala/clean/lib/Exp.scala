@@ -46,7 +46,7 @@ trait Exp extends AppWithUsage with FilterTrait {
       val res = (if (parallelDatasets) datasets.toList.par else datasets.toList) map { dataset =>
          val ds = Ds(dataset, readOnly)
          ds.open()
-         val res1 = if (false || isAlreadyDone(ds)) {
+         val res1 = if (isAlreadyDone(ds)) {
             println(s"$dataset already done!")
             ds.dataset -> true
          } else {
