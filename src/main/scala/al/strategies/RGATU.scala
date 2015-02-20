@@ -23,32 +23,23 @@ import ml.classifiers.Learner
 import ml.models.Model
 import util.XSRandom
 
-case class GATU4(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
+case class RGATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure with EntropyMeasure {
-   override val toString = "GATU4 a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "\\textbf{GATU4" + distance_name.take(3) + "}"
+   override val toString = "RGATU a" + alpha + " b" + beta + " (" + distance_name + ")"
+   val abr = "\\textbf{RGATU" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 433364 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 433384 + (100000 * (1 - alpha)).toInt
-      case "maha" => 433394 + (100000 * (1 - alpha)).toInt
-      case "manh" => 433374 + (100000 * (1 - alpha)).toInt
-   } else throw new Error("Parametros inesperados para GATU4.")
+      case "eucl" => 4322564 + (100000 * (1 - alpha)).toInt
+      case "cheb" => 4322584 + (100000 * (1 - alpha)).toInt
+      case "maha" => 4322594 + (100000 * (1 - alpha)).toInt
+      case "manh" => 4322574 + (100000 * (1 - alpha)).toInt
+   } else throw new Error("Parametros inesperados para GATU4b.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-      val hist = Array.fill(nclasses)(0d)
-      labeled foreach { lab =>
-         val cla = lab.label.toInt
-         hist(cla) += 1
-      }
-      val d = desb(hist)
-
       val rnd = new XSRandom()
       rnd.setSeed(seed)
-      1 to labeled.size foreach (_ => rnd.nextDouble())
-      val p = rnd.nextDouble()
-
-      val agnostico = p <= d
+      1 to labeled.size foreach (_ => rnd.nextBoolean())
+      val agnostico = rnd.nextBoolean()
 
       val selected = unlabeled maxBy { x =>
          val similarityU = mapU(x) / mapU.size.toDouble

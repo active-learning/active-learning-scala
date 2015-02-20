@@ -38,20 +38,14 @@ trait StratsTrait {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    def stratsSemLearnerExterno_FilterFree(pool: Seq[Pattern]) = List[Strategy](
-      //      //            Majoritary(pool) //21
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
       //      //            , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
-      //      //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
-      //      //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
-      //      //      , SVMmulti(pool, "KFFw") //968
-      //      //      , SVMmulti(pool, "BALANCED_EEw") //969
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
       AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      //      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -61,32 +55,19 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , DGATU(learner, pool, "manh") //
+      , RGATU(learner, pool, "manh") //
       //      //      Uncertainty(learner, pool) //2
       //      //      , Entropy(learner, pool) //4
-      //      //
-      //      //
       //      //      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
-      //      //      //      , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
-      //      //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
-      //      //      , GATU(learner, pool, "eucl") //
-      //      GATU0(learner, pool, "manh") //
-      //      , GATU(learner, pool, "manh") //
-      //      , GATU1(learner, pool, "manh") //
-      //      , GATU2(learner, pool, "manh") //
-      //      , GATU3(learner, pool, "manh") //
-      //      , GATU4(learner, pool, "manh") //
-      //      , GATU3b(learner, pool, "manh") //
-      //      , GATU4b(learner, pool, "manh") //
-      //
       //      //      , new SGmulti(learner, pool, "majority") //15
       //      //
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      //      //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
-      //      , GATU0(learner, pool, "maha") //
-      //      , GATU(learner, pool, "maha") //
+      , DGATU(learner, pool, "maha") //
+      , RGATU(learner, pool, "maha") //
    )
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,10 +105,10 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
       //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
-      //      , GATU0(learner, pool, "manh") //
-      //      , GATU0(learner, pool, "maha") //
-      //      , GATU(learner, pool, "manh") //
-      //      , GATU(learner, pool, "maha") //
+      //            , DGATU(learner, pool, "manh") //
+      //            , DGATU(learner, pool, "maha") //
+      //            , RGATU(learner, pool, "manh") //
+      //            , RGATU(learner, pool, "maha") //
    )
 
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
@@ -141,35 +122,13 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      //      , GATU0(learner, pool, "manh") //
-      //      , GATU0(learner, pool, "maha") //
-      //      , GATU(learner, pool, "manh") //
-      //      , GATU(learner, pool, "maha") //
-      //         GATU0(learner, pool, "manh") //
-      //        , GATU(learner, pool, "manh") //
-      //         , GATU1(learner, pool, "manh") //
-      //         , GATU2(learner, pool, "manh") //
-      //         , GATU3(learner, pool, "manh") //
-      //         , GATU4(learner, pool, "manh") //
-      //         , GATU3b(learner, pool, "manh") //
-      //         , GATU4b(learner, pool, "manh") //
-   )
-
-   def stratsForTreeUltraRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-      RandomSampling(pool) //0
-      , ClusterBased(pool) //1
-      , Margin(learner, pool) //3
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , new SGmulti(learner, pool, "consensus") //14
-      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      //      , GATU0(learner, pool, "manh") //
-      //      , GATU0(learner, pool, "maha") //
+      //      , DGATU(learner, pool, "manh") //
+      //      , DGATU(learner, pool, "maha") //
+      //      , RGATU(learner, pool, "manh") //
+      //      , RGATU(learner, pool, "maha") //
       //      , GATU(learner, pool, "manh") //
       //      , GATU(learner, pool, "maha") //
    )
-
 }
 
 /* ids:
