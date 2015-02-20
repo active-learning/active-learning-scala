@@ -32,15 +32,15 @@ trait LearnerTrait {
    )
 
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-      KNNBatch(5, "eucl", pool, weighted = true) //2
-      , C45() //3
-      , RF(learnerSeed)
-      , NBBatch()
+      //      KNNBatch(5, "eucl", pool, weighted = true) //2
+      //      , C45() //3
+      //      , RF(learnerSeed)
+      //      , NBBatch()
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      //      CIELMBatch(learnerSeed)
-      //      , NinteraELM(learnerSeed) //11  //tava comentado
+      CIELMBatch(learnerSeed)
+      , NinteraELM(learnerSeed) //11  //tava comentado
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
