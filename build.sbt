@@ -1,6 +1,6 @@
 name := "als"
 
-version := "allmeap"
+version := "allmeaa"
 
 scalaVersion := "2.10.4"
 
