@@ -37,7 +37,7 @@ trait Strategy extends Log {
    } else pool
    val debug: Boolean
    lazy val nclasses = if (distinct_pool.nonEmpty) distinct_pool.head.nclasses else throw new Error("Lazy val nclasses undiscoverable from an empty patterns!")
-   val delay: Double = .005
+   val delay: Double = .5
    lazy val plot = new Plot
    lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
    //  val mea: Measure = null
