@@ -38,11 +38,11 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
          case "pt" => s"Um contra um (LEA). Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
-      for (le <- learners(learnersStr).par) {
+      for (le <- learners(learnersStr)) {
          val strats = if (redux) stratsForTreeRedux() else stratsForTree()
          val sl = strats.map(_.abr)
          val res0 = for {
-            dataset <- datasets
+            dataset <- datasets.par
          } yield {
             val ds = Ds(dataset, readOnly = true)
             ds.open()
@@ -58,7 +58,8 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
                   try {
                      measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                   } catch {
-                     case e: Throwable => println("NA:" +(ds, s.abr, le, r, f))
+                     case e: Throwable =>
+                        //                        println("NA:" +(ds, s.abr, le, r, f))
                         NA //sys.exit(1)
                   }
                if (vs.contains(NA)) (NA, NA)
@@ -76,7 +77,7 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
             if (!redux) fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}b" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
          }
          fw.close()
-         println(s"$le: ${sorted.size} datasets completos")
+         println(s"${le.abr}:\t\t${sorted.size} datasets completos")
          val pairs = if (!risco) StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
          else StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
          val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
