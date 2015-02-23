@@ -31,7 +31,7 @@ case class NoLearner() extends Learner {
 
    def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
-   def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???
+   def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean = false)(pattern: Pattern) = ???
 
    def expected_change(model: Model)(pattern: Pattern) = ???
 

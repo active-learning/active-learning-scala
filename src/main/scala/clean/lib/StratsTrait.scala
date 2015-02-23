@@ -46,6 +46,7 @@ trait StratsTrait {
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
       AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+      , ExpELMChange(pool)
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](

@@ -18,7 +18,7 @@
 
 package al.strategies
 
-import clean.lib.{Ds, CM}
+import clean.lib.{FilterTrait, Ds, CM}
 import ml.Pattern
 import ml.classifiers._
 import ml.models.Model
@@ -72,19 +72,23 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
    }
 }
 
-object GATUTest extends App with CM {
+object GATUTest extends App with CM with FilterTrait {
    val context = "GATUTest"
-   val ds = Ds("abalone-11class", readOnly = true)
-   val patts = new Random(6294).shuffle(ds.patterns)
-   val (tr0, ts) = patts.splitAt(patts.size / 2)
-   val tr = tr0.take(9000)
+   //   val ds = Ds("abalone-11class", readOnly = true)
+   val ds = Ds("phoneme", readOnly = true)
+   val patts = new Random(2985).shuffle(ds.patterns).take(1000)
+   val (tr0, ts0) = patts.splitAt(patts.size / 2)
+   val (tr, binaf, zscof) = criaFiltro(tr0, 1)
+   val ts = aplicaFiltro(ts0, 1, binaf, zscof)
    //   val res = Seq(C45(), KNNBatch(5, "eucl", tr, true), NinteraELM(), CIELMBatch(), NBBatch(), RF()) map { l =>
-   val res = Seq(NinteraELM(), CIELMBatch()) map { l =>
+   val res = Seq(CIELMBatch()).par map { l =>
+      //   val res = Seq(NinteraELM()).par map { l =>
       val r = l.abr -> Tempo.timev {
-         val s = ExpModelChange(l, tr)
-         //         val s = SGmulti(l, tr, "consensus")
-         val qs = s.queries.drop(tr.head.nclasses).take(50).toList
-         "%5.3f".format(l.build(qs).accuracy(ts))
+         //         val s = ExpModelChange(l, tr)
+         val s = RandomSampling(tr)
+         //         val s = DensityWeightedTrainingUtility(l, tr, "eucl")
+         val qs = s.queries.drop(tr.head.nclasses).take(100).toList
+         "%5.3f".format(kappa(l.build(qs).confusion(ts)))
       }
       r._1 + "\t\t\t" + r._2
    }

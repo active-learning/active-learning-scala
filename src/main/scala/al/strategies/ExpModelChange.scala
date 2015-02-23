@@ -22,13 +22,19 @@ import ml.Pattern
 import ml.classifiers.Learner
 import ml.models.Model
 
+import scala.util.Random
+
 case class ExpModelChange(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyWithLearner {
    override val toString = "Expected Model Change"
    val abr = "EMC"
    val id = 100
+   val s = 100
 
    protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-      unlabeled maxBy learner.expected_change(current_model)
+      val unlabeledSize = unlabeled.size
+      val rnd = new Random(unlabeledSize)
+      val unlabeledSamp = if (unlabeledSize > s) rnd.shuffle(unlabeled).take(s) else unlabeled
+      unlabeledSamp maxBy learner.expected_change(current_model)
    }
 }
