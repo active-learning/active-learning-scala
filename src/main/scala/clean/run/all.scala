@@ -22,6 +22,7 @@ package clean.run
 import clean._
 import clean.lib.{StratsTrait, LearnerTrait, Exp, Ds}
 import ml.Pattern
+import ml.classifiers.NinteraELM
 import weka.filters.Filter
 
 object all extends Exp with LearnerTrait with StratsTrait {
@@ -82,7 +83,13 @@ object all extends Exp with LearnerTrait with StratsTrait {
             } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
             //hits
             learnersFilterFree(fpool, learnerSeed) ++ learnersFilterDependent(learnerSeed) foreach { flearner =>
-               if ((Seq(1006600, 10066).contains(fstrat.id) && flearner.id == 11) || !Seq(1006600, 10066).contains(fstrat.id)) {
+               if (Seq(1006600, 10066).contains(fstrat.id)) {
+                  if (flearner.id == 11) {
+                     ds.log(s"agDW* hits [$fstrat Nintera] at pool $run.$fold.")
+                     if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, NinteraELM(learnerSeed), run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
+                     else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(NinteraELM(learnerSeed))
+                  }
+               } else {
                   ds.log(s"agDW* hits [$fstrat $flearner] at pool $run.$fold.")
                   if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
                   else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
