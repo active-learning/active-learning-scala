@@ -24,7 +24,7 @@ import java.io.PrintWriter
 import clean.lib._
 import util.{Stat, StatTests}
 
-object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "friedALCKappatex"
    val measure = ALCKappa
@@ -59,7 +59,7 @@ object friedEtabelasALCKappa extends AppWithUsage with LearnerTrait with StratsT
                      measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                   } catch {
                      case e: Throwable =>
-                        //                        println("NA:" +(ds, s.abr, le, r, f))
+                        println("NA:" +(ds, s.abr, le, r, f))
                         NA //sys.exit(1)
                   }
                if (vs.contains(NA)) (NA, NA)

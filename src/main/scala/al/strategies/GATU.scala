@@ -78,10 +78,10 @@ object GATUTest extends App with CM {
    val patts = new Random(6294).shuffle(ds.patterns)
    val (tr0, ts) = patts.splitAt(patts.size / 2)
    val tr = tr0.take(9000)
-   val res = Seq(C45(), KNNBatch(5, "eucl", tr, true), NinteraELM(), CIELMBatch(), NBBatch(), RF()) map { l =>
-      //   val res = Seq(NinteraELM()) map { l =>
+   //   val res = Seq(C45(), KNNBatch(5, "eucl", tr, true), NinteraELM(), CIELMBatch(), NBBatch(), RF()) map { l =>
+   val res = Seq(NinteraELM()) map { l =>
       val r = l.abr -> Tempo.timev {
-         val s = ExpErrorReductionMargin(l, tr, "accuracy")
+         val s = ExpModelChange(l, tr)
          //         val s = SGmulti(l, tr, "consensus")
          val qs = s.queries.drop(tr.head.nclasses).take(50).toList
          "%5.3f".format(l.build(qs).accuracy(ts))
