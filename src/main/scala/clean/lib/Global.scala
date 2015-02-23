@@ -22,7 +22,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-   val specialIds = Seq(211, 601, 361, 66361, 901, 391, 66391, 701, 371, 1006600, 10066)
+   val specialIds = Seq(211, 601, 361, 66361, 901, 391, 66391, 701, 371) //, 1006600, 10066)
 
    lazy val (mysqlHostRW, mysqlPortRW, mysqlPassRW) = {
       val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
