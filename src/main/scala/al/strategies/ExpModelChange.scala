@@ -28,7 +28,7 @@ case class ExpModelChange(learner: Learner, pool: Seq[Pattern], debug: Boolean =
    extends StrategyWithLearner {
    override val toString = "Expected Model Change"
    val abr = "EMC"
-   val id = 100
+   val id = 10066
    val s = 100
 
    protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {

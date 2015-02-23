@@ -28,7 +28,7 @@ case class ExpELMChange(pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyWithLearner {
    override val toString = "Expected ELM Change"
    val abr = "EMC"
-   val id = 100
+   val id = 1006600
    val s = 100
    val seed = pool.take(10).map(_.id).zipWithIndex.map { case (c, i) => c * i}.sum
    val learner = NinteraELM(seed)
