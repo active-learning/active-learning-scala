@@ -82,9 +82,11 @@ object all extends Exp with LearnerTrait with StratsTrait {
             } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
             //hits
             learnersFilterFree(fpool, learnerSeed) ++ learnersFilterDependent(learnerSeed) foreach { flearner =>
-               ds.log(s"agDW* hits [$fstrat $flearner] at pool $run.$fold.")
-               if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
-               else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
+               if ((Seq(1006600, 10066).contains(fstrat.id) && flearner.id == 11) || !Seq(1006600, 10066).contains(fstrat.id)) {
+                  ds.log(s"agDW* hits [$fstrat $flearner] at pool $run.$fold.")
+                  if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
+                  else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
+               }
             }
             ds.log(s"$fstrat ok.")
          }
