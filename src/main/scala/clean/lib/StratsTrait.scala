@@ -83,7 +83,7 @@ trait StratsTrait {
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
       //      , Uncertainty(learner, pool) //2
-      //      , Entropy(learner, pool) //4
+            , Entropy(learner, pool) //4
       , Margin(learner, pool) //3
       //
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
@@ -107,30 +107,32 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
       //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
-      //            , DGATU(learner, pool, "manh") //
-      //            , DGATU(learner, pool, "maha") //
-      //            , RGATU(learner, pool, "manh") //
-      //            , RGATU(learner, pool, "maha") //
+                  , DGATU(learner, pool, "manh") //
+                  , DGATU(learner, pool, "maha") //
+                  , RGATU(learner, pool, "manh") //
+                  , RGATU(learner, pool, "maha") //
    )
 
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      //      , Entropy(learner, pool) //4
+            , Entropy(learner, pool) //4
       , Margin(learner, pool) //3
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , new SGmulti(learner, pool, "consensus") //14
-      //      , DensityWeighted(learner, pool, 1, "eucl") //5
+//            , DensityWeighted(learner, pool, 1, "eucl") //5
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      //      , DGATU(learner, pool, "manh") //
-      //      , DGATU(learner, pool, "maha") //
-      //      , RGATU(learner, pool, "manh") //
-      //      , RGATU(learner, pool, "maha") //
-      //      , GATU(learner, pool, "manh") //
+            , DGATU(learner, pool, "manh") //
+            , DGATU(learner, pool, "maha") //
+            , RGATU(learner, pool, "manh") //
+            , RGATU(learner, pool, "maha") //
+      , ExpELMChange(pool)
+
+      //            , GATU(learner, pool, "manh") //
       //      , GATU(learner, pool, "maha") //
    )
 }
