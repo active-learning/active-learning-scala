@@ -38,25 +38,26 @@ trait StratsTrait {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    def stratsSemLearnerExterno_FilterFree(pool: Seq[Pattern]) = List[Strategy](
-      RandomSampling(pool) //0
-      , ClusterBased(pool) //1
-      //      //            , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      , AgDensityWeightedTrainingUtility(pool, "manh") //701
+//      RandomSampling(pool) //0
+//      , ClusterBased(pool) //1
+//      //      //            , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+//      , AgDensityWeightedTrainingUtility(pool, "manh") //701
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
-      AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      , ExpELMChange(pool)
+//      AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+
+       ExpELMChange(pool)
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
+//      , Margin(learner, pool) //3
       , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      , new SGmulti(learner, pool, "consensus") //14
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+//      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+//      , new SGmulti(learner, pool, "consensus") //14
+//      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+//      , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , DGATU(learner, pool, "manh") //
       , RGATU(learner, pool, "manh") //
       //      //      Uncertainty(learner, pool) //2
@@ -67,8 +68,8 @@ trait StratsTrait {
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , DGATU(learner, pool, "maha") //
+//      DensityWeightedTrainingUtility(learner, pool, "maha") //9
+       DGATU(learner, pool, "maha") //
       , RGATU(learner, pool, "maha") //
    )
 
