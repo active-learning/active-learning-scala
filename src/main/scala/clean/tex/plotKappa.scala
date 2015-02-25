@@ -37,7 +37,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
    val tipoSumariz = "media"
    val redux = true
    val risco = false
-   val strats = if (redux) stratsForTreeRedux() else stratsForTree()
+   val strats = if (redux) stratsForTreeRedux().dropRight(1) else stratsForTree()
    val sl = strats.map(_.abr)
    run()
 
@@ -83,6 +83,8 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
             case "all" => le0
          }
 
+
+
          val (ti, th, tf, tpass) = ranges(ds)
          val sres = for {
             s <- strats
@@ -109,6 +111,9 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
             val fst = ts.head
             ts.reverse.padTo(200, fst).reverse.toList
          }
+
+
+
          ds.close()
          lazy val rank = sres.transpose map ranqueia
          val tmp = if (porRank) rank else sres.transpose

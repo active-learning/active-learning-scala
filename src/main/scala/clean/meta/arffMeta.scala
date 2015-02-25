@@ -64,7 +64,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val ls = learners(learnersStr)
       val mapaAtts = mutable.Map[Ds, List[Double]]()
       val mapaSuav = mutable.Map[(Ds, Learner), Double]()
-      val strats = if (redux) stratsForTreeRedux() else stratsForTree()
+      val strats = if (redux) stratsForTreeRedux().dropRight(1) else stratsForTree()
       val ss = strats.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList.take(150).par
@@ -90,7 +90,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.metaAtts)
          lazy val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
          //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
-         //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente SVMmulti e Majoritary)
+         //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente ExpELMC)
          //         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
 
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
@@ -98,24 +98,24 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          val (rattsm, _) = rattsmd.unzip
 
          val res = modo match {
-            case "Acc" => //prediz acc em cada strat
-               println(s"filtrar sVMmulti com learner errado");
-               ???
-               val vs = for {
-                  s <- strats
-               } yield {
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-                  val ms = for {
-                     r <- 0 until Global.runs
-                     f <- 0 until Global.folds
-                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-                        NA
-                     }
-                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
-               }
-               if (vs.exists(x => x._2._1 == NA)) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + vs.map(_._2._1).mkString(","), budix, l.attPref, l.boundaryType, suav))
+//            case "Acc" => //prediz acc em cada strat
+//               println(s"filtrar sVMmulti com learner errado");
+//               ???
+//               val vs = for {
+//                  s <- strats
+//               } yield {
+//                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+//                  val ms = for {
+//                     r <- 0 until Global.runs
+//                     f <- 0 until Global.folds
+//                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+//                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+//                        NA
+//                     }
+//                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+//               }
+//               if (vs.exists(x => x._2._1 == NA)) Seq()
+//               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + vs.map(_._2._1).mkString(","), budix, l.attPref, l.boundaryType, suav))
             case "TiesDup" => //qualquer metalearner que conte prediz vencedores empatados
                val vs = for {
                   r <- 0 until runs
@@ -215,8 +215,12 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       }
       val header = List("@relation data") ++
          nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
-         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute aprendiz {" +
-            ls.map(x => "\"" + x.abr + "\"").mkString(",") + ",na}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute suavidade numeric", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}",
+            "@attribute aprendiz {" + ls.map(x => "\"" + x.abr + "\"").mkString(",") + ",na}",
+            "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}",
+            "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}",
+            "@attribute suavidade numeric",
+            "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
 
       val pronto = header ++ data
 
