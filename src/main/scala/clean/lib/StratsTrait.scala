@@ -121,7 +121,7 @@ trait StratsTrait {
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , new SGmulti(learner, pool, "consensus") //14
-//            , DensityWeighted(learner, pool, 1, "eucl") //5
+            , DensityWeighted(learner, pool, 1, "eucl") //5
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
@@ -132,8 +132,8 @@ trait StratsTrait {
             , RGATU(learner, pool, "maha") //
       , ExpELMChange(pool)
 
-      //            , GATU(learner, pool, "manh") //
-      //      , GATU(learner, pool, "maha") //
+                  , GATU(learner, pool, "manh") //
+            , GATU(learner, pool, "maha") //
    )
 }
 

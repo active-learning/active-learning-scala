@@ -52,7 +52,7 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
                f <- 0 until folds
             } yield {
                try {
-                  measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(throw new Error("passiva não encontrada"))
+                  measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse({println("passiva não encontrada");NA})
                } catch {
                   case e: Throwable => println(s"pid não encontrado")
                      NA

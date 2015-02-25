@@ -25,7 +25,7 @@ import util.XSRandom
 
 case class DGATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure with EntropyMeasure {
-   override val toString = "GATU4 a" + alpha + " b" + beta + " (" + distance_name + ")"
+   override val toString = "DGATU a" + alpha + " b" + beta + " (" + distance_name + ")"
    val abr = "\\textbf{DGATU" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
