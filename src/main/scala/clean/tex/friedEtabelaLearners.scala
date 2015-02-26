@@ -78,5 +78,19 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
       fw.write(StatTests.pairTable(pairs, "tab:friedClassif", 2, caption))
       fw.close()
       println(s"${sorted.size} datasets completos")
+
+      println(s"1os lugares")
+      val vics = sorted.map(x => ls.zip(x._2.map(_._1)).maxBy(_._2)._1.abr)
+      println(vics.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
+
+      println(s"")
+      println(s"2os lugares")
+      val vics2 = sorted.map(x => ls.zip(x._2.map(_._1)).sortBy(_._2).reverse.tail.head._1.abr)
+      println(vics2.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
+
+      println(s"")
+      println(s"ambos")
+      val vicsa = vics ++ vics2
+      println(vicsa.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
    }
 }

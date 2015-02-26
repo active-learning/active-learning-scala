@@ -35,4 +35,24 @@ trait Rank {
       val n = ss.size
       ss.foldLeft(Array.fill(cs)(0d))((b, a) => b.zip(a).map { case (x, y) => x + y}).map(_ / n)
    }
+
+   def res0ToPlot0(res0: List[Seq[Seq[Double]]],tipoSumariz:String) = {
+      val cols = res0.head.head.size
+      val qs = res0.head.size
+      tipoSumariz match {
+         case "media" =>
+            res0.foldLeft(Seq.fill(cols * qs)(0d)) { (l, m) =>
+               m.flatten.zip(l).map(x => x._1 + x._2)
+            }.grouped(cols).toList.map(_.toList)
+         case "mediana" => res0.map(_.flatten).transpose.map(x => x.sorted.toList(x.size / 2)).grouped(cols).toList.map(_.toList)
+      }
+   }
 }
+/*
+   def res0ToPlot0(res0: List[Seq[Seq[Double]]]) = tipoSumariz match {
+      case "media" => res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
+         m.flatten.zip(l).map(x => x._1 + x._2)
+      }.grouped(sl.size).toList.map(_.toList)
+      case "mediana" => res0.map(_.flatten).transpose.map(x => x.sorted.toList(x.size / 2)).grouped(sl.size).toList.map(_.toList)
+   }
+ */

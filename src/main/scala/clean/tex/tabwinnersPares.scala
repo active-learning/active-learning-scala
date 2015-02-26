@@ -22,21 +22,21 @@ package clean.tex
 import clean.lib._
 import util.StatTests
 
-object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val context = "tabwinnerstex"
+   val context = "tabwinnersPares"
    run()
 
    override def run() = {
       super.run()
       //      val measure = ALCBalancedAcc
       val measure = ALCKappa
-      val strats = stratsForTreeRedux().dropRight(1)
-      val ss = strats.map(_.abr).toVector
+      val strats = stratsForTreeRedux() //.dropRight(6)
+      val ls = learners(learnersStr)
+      val algs = (for (s <- strats; le <- ls) yield s.abr.replace("}", "").replace("\\textbf{", "") + le.abr).toVector
 
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.par
-         l <- learners(learnersStr)
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
@@ -49,6 +49,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                val poolStr = (100 * r + f).toString
                val sres = for {
                   s <- strats
+                  l <- ls
                } yield {
                   val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
                   val (ti, th, tf, tpass) = ranges(ds)
@@ -57,7 +58,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                poolStr -> sres
             }
 //            Some((ds.dataset + l.toString.take(3)) -> StatTests.winners(vs, ss), (ds.dataset + l.toString.take(3)) -> StatTests.losers(vs, ss))
-            Some((ds.dataset + l.toString.take(3)) -> StatTests.winners(vs, ss), (ds.dataset + l.toString.take(3)) -> StatTests.losers(vs, ss))
+            Some(ds.dataset -> StatTests.winners(vs, algs), ds.dataset -> StatTests.losers(vs, algs))
          } catch {
             case e: Throwable => println(s"$e")
                sys.exit(1) //None
@@ -72,7 +73,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-      ss foreach { st =>
+      algs foreach { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          println(s"${st.padTo(10, ' ')}:\t$topCount\t1st places;\t\t$botCount\tlast places")

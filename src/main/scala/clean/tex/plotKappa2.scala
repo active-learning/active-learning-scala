@@ -26,30 +26,24 @@ import clean.lib._
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
-object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
+object plotKappa2 extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val context = "plotKappa"
+   val context = "plotKappa2"
    val porRank = true
-   //   val tipoLearner = "best"
-   val tipoLearner = "all"
-   //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val redux = true
    val risco = false
    val strats = if (redux) stratsForTreeRedux().dropRight(1) else stratsForTree()
+   val ls = learners(learnersStr)
    val sl = strats.map(_.abr)
    run()
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (risco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa${tipoSumariz}Pares" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (risco) "Risco" else "") + ".plot"
       println(s"$arq")
-      val ls = learners(learnersStr)
-      val ls2 = tipoLearner match {
-         case "best" | "mediano" => Seq(NoLearner())
-         case "all" => ls
-      }
+      val algs = for (s <- strats; le <- ls) yield s.abr.replace("}", "").replace("\\textbf{", "") + le.abr
       val dss = datasets.filter { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
@@ -59,26 +53,14 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       }
       val res0 = for {
          dataset <- dss.take(1000).par
-         le0 <- ls2
       } yield {
          val ds = Ds(dataset, readOnly = true)
          println(s"$ds")
          ds.open()
-         val le = tipoLearner match {
-            case "mediano" => ls.map { l =>
-               val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
-               l -> Stat.media_desvioPadrao(vs.toVector)._1
-            }.sortBy(_._2).apply(ls.size / 2)._1
-            case "best" => ls.map { l =>
-               val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
-               l -> Stat.media_desvioPadrao(vs.toVector)._1
-            }.maxBy(_._2)._1
-            case "all" => le0
-         }
-
 
          val sres = for {
             s <- strats
+            le <- ls
          } yield {
             val vs0 = for {
                r <- 0 until runs
@@ -92,23 +74,22 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
             ts.reverse.padTo(200, fst).reverse.toList
          }
 
-
-
          ds.close()
          lazy val rank = sres.transpose map ranqueia
          val tmp = if (porRank) rank else sres.transpose
          tmp
       }
-      val plot0 = res0ToPlot0(res0.toList,tipoSumariz)
-
+      val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
       val plot = plot0.toList.transpose.map { x =>
          x.sliding(10).map(y => y.sum / y.size).toList
       }.transpose
+      val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.min).take(12).unzip
+      val plot2 = plot3.transpose
 
       val fw = new PrintWriter(arq, "ISO-8859-1")
-      fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
-      plot.zipWithIndex foreach { case (re, i) =>
-         fw.write(i + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
+      fw.write("budget " + algs2.mkString(" ") + "\n")
+      plot2.zipWithIndex foreach { case (re, i) =>
+         fw.write(i + " " + re.map(_ / dss.size).mkString(" ") + "\n")
       }
       fw.close()
       println(s"$arq")
