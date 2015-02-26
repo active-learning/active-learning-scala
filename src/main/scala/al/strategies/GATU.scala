@@ -39,75 +39,82 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
    } else throw new Error("Parametros inesperados para GATU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-      val hist = Array.fill(nclasses)(0d)
-      val n = labeled.size
-      var lastMin = 0
-      val entropias = labeled.drop(nclasses).zipWithIndex.flatMap { case (lab, idx) =>
-         val cla = lab.label.toInt
-         hist(cla) += 1
-         val s = idx + 1
-         val histMin = hist.min.toInt
-         if (hist.min > lastMin || s == n) {
-            lastMin = histMin
-            Some(normalized_entropy(hist.map(_ / s)))
-         } else None
-      }
-      var agnostico = false
-      var olde = entropias.headOption.getOrElse(-1d)
-      entropias.find { e =>
-         val res = e < olde
-         olde = e
-         res
-      }.getOrElse(agnostico = true)
+      //      val hist = Array.fill(nclasses)(0d)
+      //      val n = labeled.size
+      //      var lastMin = 0
+      //      val entropias = labeled.drop(nclasses).zipWithIndex.flatMap { case (lab, idx) =>
+      //         val cla = lab.label.toInt
+      //         hist(cla) += 1
+      //         val s = idx + 1
+      //         val histMin = hist.min.toInt
+      //         if (hist.min > lastMin || s == n) {
+      //            lastMin = histMin
+      //            Some(normalized_entropy(hist.map(_ / s)))
+      //         } else None
+      //      }
+      //      var agnostico = false
+      //      var olde = entropias.headOption.getOrElse(-1d)
+      //      entropias.find { e =>
+      //         val res = e < olde
+      //         olde = e
+      //         res
+      //      }.getOrElse(agnostico = true)
 
-      val selected = unlabeled maxBy { x =>
-         val similarityU = mapU(x) / mapU.size.toDouble
-         val similarityL = mapL(x) / mapL.size.toDouble
-         if (agnostico)
-            math.pow(similarityU, beta) / math.pow(similarityL, alpha)
-         else
-            (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similarityL, alpha)
+      val us = unlabeled.size
+      val ls = labeled.size
+      val vs = unlabeled map { x =>
+         val similarityU = mapU(x) / us //mapU.size.toDouble
+      val similarityL = mapL(x) / ls //mapL.size.toDouble
+      //         if (agnostico)
+      //            math.pow(similarityU, beta) / math.pow(similarityL, alpha)
+      //         else
+      val m = 1 - margin(current_model)(x)
+         val u =math.pow(similarityU, beta)
+         val l =math.pow(similarityL, alpha)
+         val s = u / l
+         (m, x, s, similarityU, similarityL, m*s)
       }
+      val (m, selected, s, _, _, d) = vs maxBy (_._3)
+      val un = (vs map (_._4)).min
+      val um = (vs map (_._4)).sum/us
+      val ux = (vs map (_._4)).max
+      val ln = (vs map (_._5)).min
+      val lm = (vs map (_._5)).sum/us
+      val lx = (vs map (_._5)).max
+      val mx = (vs map (_._1)).max
+      val mn = (vs map (_._1)).min
+      val mm = (vs map (_._1)).sum / us
+      val sm = (vs map (_._3)).sum / us
+      val sn = (vs map (_._3)).min
+      val sx = (vs map (_._3)).max
+      val dm = (vs map (_._6)).sum / us
+      val dn = (vs map (_._6)).min
+      val dx = (vs map (_._6)).max
+      val mc=vs.map(_._1).count(_ <0.9*mx)
+      val sc=vs.map(_._3).count(_ <0.9*sx)
+      val dc=vs.map(_._6).count(_ <0.9*dx)
+//      print(s"${(mm-mn)/(mx-mn)} ${(sm-sn)/(sx-sn)}")
+      print(s"${sn/sx} $s ${math.sqrt(math.pow(m,1-sn/sx)*math.pow(s,sn/sx))}")
       selected
    }
 }
 
 object GATUTest extends App with CM with FilterTrait {
    val context = "GATUTest"
-   //   val ds = Ds("abalone-11class", readOnly = true)
-   val ds = Ds("phoneme", readOnly = true)
-   val patts = new Random(2985).shuffle(ds.patterns).take(1000)
-   val (tr0, ts0) = patts.splitAt(patts.size / 2)
+//      val ds = Ds("banana", readOnly = true)
+      val ds = Ds("volcanoes-b2", readOnly = true)
+//         val ds = Ds("abalone-3class", readOnly = true)
+//   val ds = Ds("leaf", readOnly = true)
+   val patts = new Random(2985).shuffle(ds.patterns).take(2000)
+   println(patts.size)
+   val (tr0, ts0) = patts.splitAt(2 * patts.size / 3)
    val (tr, binaf, zscof) = criaFiltro(tr0, 1)
    val ts = aplicaFiltro(ts0, 1, binaf, zscof)
-   //   val res = Seq(C45(), KNNBatch(5, "eucl", tr, true), NinteraELM(), CIELMBatch(), NBBatch(), RF()) map { l =>
-   val res = Seq(CIELMBatch()).par map { l =>
-      //   val res = Seq(NinteraELM()).par map { l =>
-      val r = l.abr -> Tempo.timev {
-         //         val s = ExpModelChange(l, tr)
-         val s = RandomSampling(tr)
-         //         val s = DensityWeightedTrainingUtility(l, tr, "eucl")
-         val qs = s.queries.drop(tr.head.nclasses).take(100).toList
-         "%5.3f".format(kappa(l.build(qs).confusion(ts)))
-      }
-      r._1 + "\t\t\t" + r._2
+   val l = RF()
+   val s = GATU(l, tr, "eucl")
+   var m = l.build(s.queries.take(tr.head.nclasses))
+   val qs = s.queries.take(1000).drop(tr.head.nclasses).foreach { q =>
+      m = l.update(m)(q)
+      println(" " + "%7.5f".format(accBal(m.confusion(ts))))
    }
-   println(s"")
-   res foreach println
 }
-
-// RF antigo, aba11, |tr|=100, take 200
-//(5NN,        (0.198,6.559))
-//(C4.5w,      (0.250,5.655))
-//(CIELMBatch, (0.222,11.27))
-//(ELM,        (0.218,7.385))
-//(NBBatch,    (0.234,15.571))
-//(RF,         (0.239,33.805))
-
-// RF antigo, aba11, |tr| livre, take 50
-//(CIELMBatch,(0.183,18.891))
-//(5NN,(0.206,9.532))
-//(ELM,(0.213,8.372))
-//(C4.5w,(0.219,6.848))
-//(RF,(0.225,40.101))
-//(NBBatch,(0.233,27.509))

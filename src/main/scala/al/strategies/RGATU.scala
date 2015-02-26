@@ -36,14 +36,17 @@ case class RGATU(learner: Learner, pool: Seq[Pattern], distance_name: String, al
    } else throw new Error("Parametros inesperados para GATU4b.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val us = unlabeled.size
+      val ls = labeled.size
+
       val rnd = new XSRandom()
       rnd.setSeed(seed)
       1 to labeled.size foreach (_ => rnd.nextBoolean())
       val agnostico = rnd.nextBoolean()
 
       val selected = unlabeled maxBy { x =>
-         val similarityU = mapU(x) / mapU.size.toDouble
-         val similarityL = mapL(x) / mapL.size.toDouble
+         val similarityU = mapU(x) / us
+         val similarityL = mapL(x) / ls
          if (agnostico)
             math.pow(similarityU, beta) / math.pow(similarityL, alpha)
          else

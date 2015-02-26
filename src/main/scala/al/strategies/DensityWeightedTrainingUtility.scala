@@ -38,10 +38,12 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
    } else throw new Error("Parametros inesperados para DWTU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val us = unlabeled.size
+      val ls = labeled.size
       val selected = unlabeled maxBy {
          x =>
-            val similarityU = mapU(x) / mapU.size.toDouble
-            val similarityL = mapL(x) / mapL.size.toDouble
+            val similarityU = mapU(x) / us
+            val similarityL = mapL(x) / ls
             (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similarityL, alpha)
       }
       selected

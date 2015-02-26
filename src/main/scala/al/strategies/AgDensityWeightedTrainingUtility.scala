@@ -34,10 +34,12 @@ case class AgDensityWeightedTrainingUtility(pool: Seq[Pattern], distance_name: S
    } else throw new Error("Parametros inesperados para DWAgTU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val us = unlabeled.size
+      val ls = labeled.size
       val selected = unlabeled maxBy {
          x =>
-            val similarityU = mapU(x) / mapU.size.toDouble
-            val similarityL = mapL(x) / mapL.size.toDouble
+            val similarityU = mapU(x) / us
+            val similarityL = mapL(x) / ls
             math.pow(similarityU, beta) / math.pow(similarityL, alpha)
       }
       selected

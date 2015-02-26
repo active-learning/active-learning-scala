@@ -33,10 +33,11 @@ case class DensityWeighted(learner: Learner, pool: Seq[Pattern], beta: Double = 
 
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val us = unlabeled.size
       val selected = unlabeled maxBy {
          x =>
-            val similarity = mapU(x) / mapU.size.toDouble
-            (1 - margin(current_model)(x)) * math.pow(similarity, beta)
+            val similarityU = mapU(x) / us
+            (1 - margin(current_model)(x)) * math.pow(similarityU, beta)
       }
       selected
    }

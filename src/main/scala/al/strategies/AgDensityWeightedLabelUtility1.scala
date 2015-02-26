@@ -32,8 +32,9 @@ case class AgDensityWeightedLabelUtility1(pool: Seq[Pattern], distance_name: Str
    } else throw new Error("Parametros inesperados para AgLU1.")
 
    protected def next(mapU: => Map[Pattern, Double], mapsL: => Seq[Map[Pattern, Double]], unlabeled: Seq[Pattern], labeled: Seq[Pattern], hist: Seq[Int]) = {
+      val us = unlabeled.size
       val selected = unlabeled maxBy { x =>
-         val similarityU = mapU(x) / mapU.size.toDouble
+         val similarityU = mapU(x) / us
          val similaritiesL = simL(mapsL, x, hist)
          math.pow(similarityU, beta) / math.pow(similaritiesL, alpha)
       }
