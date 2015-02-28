@@ -57,7 +57,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          ds.close()
          U > 200
       }
-      val res0 = for {
+      val res0 = (for {
          dataset <- dss.take(1000).par
          le0 <- ls2
       } yield {
@@ -77,34 +77,44 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          }
 
 
-         val sres = (for {
+         val sres = for {
             s <- strats
          } yield {
-            val vs0 = for {
-               r <- 0 until runs
-               f <- 0 until folds
-            } yield Kappa(ds, s, le, r, f)(0).readAll(ds)
-            if (vs0.contains(None)) {
-               println(s"NA: ${(ds, s, le.abr, r, f)}")
+            val vs00 = try {
+               for {
+                  r <- 0 until runs
+                  f <- 0 until folds
+               } yield Kappa(ds, s, le, r, f)(0).readAll(ds)
+            } catch {
+               case _: Throwable => println(s"NA: ${(ds, s, le.abr)}")
+                  Seq(None)
+            }
+            if (vs00.contains(None)) {
+               println(s"NA: ${(ds, s, le.abr)}")
                None
             } else Some({
-               val ts = vs0.flatten.transpose.map { v =>
+               val sizes = vs00.flatten.map(_.size)
+               val minsiz = sizes.min
+               val vs0 = vs00.flatten.map(_.take(minsiz))
+               if (vs0.minBy(_.size).size != vs0.maxBy(_.size).size || minsiz != sizes.max) println(s"$dataset $s $le " + sizes.min + " " + sizes.max)
+               val ts = vs0.transpose.map { v =>
                   if (risco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
                   else Stat.media_desvioPadrao(v.toVector)._1
                }
                val fst = ts.head
                ts.reverse.padTo(200, fst).reverse.toList
             })
-         }).flatten
-
-
-
-         ds.close()
-         lazy val rank = sres.transpose map ranqueia
-         val tmp = if (porRank) rank else sres.transpose
-         tmp
-      }
-      val plot0 = res0ToPlot0(res0.toList,tipoSumariz)
+         }
+         if (sres.contains(None)) None
+         else {
+            ds.close()
+            val sresf = sres.flatten
+            lazy val rank = sresf.transpose map ranqueia
+            val tmp = if (porRank) rank else sresf.transpose
+            Some(tmp)
+         }
+      }).flatten
+      val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
 
       val plot = plot0.toList.transpose.map { x =>
          x.sliding(10).map(y => y.sum / y.size).toList
@@ -116,6 +126,6 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          fw.write(i + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
       }
       fw.close()
-      println(s"$arq")
+      println(s"$arq " + (res0.size / ls2.size.toDouble) + " datasets completos.")
    }
 }
