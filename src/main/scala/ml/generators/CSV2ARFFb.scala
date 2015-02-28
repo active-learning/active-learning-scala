@@ -66,7 +66,7 @@ object CSV2ARFFbCVTest extends App {
       val bothhits = Datasets.LOO(patts0.toArray) { (tr0, p) =>
          val tr = tr0 //Datasets.applyFilter(f)(tr0)
 
-         val learner = KNNBatch(1, "eucl", tr, weighted = true)
+         val learner = KNNBatchb(1, "eucl", tr, weighted = true)
          //         val learner = NBBatch()
 
          val amostra = Entropy(learner, rnd.shuffle(tr0)).queries.take(toTake)

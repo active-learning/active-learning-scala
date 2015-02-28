@@ -150,7 +150,7 @@ trait CrossValidation extends Lock with ClassName {
   def completeForQCalculation(db: Dataset) = if (!rndQueriesComplete(db)) {
     p("Rnd queries incomplete.")
     false
-  } else if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatch(5, "eucl", Seq(), weighted = true)) || !db.rndHitsComplete(C45())) {
+  } else if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatchb(5, "eucl", Seq(), weighted = true)) || !db.rndHitsComplete(C45())) {
     p("Rnd NB, 5NN or C45 hits incomplete.")
     false
   } else true

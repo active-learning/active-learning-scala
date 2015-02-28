@@ -72,8 +72,8 @@ object CreateAppFile extends App {
     sys.exit(1)
   }
 
-  val learners = Seq(NoLearner(), KNNBatch(5, "eucl", Seq(), weighted = true), KNNBatch(5, "manh", Seq()),
-    KNNBatch(1, "eucl", Seq()),
+  val learners = Seq(NoLearner(), KNNBatchb(5, "eucl", Seq(), weighted = true), KNNBatchb(5, "manh", Seq()),
+    KNNBatchb(1, "eucl", Seq()),
     IELM(), IELMEnsemble(), EIELM(), CIELM(), ECIELM(),
     interaELM(),
     LASVM(),

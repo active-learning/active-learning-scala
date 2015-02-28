@@ -109,14 +109,14 @@ case class GATUTests2(learner: Learner, pool: Seq[Pattern], distance_name: Strin
          val u = math.pow(similarityU, beta)
          val l = math.pow(similarityL, alpha)
          val ag = u / l
-         gn*ag //((gn - gnmin) / (gnmax - gnmin)) * ((ag - agmin) / (agmax - agmin))
+         gn * ag //((gn - gnmin) / (gnmax - gnmin)) * ((ag - agmin) / (agmax - agmin))
       }
 
       val (a, b) = list_i_id.unzip
       lazy val spear = new SpearmansCorrelation().correlation(a.toArray, b.toArray)
       //
       val sim_gn_mix = 1d / (1 + d(xgnmax, xmixmax))
-            val sim_ag_mix = 1d / (1 + d(xagmax, xmixmax))
+      val sim_ag_mix = 1d / (1 + d(xagmax, xmixmax))
       //      //      //      val densObsoleta = spear > 0.99
       //      //      //      val densObsoleta = ximax == xidmax
       //      val densObsoleta = sim_gn_mix < sim_ag_mix
@@ -142,11 +142,11 @@ case class GATUTests2(learner: Learner, pool: Seq[Pattern], distance_name: Strin
          val l = math.pow(similarityL, alpha)
          val ag = u / l
          //((gn - gnmin) / (gnmax - gnmin)) * ((ag - agmin) / (agmax - agmin))
-//         math.pow(gn, sim_gn_mix) * ag //0.25333333333333335 0.25333333333333335
-//         gn * math.pow(ag, 1 - sim_gn_mix)//0.09333333333333334 0.12
-//         math.sqrt(math.pow(gn, sim_gn_mix) * math.pow(ag, 1 - sim_gn_mix)) //0.14666666666666667 0.17333333333333334
-//         math.sqrt(math.pow(gn, sim_gn_mix) * math.pow(ag, 1 - sim_gn_mix)) //0.13333333333333333 0.09333333333333334
-//         math.sqrt(math.pow(gn, sim_gn_mix) * math.pow(ag, sim_ag_mix)) //0.05333333333333334 0.06666666666666667
+         //         math.pow(gn, sim_gn_mix) * ag //0.25333333333333335 0.25333333333333335
+         //         gn * math.pow(ag, 1 - sim_gn_mix)//0.09333333333333334 0.12
+         //         math.sqrt(math.pow(gn, sim_gn_mix) * math.pow(ag, 1 - sim_gn_mix)) //0.14666666666666667 0.17333333333333334
+         //         math.sqrt(math.pow(gn, sim_gn_mix) * math.pow(ag, 1 - sim_gn_mix)) //0.13333333333333333 0.09333333333333334
+         //         math.sqrt(math.pow(gn, sim_gn_mix) * math.pow(ag, sim_ag_mix)) //0.05333333333333334 0.06666666666666667
          math.sqrt(math.pow(gn, 0.3) * math.pow(ag, 0.7)) //0.2 0.22666666666666666
       }
       //      }
@@ -161,6 +161,7 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
    f
 
    def f {
+      Tempo.start
       val fd = datasets.par.filter { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
@@ -170,14 +171,16 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
       }
       println(fd.size + " datasets")
       val accss = fd.take(800) map { name =>
+         //      val accss = Seq("volcanoes-b2") map { name =>
          val ds = Ds(name, readOnly = true)
-         val patts = new Random(2985).shuffle(ds.patterns).take(4000)
+         val patts = new Random(2985).shuffle(ds.patterns).take(1000)
          println(patts.size)
          val (tr, ts) = patts.splitAt(2 * patts.size / 3)
          //   val (tr, binaf, zscof) = criaFiltro(tr0, 1)
          //   val ts = aplicaFiltro(ts0, 1, binaf, zscof)
-         val l = RF() //KNNBatch(5, "eucl", tr, weighted = true)
+         val l = CIELMBatch() //KNNBatch(5, "eucl", tr, weighted = true)
          //      val pair = tr.head.nclasses until (200 + tr.head.nclasses) by 10 map { q =>
+         //         Seq(GATU(l, tr, "eucl")).par map { s =>
          Seq(GATU(l, tr, "eucl"), DensityWeightedTrainingUtility(l, tr, "eucl")).par map { s =>
             //         Seq(GATU(l, tr, "eucl"), DensityWeightedTrainingUtility(l, tr, "eucl"), AgDensityWeightedTrainingUtility(tr, "eucl")).par map { s =>
             var m = l.build(s.queries.take(tr.head.nclasses))
@@ -189,6 +192,7 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
             //         pair.maxBy(_._2)._1 -> pair.map(_._2)
          }
       }
+      Tempo.print_stop
       accss.toList.sortBy(_(0)).foreach(x => println(x.mkString(" ")))
       println(s"")
       0 until accss.head.size foreach { c =>

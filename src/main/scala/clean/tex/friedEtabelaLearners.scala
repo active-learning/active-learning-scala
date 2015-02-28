@@ -91,6 +91,6 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
       println(s"")
       println(s"ambos")
       val vicsa = vics ++ vics2
-      println(vicsa.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
+   println(vicsa.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
    }
 }

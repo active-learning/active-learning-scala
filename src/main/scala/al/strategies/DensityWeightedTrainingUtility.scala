@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{KNNBatch, Learner}
+import ml.classifiers.{KNNBatchb, Learner}
 import ml.models.Model
 import util.{ALDatasets, Datasets}
 

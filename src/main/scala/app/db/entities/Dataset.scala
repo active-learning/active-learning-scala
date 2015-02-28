@@ -87,7 +87,7 @@ case class Dataset(path: String, createOnAbsence: Boolean = false, readOnly: Boo
     val alreadyCalculated = QFromRes.size > 0
     if (alreadyCalculated) QFromRes.head.head.toInt
     else {
-      if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatch(5, "eucl", Seq(), weighted = true)) || !rndHitsComplete(C45())) -1 //-1: just warming
+      if (!rndHitsComplete(NB()) || !rndHitsComplete(KNNBatchb(5, "eucl", Seq(), weighted = true)) || !rndHitsComplete(C45())) -1 //-1: just warming
       else {
         //Faz lista com 25 Qs (um para cada pool); é o primeiro ponto de acc max do melhor dentre os 3 classificadores.
         val QNB_Q5NN_QC45 = (for {

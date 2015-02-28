@@ -47,7 +47,7 @@ object rnd extends Exp {
       //hits
       ds.log("hits")
       val hitspoolsize = poolSize - ds.nclasses + 1
-      Seq(NB(), KNNBatch(5, "eucl", pool, weighted = true), C45()) foreach { learner =>
+      Seq(NB(), KNNBatchb(5, "eucl", pool, weighted = true), C45()) foreach { learner =>
          if (ds.areHitsFinished(poolSize, testSet, RandomSampling(pool), learner, run, fold, null, null, completeIt = false, hitspoolsize)) ds.log(s"Hits done for rnd/$learner at pool $run.$fold.")
          else ds.writeHits(poolSize, testSet, queries.toVector, RandomSampling(pool), run, fold, hitspoolsize)(learner) //pode dar conflito de insercao aqui se existir incompleto, pois queries agora retorna false, nao mais quit()
       }
