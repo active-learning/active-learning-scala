@@ -77,20 +77,25 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          }
 
 
-         val sres = for {
+         val sres = (for {
             s <- strats
          } yield {
             val vs0 = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield Kappa(ds, s, le, r, f)(0).readAll(ds).getOrElse(throw new Error(s"NA: ${(ds, s, le.abr, r, f)}"))
-            val ts = vs0.transpose.map { v =>
-               if (risco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
-               else Stat.media_desvioPadrao(v.toVector)._1
-            }
-            val fst = ts.head
-            ts.reverse.padTo(200, fst).reverse.toList
-         }
+            } yield Kappa(ds, s, le, r, f)(0).readAll(ds)
+            if (vs0.contains(None)) {
+               println(s"NA: ${(ds, s, le.abr, r, f)}")
+               None
+            } else Some({
+               val ts = vs0.flatten.transpose.map { v =>
+                  if (risco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
+                  else Stat.media_desvioPadrao(v.toVector)._1
+               }
+               val fst = ts.head
+               ts.reverse.padTo(200, fst).reverse.toList
+            })
+         }).flatten
 
 
 

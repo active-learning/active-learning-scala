@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
-import util.StatTests
+import util.{Stat, StatTests}
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -29,36 +29,51 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      //      val measure = ALCBalancedAcc
+//            val measure = ALCBalancedAcc
       val measure = ALCKappa
-      val strats = stratsForTreeRedux() //.dropRight(6)
+      val strats = stratsForTreeRedux()
       val ls = learners(learnersStr)
-      val algs = (for (s <- strats; le <- ls) yield s.abr.replace("}", "").replace("\\textbf{", "") + le.abr).toVector
+      val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
 
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.par
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
+         val (ti, th, tf, tpass) = ranges(ds)
          try {
-            val vs = for {
-               r <- 0 until runs
-               f <- 0 until folds
-               multiplicadorDeAmostra <- 0 to 7
+            val sres = for {
+               s <- strats
+               l <- ls
             } yield {
-               val poolStr = (100 * r + f).toString
-               val sres = for {
-                  s <- strats
-                  l <- ls
-               } yield {
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-                  val (ti, th, tf, tpass) = ranges(ds)
-                  measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
-               }
-               poolStr -> sres
+               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969 || s.id == 1006600) s.learner else l
+               val vs = for {
+                  r <- 0 until runs
+                  f <- 0 until folds
+               } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse{println((ds, s, le, r, f) + ": medida não encontrada");NA}
+               s.limpa + l.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
             }
-//            Some((ds.dataset + l.toString.take(3)) -> StatTests.winners(vs, ss), (ds.dataset + l.toString.take(3)) -> StatTests.losers(vs, ss))
-            Some(ds.dataset -> StatTests.winners(vs, algs), ds.dataset -> StatTests.losers(vs, algs))
+            Some(ds.dataset -> sres.groupBy(_._2).maxBy(_._1)._2.map(_._1), ds.dataset -> sres.groupBy(_._2).minBy(_._1)._2.map(_._1))
+
+            //            val vs = for {
+            //               r <- 0 until runs
+            //               f <- 0 until folds
+            ////               multiplicadorDeAmostra <- 0 to 7
+            //            } yield {
+            //               val poolStr = (100 * r + f).toString
+            //               val sres = for {
+            //                  s <- strats
+            //                  l <- ls
+            //               } yield {
+            //                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+            //                  val (ti, th, tf, tpass) = ranges(ds)
+            //                  measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
+            //               }
+            //               poolStr -> sres
+            //            }
+            ////            Some((ds.dataset + l.toString.take(3)) -> StatTests.winners(vs, ss), (ds.dataset + l.toString.take(3)) -> StatTests.losers(vs, ss))
+            //            Some(ds.dataset -> StatTests.winners(vs, algs), ds.dataset -> StatTests.losers(vs, algs))
+
          } catch {
             case e: Throwable => println(s"$e")
                sys.exit(1) //None
@@ -68,14 +83,19 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       }
 
       val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
+      println(s"")
       println(s"${datasetLearnerAndBoth.size} tests.")
       println(s"--------$measure---------------")
       //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-      algs foreach { st =>
+      val algs1 = algs map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
+         (st, topCount, botCount)
+      }
+      println(algs1.map(_._2).sum)
+      algs1.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
          println(s"${st.padTo(10, ' ')}:\t$topCount\t1st places;\t\t$botCount\tlast places")
       }
       println(s"------------------------------")

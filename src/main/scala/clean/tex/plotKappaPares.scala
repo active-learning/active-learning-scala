@@ -26,7 +26,7 @@ import clean.lib._
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
-object plotKappa2 extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
+object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappa2"
    val porRank = true
@@ -43,7 +43,7 @@ object plotKappa2 extends AppWithUsage with LearnerTrait with StratsTrait with R
       super.run()
       val arq = s"/home/davi/wcs/tese/kappa${tipoSumariz}Pares" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (risco) "Risco" else "") + ".plot"
       println(s"$arq")
-      val algs = for (s <- strats; le <- ls) yield s.abr.replace("}", "").replace("\\textbf{", "") + le.abr
+      val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
       val dss = datasets.filter { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
@@ -62,10 +62,14 @@ object plotKappa2 extends AppWithUsage with LearnerTrait with StratsTrait with R
             s <- strats
             le <- ls
          } yield {
-            val vs0 = for {
+            val vs00 = for {
                r <- 0 until runs
                f <- 0 until folds
             } yield Kappa(ds, s, le, r, f)(0).readAll(ds).getOrElse(throw new Error(s"NA: ${(ds, s, le.abr, r, f)}"))
+            val sizes = vs00.map(_.size)
+            val minsiz = sizes.min
+            val vs0 = vs00.map(_.take(minsiz))
+            if (minsiz != vs00.map(_.size).max) println(s"$dataset $s $le " + vs0.map(_.size).min + " " + vs0.map(_.size).max)
             val ts = vs0.transpose.map { v =>
                if (risco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
                else Stat.media_desvioPadrao(v.toVector)._1
@@ -83,7 +87,9 @@ object plotKappa2 extends AppWithUsage with LearnerTrait with StratsTrait with R
       val plot = plot0.toList.transpose.map { x =>
          x.sliding(10).map(y => y.sum / y.size).toList
       }.transpose
-      val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.min).take(12).unzip
+      val n =12
+      println(s"Pega apenas $n mais importantes.")
+      val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.min).take(n).unzip
       val plot2 = plot3.transpose
 
       val fw = new PrintWriter(arq, "ISO-8859-1")
