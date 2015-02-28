@@ -66,6 +66,6 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
       }
       val (a, b) = list_gn_mix.unzip
       lazy val co = new PearsonsCorrelation().correlation(a.toArray, b.toArray)
-      if (a.size > 1 && co < 0.9995) xagmax else xmixmax
+      if (a.size > 1 && co < 0.999) xagmax else xmixmax
    }
 }
