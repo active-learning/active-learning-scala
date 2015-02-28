@@ -80,37 +80,37 @@ trait StratsTrait {
    //   val stratsForTreeSemSVMRedux = stratsForTreeRedux().take(5) ++ stratsForTreeRedux().drop(7)
 
    def stratsForTree(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-      RandomSampling(pool) //0
-      , ClusterBased(pool) //1
-      //      , Uncertainty(learner, pool) //2
-            , Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
-      //
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      //
-      //      , SVMmulti(pool, "KFFw") //968
-      //      , SVMmulti(pool, "BALANCED_EEw") //969
-      , new SGmulti(learner, pool, "consensus") //14
-      //      , new SGmulti(learner, pool, "majority") //15
-
-      //      , DensityWeighted(learner, pool, 1, "eucl") //5
-      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
-      //      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      //      , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
-      //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
-      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      , AgDensityWeightedTrainingUtility(pool, "manh") //701
-      //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
-      //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
-      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-      //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
-      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
-                  , DGATU(learner, pool, "manh") //
-                  , DGATU(learner, pool, "maha") //
-                  , RGATU(learner, pool, "manh") //
-                  , RGATU(learner, pool, "maha") //
+//      RandomSampling(pool) //0
+//      , ClusterBased(pool) //1
+//      //      , Uncertainty(learner, pool) //2
+//            , Entropy(learner, pool) //4
+//      , Margin(learner, pool) //3
+//      //
+//      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+//      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+//      //
+//      //      , SVMmulti(pool, "KFFw") //968
+//      //      , SVMmulti(pool, "BALANCED_EEw") //969
+//      , new SGmulti(learner, pool, "consensus") //14
+//      //      , new SGmulti(learner, pool, "majority") //15
+//
+//      //      , DensityWeighted(learner, pool, 1, "eucl") //5
+//      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
+//      //      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+//      //      , DensityWeightedLabelUtility2(learner, pool, "eucl") //36
+//      //      , AgDensityWeightedLabelUtility2(pool, "eucl") //361
+//      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+//      , AgDensityWeightedTrainingUtility(pool, "manh") //701
+//      //      , DensityWeightedLabelUtility2(learner, pool, "manh") //37
+//      //      , AgDensityWeightedLabelUtility2(pool, "manh") //371
+//      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+//      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+//      //      , DensityWeightedLabelUtility2(learner, pool, "maha") //39
+//      //      , AgDensityWeightedLabelUtility2(pool, "maha") //391
+                   GATU(learner, pool, "manh") //
+                  , GATU(learner, pool, "maha") //
+//                  , RGATU(learner, pool, "manh") //
+//                  , RGATU(learner, pool, "maha") //
    )
 
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
@@ -123,16 +123,16 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
 //            , DensityWeighted(learner, pool, 1, "eucl") //5
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-//      , AgDensityWeightedTrainingUtility(pool, "manh") //701
-//      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-//      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
-//            , DGATU(learner, pool, "manh") //
-//            , DGATU(learner, pool, "maha") //
+      , AgDensityWeightedTrainingUtility(pool, "manh") //701
+      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
+//            , GATU(learner, pool, "manh") //
+//            , GATU(learner, pool, "maha") //
 //            , RGATU(learner, pool, "manh") //
 //            , RGATU(learner, pool, "maha") //
-//      , ExpELMChange(pool)
+      , ExpELMChange(pool)
 
-//                  , GATU(learner, pool, "manh") //
+      //                  , GATU(learner, pool, "manh") //
 //            , GATU(learner, pool, "maha") //
    )
 }

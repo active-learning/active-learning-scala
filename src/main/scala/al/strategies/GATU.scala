@@ -18,10 +18,11 @@
 
 package al.strategies
 
-import clean.lib.{FilterTrait, Ds, CM}
+import clean.lib.{AppWithUsage, FilterTrait, Ds, CM}
 import ml.Pattern
 import ml.classifiers._
 import ml.models.Model
+import org.apache.commons.math3.stat.correlation.{PearsonsCorrelation, SpearmansCorrelation}
 import util.Tempo
 
 import scala.util.Random
@@ -32,89 +33,39 @@ case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alp
    val abr = "\\textbf{GATU" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 524326 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 524328 + (100000 * (1 - alpha)).toInt
-      case "maha" => 524329 + (100000 * (1 - alpha)).toInt
-      case "manh" => 524327 + (100000 * (1 - alpha)).toInt
+      case "eucl" => 4003006 + (100000 * (1 - alpha)).toInt
+      case "cheb" => 4003008 + (100000 * (1 - alpha)).toInt
+      case "maha" => 4003009 + (100000 * (1 - alpha)).toInt
+      case "manh" => 4003007 + (100000 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para GATU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-      //      val hist = Array.fill(nclasses)(0d)
-      //      val n = labeled.size
-      //      var lastMin = 0
-      //      val entropias = labeled.drop(nclasses).zipWithIndex.flatMap { case (lab, idx) =>
-      //         val cla = lab.label.toInt
-      //         hist(cla) += 1
-      //         val s = idx + 1
-      //         val histMin = hist.min.toInt
-      //         if (hist.min > lastMin || s == n) {
-      //            lastMin = histMin
-      //            Some(normalized_entropy(hist.map(_ / s)))
-      //         } else None
-      //      }
-      //      var agnostico = false
-      //      var olde = entropias.headOption.getOrElse(-1d)
-      //      entropias.find { e =>
-      //         val res = e < olde
-      //         olde = e
-      //         res
-      //      }.getOrElse(agnostico = true)
-
-      val us = unlabeled.size
       val ls = labeled.size
-      val vs = unlabeled map { x =>
-         val similarityU = mapU(x) / us //mapU.size.toDouble
-      val similarityL = mapL(x) / ls //mapL.size.toDouble
-      //         if (agnostico)
-      //            math.pow(similarityU, beta) / math.pow(similarityL, alpha)
-      //         else
-      val m = 1 - margin(current_model)(x)
-         val u =math.pow(similarityU, beta)
-         val l =math.pow(similarityL, alpha)
-         val s = u / l
-         (m, x, s, similarityU, similarityL, m*s)
+      val us = unlabeled.size
+      var mixmax = -1d
+      var agmax = -1d
+      var xmixmax: Pattern = null
+      var xagmax: Pattern = null
+      val list_gn_mix = unlabeled map { x =>
+         val similarityU = mapU(x) / us
+         val similarityL = mapL(x) / ls
+         val gn = 1 - margin(current_model)(x)
+         val u = math.pow(similarityU, beta)
+         val l = math.pow(similarityL, alpha)
+         val ag = u / l
+         val mix = gn * ag
+         if (ag > agmax) {
+            agmax = ag
+            xagmax = x
+         }
+         if (mix > mixmax) {
+            mixmax = mix
+            xmixmax = x
+         }
+         gn -> mix
       }
-      val (m, selected, s, _, _, d) = vs maxBy (_._3)
-      val un = (vs map (_._4)).min
-      val um = (vs map (_._4)).sum/us
-      val ux = (vs map (_._4)).max
-      val ln = (vs map (_._5)).min
-      val lm = (vs map (_._5)).sum/us
-      val lx = (vs map (_._5)).max
-      val mx = (vs map (_._1)).max
-      val mn = (vs map (_._1)).min
-      val mm = (vs map (_._1)).sum / us
-      val sm = (vs map (_._3)).sum / us
-      val sn = (vs map (_._3)).min
-      val sx = (vs map (_._3)).max
-      val dm = (vs map (_._6)).sum / us
-      val dn = (vs map (_._6)).min
-      val dx = (vs map (_._6)).max
-      val mc=vs.map(_._1).count(_ <0.9*mx)
-      val sc=vs.map(_._3).count(_ <0.9*sx)
-      val dc=vs.map(_._6).count(_ <0.9*dx)
-//      print(s"${(mm-mn)/(mx-mn)} ${(sm-sn)/(sx-sn)}")
-      print(s"${sn/sx} $s ${math.sqrt(math.pow(m,1-sn/sx)*math.pow(s,sn/sx))}")
-      selected
-   }
-}
-
-object GATUTest extends App with CM with FilterTrait {
-   val context = "GATUTest"
-//      val ds = Ds("banana", readOnly = true)
-      val ds = Ds("volcanoes-b2", readOnly = true)
-//         val ds = Ds("abalone-3class", readOnly = true)
-//   val ds = Ds("leaf", readOnly = true)
-   val patts = new Random(2985).shuffle(ds.patterns).take(2000)
-   println(patts.size)
-   val (tr0, ts0) = patts.splitAt(2 * patts.size / 3)
-   val (tr, binaf, zscof) = criaFiltro(tr0, 1)
-   val ts = aplicaFiltro(ts0, 1, binaf, zscof)
-   val l = RF()
-   val s = GATU(l, tr, "eucl")
-   var m = l.build(s.queries.take(tr.head.nclasses))
-   val qs = s.queries.take(1000).drop(tr.head.nclasses).foreach { q =>
-      m = l.update(m)(q)
-      println(" " + "%7.5f".format(accBal(m.confusion(ts))))
+      val (a, b) = list_gn_mix.unzip
+      lazy val co = new PearsonsCorrelation().correlation(a.toArray, b.toArray)
+      if (a.size > 1 && co < 0.9995) xagmax else xmixmax
    }
 }
