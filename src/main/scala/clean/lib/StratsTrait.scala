@@ -57,6 +57,7 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , GATU(learner, pool, "manh") //
       , GATUAp(learner, pool, "manh") //
       //      , RGATU(learner, pool, "manh") //
       //      //      Uncertainty(learner, pool) //2
@@ -67,6 +68,7 @@ trait StratsTrait {
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , GATU(learner, pool, "maha") //
       , GATUAp(learner, pool, "maha") //
 //      , RGATU(learner, pool, "maha") //
    )
@@ -127,8 +129,8 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "maha") //901  //tava comentado
       , GATUAp(learner, pool, "manh") //
       , GATUAp(learner, pool, "maha") //
-      //            , GATU(learner, pool, "manh") //
-      //            , GATU(learner, pool, "maha") //
+                  , GATU(learner, pool, "manh") //
+                  , GATU(learner, pool, "maha") //
       , ExpELMChange(pool)
 
       //      , RGATU(learner, pool, "manh") //
