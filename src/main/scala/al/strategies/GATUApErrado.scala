@@ -21,18 +21,17 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers._
 import ml.models.Model
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 
-case class GATUAp(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
+case class GATUApErrado(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure with EntropyMeasure {
    override val toString = "GATUAp a" + alpha + " b" + beta + " (" + distance_name + ")"
    val abr = "\\textbf{GATUAp" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 7514326 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 7514328 + (100000 * (1 - alpha)).toInt
-      case "maha" => 7514329 + (100000 * (1 - alpha)).toInt
-      case "manh" => 7514327 + (100000 * (1 - alpha)).toInt
+      case "eucl" => 518886 + (100000 * (1 - alpha)).toInt
+      case "cheb" => 518888 + (100000 * (1 - alpha)).toInt
+      case "maha" => 518889 + (100000 * (1 - alpha)).toInt
+      case "manh" => 518887 + (100000 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para GATUAp.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
@@ -52,7 +51,7 @@ case class GATUAp(learner: Learner, pool: Seq[Pattern], distance_name: String, a
       var agnostico = false
       var olde = entropias.headOption.getOrElse(-1d)
       var c = 0
-      entropias.find { e =>
+      entropias.drop(nclasses).find { e =>
          c += 1
          val res = e < olde
          olde = e

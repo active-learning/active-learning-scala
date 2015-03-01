@@ -58,7 +58,8 @@ trait StratsTrait {
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , GATUAp(learner, pool, "manh") //
-//      , RGATU(learner, pool, "manh") //
+      , GATUApErrado(learner, pool, "manh") //
+      //      , RGATU(learner, pool, "manh") //
       //      //      Uncertainty(learner, pool) //2
       //      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       //      //      , new SGmulti(learner, pool, "majority") //15

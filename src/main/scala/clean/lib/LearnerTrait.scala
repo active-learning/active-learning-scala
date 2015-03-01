@@ -28,18 +28,18 @@ trait LearnerTrait {
    def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-      KNNBatcha(5, "eucl", pool, weighted = true) //2
-      //      , KNNBatchb(5, "eucl", pool, weighted = true) //2
-      , C45() //3
+      //      KNNBatcha(5, "eucl", pool, weighted = true) //2
+      //      //      , KNNBatchb(5, "eucl", pool, weighted = true) //2
+      //      , C45() //3
       , RF(learnerSeed)
-      , NBBatch()
-      , VFDT()
+      //      , NBBatch()
+      //      , VFDT()
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      CIELMBatch(learnerSeed)
-      , NinteraELM(learnerSeed) //11  //tava comentado
-      , SVMLib(learnerSeed)
+      //      CIELMBatch(learnerSeed)
+      //      , NinteraELM(learnerSeed) //11  //tava comentado
+      //      , SVMLib(learnerSeed)
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {

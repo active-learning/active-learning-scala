@@ -173,21 +173,25 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
       val accss = fd.take(800) map { name =>
          //      val accss = Seq("volcanoes-b2") map { name =>
          val ds = Ds(name, readOnly = true)
-         val patts = new Random(2985).shuffle(ds.patterns).take(1000)
+         val patts = new Random(2985).shuffle(ds.patterns).take(8000)
          println(patts.size)
          val (tr, ts) = patts.splitAt(2 * patts.size / 3)
          //   val (tr, binaf, zscof) = criaFiltro(tr0, 1)
          //   val ts = aplicaFiltro(ts0, 1, binaf, zscof)
-         val l = CIELMBatch() //KNNBatch(5, "eucl", tr, weighted = true)
+         val l = RF() //CIELMBatch() //KNNBatch(5, "eucl", tr, weighted = true)
          //      val pair = tr.head.nclasses until (200 + tr.head.nclasses) by 10 map { q =>
          //         Seq(GATU(l, tr, "eucl")).par map { s =>
-         Seq(GATU(l, tr, "eucl"), DensityWeightedTrainingUtility(l, tr, "eucl")).par map { s =>
+         Seq(GATU(l, tr, "eucl"),
+            GATUApErrado(l, tr, "eucl"),
+            GATUAp(l, tr, "eucl"),
+            DensityWeightedTrainingUtility(l, tr, "eucl"),
+            AgDensityWeightedTrainingUtility(tr, "eucl")).par map { s =>
             //         Seq(GATU(l, tr, "eucl"), DensityWeightedTrainingUtility(l, tr, "eucl"), AgDensityWeightedTrainingUtility(tr, "eucl")).par map { s =>
             var m = l.build(s.queries.take(tr.head.nclasses))
-            s.queries.drop(tr.head.nclasses).take(200 + tr.head.nclasses).map { q =>
+            s.queries.drop(tr.head.nclasses).take(200).map { q =>
                m = l.update(m)(q)
                kappa(m.confusion(ts))
-            }.sum / (200 + tr.head.nclasses)
+            }.sum / 200d
             //         }
             //         pair.maxBy(_._2)._1 -> pair.map(_._2)
          }
@@ -195,9 +199,8 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
       Tempo.print_stop
       accss.toList.sortBy(_(0)).foreach(x => println(x.mkString(" ")))
       println(s"")
-      0 until accss.head.size foreach { c =>
-         print(accss.count(x => x(c) > x(1)) / accss.size.toDouble + " ")
-         println(accss.count(x => x(1) > x(c)) / accss.size.toDouble)
+      for (ca <- 0 until accss.head.size; cb <- 0 until accss.head.size) {
+         println(s"$ca > $cb: " + accss.count(x => x(ca) > x(cb)) / accss.size.toDouble + " ")
       }
    }
 
