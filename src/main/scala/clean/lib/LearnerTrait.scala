@@ -37,9 +37,9 @@ trait LearnerTrait {
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-//      CIELMBatch(learnerSeed)
-//      , NinteraELM(learnerSeed) //11  //tava comentado
-//      , SVMLib(learnerSeed)
+      CIELMBatch(learnerSeed)
+      , NinteraELM(learnerSeed) //11  //tava comentado
+      , SVMLib(learnerSeed)
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
