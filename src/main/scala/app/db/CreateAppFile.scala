@@ -41,7 +41,7 @@ object CreateAppFile extends App {
     Margin(NoLearner(), Seq()),
     new SGmulti(NoLearner(), Seq(), "consensus"),
     new SGmulti(NoLearner(), Seq(), "majority"),
-    new SGmultiJS(NoLearner(), Seq()),
+//    new SGmultiJS(NoLearner(), Seq()),
     ExpErrorReduction(NoLearner(), Seq(), "entropy", sampleSize),
     ExpErrorReduction(NoLearner(), Seq(), "accuracy", sampleSize),
     DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),

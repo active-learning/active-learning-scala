@@ -18,12 +18,22 @@
 
 package al.strategies
 
-trait JSMeasure extends EntropyMeasure {
-  def normalizedJSdivergence(distributions: Seq[Array[Double]]) = JSdivergence(distributions) / log2(distributions.size)
+import ml.Pattern
+import ml.classifiers.{Learner, NB}
+import ml.models.Model
+import util.Datasets
 
-  def JSdivergence(distributions: Seq[Array[Double]]) = {
-    val mean_distribution = distributions.reduce((a, b) => a.zip(b).map(p => p._1 + p._2)) map (_ / distributions.length.toDouble)
-    val mean_entropy = distributions.map(entropy).sum / distributions.length.toDouble
-    entropy(mean_distribution) - mean_entropy
+import scala.util.Random
+
+case class QBC(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
+  extends StrategyWithLearner {
+  override val toString = "QBC"
+  val abr = "QBC"
+  val id = 292212
+
+  def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+    val selected = unlabeled maxBy current_model.JS
+    selected
   }
 }
+

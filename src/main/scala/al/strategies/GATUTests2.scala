@@ -177,9 +177,10 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
          val (tr, ts) = patts.splitAt(2 * patts.size / 3)
          val l = RF()
          Seq(
-            GATU(l, tr, "manh"),
-            GnoKNN(tr, "manh"),
-            Sincretist(tr, "manh"),
+            QBC(l, tr),
+            SGmultiJS(l, tr),
+            RandomSampling(tr),
+            SGmultiMargin(l, tr),
             DensityWeightedTrainingUtility(l, tr, "manh")
          ).par map { s =>
             var m = l.build(s.queries.take(tr.head.nclasses))

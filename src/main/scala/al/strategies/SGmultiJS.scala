@@ -1,6 +1,6 @@
 /*
- active-learning-scala: Active Learning library for Scala
- Copyright (c) 2014 Davi Pereira dos Santos
+active-learning-scala: Active Learning library for Scala
+Copyright (c) 2014 Davi Pereira dos Santos
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 package al.strategies
 
@@ -24,12 +24,13 @@ import ml.Pattern
 import ml.classifiers.Learner
 import ml.models.Model
 import util.Graphics
+import weka.classifiers.trees.JSMeasure
 
 case class SGmultiJS(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
-  extends StrategySGmulti with EntropyMeasure with JSMeasure {
+  extends StrategySGmulti with JSMeasure {
   override val toString = "SGmultiJS"
   val abr = "SGJS"
-  val id = 16
+  val id = 1616
 
   def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) = unlabeled maxBy (pa => JSdivergence(current_models.map(m => m.distribution(pa))))
 
