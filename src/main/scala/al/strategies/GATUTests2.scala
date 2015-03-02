@@ -170,17 +170,30 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
          U > 200
       }
       println(fd.size + " datasets")
-      val accss = fd.take(32).par map { name =>
+      val ls = Seq(
+         QBC(NoLearner(), Seq()),
+         SGmulti(NoLearner(), Seq(), "consensus"),
+         SGmulti(NoLearner(), Seq(), "majority"),
+         SGmultiJS(NoLearner(), Seq()),
+         RandomSampling(Seq()),
+         SGmultiMargin(NoLearner(), Seq()),
+         Margin(NoLearner(), Seq()),
+         DensityWeightedTrainingUtility(NoLearner(), Seq(), "manh")
+      )
+      val accss = fd.take(320).par map { name =>
          val ds = Ds(name, readOnly = true)
-         val patts = new Random(2985).shuffle(ds.patterns).take(20000)
+         val patts = new Random(2985).shuffle(ds.patterns).take(2500)
          println(patts.size)
          val (tr, ts) = patts.splitAt(2 * patts.size / 3)
          val l = RF()
          Seq(
             QBC(l, tr),
+            SGmulti(l, tr, "consensus"),
+            SGmulti(l, tr, "majority"),
             SGmultiJS(l, tr),
             RandomSampling(tr),
             SGmultiMargin(l, tr),
+            Margin(l, tr),
             DensityWeightedTrainingUtility(l, tr, "manh")
          ).par map { s =>
             var m = l.build(s.queries.take(tr.head.nclasses))
@@ -193,7 +206,7 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
       Tempo.print_stop
       println(s"")
       for (ca <- 0 until accss.head.size; cb <- 0 until accss.head.size) {
-         println(s"$ca > $cb: " + accss.count(x => x(ca) > x(cb)) / accss.size.toDouble + " ")
+         println(s"${ls(ca).abr} > ${ls(cb).abr}: " + accss.count(x => x(ca) > x(cb)) / accss.size.toDouble + " ")
       }
    }
 
@@ -280,4 +293,72 @@ Elapsed 408754.0ms.
 7 > 5: 0.5733333333333334
 7 > 6: 0.6266666666666667
 7 > 7: 0.0
- */
+
+
+ Elapsed 270948.0ms.
+
+QBC > QBC: 0.0
+QBC > \textbf{SGmulti}: 0.5733333333333334
+QBC > \textbf{SGmulti}: 0.48
+QBC > SGJS: 0.48
+QBC > Rnd: 0.6933333333333334
+QBC > SGmar: 0.4533333333333333
+QBC > Mar: 0.24
+QBC > TUman: 0.30666666666666664
+\textbf{SGmulti} > QBC: 0.4266666666666667
+\textbf{SGmulti} > \textbf{SGmulti}: 0.0
+\textbf{SGmulti} > \textbf{SGmulti}: 0.13333333333333333
+\textbf{SGmulti} > SGJS: 0.44
+\textbf{SGmulti} > Rnd: 0.7733333333333333
+\textbf{SGmulti} > SGmar: 0.30666666666666664
+\textbf{SGmulti} > Mar: 0.32
+\textbf{SGmulti} > TUman: 0.26666666666666666
+\textbf{SGmulti} > QBC: 0.52
+\textbf{SGmulti} > \textbf{SGmulti}: 0.3466666666666667
+\textbf{SGmulti} > \textbf{SGmulti}: 0.0
+\textbf{SGmulti} > SGJS: 0.48
+\textbf{SGmulti} > Rnd: 0.84
+\textbf{SGmulti} > SGmar: 0.4
+\textbf{SGmulti} > Mar: 0.4
+\textbf{SGmulti} > TUman: 0.32
+SGJS > QBC: 0.52
+SGJS > \textbf{SGmulti}: 0.56
+SGJS > \textbf{SGmulti}: 0.52
+SGJS > SGJS: 0.0
+SGJS > Rnd: 0.6666666666666666
+SGJS > SGmar: 0.4
+SGJS > Mar: 0.4533333333333333
+SGJS > TUman: 0.26666666666666666
+Rnd > QBC: 0.30666666666666664
+Rnd > \textbf{SGmulti}: 0.22666666666666666
+Rnd > \textbf{SGmulti}: 0.16
+Rnd > SGJS: 0.3333333333333333
+Rnd > Rnd: 0.0
+Rnd > SGmar: 0.21333333333333335
+Rnd > Mar: 0.17333333333333334
+Rnd > TUman: 0.24
+SGmar > QBC: 0.5466666666666666
+SGmar > \textbf{SGmulti}: 0.6933333333333334
+SGmar > \textbf{SGmulti}: 0.6
+SGmar > SGJS: 0.6
+SGmar > Rnd: 0.7866666666666666
+SGmar > SGmar: 0.0
+SGmar > Mar: 0.4666666666666667
+SGmar > TUman: 0.29333333333333333
+Mar > QBC: 0.29333333333333333
+Mar > \textbf{SGmulti}: 0.68
+Mar > \textbf{SGmulti}: 0.6
+Mar > SGJS: 0.5466666666666666
+Mar > Rnd: 0.8266666666666667
+Mar > SGmar: 0.5333333333333333
+Mar > Mar: 0.0
+Mar > TUman: 0.30666666666666664
+TUman > QBC: 0.6933333333333334
+TUman > \textbf{SGmulti}: 0.7333333333333333
+TUman > \textbf{SGmulti}: 0.68
+TUman > SGJS: 0.7333333333333333
+TUman > Rnd: 0.76
+TUman > SGmar: 0.7066666666666667
+TUman > Mar: 0.6933333333333334
+TUman > TUman: 0.0
+*/

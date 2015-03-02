@@ -30,7 +30,7 @@ trait StratsTrait {
 
    def stratsemLearnerExterno(pool: Seq[Pattern] = Seq()) = stratsSemLearnerExterno_FilterFree(pool) ++ stratsSemLearnerExterno_FilterDependent(pool)
 
-//   def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
+   //   def stratsSGmajJS(pool: Seq[Pattern], learner: Learner) = List[Strategy](new SGmulti(learner, pool, "majority"), new SGmultiJS(learner, pool))
 
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,10 +56,12 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //7
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , new SGmulti(learner, pool, "consensus") //14
+      , new SGmulti(learner, pool, "majority") //15
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , GATU(learner, pool, "eucl") //4003006
       , GATU(learner, pool, "manh") //4003007
+      , QBC(learner, pool) //292212
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -82,6 +84,7 @@ trait StratsTrait {
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , new SGmulti(learner, pool, "consensus") //14
+      , new SGmulti(learner, pool, "majority") //15
       , DensityWeighted(learner, pool, 1, "eucl") //5
       //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //6
       //      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
