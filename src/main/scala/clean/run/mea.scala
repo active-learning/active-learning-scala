@@ -43,21 +43,23 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       val fila = mutable.Set[String]()
       //      //passiva
       if (passivas) {
-         for (learner <- learnersFilterFree(pool, rnd.nextInt(99999))) {
-            val k = Kappa(ds, Passive(pool), learner, run, fold)(-1)
-            val b = BalancedAcc(ds, Passive(pool), learner, run, fold)(-1)
+         val poolt = pool.take(4000)
+         val fpoolt = fpool.take(4000)
+         for (learner <- learnersFilterFree(poolt, rnd.nextInt(99999))) {
+            val k = Kappa(ds, Passive(poolt), learner, run, fold)(-1)
+            val b = BalancedAcc(ds, Passive(poolt), learner, run, fold)(-1)
             if (!k.existia || !b.existia) {
-               val model = learner.build(pool)
+               val model = learner.build(poolt)
                val CM = model.confusion(testSet)
                poeNaFila(fila, k.sqlToWrite(ds, CM))
                poeNaFila(fila, b.sqlToWrite(ds, CM))
             }
          }
          for (flearner <- learnersFilterDependent(rnd.nextInt(99999))) {
-            val k = Kappa(ds, Passive(fpool), flearner, run, fold)(-1)
-            val b = BalancedAcc(ds, Passive(fpool), flearner, run, fold)(-1)
+            val k = Kappa(ds, Passive(fpoolt), flearner, run, fold)(-1)
+            val b = BalancedAcc(ds, Passive(fpoolt), flearner, run, fold)(-1)
             if (!k.existia || !b.existia) {
-               val model = flearner.build(fpool)
+               val model = flearner.build(fpoolt)
                val CM = model.confusion(ftestSet)
                poeNaFila(fila, k.sqlToWrite(ds, CM))
                poeNaFila(fila, b.sqlToWrite(ds, CM))
