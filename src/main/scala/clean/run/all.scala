@@ -58,7 +58,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
                if (ds.areHitsFinished(pool.size, testSet, strat, learner, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$learner at pool $run.$fold.")
                else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(learner)
             } else {
-               if (!pesadas) learnersFilterFree(pool, learnerSeed) foreach { learner =>
+               if (!pesadas || todas) learnersFilterFree(pool, learnerSeed) foreach { learner =>
                   ds.log(s"Agn hits [$strat $learner] at pool $run.$fold.")
                   if (ds.areHitsFinished(pool.size, testSet, strat, learner, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$learner at pool $run.$fold.")
                   else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(learner)
@@ -80,7 +80,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
                ds.queries(fstrat, run, fold, binaf, zscof)
             } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
             //hits
-            (if (!pesadas) learnersFilterFree(fpool, learnerSeed) else learnersFilterDependent(learnerSeed)) foreach { flearner =>
+            (if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else learnersFilterDependent(learnerSeed)) foreach { flearner =>
                if (Seq(1006600, 10066).contains(fstrat.id)) {
                   if (flearner.id == 11) {
                      ds.log(s"agDW* hits [$fstrat Nintera] at pool $run.$fold.")
@@ -97,7 +97,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //restoSemF / lff
-         if (!pesadas) learnersFilterFree(pool, learnerSeed) foreach { learner =>
+         if (!pesadas || todas) learnersFilterFree(pool, learnerSeed) foreach { learner =>
             stratsComLearnerExterno_FilterFree(pool, learner) foreach { case strat =>
                ds.log(s"$strat ...")
                //queries
@@ -114,7 +114,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //restoSemF / lfd
-         if (pesadas) learnersFilterDependent(learnerSeed) foreach { flearner =>
+         if (pesadas || todas) learnersFilterDependent(learnerSeed) foreach { flearner =>
             stratsComLearnerExterno_FilterFree(fpool, flearner) foreach { case fstrat =>
                ds.log(s"$fstrat ...")
                //queries
@@ -132,7 +132,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //restoComF / lff lfd
-         (if (!pesadas) learnersFilterFree(fpool, learnerSeed) else learnersFilterDependent(learnerSeed)) foreach { flearner =>
+         (if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else learnersFilterDependent(learnerSeed)) foreach { flearner =>
             stratsComLearnerExterno_FilterDependent(fpool, flearner) foreach { case fstrat =>
                ds.log(s"$fstrat ...")
                //queries
@@ -153,11 +153,9 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         //         if (ds.isFinished(maxQueries(ds))) ds.log("Dataset já estava marcado como terminado!!!")
-         //         else
-         {
-            ds.log("Dataset marcado como terminado !", 50)
+         if (todas) {
             ds.markAsFinished(maxQueries(ds))
+            ds.log("Dataset marcado como terminado !", 50)
          }
       }
       outroProcessoVaiTerminarEsteDataset = false
