@@ -171,7 +171,7 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
       }
       println(fd.size + " datasets")
       val ls = Seq(
-         QBC(NoLearner(), Seq()),
+         QBC(Seq()),
          SGmulti(NoLearner(), Seq(), "consensus"),
          SGmulti(NoLearner(), Seq(), "majority"),
          SGmultiJS(NoLearner(), Seq()),
@@ -187,7 +187,7 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
          val (tr, ts) = patts.splitAt(2 * patts.size / 3)
          val l = RF()
          Seq(
-            QBC(l, tr),
+            QBC(tr),
             SGmulti(l, tr, "consensus"),
             SGmulti(l, tr, "majority"),
             SGmultiJS(l, tr),
