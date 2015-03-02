@@ -71,7 +71,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             strat match {
                case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
-                  if (strat.id != 1006600 || (strat.id == 1006600 && learner.id == 11)) poeNaFila(fila, ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
+                  if ((strat.id != 1006600 && strat.id != 292212) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 292212 && learner.id == 773)) poeNaFila(fila, ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
                //               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
             }
          }
@@ -79,7 +79,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             strat match {
                case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
-                  if (strat.id != 1006600 || (strat.id == 1006600 && learner.id == 11)) poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+                  if ((strat.id != 1006600 && strat.id != 292212) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 292212 && learner.id == 773)) poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
             }
          }
          for (strat <- allStrats(); learner <- allLearners()) {
@@ -87,7 +87,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             strat match {
                case Majoritary(Seq(), false) | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
-                  if (strat.id != 1006600 || (strat.id == 1006600 && learner.id == 11)) poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+                  if ((strat.id != 1006600 && strat.id != 292212) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 292212 && learner.id == 773)) poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
             }
          }
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)

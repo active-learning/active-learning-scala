@@ -19,21 +19,19 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{Learner, NB}
+import ml.classifiers.RF
 import ml.models.Model
-import util.Datasets
 
-import scala.util.Random
+case class QBC(pool: Seq[Pattern], debug: Boolean = false)
+   extends StrategyWithLearner {
+   override val toString = "QBC"
+   val abr = "QBC"
+   val id = 292212
+   val learner = RF()
 
-case class QBC(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
-  extends StrategyWithLearner {
-  override val toString = "QBC"
-  val abr = "QBC"
-  val id = 292212
-
-  def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    val selected = unlabeled maxBy current_model.JS
-    selected
-  }
+   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val selected = unlabeled maxBy current_model.JS
+      selected
+   }
 }
 

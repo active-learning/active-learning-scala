@@ -46,7 +46,8 @@ trait StratsTrait {
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
       AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , ExpELMChange(pool)
+      , ExpELMChange(pool) //1006600
+      , QBC(pool) //292212
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -61,7 +62,6 @@ trait StratsTrait {
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , GATU(learner, pool, "eucl") //4003006
       , GATU(learner, pool, "manh") //4003007
-      , QBC(learner, pool) //292212
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
