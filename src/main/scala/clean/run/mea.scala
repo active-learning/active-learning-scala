@@ -62,7 +62,11 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
                val model = flearner.build(fpoolt)
                val CM = model.confusion(ftestSet)
                poeNaFila(fila, k.sqlToWrite(ds, CM))
+               if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+               fila.clear()
                poeNaFila(fila, b.sqlToWrite(ds, CM))
+               if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+               fila.clear()
             }
          }
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
