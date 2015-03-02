@@ -170,34 +170,26 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
          U > 200
       }
       println(fd.size + " datasets")
-      val accss = fd.take(800) map { name =>
-         //      val accss = Seq("volcanoes-b2") map { name =>
+      val accss = fd.take(32).par map { name =>
          val ds = Ds(name, readOnly = true)
-         val patts = new Random(2985).shuffle(ds.patterns).take(8000)
+         val patts = new Random(2985).shuffle(ds.patterns).take(20000)
          println(patts.size)
          val (tr, ts) = patts.splitAt(2 * patts.size / 3)
-         //   val (tr, binaf, zscof) = criaFiltro(tr0, 1)
-         //   val ts = aplicaFiltro(ts0, 1, binaf, zscof)
-         val l = RF() //CIELMBatch() //KNNBatch(5, "eucl", tr, weighted = true)
-         //      val pair = tr.head.nclasses until (200 + tr.head.nclasses) by 10 map { q =>
-         //         Seq(GATU(l, tr, "eucl")).par map { s =>
-         Seq(GATU(l, tr, "eucl"),
-            GATUApErrado(l, tr, "eucl"),
-            GATUAp(l, tr, "eucl"),
-            DensityWeightedTrainingUtility(l, tr, "eucl"),
-            AgDensityWeightedTrainingUtility(tr, "eucl")).par map { s =>
-            //         Seq(GATU(l, tr, "eucl"), DensityWeightedTrainingUtility(l, tr, "eucl"), AgDensityWeightedTrainingUtility(tr, "eucl")).par map { s =>
+         val l = RF()
+         Seq(
+            GATU(l, tr, "manh"),
+            GnoKNN(tr, "manh"),
+            Sincretist(tr, "manh"),
+            DensityWeightedTrainingUtility(l, tr, "manh")
+         ).par map { s =>
             var m = l.build(s.queries.take(tr.head.nclasses))
-            s.queries.drop(tr.head.nclasses).take(200).map { q =>
+            s.queries.drop(tr.head.nclasses).take(100).map { q =>
                m = l.update(m)(q)
                kappa(m.confusion(ts))
             }.sum / 200d
-            //         }
-            //         pair.maxBy(_._2)._1 -> pair.map(_._2)
          }
       }
       Tempo.print_stop
-      accss.toList.sortBy(_(0)).foreach(x => println(x.mkString(" ")))
       println(s"")
       for (ca <- 0 until accss.head.size; cb <- 0 until accss.head.size) {
          println(s"$ca > $cb: " + accss.count(x => x(ca) > x(cb)) / accss.size.toDouble + " ")
@@ -207,3 +199,84 @@ object GATUTest extends AppWithUsage with CM with FilterTrait {
    val arguments: List[String] = superArguments
    val context: String = ""
 }
+
+/*
+         Seq(Sincretist(tr, "manh"),
+            DensityWeightedTrainingUtility(l, tr, "manh"),
+            AgDensityWeightedTrainingUtility(tr, "manh"),
+               Ag(2, l, tr, "manh"),
+               Ag(3, l, tr, "manh"),
+               Ag2(12, l, tr, "manh"),
+               Ag2(18, l, tr, "manh"),
+                        GATU(l, tr, "manh")
+            //            GATUApErrado(l, tr, "eucl"),
+            //            GATUAp(l, tr, "eucl"),
+         ).par map { s =>
+
+Elapsed 408754.0ms.
+
+0 > 0: 0.0
+0 > 1: 0.3466666666666667
+0 > 2: 0.4266666666666667
+0 > 3: 0.3333333333333333
+0 > 4: 0.38666666666666666
+0 > 5: 0.30666666666666664
+0 > 6: 0.3466666666666667
+0 > 7: 0.22666666666666666
+1 > 0: 0.6533333333333333
+1 > 1: 0.0
+1 > 2: 0.6933333333333334
+1 > 3: 0.5466666666666666
+1 > 4: 0.6133333333333333
+1 > 5: 0.5333333333333333
+1 > 6: 0.5466666666666666
+1 > 7: 0.44
+2 > 0: 0.5066666666666667
+2 > 1: 0.30666666666666664
+2 > 2: 0.0
+2 > 3: 0.30666666666666664
+2 > 4: 0.32
+2 > 5: 0.25333333333333335
+2 > 6: 0.37333333333333335
+2 > 7: 0.28
+3 > 0: 0.6133333333333333
+3 > 1: 0.4533333333333333
+3 > 2: 0.64
+3 > 3: 0.0
+3 > 4: 0.52
+3 > 5: 0.4666666666666667
+3 > 6: 0.52
+3 > 7: 0.4266666666666667
+4 > 0: 0.56
+4 > 1: 0.38666666666666666
+4 > 2: 0.5866666666666667
+4 > 3: 0.4266666666666667
+4 > 4: 0.0
+4 > 5: 0.3333333333333333
+4 > 6: 0.41333333333333333
+4 > 7: 0.3466666666666667
+5 > 0: 0.6933333333333334
+5 > 1: 0.4266666666666667
+5 > 2: 0.7466666666666667
+5 > 3: 0.49333333333333335
+5 > 4: 0.6133333333333333
+5 > 5: 0.0
+5 > 6: 0.49333333333333335
+5 > 7: 0.4266666666666667
+6 > 0: 0.6533333333333333
+6 > 1: 0.44
+6 > 2: 0.6266666666666667
+6 > 3: 0.48
+6 > 4: 0.56
+6 > 5: 0.49333333333333335
+6 > 6: 0.0
+6 > 7: 0.37333333333333335
+7 > 0: 0.7733333333333333
+7 > 1: 0.5466666666666666
+7 > 2: 0.72
+7 > 3: 0.5733333333333334
+7 > 4: 0.64
+7 > 5: 0.5733333333333334
+7 > 6: 0.6266666666666667
+7 > 7: 0.0
+ */

@@ -32,6 +32,7 @@ trait Strategy extends Log {
    val abr: String
    def limpa = abr.replace("\\textbf{", "").replace("}", "")
    val pool: Seq[Pattern]
+   val seed = pool.take(10).map(_.id).zipWithIndex.map { case (c, i) => c * i}.sum
    lazy val distinct_pool = if (pool.distinct != pool) {
       println("The pool cannot have repeated instances!")
       sys.exit(1)

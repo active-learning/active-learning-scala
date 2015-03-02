@@ -30,7 +30,6 @@ case class ExpELMChange(pool: Seq[Pattern], debug: Boolean = false)
    val abr = "EMC"
    val id = 1006600
    val s = 100
-   val seed = pool.take(10).map(_.id).zipWithIndex.map { case (c, i) => c * i}.sum
    val learner = NinteraELM(seed)
 
    protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {

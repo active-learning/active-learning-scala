@@ -29,17 +29,16 @@ trait LearnerTrait {
 
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
       KNNBatcha(5, "eucl", pool, weighted = true) //2
-      //      , KNNBatchb(5, "eucl", pool, weighted = true) //2
       , C45() //3
-      , RF(learnerSeed)
-      , NBBatch()
-      , VFDT()
+      , RF(learnerSeed) //773
+      , NBBatch() //12
+      , VFDT() //4
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      CIELMBatch(learnerSeed)
-      , NinteraELM(learnerSeed) //11  //tava comentado
-      , SVMLib(learnerSeed)
+      CIELMBatch(learnerSeed) //8001
+      , NinteraELM(learnerSeed) //11
+      , SVMLib(learnerSeed) //5
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
@@ -52,9 +51,9 @@ trait LearnerTrait {
       case "elm" => NinteraELM(learnerSeed)
       case "vfdt" => VFDT()
       case "svm" => SVMLib(learnerSeed)
-      case "nb" => NB()
-      case "ci" => CIELM(learnerSeed)
-      case "i" => IELM(learnerSeed)
+//      case "nb" => NB()
+//      case "ci" => CIELM(learnerSeed)
+//      case "i" => IELM(learnerSeed)
       //      case "maj" => Maj()
       //      case "eci" => ECIELM(learnerSeed)
       //      case "ib" => IELMBatch(learnerSeed)
