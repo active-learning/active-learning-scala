@@ -38,7 +38,7 @@ trait LearnerTrait {
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       CIELMBatch(learnerSeed) //8001
       , NinteraELM(learnerSeed) //11
-      , SVMLib(learnerSeed) //5
+      , SVMLib(learnerSeed) //5 na verdade não precisaria e nem estava como filter dependent!
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
