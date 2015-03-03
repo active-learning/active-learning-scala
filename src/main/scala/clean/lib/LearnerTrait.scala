@@ -33,12 +33,12 @@ trait LearnerTrait {
       , RF(learnerSeed) //773
       , NBBatch() //12
       , VFDT() //4
+      , SVMLib(learnerSeed) //5 estava como filter dependent!
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-      CIELMBatch(learnerSeed) //8001
+         CIELMBatch(learnerSeed) //8001
       , NinteraELM(learnerSeed) //11
-      , SVMLib(learnerSeed) //5 na verdade não precisaria e nem estava como filter dependent!
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
