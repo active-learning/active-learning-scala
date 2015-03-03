@@ -103,7 +103,12 @@ trait StratsTrait {
    )
 
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-      RandomSampling(pool) //0
+      RandomSampling(pool), //0
+//   SVMmulti(pool,"KFFw"),
+//   SVMmulti(pool,"BALANCED_EEw"),
+   SVMmulti(pool,"SIMPLE"),
+//   SVMmulti(pool,"SELF_CONFw"),
+
       ////      , ClusterBased(pool) //1
       ////      //      , Entropy(learner, pool) //4
       ////      , Margin(learner, pool) //3
@@ -119,7 +124,7 @@ trait StratsTrait {
       //      , GATUAp(learner, pool, "maha") //
       ////                  , GATU(learner, pool, "manh") //
       //                  , GATU(learner, pool, "maha") //
-      , ExpELMChange(pool)
+       ExpELMChange(pool)
 
       //      , RGATU(learner, pool, "manh") //
       //      , RGATU(learner, pool, "maha") //

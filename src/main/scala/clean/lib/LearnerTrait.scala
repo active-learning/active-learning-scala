@@ -33,12 +33,12 @@ trait LearnerTrait {
       , RF(learnerSeed) //773
       , NBBatch() //12
       , VFDT() //4
-      , SVMLib(learnerSeed) //5 estava como filter dependent!
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-         CIELMBatch(learnerSeed) //8001
+      CIELMBatch(learnerSeed) //8001
       , NinteraELM(learnerSeed) //11
+      , SVMLinear(learnerSeed) //556665
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
@@ -50,10 +50,10 @@ trait LearnerTrait {
       case "rf" => RF(learnerSeed)
       case "elm" => NinteraELM(learnerSeed)
       case "vfdt" => VFDT()
-      case "svm" => SVMLib(learnerSeed)
-//      case "nb" => NB()
-//      case "ci" => CIELM(learnerSeed)
-//      case "i" => IELM(learnerSeed)
+      case "svm" => SVMLinear(learnerSeed)
+      //      case "nb" => NB()
+      //      case "ci" => CIELM(learnerSeed)
+      //      case "i" => IELM(learnerSeed)
       //      case "maj" => Maj()
       //      case "eci" => ECIELM(learnerSeed)
       //      case "ib" => IELMBatch(learnerSeed)
