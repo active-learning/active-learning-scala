@@ -125,7 +125,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
                      s <- strats
-                  } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969)) None
+                     ???
+                  } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
                      else Some(measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                         ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
                         NA
@@ -147,9 +148,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                //                  duplicadorDeAmostra <- 0 to 1
                } yield {
                   val poolStr = (100 * r + f).toString
+                  ???
                   val medidas = for {
                      s <- strats
-                     le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+                     le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
                   } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
                         ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
                         -2d
@@ -167,7 +169,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val vs = for {
                   s <- strats
                } yield {
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+                  ???
+                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
                   val ms = for {
                      r <- 0 until Global.runs
                      f <- 0 until Global.folds
@@ -183,7 +186,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             case "Winner" | "WinnerDP" => //qualquer learner prediz apenas o melhor
                val vs0 = for {
                   s <- strats
-               } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969)) None
+                  ???
+               } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
                   else {
                      val ms = for {
                         r <- 0 until Global.runs

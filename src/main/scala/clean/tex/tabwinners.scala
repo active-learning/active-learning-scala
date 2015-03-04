@@ -50,7 +50,8 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                val sres = for {
                   s <- strats
                } yield {
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+                  ???
+                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
                   val (ti, th, tf, tpass) = ranges(ds)
                   measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
                }

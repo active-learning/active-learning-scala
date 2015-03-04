@@ -50,7 +50,7 @@ trait StratsTrait {
       QBC(pool), //292212
       SVMmulti(pool, "KFFw"),
       SVMmulti(pool, "BALANCED_EEw"),
-      SVMmulti(pool, "SIMPLE"),
+      SVMmulti(pool, "SIMPLEw"),
       SVMmulti(pool, "SELF_CONFw")
    )
 

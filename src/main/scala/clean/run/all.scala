@@ -52,7 +52,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
             } else ds.writeQueries(strat, run, fold, maxQueries(ds))
             val fqueries = ds.queries(fstrat, run, fold, binaf, zscof)
             //hits
-            if (strat.id >= 17 && strat.id <= 21 || strat.id == 968 || strat.id == 969) {
+            if (strat.id >= 17 && strat.id <= 21) {
                val learner = strat.learner
                ds.log(s"SVM/Maj hits [$strat $learner] at pool $run.$fold.")
                if (ds.areHitsFinished(pool.size, testSet, strat, learner, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$learner at pool $run.$fold.")
@@ -94,7 +94,12 @@ object all extends Exp with LearnerTrait with StratsTrait {
                      else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(NinteraELM(learnerSeed))
                   }
                }
-               if (!Seq(292212, 1006600, 10066).contains(fstrat.id)) {
+               if (flearner.id == 556665 && (fstrat.id == 966000 || fstrat.id == 967000 || fstrat.id == 968000 || fstrat.id == 969000)) {
+                  ds.log(s"SVM hits [$fstrat $flearner] at pool $run.$fold.")
+                  if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
+                  else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
+               }
+               if (!Seq(292212, 1006600, 10066, 966000, 967000, 968000, 969000).contains(fstrat.id)) {
                   ds.log(s"agDW* hits [$fstrat $flearner] at pool $run.$fold.")
                   if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
                   else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)

@@ -46,7 +46,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                s <- strats
                l <- ls
             } yield {
-               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969 || s.id == 1006600 || s.id == 292212) s.learner else l
+               ???
+               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 292212) s.learner else l
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds
