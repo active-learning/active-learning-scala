@@ -62,7 +62,8 @@ object all extends Exp with LearnerTrait with StratsTrait {
                   ds.log(s"Agn hits [$strat $learner] at pool $run.$fold.")
                   if (ds.areHitsFinished(pool.size, testSet, strat, learner, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$learner at pool $run.$fold.")
                   else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(learner)
-               } else learnersFilterDependent(learnerSeed) foreach { flearner =>
+               }
+               if (pesadas || todas) learnersFilterDependent(learnerSeed) foreach { flearner =>
                   ds.log(s"Agnf hits [$fstrat $flearner] at pool $run.$fold.")
                   if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
                   else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
@@ -80,7 +81,9 @@ object all extends Exp with LearnerTrait with StratsTrait {
                ds.queries(fstrat, run, fold, binaf, zscof)
             } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
             //hits
-            (if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else learnersFilterDependent(learnerSeed)) foreach { flearner =>
+            val ls1 = if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else Seq()
+            val ls2 = if (pesadas || todas) learnersFilterDependent(learnerSeed) else Seq()
+            ls1 ++ ls2 foreach { flearner =>
                if (Seq(292212).contains(fstrat.id))
                   if (flearner.id == 773) {
                      ds.log(s"agDW* hits [$fstrat Nintera] at pool $run.$fold.")
@@ -144,7 +147,9 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //restoComF / lff lfd
-         (if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else learnersFilterDependent(learnerSeed)) foreach { flearner =>
+         val ls1 = if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else Seq()
+         val ls2 = if (pesadas || todas) learnersFilterDependent(learnerSeed) else Seq()
+         ls1 ++ ls2 foreach { flearner =>
             stratsComLearnerExterno_FilterDependent(fpool, flearner) foreach { case fstrat =>
                ds.log(s"$fstrat ...")
                //queries
