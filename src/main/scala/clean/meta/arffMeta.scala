@@ -122,10 +122,10 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                   f <- 0 until folds
                //                  duplicadorDeAmostra <- 0 to 20
                } yield {
+                  ???
                   val poolStr = (100 * r + f).toString
                   val medidas = for {
                      s <- strats
-                     ???
                   } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
                      else Some(measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                         ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
@@ -184,9 +184,9 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                if (vs.exists(x => x._2._1 == -2d)) Seq()
                else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + rank.mkString(","), budix, l.attPref, l.boundaryType, suav))
             case "Winner" | "WinnerDP" => //qualquer learner prediz apenas o melhor
+               ???
                val vs0 = for {
-                  s <- strats
-                  ???
+                     s <- strats
                } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
                   else {
                      val ms = for {
