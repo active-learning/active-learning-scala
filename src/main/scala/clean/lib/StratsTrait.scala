@@ -48,10 +48,16 @@ trait StratsTrait {
       AgDensityWeightedTrainingUtility(pool, "maha"), //901
       ExpELMChange(pool), //1006600
       QBC(pool), //292212
-      SVMmulti(pool, "KFFw"),
-      SVMmulti(pool, "BALANCED_EEw"),
-      SVMmulti(pool, "SIMPLEw"),
-      SVMmulti(pool, "SELF_CONFw")
+      //TROCAR LEARNER DO SVMmultiLinear PARA SVMLibDegree1 (aproveitando id/queries das 4 estratégias), demora mais que SVMLiear, mas ficaria em linha com artigo do Tong!
+      SVMmultiLinear(pool, "KFFw"),
+      SVMmultiLinear(pool, "BALANCED_EEw"),
+      SVMmultiLinear(pool, "SIMPLEw"),
+      SVMmultiLinear(pool, "SELF_CONFw")
+      //DESCOMENTAR ABAIXO PARA TESTAR SVM COM RBF
+      //      SVMmultiRBF(pool, "KFFw"),
+      //      SVMmultiRBF(pool, "BALANCED_EEw"),
+      //      SVMmultiRBF(pool, "SIMPLEw"),
+      //      SVMmultiRBF(pool, "SELF_CONFw")
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](

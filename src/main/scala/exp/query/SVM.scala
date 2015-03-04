@@ -23,11 +23,11 @@ import app.ArgParser
 import app.db.entities.Dataset
 import exp.CrossValidation
 import ml.Pattern
-import ml.classifiers.SVMLib
+import ml.classifiers.SVMLibDegree1
 import weka.filters.unsupervised.attribute.Standardize
 
 object SVM extends CrossValidation with App {
-  lazy val binarizeNominalAtts = !SVMLib().toString.contains("semzscore")
+  lazy val binarizeNominalAtts = !SVMLibDegree1().toString.contains("semzscore")
   val args1 = args
   val desc = "Version " + ArgParser.version + "\n Generates queries for the given list of datasets according to provided hardcoded SVM strategies \n"
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
@@ -35,10 +35,10 @@ object SVM extends CrossValidation with App {
   run(ff)
 
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    SVMmulti(pool, "SELF_CONF"),
-    SVMmulti(pool, "KFF"),
-    SVMmulti(pool, "BALANCED_EE"),
-    SVMmulti(pool, "SIMPLE")
+    SVMmultiLinear(pool, "SELF_CONF"),
+    SVMmultiLinear(pool, "KFF"),
+    SVMmultiLinear(pool, "BALANCED_EE"),
+    SVMmultiLinear(pool, "SIMPLE")
   )
 
   def ee(db: Dataset) = {
@@ -47,7 +47,7 @@ object SVM extends CrossValidation with App {
       false
     } else if (!nonRndQueriesComplete(db)) true
     else {
-      println(s"SVM queries are complete for $db with ${SVMLib()}.")
+      println(s"SVM queries are complete for $db with ${SVMLibDegree1()}.")
       db.finished = true
       false
     })

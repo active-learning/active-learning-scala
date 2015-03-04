@@ -18,11 +18,9 @@
 
 package al.strategies
 
-import clean.lib.{CM, Ds}
 import ml.Pattern
-import ml.classifiers.{SVMLinear, CIELM, RF, SVMLib}
-import svmal.SVMStrategymulti
-
+import ml.classifiers.SVMLibRBF
+import svmalk.SVMStrategymulti
 import scala.util.Random
 
 /**
@@ -31,22 +29,22 @@ import scala.util.Random
  * @param algorithm
  * @param debug
  */
-case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
-   override val toString = s"SVMmulti ($algorithm)"
-   val abr = "SVM" + algorithm.take(3).toLowerCase
+case class SVMmultiRBF(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
+   override val toString = s"SVMmultiRBF ($algorithm)"
+   val abr = "SVMRBF" + algorithm.take(3).toLowerCase
 
    //just to visual tests and to be referenced in db
-   def learner = SVMLinear()
+   def learner = SVMLibRBF()
 
    val id = algorithm match {
       //      case "SIMPLE" => 17
       //      case "SELF_CONF" => 18
       //      case "KFF" => 19
       //      case "BALANCED_EE" => 20
-      case "SIMPLEw" => 966000
-      case "SELF_CONFw" => 967000
-      case "KFFw" => 968000
-      case "BALANCED_EEw" => 969000
+      case "SIMPLEw" => 966009
+      case "SELF_CONFw" => 967009
+      case "KFFw" => 968009
+      case "BALANCED_EEw" => 969009
    }
 
    protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
@@ -128,34 +126,3 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
    }
 }
 
-object SVMmultiTest extends App with CM {
-   val context = "SVMmultiTest"
-   val ds = Ds("abalone-3class", readOnly = true)
-   val patts = new Random(6294).shuffle(ds.patterns)
-   val (tr, ts) = patts.splitAt(patts.size / 4)
-   val l = RF()
-   val strats = Seq(
-      //      RandomSampling(tr)
-      DensityWeightedTrainingUtility(l, tr, "eucl")
-      , AgDensityWeightedTrainingUtility(tr, "eucl")
-      //      , SVMmulti(tr, "BALANCED_EEw")
-      //      , SVMmulti(tr, "KFFw")
-      //      , SVMmulti(tr, "SIMPLEw")
-      //      , SVMmulti(tr, "SELF_CONFw")
-   ).par
-   val accs = strats.par.map { x =>
-      val ques = x.queries.take(400)
-      var m = l.build(ques.take(tr.head.nclasses))
-      var old = m.predictionEntropy(tr)._1
-      ques.map { q =>
-         //         accBal(l.build(x.queries.take(qs)).confusion(ts))
-         m = l.update(m)(q)
-         val ne = m.predictionEntropy(tr)._2
-         val r = old - ne
-         old = ne
-         r
-      }
-   }.transpose.map(_.mkString(" "))
-   println(strats.map(_.abr).mkString(" "))
-   accs foreach println
-}

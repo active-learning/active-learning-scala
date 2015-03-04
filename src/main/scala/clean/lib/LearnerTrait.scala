@@ -38,7 +38,9 @@ trait LearnerTrait {
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       CIELMBatch(learnerSeed) //8001
       , NinteraELM(learnerSeed) //11
-      , SVMLinear(learnerSeed) //556665
+      , LibLinear(learnerSeed) //556665
+//      , SVMLibDegree1(learnerSeed)
+//      , SVMLibRBF(learnerSeed)
    )
 
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
@@ -50,7 +52,9 @@ trait LearnerTrait {
       case "rf" => RF(learnerSeed)
       case "elm" => NinteraELM(learnerSeed)
       case "vfdt" => VFDT()
-      case "svm" => SVMLinear(learnerSeed)
+      case "reg" => LibLinear(learnerSeed)
+      case "poly1" => SVMLibDegree1(learnerSeed)
+      case "rbf" => SVMLibRBF(learnerSeed)
       //      case "nb" => NB()
       //      case "ci" => CIELM(learnerSeed)
       //      case "i" => IELM(learnerSeed)

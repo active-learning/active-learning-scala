@@ -1,4 +1,4 @@
-package svmal.libsvm;
+package svmalk.libsvm;
 
 public class svm_parameter implements java.io.Serializable {
     /* svm_type */
@@ -12,7 +12,7 @@ public class svm_parameter implements java.io.Serializable {
     public static final int LINEAR = 0;
     public static final int POLY = 1;
     public static final int RBF = 2;
-    public int kernel_type = LINEAR; // same as poly degree=1
+    public int kernel_type = RBF;
     public static final int SIGMOID = 3;
     public double degree = 3;    // for poly
     public double gamma = 1.0;    // for poly/rbf/sigmoid

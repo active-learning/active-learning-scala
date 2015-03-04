@@ -56,10 +56,10 @@ object CreateAppFile extends App {
     DensityWeighted(NoLearner(), Seq(), 1, "eucl"),
     ExpErrorReduction(NoLearner(), Seq(), "gmeans", sampleSize),
     ExpErrorReductionMargin(NoLearner(), Seq(), "entropy", sampleSize),
-    SVMmulti(Seq(), "SELF_CONF"),
-    SVMmulti(Seq(), "KFF"),
-    SVMmulti(Seq(), "BALANCED_EE"),
-    SVMmulti(Seq(), "SIMPLE"),
+    SVMmultiLinear(Seq(), "SELF_CONF"),
+    SVMmultiLinear(Seq(), "KFF"),
+    SVMmultiLinear(Seq(), "BALANCED_EE"),
+    SVMmultiLinear(Seq(), "SIMPLE"),
     ExpErrorReductionMargin(NoLearner(), Seq(), "gmeans+residual", samplingSize),
     ExpErrorReductionMargin(NoLearner(), Seq(), "accuracy", samplingSize)
   )
@@ -77,7 +77,7 @@ object CreateAppFile extends App {
     IELM(), IELMEnsemble(), EIELM(), CIELM(), ECIELM(),
     interaELM(),
     LASVM(),
-    SVMLib(),
+    SVMLibDegree1(),
     NB(), C45(), VFDT() //"semzscore"
   )
 

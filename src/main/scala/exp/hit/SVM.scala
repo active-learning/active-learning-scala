@@ -27,7 +27,7 @@ import ml.classifiers._
 import weka.filters.unsupervised.attribute.Standardize
 
 object SVM extends CrossValidation with App {
-  lazy val binarizeNominalAtts = !SVMLib().toString.contains("semzscore")
+  lazy val binarizeNominalAtts = !SVMLibDegree1().toString.contains("semzscore")
   val args1 = args
   val desc = "Version " + ArgParser.version + " \n Generates confusion matrices for queries (from hardcoded SVM strategies) for the given list of datasets. Uses weka despite the queries coming from another SVM implementation."
   val (path, datasetNames0) = ArgParser.testArgs(className, args, 3, desc)
@@ -36,25 +36,25 @@ object SVM extends CrossValidation with App {
 
   //para as non-Rnd strats, faz tantas matrizes de confusão quantas queries existirem na base (as matrizes são rápidas de calcular, espero)
   def strats0(run: Int, pool: Seq[Pattern]) = List(
-    SVMmulti(pool, "SELF_CONF"),
-    SVMmulti(pool, "KFF"),
-    SVMmulti(pool, "BALANCED_EE"),
-    SVMmulti(pool, "SIMPLE")
+    SVMmultiLinear(pool, "SELF_CONF"),
+    SVMmultiLinear(pool, "KFF"),
+    SVMmultiLinear(pool, "BALANCED_EE"),
+    SVMmultiLinear(pool, "SIMPLE")
   )
 
   def ee(db: Dataset) = {
     val fazer = !db.isLocked() && (if (!db.rndHitsComplete(NB()) || !db.rndHitsComplete(KNNBatchb(5, "eucl", Seq(), weighted = true)) || !db.rndHitsComplete(C45())) {
-      println(s"Rnd NB or 5NN or C45 hits are incomplete for $db with ${SVMLib()}. Skipping...")
+      println(s"Rnd NB or 5NN or C45 hits are incomplete for $db with ${SVMLibDegree1()}. Skipping...")
       false
     } else {
-      if (!hitsComplete(SVMLib())(db)) {
+      if (!hitsComplete(SVMLibDegree1())(db)) {
         if (nonRndQueriesComplete(db)) true
         else {
           println(s"SVM queries are incomplete for $db for some of the given strategies. Skipping...")
           false
         }
       } else {
-        println(s"SVM hits are complete for $db with ${SVMLib()}.")
+        println(s"SVM hits are complete for $db with ${SVMLibDegree1()}.")
         db.finished = true
         false
       }
@@ -66,7 +66,7 @@ object SVM extends CrossValidation with App {
     val nc = db.nclasses //pool.head.nclasses
     val Q = q(db)
     strats(run, pool).takeWhile { s =>
-      db.saveHits(s, SVMLib(run * 100 + fold), run, fold, nc, f, testSet, timeLimitSeconds, pattsFromARFFMap, Q)
+      db.saveHits(s, SVMLibDegree1(run * 100 + fold), run, fold, nc, f, testSet, timeLimitSeconds, pattsFromARFFMap, Q)
       db.running
     }
   }

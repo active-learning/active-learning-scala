@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.run
 
 import clean._
-import clean.lib.{StratsTrait, LearnerTrait, Exp, Ds}
+import clean.lib._
 import ml.Pattern
 import ml.classifiers.{RF, NinteraELM}
 import weka.filters.Filter
@@ -84,26 +84,14 @@ object all extends Exp with LearnerTrait with StratsTrait {
             val ls1 = if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else Seq()
             val ls2 = if (pesadas || todas) learnersFilterDependent(learnerSeed) else Seq()
             ls1 ++ ls2 foreach { flearner =>
-               if (Seq(292212).contains(fstrat.id))
-                  if (flearner.id == 773) {
-                     ds.log(s"agDW* hits [$fstrat Nintera] at pool $run.$fold.")
-                     if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, RF(learnerSeed), run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
-                     else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(RF(learnerSeed))
+               if (Global.stratsSemLExt.contains(fstrat.id)) {
+                  if (flearner.id == fstrat.learner.id) {
+                     ds.log(s" hits [$fstrat $flearner] at pool $run.$fold.")
+                     if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
+                     else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
                   }
-               if (Seq(1006600, 10066).contains(fstrat.id)) {
-                  if (flearner.id == 11) {
-                     ds.log(s"agDW* hits [$fstrat Nintera] at pool $run.$fold.")
-                     if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, NinteraELM(learnerSeed), run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
-                     else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(NinteraELM(learnerSeed))
-                  }
-               }
-               if (flearner.id == 556665 && (fstrat.id == 966000 || fstrat.id == 967000 || fstrat.id == 968000 || fstrat.id == 969000)) {
-                  ds.log(s"SVM hits [$fstrat $flearner] at pool $run.$fold.")
-                  if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
-                  else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
-               }
-               if (!Seq(292212, 1006600, 10066, 966000, 967000, 968000, 969000).contains(fstrat.id)) {
-                  ds.log(s"agDW* hits [$fstrat $flearner] at pool $run.$fold.")
+               } else {
+                  ds.log(s"outros hits [$fstrat $flearner] at pool $run.$fold.")
                   if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"agDW*  Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
                   else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
                }
