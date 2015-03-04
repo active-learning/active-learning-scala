@@ -48,7 +48,9 @@ trait StratsTrait {
       AgDensityWeightedTrainingUtility(pool, "maha"), //901
       ExpELMChange(pool), //1006600
       QBC(pool), //292212
-      //TROCAR LEARNER DO SVMmultiLinear PARA SVMLibDegree1 (aproveitando id/queries das 4 estratégias), demora mais que SVMLiear, mas ficaria em linha com artigo do Tong!
+      //TROCAR LEARNER DO SVMmultiLinear PARA SVMLibDegree1
+      // (aproveitando id/queries das 4 estratégias),
+      // demora mais que LibLinear, mas ficaria em linha com artigo do Tong!
       SVMmultiLinear(pool, "KFFw"),
       SVMmultiLinear(pool, "BALANCED_EEw"),
       SVMmultiLinear(pool, "SIMPLEw"),
