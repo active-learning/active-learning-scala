@@ -36,7 +36,7 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
    val abr = "SVM" + algorithm.take(3).toLowerCase
 
    //just to visual tests and to be referenced in db
-   def learner = SVMLib()
+   def learner = SVMLinear()
 
    val id = algorithm match {
       //      case "SIMPLE" => 17
