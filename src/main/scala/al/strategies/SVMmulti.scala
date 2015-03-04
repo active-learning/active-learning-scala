@@ -20,7 +20,7 @@ package al.strategies
 
 import clean.lib.{CM, Ds}
 import ml.Pattern
-import ml.classifiers.{CIELM, RF, SVMLib}
+import ml.classifiers.{SVMLinear, CIELM, RF, SVMLib}
 import svmal.SVMStrategymulti
 
 import scala.util.Random
@@ -35,18 +35,18 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
    override val toString = s"SVMmulti ($algorithm)"
    val abr = "SVM" + algorithm.take(3).toLowerCase
 
+   //just to visual tests and to be referenced in db
    def learner = SVMLib()
 
-   //just to visual tests and to be referenced in db
    val id = algorithm match {
       //      case "SIMPLE" => 17
       //      case "SELF_CONF" => 18
       //      case "KFF" => 19
       //      case "BALANCED_EE" => 20
-      case "SIMPLEw" => 966
-      case "SELF_CONFw" => 967
-      case "KFFw" => 968
-      case "BALANCED_EEw" => 969
+      case "SIMPLEw" => 966001
+      case "SELF_CONFw" => 967002
+      case "KFFw" => 968003
+      case "BALANCED_EEw" => 969004
    }
 
    protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
@@ -91,7 +91,7 @@ case class SVMmulti(pool: Seq[Pattern], algorithm: String, debug: Boolean = fals
       ar
    }
 
-   val rnd = new Random(123)
+   val rnd = new Random(seed)
 
    private def queries_rec(svm: Seq[SVMStrategymulti], unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
       if (unlabeled.isEmpty) Stream.Empty

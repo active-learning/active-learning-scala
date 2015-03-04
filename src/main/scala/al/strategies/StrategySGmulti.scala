@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.models.{ELMIncModel, ELMModel, Model}
+import ml.models.{WekaBatModel, Model}
 import util.Graphics.Plot
 
 trait StrategySGmulti extends Strategy {
@@ -45,12 +45,11 @@ trait StrategySGmulti extends Strategy {
          val selected = controversial(unlabeled, current_models)
 
          val new_models = learner.id match {
-            case 556665 => //SVM //SVM, ELM ou CIELMBatch não lidam bem com exemplos duplicados, suponho que tirem a média; então temos que tirar o antigo e por o novo com o peso integral
-            case 8001 => //CIELMBatch
-            case 11 => //nitera
-               //SVM
+            case 556665 | 165111 => //SVM não lida bem com exemplos duplicados, suponho que tire a média; então temos que tirar o antigo e por o novo com o peso integral; suponho que ELMs não tenham problema
                current_models map { m =>
-                  learner.update(m.asInstanceOf[ELMIncModel])
+                  val wm = m.asInstanceOf[WekaBatModel]
+                  val newTR = selected +: wm.training_set.diff(Seq(selected)) //troca por ele mesmo mas com peso integral
+                  learner.build(newTR) //assume batch learning
                }
             case _ =>
                //Update specific models with queried label.

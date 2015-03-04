@@ -45,9 +45,13 @@ trait StratsTrait {
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
-      AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , ExpELMChange(pool) //1006600
-      , QBC(pool) //292212
+      AgDensityWeightedTrainingUtility(pool, "maha"), //901
+      ExpELMChange(pool), //1006600
+      QBC(pool), //292212
+      SVMmulti(pool, "KFFw"),
+      SVMmulti(pool, "BALANCED_EEw"),
+      SVMmulti(pool, "SIMPLE"),
+      SVMmulti(pool, "SELF_CONFw")
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -104,11 +108,6 @@ trait StratsTrait {
 
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool), //0
-//   SVMmulti(pool,"KFFw"),
-//   SVMmulti(pool,"BALANCED_EEw"),
-   SVMmulti(pool,"SIMPLE"),
-//   SVMmulti(pool,"SELF_CONFw"),
-
       ////      , ClusterBased(pool) //1
       ////      //      , Entropy(learner, pool) //4
       ////      , Margin(learner, pool) //3
@@ -124,7 +123,7 @@ trait StratsTrait {
       //      , GATUAp(learner, pool, "maha") //
       ////                  , GATU(learner, pool, "manh") //
       //                  , GATU(learner, pool, "maha") //
-       ExpELMChange(pool)
+      ExpELMChange(pool)
 
       //      , RGATU(learner, pool, "manh") //
       //      , RGATU(learner, pool, "maha") //
