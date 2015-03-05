@@ -31,7 +31,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       super.run()
 //            val measure = ALCBalancedAcc
       val measure = ALCKappa
-      val strats = stratsForTreeRedux()
+      val strats = stratsForTreeRedux().dropRight(4)
       val ls = learners(learnersStr)
       val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
 
@@ -45,9 +45,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
             val sres = for {
                s <- strats
                l <- ls
-            } yield {
-               ???
-               val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 292212) s.learner else l
+           } yield {
+               val le = l //if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 292212) s.learner else l
                val vs = for {
                   r <- 0 until runs
                   f <- 0 until folds

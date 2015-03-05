@@ -51,15 +51,11 @@ trait StratsTrait {
       // demora mais que LibLinear, mas fica em linha com artigo do Tong!
       SVMmultiLinear(pool, "BALANCED_EEw"),
       SVMmultiLinear(pool, "SIMPLEw"),
-//      SVMmultiLinear(pool, "KFFw"),
-//      SVMmultiLinear(pool, "SELF_CONFw"),
       ExpELMChange(pool), //1006600
       QBC(pool) //292212
       //DESCOMENTAR ABAIXO PARA TESTAR SVM COM RBF
-      //      SVMmultiRBF(pool, "KFFw"),
       //      SVMmultiRBF(pool, "BALANCED_EEw"),
       //      SVMmultiRBF(pool, "SIMPLEw"),
-      //      SVMmultiRBF(pool, "SELF_CONFw")
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -69,7 +65,6 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //7
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , new SGmulti(learner, pool, "consensus") //14
-      , new SGmulti(learner, pool, "majority") //15
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , GATU(learner, pool, "eucl") //4003006
@@ -126,17 +121,15 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //7
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
       , new SGmulti(learner, pool, "consensus") //14
-      , new SGmulti(learner, pool, "majority") //15
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , GATU(learner, pool, "eucl") //4003006
       , GATU(learner, pool, "manh") //4003007
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , GATU(learner, pool, "maha") //4003009
-      , SVMmultiLinear(pool, "KFFw")
+
       , SVMmultiLinear(pool, "BALANCED_EEw")
       , SVMmultiLinear(pool, "SIMPLEw")
-      , SVMmultiLinear(pool, "SELF_CONFw")
       , ExpELMChange(pool), //1006600
       QBC(pool) //292212
    )
