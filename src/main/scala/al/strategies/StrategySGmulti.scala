@@ -45,7 +45,7 @@ trait StrategySGmulti extends Strategy {
          val selected = controversial(unlabeled, current_models)
 
          val new_models = learner.id match {
-            case 556665 | 165111 => //SVM não lida bem com exemplos duplicados, suponho que tire a média; então temos que tirar o antigo e por o novo com o peso integral; suponho que ELMs não tenham problema
+            case 2651110 | 556665 | 165111 => //SVM não lida bem com exemplos duplicados, suponho que tire a média; então temos que tirar o antigo e por o novo com o peso integral; suponho que ELMs não tenham problema
                current_models map { m =>
                   val wm = m.asInstanceOf[WekaBatModel]
                   val newTR = selected +: wm.training_set.diff(Seq(selected)) //troca por ele mesmo mas com peso integral
