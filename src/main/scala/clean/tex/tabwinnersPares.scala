@@ -25,13 +25,14 @@ import util.{Stat, StatTests}
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
+   val n =3
    run()
 
    override def run() = {
       super.run()
-//            val measure = ALCBalancedAcc
+      //            val measure = ALCBalancedAcc
       val measure = ALCKappa
-      val strats = stratsForTreeRedux().dropRight(4)
+      val strats = stratsForTreeRedux().dropRight(7)
       val ls = learners(learnersStr)
       val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
 
@@ -45,15 +46,18 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
             val sres = for {
                s <- strats
                l <- ls
-           } yield {
+            } yield {
                val le = l //if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 292212) s.learner else l
                val vs = for {
-                  r <- 0 until runs
-                  f <- 0 until folds
-               } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse{println((ds, s, le, r, f) + ": medida não encontrada");NA}
-               s.limpa + l.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
+                     r <- 0 until runs
+                     f <- 0 until folds
+                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+                        println((ds, s, le, r, f) + ": medida não encontrada")
+                        NA
+                     }
+               (s.limpa -> l.limpa) -> Stat.media_desvioPadrao(vs.toVector)._1
             }
-            Some(ds.dataset -> sres.groupBy(_._2).maxBy(_._1)._2.map(_._1), ds.dataset -> sres.groupBy(_._2).minBy(_._1)._2.map(_._1))
+            Some(ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
 
             //            val vs = for {
             //               r <- 0 until runs
@@ -83,19 +87,34 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       }
 
       val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
-      println(s"")
+      println(s"$n primeiros/últimos")
       println(s"${datasetLearnerAndBoth.size} tests.")
       println(s"--------$measure---------------")
       //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-      val algs1 = algs map { st =>
-         val topCount = flat.count(_ == st)
-         val botCount = flat2.count(_ == st)
+      val algs1 = strats.map(_.limpa) map { st =>
+         val topCount = flat.count(_._1 == st)
+         val botCount = flat2.count(_._1 == st)
          (st, topCount, botCount)
       }
-      println(algs1.map(_._2).sum)
+      val algs2 = algs map { stle =>
+         val topCount = flat.count(x => x._1 + x._2 == stle)
+         val botCount = flat2.count(x => x._1 + x._2 == stle)
+         (stle, topCount, botCount)
+      }
+      println(algs1.map(_._2).sum + " total de 1fst places")
+      println(algs1.map(_._3).sum + " total de last places")
       algs1.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
+         println(s"${st.padTo(10, ' ')}:\t$topCount\taparições entre os $n primeiros;\t\t$botCount\taparições entre os $n últimos")
+      }
+      println(s"------------------------------")
+      println(s"")
+      println(s"")
+      println(s"")
+      println(algs2.map(_._2).sum + " total de 1fst places")
+      println(algs2.map(_._3).sum + " total de last places")
+      algs2.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
          println(s"${st.padTo(10, ' ')}:\t$topCount\t1st places;\t\t$botCount\tlast places")
       }
       println(s"------------------------------")

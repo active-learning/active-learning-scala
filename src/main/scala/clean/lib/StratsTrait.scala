@@ -123,9 +123,10 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+
       , GATU(learner, pool, "eucl") //4003006
       , GATU(learner, pool, "manh") //4003007
-      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , GATU(learner, pool, "maha") //4003009
 
       , SVMmultiLinear(pool, "BALANCED_EEw")
