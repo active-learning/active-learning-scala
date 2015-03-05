@@ -38,8 +38,8 @@ trait LearnerTrait {
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
       CIELMBatch(learnerSeed) //8001
       , NinteraELM(learnerSeed) //11
-      , LibLinear(learnerSeed) //556665
-//      , SVMLibDegree1(learnerSeed)
+//      , LogReg(learnerSeed) //556665
+      , SVMLibDegree1(learnerSeed)//165111
 //      , SVMLibRBF(learnerSeed)
    )
 
@@ -52,7 +52,7 @@ trait LearnerTrait {
       case "rf" => RF(learnerSeed)
       case "elm" => NinteraELM(learnerSeed)
       case "vfdt" => VFDT()
-      case "reg" => LibLinear(learnerSeed)
+      case "reg" => LogReg(learnerSeed)
       case "poly1" => SVMLibDegree1(learnerSeed)
       case "rbf" => SVMLibRBF(learnerSeed)
       //      case "nb" => NB()

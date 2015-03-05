@@ -20,7 +20,7 @@ package al.strategies
 
 import clean.lib.{CM, Ds}
 import ml.Pattern
-import ml.classifiers.{LibLinear, CIELM, RF, SVMLibDegree1}
+import ml.classifiers.{LogReg, CIELM, RF, SVMLibDegree1}
 import svmal.SVMStrategymulti
 
 import scala.util.Random
@@ -35,8 +35,12 @@ case class SVMmultiLinear(pool: Seq[Pattern], algorithm: String, debug: Boolean 
    override val toString = s"SVMmultiL ($algorithm)"
    val abr = "SVML" + algorithm.take(3).toLowerCase
 
-   //just to visual tests and to be referenced in db
-   def learner = LibLinear()
+   //learner just to visual tests and to be referenced in db.
+   //TROQUEI LEARNER PARA SVMLibDegree1
+   // (aproveitando id/queries das estratégias SVMmulti),
+   // demora mais que LibLinear, mas fica em linha com artigo do Tong!
+//   def learner = LogReg()
+   def learner = SVMLibDegree1()
 
    val id = algorithm match {
       //      case "SIMPLE" => 17

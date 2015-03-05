@@ -45,7 +45,16 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse(ds.error(s"incompleto para ${(ds, s, l, r, f)}!"))
+            } yield try {
+                  measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+                     println(s"incompleto para ${(ds, s, l, r, f)}!")
+                     NA
+                     //                  ds.error(s"incompleto para ${(ds, s, l, r, f)}!")
+                  }
+               } catch {
+                  case _: Throwable => println(s"incompleto para ${(ds, s, l, r, f)}!")
+                     NA
+               }
             //            println(s"$ds $vs")
             ds.close()
             Stat.media_desvioPadrao(vs.toVector)._1
