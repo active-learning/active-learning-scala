@@ -41,7 +41,7 @@ object elm extends Exp with LearnerTrait with StratsTrait {
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
 
          val flearner = NinteraELM(learnerSeed)
-         stratsSemLearnerExterno_FilterDependent(fpool) foreach { fstrat =>
+         stratsSemLearnerExterno_FilterFree(pool) ++ stratsSemLearnerExterno_FilterDependent(fpool) foreach { fstrat =>
             ds.log(s"$fstrat ...")
             //queries
             val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
