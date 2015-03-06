@@ -19,10 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import clean._
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{RF, NinteraELM}
 import weka.filters.Filter
 
 object all extends Exp with LearnerTrait with StratsTrait {
