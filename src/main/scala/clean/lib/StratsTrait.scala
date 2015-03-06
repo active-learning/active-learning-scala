@@ -42,6 +42,7 @@ trait StratsTrait {
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
+      , QBC(pool) //1292212
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
@@ -51,11 +52,9 @@ trait StratsTrait {
       // demora mais que LibLinear, mas fica em linha com artigo do Tong!
       SVMmultiLinear(pool, "BALANCED_EEw"),
       SVMmultiLinear(pool, "SIMPLEw"),
-      ExpELMChange(pool), //1006600
-      QBC(pool) //292212
-      //DESCOMENTAR ABAIXO PARA TESTAR SVM COM RBF
-      //      SVMmultiRBF(pool, "BALANCED_EEw"),
-      //      SVMmultiRBF(pool, "SIMPLEw"),
+      SVMmultiRBF(pool, "BALANCED_EEw"),
+      SVMmultiRBF(pool, "SIMPLEw"),
+      ExpELMChange(pool) //1006600
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -132,7 +131,7 @@ trait StratsTrait {
       , SVMmultiLinear(pool, "BALANCED_EEw")
       , SVMmultiLinear(pool, "SIMPLEw")
       , ExpELMChange(pool), //1006600
-      QBC(pool) //292212
+      QBC(pool) //1292212
    )
 }
 

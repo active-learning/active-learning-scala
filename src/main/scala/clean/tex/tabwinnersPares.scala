@@ -47,7 +47,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                s <- strats
                l <- ls
             } yield {
-               val le = l //if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 292212) s.learner else l
+               val le = l //if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 1292212) s.learner else l
                val vs = for {
                      r <- 0 until runs
                      f <- 0 until folds
@@ -103,8 +103,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          val botCount = flat2.count(x => x._1 + x._2 == stle)
          (stle, topCount, botCount)
       }
-      println(algs1.map(_._2).sum + " total de 1fst places")
-      println(algs1.map(_._3).sum + " total de last places")
+      println(algs1.map(_._2).sum + " total de vencedores")
+      println(algs1.map(_._3).sum + " total de perdedores")
       algs1.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
          println(s"${st.padTo(10, ' ')}:\t$topCount\taparições entre os $n primeiros;\t\t$botCount\taparições entre os $n últimos")
       }

@@ -84,7 +84,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
             val ls1 = if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else Seq()
             val ls2 = if (pesadas || todas) learnersFilterDependent(learnerSeed) else Seq()
             ls1 ++ ls2 foreach { flearner =>
-               if (Global.stratsSemLExt.contains(fstrat.id)) {
+               if (Global.gnosticasComLearnerInterno.contains(fstrat.id)) {
                   if (flearner.id == fstrat.learner.id) {
                      ds.log(s" hits [$fstrat $flearner] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")

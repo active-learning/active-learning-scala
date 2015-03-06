@@ -26,7 +26,7 @@ case class QBC(pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyWithLearner {
    override val toString = "QBC"
    val abr = "QBC"
-   val id = 292212
+   val id = 1292212 //acrescentei 1 na frente porque a estrat estava erradamente como filterdependent
    val learner = RF()
 
    def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
