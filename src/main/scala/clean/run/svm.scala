@@ -21,11 +21,11 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.NinteraELM
+import ml.classifiers.SVMLibRBF
 import weka.filters.Filter
 
-object elm extends Exp with LearnerTrait with StratsTrait {
-   val context = "elmApp"
+object svm extends Exp with LearnerTrait with StratsTrait {
+   val context = "svmApp"
    val arguments = superArguments
    val ignoreNotDone = false
    var outroProcessoVaiTerminarEsteDataset = false
@@ -40,8 +40,8 @@ object elm extends Exp with LearnerTrait with StratsTrait {
          ds.startbeat(run, fold)
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
 
-         val flearner = NinteraELM(learnerSeed)
-         stratsSemLearnerExterno_FilterFree(pool).dropRight(1) ++ stratsSemLearnerExterno_FilterDependent(fpool).dropRight(3) ++ Seq(stratsSemLearnerExterno_FilterDependent(fpool).last) foreach { fstrat =>
+         val flearner = SVMLibRBF(learnerSeed)
+         stratsSemLearnerExterno_FilterFree(pool).dropRight(1) ++ stratsSemLearnerExterno_FilterDependent(fpool).dropRight(1) foreach { fstrat =>
             ds.log(s"$fstrat ...")
             //queries
             val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
@@ -97,13 +97,13 @@ object elm extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("elm" + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
+         ds.markAsFinishedRun("svm" + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("elm" + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("svm" + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }

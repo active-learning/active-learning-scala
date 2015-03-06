@@ -87,7 +87,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             strat match {
                case Majoritary(Seq(), false) => //| SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
-                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 1292212 && learner.id == 773) || (Seq(966000, 967000, 968000, 969000).contains(strat.id) && Seq(165111, 556665).contains(learner.id)) || (Seq(966009, 967009, 968009, 969009).contains(strat.id) && learner.id == 2651110))  poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 1292212 && learner.id == 773) || (Seq(966000, 967000, 968000, 969000).contains(strat.id) && Seq(165111, 556665).contains(learner.id)) || (Seq(966009, 967009, 968009, 969009).contains(strat.id) && learner.id == 2651110)) poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
             }
          }
          for (strat <- allStrats(); learner <- allLearners()) {
@@ -95,7 +95,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
             strat match {
                case Majoritary(Seq(), false) => // | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
-                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 1292212 && learner.id == 773) || (Seq(966000, 967000, 968000, 969000).contains(strat.id) && Seq(165111, 556665).contains(learner.id)) || (Seq(966009, 967009, 968009, 969009).contains(strat.id) && learner.id == 2651110))  poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 1292212 && learner.id == 773) || (Seq(966000, 967000, 968000, 969000).contains(strat.id) && Seq(165111, 556665).contains(learner.id)) || (Seq(966009, 967009, 968009, 969009).contains(strat.id) && learner.id == 2651110)) poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
             }
          }
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
@@ -104,9 +104,11 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
    }
 
    def datasetFinished(ds: Ds) {
+      ds.markAsFinishedMea(passivas + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
+      ds.log("Dataset marcado como terminado !", 50)
    }
 
-   def isAlreadyDone(ds: Ds) = false //ds.isMeasureComplete(measure, s.id, learner.id)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedMea(passivas + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
       println(s"prontos. \n${args.toList}")

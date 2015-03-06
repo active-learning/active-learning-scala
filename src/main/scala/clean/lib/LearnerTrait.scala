@@ -27,6 +27,7 @@ trait LearnerTrait {
 
    def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
+   //neste arquivo ficam apenas classificadores básicos.
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
       KNNBatcha(5, "eucl", pool, weighted = true) //2
       , C45() //3

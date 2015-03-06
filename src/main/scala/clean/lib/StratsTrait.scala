@@ -42,19 +42,19 @@ trait StratsTrait {
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
-//      , QBC(pool) //1292212
+      , QBC(pool) //1292212
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
-      AgDensityWeightedTrainingUtility(pool, "maha") //901
+      AgDensityWeightedTrainingUtility(pool, "maha"), //901
       //TROQUEI LEARNER DO SVMmultiLinear PARA SVMLibDegree1
       // (aproveitando id/queries das estratégias SVMmulti),
       // demora mais que LibLinear, mas fica em linha com artigo do Tong!
 //      SVMmultiLinear(pool, "BALANCED_EEw"),
 //      SVMmultiLinear(pool, "SIMPLEw"),
-//      SVMmultiRBF(pool, "BALANCED_EEw"),
-//      SVMmultiRBF(pool, "SIMPLEw"),
-//      ExpELMChange(pool) //1006600
+      SVMmultiRBF(pool, "BALANCED_EEw"),
+      SVMmultiRBF(pool, "SIMPLEw"),
+      ExpELMChange(pool) //1006600
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](

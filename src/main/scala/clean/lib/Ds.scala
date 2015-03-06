@@ -132,6 +132,24 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       write(s"insert into f values ($budget)")
    }
 
+   def isFinishedMea(stratsLeas: String) = read(s"select finished from mea") match {
+      case lista if lista.map(_.head).contains(stratsLeas) => true
+      case x => false
+   }
+
+   def markAsFinishedMea(stratsLeas: String): Unit = {
+      write(s"insert into mea values ($stratsLeas)")
+   }
+
+   def isFinishedRun(stratsLeas: String) = read(s"select finished from run") match {
+      case lista if lista.map(_.head).contains(stratsLeas) => true
+      case x => false
+   }
+
+   def markAsFinishedRun(stratsLeas: String): Unit = {
+      write(s"insert into run values ($stratsLeas)")
+   }
+
    //  def passiveAcc(learner: Learner, r: Int, f: Int) = {
    //    if (learner.id > 3) {
    //      error(s"$learner doesn't !")

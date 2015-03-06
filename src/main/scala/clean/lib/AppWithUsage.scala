@@ -35,8 +35,8 @@ trait AppWithUsage extends App with Log with ArgParser {
    lazy val debugIntensity = if (args.isEmpty) 20 else args(0).toInt
    lazy val maxQueries0 = args(3).toInt
    lazy val sql = args(4)
-   lazy val pesadas = args(4).contains("p")
-   lazy val todas = args(4).contains("t")
+//   lazy val pesadas = args(4).contains("p")
+//   lazy val todas = args(4).contains("t")
    lazy val passivas = args(4).contains("p")
    lazy val normalizar = args(4).contains("y")
    lazy val path = args(4) + "/"

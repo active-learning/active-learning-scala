@@ -25,7 +25,8 @@ import weka.filters.Filter
 
 object all extends Exp with LearnerTrait with StratsTrait {
    val context = "allApp"
-   val arguments = superArguments ++ Seq("p:pesadas")
+   val arguments = superArguments
+   //++ Seq("p:pesadas")
    val ignoreNotDone = false
    var outroProcessoVaiTerminarEsteDataset = false
    run()
@@ -41,7 +42,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
 
          //rnd clu svm maj / lff lfd
-         stratsSemLearnerExterno_FilterFree(pool).zip(stratsSemLearnerExterno_FilterFree(fpool)) foreach { case (strat, fstrat) =>
+         stratsSemLearnerExterno_FilterFree(pool).dropRight(1).zip(stratsSemLearnerExterno_FilterFree(fpool).dropRight(1)) foreach { case (strat, fstrat) =>
             ds.log(s"$strat ...")
             //queries
             val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -56,12 +57,12 @@ object all extends Exp with LearnerTrait with StratsTrait {
                if (ds.areHitsFinished(pool.size, testSet, strat, learner, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$learner at pool $run.$fold.")
                else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(learner)
             } else {
-               if (!pesadas || todas) learnersFilterFree(pool, learnerSeed) foreach { learner =>
+               learnersFilterFree(pool, learnerSeed) foreach { learner =>
                   ds.log(s"Agn hits [$strat $learner] at pool $run.$fold.")
                   if (ds.areHitsFinished(pool.size, testSet, strat, learner, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$learner at pool $run.$fold.")
                   else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(learner)
                }
-               if (pesadas || todas) learnersFilterDependent(learnerSeed) foreach { flearner =>
+               learnersFilterDependent(learnerSeed) foreach { flearner =>
                   ds.log(s"Agnf hits [$fstrat $flearner] at pool $run.$fold.")
                   if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, flearner, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$flearner at pool $run.$fold.")
                   else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(flearner)
@@ -71,7 +72,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //agDW* / lff lfd
-         stratsSemLearnerExterno_FilterDependent(fpool) foreach { fstrat =>
+         stratsSemLearnerExterno_FilterDependent(fpool).dropRight(3) foreach { fstrat =>
             ds.log(s"$fstrat ...")
             //queries
             val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
@@ -79,8 +80,8 @@ object all extends Exp with LearnerTrait with StratsTrait {
                ds.queries(fstrat, run, fold, binaf, zscof)
             } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
             //hits
-            val ls1 = if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else Seq()
-            val ls2 = if (pesadas || todas) learnersFilterDependent(learnerSeed) else Seq()
+            val ls1 = learnersFilterFree(fpool, learnerSeed)
+            val ls2 = learnersFilterDependent(learnerSeed)
             ls1 ++ ls2 foreach { flearner =>
                if (Global.gnosticasComLearnerInterno.contains(fstrat.id)) {
                   if (flearner.id == fstrat.learner.id) {
@@ -98,7 +99,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //restoSemF / lff
-         if (!pesadas || todas) learnersFilterFree(pool, learnerSeed) foreach { learner =>
+         learnersFilterFree(pool, learnerSeed) foreach { learner =>
             stratsComLearnerExterno_FilterFree(pool, learner) foreach { case strat =>
                ds.log(s"$strat ...")
                //queries
@@ -115,7 +116,7 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //restoSemF / lfd
-         if (pesadas || todas) learnersFilterDependent(learnerSeed) foreach { flearner =>
+         learnersFilterDependent(learnerSeed) foreach { flearner =>
             stratsComLearnerExterno_FilterFree(fpool, flearner) foreach { case fstrat =>
                ds.log(s"$fstrat ...")
                //queries
@@ -133,8 +134,8 @@ object all extends Exp with LearnerTrait with StratsTrait {
          }
 
          //restoComF / lff lfd
-         val ls1 = if (!pesadas || todas) learnersFilterFree(fpool, learnerSeed) else Seq()
-         val ls2 = if (pesadas || todas) learnersFilterDependent(learnerSeed) else Seq()
+         val ls1 = learnersFilterFree(fpool, learnerSeed)
+         val ls2 = learnersFilterDependent(learnerSeed)
          ls1 ++ ls2 foreach { flearner =>
             stratsComLearnerExterno_FilterDependent(fpool, flearner) foreach { case fstrat =>
                ds.log(s"$fstrat ...")
@@ -156,15 +157,13 @@ object all extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         if (todas) {
-            ds.markAsFinished(maxQueries(ds))
-            ds.log("Dataset marcado como terminado !", 50)
-         }
+         ds.markAsFinishedRun("all" + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
+         ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinished(maxQueries(ds))
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("all" + allStrats().map(_.limpa).mkString + allLearners().map(_.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }
