@@ -138,7 +138,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    }
 
    def markAsFinishedMea(stratsLeas: String): Unit = {
-      write(s"insert into mea values ($stratsLeas)")
+      write(s"insert into mea values ('$stratsLeas')")
    }
 
    def isFinishedRun(stratsLeas: String) = read(s"select finished from run") match {
@@ -147,7 +147,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    }
 
    def markAsFinishedRun(stratsLeas: String): Unit = {
-      write(s"insert into run values ($stratsLeas)")
+      write(s"insert into run values ('$stratsLeas')")
    }
 
    //  def passiveAcc(learner: Learner, r: Int, f: Int) = {
