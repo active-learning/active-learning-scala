@@ -20,18 +20,22 @@ package al.strategies
 
 import ml.Pattern
 import ml.classifiers.RF
-import ml.models.Model
+import weka.core.Utils
 
 case class QBC(pool: Seq[Pattern], debug: Boolean = false)
-   extends StrategyWithLearner {
+   extends StrategyAgnostic {
    override val toString = "QBC"
    val abr = "QBC"
-   val id = 1292212 //acrescentei 1 na frente porque a estrat estava erradamente como filterdependent
-   val learner = RF()
+   val id = 3292212
+   //acrescentei 1 na frente porque a estrat estava erradamente como filterdependent; troquei por 3 pq o JS tava equivalente a Entropy
+   val learner = RF(seed)
 
-   def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+   def next(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
+      val current_model = RF(seed, 10, 0, math.max(Utils.log2(labeled.size).toInt - 1, 1)).build(labeled)
       val selected = unlabeled maxBy current_model.JS
       selected
    }
+
+   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = ???
 }
 
