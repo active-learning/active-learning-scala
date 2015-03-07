@@ -27,20 +27,6 @@ trait LearnerTrait {
 
    def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersFilterFree(pool, learnerSeed) ++ learnersFilterDependent(learnerSeed)
 
-   def allLearnersForMea(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-      KNNBatcha(5, "eucl", pool, weighted = true) //2
-      , C45() //3
-      , RF(learnerSeed) //773
-      , NBBatch() //12
-      , VFDT() //4
-      , CIELMBatch(learnerSeed) //8001
-      , NinteraELM(learnerSeed) //11
-      , LogReg(learnerSeed) //556665
-      , SVMLibDegree1(learnerSeed) //165111
-      , SVMLibRBF(learnerSeed)
-   )
-
-
    //neste arquivo ficam apenas classificadores básicos.
    def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
       KNNBatcha(5, "eucl", pool, weighted = true) //2
@@ -67,7 +53,7 @@ trait LearnerTrait {
       case "rf" => RF(learnerSeed)
       case "elm" => NinteraELM(learnerSeed)
       case "vfdt" => VFDT()
-      case "reg" => LogReg(learnerSeed)
+      //      case "reg" => LogReg(learnerSeed)
       case "poly1" => SVMLibDegree1(learnerSeed)
       case "rbf" => SVMLibRBF(learnerSeed)
       //      case "nb" => NB()

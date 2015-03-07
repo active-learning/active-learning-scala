@@ -20,7 +20,7 @@ package al.strategies
 
 import clean.lib.{CM, Ds}
 import ml.Pattern
-import ml.classifiers.{LogReg, CIELM, RF, SVMLibDegree1}
+import ml.classifiers.{RF, SVMLibDegree1}
 import svmal.SVMStrategymulti
 
 import scala.util.Random
