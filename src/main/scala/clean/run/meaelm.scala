@@ -27,8 +27,8 @@ import weka.filters.Filter
 
 import scala.collection.mutable
 
-object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with RangeGenerator {
-   val context = "meaApp"
+object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM with RangeGenerator {
+   val context = "meaelmApp"
    val arguments = superArguments ++ Seq("p:passivas")
    val ignoreNotDone = false
    var acabou = false
@@ -45,21 +45,8 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
       val fila = mutable.Set[String]()
       //      //passiva
       if (passivas) {
-         val poolt = pool.take(3000)
          val fpoolt = fpool.take(3000)
-         for (learner <- learnersFilterFree(poolt, rnd.nextInt(99999)) ++ Seq(RF(learnerSeed))) {
-            val k = Kappa(ds, Passive(poolt), learner, run, fold)(-1)
-            val b = BalancedAcc(ds, Passive(poolt), learner, run, fold)(-1)
-            if (!k.existia || !b.existia) {
-               val model = learner.build(poolt)
-               val CM = model.confusion(testSet)
-               poeNaFila(fila, k.sqlToWrite(ds, CM))
-               poeNaFila(fila, b.sqlToWrite(ds, CM))
-               if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-               fila.clear()
-            }
-         }
-         for (flearner <- learnersFilterDependent(rnd.nextInt(99999)) ++ Seq(NinteraELM(learnerSeed), SVMLibRBF(learnerSeed))) {
+         for (flearner <- Seq(NinteraELM(learnerSeed))) {
             val k = Kappa(ds, Passive(fpoolt), flearner, run, fold)(-1)
             val b = BalancedAcc(ds, Passive(fpoolt), flearner, run, fold)(-1)
             if (!k.existia || !b.existia) {
@@ -75,7 +62,7 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
          fila.clear()
       } else {
          lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
-         for (strat <- allStrats(); learner <- allLearnersForMea(); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
+         for (strat <- allStrats(); learner <- Seq(NinteraELM(learnerSeed)); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
             strat match {
                case Majoritary(Seq(), false) => //| SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
@@ -85,14 +72,14 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
                   }
             }
          }
-         for (strat <- allStrats(); learner <- allLearnersForMea(); t <- tmin to tmax) {
+         for (strat <- allStrats(); learner <- Seq(NinteraELM(learnerSeed)); t <- tmin to tmax) {
             strat match {
                case Majoritary(Seq(), false) => //| SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
                   if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 1292212 && learner.id == 773) || (Seq(966000, 967000, 968000, 969000).contains(strat.id) && Seq(165111, 556665).contains(learner.id)) || (Seq(966009, 967009, 968009, 969009).contains(strat.id) && learner.id == 2651110)) poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
             }
          }
-         for (strat <- allStrats(); learner <- allLearnersForMea()) {
+         for (strat <- allStrats(); learner <- Seq(NinteraELM(learnerSeed))) {
             val t = tpass
             strat match {
                case Majoritary(Seq(), false) => // | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
@@ -108,14 +95,14 @@ object mea extends Exp with LearnerTrait with StratsTrait with Lock with CM with
 
    def datasetFinished(ds: Ds) {
       if (acabou) {
-         ds.markAsFinishedMea(passivas + allStrats().map(_.limpa).mkString + allLearnersForMea().map(_.limpa).mkString)
+         ds.markAsFinishedMea(passivas + allStrats().map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
    }
 
    def isAlreadyDone(ds: Ds) = {
       acabou = false
-      ds.isFinishedMea(passivas + allStrats().map(_.limpa).mkString + allLearnersForMea().map(_.limpa).mkString)
+      ds.isFinishedMea(passivas + allStrats().map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
    }
 
    def end(res: Map[String, Boolean]): Unit = {
