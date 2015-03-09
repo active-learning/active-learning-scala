@@ -22,7 +22,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-   val gnosticasComLearnerInterno = Seq(1292212, 1006600, 10066, 966000, 967000, 968000, 969000, 966009, 967009, 968009, 969009)
+   val gnosticasComLearnerInterno = Seq(1292212, 1006600, 10066, 966000, 967000, 968000, 969000, 966009, 967009, 968009, 969009, 3292212)
 
    val agnosticas = Seq(211, 601, 361, 66361, 901, 391, 66391, 701, 371, 599996, 599997, 599998, 599999)
 
