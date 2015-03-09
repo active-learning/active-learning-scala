@@ -123,15 +123,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       r
    }
 
-   def isFinished(budget: Int) = read(s"select b from f") match {
-      case lista if lista.map(_.head).contains(budget) => true
-      case x => false
-   }
-
-   def markAsFinished(budget: Int): Unit = {
-      write(s"insert into f values ($budget)")
-   }
-
    def isFinishedMea(stratsLeas: String) = readString(s"select finished from mea") match {
       case lista if lista.map(_.head).contains(stratsLeas) => true
       case x => false
