@@ -22,6 +22,7 @@ package clean.run
 import al.strategies.{Majoritary, Passive}
 import clean.lib._
 import ml.Pattern
+import ml.classifiers.NoLearner
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -31,6 +32,7 @@ object meaall extends Exp with LearnerTrait with StratsTrait with Lock with CM w
    val arguments = superArguments ++ Seq("p:passivas")
    val ignoreNotDone = false
    var acabou = false
+   val strats = stratsSemLearnerExterno_FilterFree(Seq()).dropRight(1) ++ stratsSemLearnerExterno_FilterDependent(Seq()).dropRight(3) ++ stratsComLearnerExterno_FilterFree(Seq(),NoLearner()) ++ stratsComLearnerExterno_FilterDependent(Seq(),NoLearner())
    run()
 
    def poeNaFila(fila: mutable.Set[String], f: => String): Unit =

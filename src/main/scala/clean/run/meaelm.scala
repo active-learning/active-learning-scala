@@ -32,6 +32,7 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
    val arguments = superArguments ++ Seq("p:passivas")
    val ignoreNotDone = false
    var acabou = false
+   val strats = stratsSemLearnerExterno_FilterFree(Seq()).dropRight(1) ++ stratsSemLearnerExterno_FilterDependent(Seq()).dropRight(3) ++ stratsSemLearnerExterno_FilterDependent(Seq()).takeRight(1) ++ stratsComLearnerExterno_FilterFree(Seq(), NoLearner()) ++ stratsComLearnerExterno_FilterDependent(Seq(), NoLearner())
    run()
 
    def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
@@ -62,7 +63,7 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
          fila.clear()
       } else {
          lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
-         for (strat <- allStrats(); learner <- Seq(NinteraELM(learnerSeed)); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
+         for (strat <- strats; learner <- Seq(NinteraELM(learnerSeed)); (ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
             strat match {
                case Majoritary(Seq(), false) => //| SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
@@ -72,14 +73,14 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
                   }
             }
          }
-         for (strat <- allStrats(); learner <- Seq(NinteraELM(learnerSeed)); t <- tmin to tmax) {
+         for (strat <- strats; learner <- Seq(NinteraELM(learnerSeed)); t <- tmin to tmax) {
             strat match {
                case Majoritary(Seq(), false) => //| SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
                   if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 1292212 && learner.id == 773) || (Seq(966000, 967000, 968000, 969000).contains(strat.id) && Seq(165111, 556665).contains(learner.id)) || (Seq(966009, 967009, 968009, 969009).contains(strat.id) && learner.id == 2651110)) poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
             }
          }
-         for (strat <- allStrats(); learner <- Seq(NinteraELM(learnerSeed))) {
+         for (strat <- strats; learner <- Seq(NinteraELM(learnerSeed))) {
             val t = tpass
             strat match {
                case Majoritary(Seq(), false) => // | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
@@ -95,14 +96,14 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
 
    def datasetFinished(ds: Ds) {
       if (acabou) {
-         ds.markAsFinishedMea(passivas + allStrats().map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
+         ds.markAsFinishedMea(passivas + strats.map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
    }
 
    def isAlreadyDone(ds: Ds) = {
       acabou = false
-      ds.isFinishedMea(passivas + allStrats().map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
+      ds.isFinishedMea(passivas + strats.map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
    }
 
    def end(res: Map[String, Boolean]): Unit = {
