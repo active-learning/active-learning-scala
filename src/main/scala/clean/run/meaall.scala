@@ -32,7 +32,7 @@ object meaall extends Exp with LearnerTrait with StratsTrait with Lock with CM w
    val arguments = superArguments ++ Seq("p:passivas")
    val ignoreNotDone = false
    var acabou = false
-   val strats = stratsSemLearnerExterno_FilterFree(Seq()).dropRight(1) ++ stratsSemLearnerExterno_FilterDependent(Seq()).dropRight(3) ++ stratsComLearnerExterno_FilterFree(Seq(),NoLearner()) ++ stratsComLearnerExterno_FilterDependent(Seq(),NoLearner())
+   val strats = stratsSemLearnerExterno_FilterFree(Seq()).dropRight(1) ++ stratsSemLearnerExterno_FilterDependent(Seq()).dropRight(3) ++ stratsComLearnerExterno_FilterFree(Seq(), NoLearner()) ++ stratsComLearnerExterno_FilterDependent(Seq(), NoLearner())
    run()
 
    def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
@@ -102,7 +102,7 @@ object meaall extends Exp with LearnerTrait with StratsTrait with Lock with CM w
             }
          }
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-         else acabou = true
+         else if (fila.size == 0) acabou = true
          fila.clear()
       }
    }

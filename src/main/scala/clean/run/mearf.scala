@@ -89,7 +89,7 @@ object mearf extends Exp with LearnerTrait with StratsTrait with Lock with CM wi
             }
          }
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-         else acabou = true
+         else if (fila.size == 0) acabou = true
          fila.clear()
       }
    }
