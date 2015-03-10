@@ -128,8 +128,8 @@ trait StratsTrait {
       , GATU(learner, pool, "manh") //4003007
       , GATU(learner, pool, "maha") //4003009
 
-      , SVMmultiLinear(pool, "BALANCED_EEw")
-      , SVMmultiLinear(pool, "SIMPLEw")
+      , SVMmultiRBF(pool, "BALANCED_EEw")
+      , SVMmultiRBF(pool, "SIMPLEw")
       , ExpELMChange(pool), //1006600
       QBC(pool) //1292212
    )
