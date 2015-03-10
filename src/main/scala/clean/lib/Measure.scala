@@ -85,7 +85,7 @@ trait Measure extends CM with Blob {
                "select 1"
          }
       } else {
-         ds.log(s"Pool $r.$f já existia para a medida $this.",30)
+         ds.log(s"Pool $r.$f já existia para a medida $this.", 10)
          "select 7"
       }
    }
