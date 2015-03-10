@@ -84,7 +84,10 @@ trait Measure extends CM with Blob {
                ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
                "select 1"
          }
-      } else "select 1"
+      } else {
+         ds.log(s"Pool $r.$f já existia para a medida $this.",30)
+         "select 7"
+      }
    }
 
    //   protected def qs2hs(qs: Int) = qs - ds.nclasses + 1

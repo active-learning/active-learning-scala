@@ -94,7 +94,7 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
          println(s"^^^^^^^^^^^^^^^^^^")
          println(s"")
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-         else if (fila.size == 0) acabou = true
+         else if (fila.count(_ != "select 7") == 0) acabou = true
          fila.clear()
       }
    }
