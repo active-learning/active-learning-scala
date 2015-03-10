@@ -101,6 +101,11 @@ object meaall extends Exp with LearnerTrait with StratsTrait with Lock with CM w
                   if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11) || (strat.id == 1292212 && learner.id == 773) || (Seq(966000, 967000, 968000, 969000).contains(strat.id) && Seq(165111, 556665).contains(learner.id)) || (Seq(966009, 967009, 968009, 969009).contains(strat.id) && learner.id == 2651110)) poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
             }
          }
+         println(s"")
+         println(s"---------------------")
+         fila foreach println
+         println(s"^^^^^^^^^^^^^^^^^^")
+         println(s"")
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
          else if (fila.size == 0) acabou = true
          fila.clear()

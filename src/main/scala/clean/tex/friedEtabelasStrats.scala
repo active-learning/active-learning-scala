@@ -47,7 +47,7 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
             case _:RF => strats.dropRight(4) ++ strats.takeRight(1)
             case _ => strats.dropRight(4)
          }
-         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
+//         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
          val res0 = for {
             dataset <- datasets.par
          } yield {
@@ -67,7 +67,7 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
                            measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
                         } catch {
                            case e: Throwable =>
-                              println("NA:" +(ds, s.abr, le, r, f))
+//                              println("NA:" +(ds, s.abr, le, r, f))
                               NA //sys.exit(1)
                         }
                      if (vs.contains(NA)) (NA, NA)
