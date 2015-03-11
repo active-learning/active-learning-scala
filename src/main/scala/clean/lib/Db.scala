@@ -18,6 +18,7 @@
 
 package clean.lib
 
+import java.io.File
 import java.sql.{Connection, DriverManager, Statement, Timestamp}
 import java.util.{Calendar, UUID}
 
@@ -31,7 +32,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    val context = database
    val connectionWait_ms = 60000
    var alive = Array.fill(Global.runs)(Array.fill(Global.folds)(false))
-   val id = System.currentTimeMillis() + UUID.randomUUID().toString
+   val id = new File("/proc/self").getCanonicalFile.getName + java.net.InetAddress.getLocalHost.getHostName + System.currentTimeMillis() + UUID.randomUUID().toString
 
    def open() {
       try {
