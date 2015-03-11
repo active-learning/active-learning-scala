@@ -21,7 +21,6 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers.SVMLibRBF
 import svmalk.SVMStrategymulti
-
 import scala.util.Random
 
 /**
@@ -30,18 +29,22 @@ import scala.util.Random
  * @param algorithm
  * @param debug
  */
-case class SVMmultiRBF(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
-   override val toString = s"SVMmultiRBF ($algorithm)"
-   val abr = "SVMRBF" + algorithm.take(3).toLowerCase
+case class SVMmultiRBFW(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
+   override val toString = s"SVMmultiRBFW ($algorithm)"
+   val abr = "SVMRBFW" + algorithm.take(3).toLowerCase
 
    //just to visual tests and to be referenced in db
    def learner = SVMLibRBF()
 
    val id = algorithm match {
-      case "SIMPLE" => 9660091
-      case "SELF_CONF" => 9670092
-      case "KFF" => 9680093
-      case "BALANCED_EE" => 9690094
+      //      case "SIMPLE" => 17
+      //      case "SELF_CONF" => 18
+      //      case "KFF" => 19
+      //      case "BALANCED_EE" => 20
+      case "SIMPLEw" => 966009
+      case "SELF_CONFw" => 967009
+      case "KFFw" => 968009
+      case "BALANCED_EEw" => 969009
    }
 
    protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
@@ -91,7 +94,21 @@ case class SVMmultiRBF(pool: Seq[Pattern], algorithm: String, debug: Boolean = f
    private def queries_rec(svm: Seq[SVMStrategymulti], unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = {
       if (unlabeled.isEmpty) Stream.Empty
       else {
-         val chosen = labeled.size % nclasses
+         val n = labeled.size
+         val ps = hist(labeled.toArray, n) map (x => x / n.toDouble)
+         val ps_1 = ps map (x => 1 - x)
+         val pscompl = ps_1 map (_ / ps_1.sum)
+
+         val fdpscompl = fdp(pscompl, n)
+         //         val fdpscompl = fdp(ps, n)
+
+         //         println(ps.mkString(" "))
+         //         println(ps_1.mkString(" "))
+         //         println(pscompl.mkString(" "))
+         //         println(fdpscompl.mkString(" "))
+         val sorteio = rnd.nextFloat()
+         val chosen = fdpscompl.zipWithIndex.dropWhile(_._1 < sorteio).head._2
+         //         println(s"\n ==== $chosen ====== $sorteio")
          if (debug) visual_test(null, unlabeled, labeled)
 
          val id = svm(chosen).nextQuery()

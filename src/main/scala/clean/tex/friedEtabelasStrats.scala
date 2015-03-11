@@ -43,9 +43,9 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
          val strats = if (redux) stratsForTreeRedux() else stratsForTree()
          val sl = le match {
             case _:SVMLibRBF => strats.dropRight(2)
-            case _:NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
-            case _:RF => strats.dropRight(4) ++ strats.takeRight(1)
-            case _ => strats.dropRight(4)
+            case _:NinteraELM => strats.dropRight(6) ++ strats.takeRight(2).dropRight(1)
+            case _:RF => strats.dropRight(6) ++ strats.takeRight(1)
+            case _ => strats.dropRight(6)
          }
 //         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
          val res0 = for {

@@ -52,8 +52,10 @@ trait StratsTrait {
       // demora mais que LibLinear, mas fica em linha com artigo do Tong!
 //      SVMmultiLinear(pool, "BALANCED_EEw"),
 //      SVMmultiLinear(pool, "SIMPLEw"),
-      SVMmultiRBF(pool, "BALANCED_EEw"),
-      SVMmultiRBF(pool, "SIMPLEw"),
+//      SVMmultiRBFW(pool, "BALANCED_EEw"),
+//      SVMmultiRBFW(pool, "SIMPLEw"),
+      SVMmultiRBF(pool, "BALANCED_EE"),
+      SVMmultiRBF(pool, "SIMPLE"),
       ExpELMChange(pool) //1006600
    )
 
@@ -128,6 +130,8 @@ trait StratsTrait {
       , GATU(learner, pool, "manh") //4003007
       , GATU(learner, pool, "maha") //4003009
 
+      , SVMmultiRBFW(pool, "BALANCED_EEw")
+      , SVMmultiRBFW(pool, "SIMPLEw")
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
       , ExpELMChange(pool), //1006600
