@@ -43,7 +43,7 @@ object rf extends Exp with LearnerTrait with StratsTrait {
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
 
          val learner = RF(learnerSeed)
-         stratsSemLearnerExterno_FilterFree(pool).zip(stratsSemLearnerExterno_FilterFree(fpool)) foreach { case (strat, fstrat) =>
+         stratsSemLearnerExterno_FilterFree(pool) foreach { strat =>
             ds.log(s"$strat ...")
             //queries
             val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {

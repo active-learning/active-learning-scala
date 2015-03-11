@@ -42,12 +42,12 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
       for (le <- learners(learnersStr)) {
          val strats = if (redux) stratsForTreeRedux() else stratsForTree()
          val sl = le match {
-            case _:SVMLibRBF => strats.dropRight(2)
-            case _:NinteraELM => strats.dropRight(6) ++ strats.takeRight(2).dropRight(1)
-            case _:RF => strats.dropRight(6) ++ strats.takeRight(1)
+            case _: SVMLibRBF => strats.dropRight(2)
+            case _: NinteraELM => strats.dropRight(6) ++ strats.takeRight(2).dropRight(1)
+            case _: RF => strats.dropRight(6) ++ strats.takeRight(1)
             case _ => strats.dropRight(6)
          }
-//         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
+         //         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
          val res0 = for {
             dataset <- datasets.par
          } yield {
@@ -57,23 +57,25 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
             val sres = (for {
                s <- sl
             } yield {
-                  if (Global.gnosticasComLearnerInterno.contains(s.id) && s.learner.id != le.id) None
-                  else Some({
-                     val vs = for {
-                        r <- 0 until runs
-                        f <- 0 until folds
-                     } yield
-                        try {
-                           measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(NA)
-                        } catch {
-                           case e: Throwable =>
-//                              println("NA:" +(ds, s.abr, le, r, f))
-                              NA //sys.exit(1)
-                        }
-                     if (vs.contains(NA)) (NA, NA)
-                     else if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
-                     //         (ds.dataset + l.toString.take(3)) -> sres
-                  })
+               if (Global.gnosticasComLearnerInterno.contains(s.id) && s.learner.id != le.id) None
+               else Some({
+                  val vs = for {
+                     r <- 0 until runs
+                     f <- 0 until folds
+                  } yield
+                     try {
+                        measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse({
+                           println("NA:" +(ds, s.abr, le, r, f))
+                           NA
+                        })
+                     } catch {
+                        case e: Throwable =>
+                           println("NA:" +(ds, s.abr, le, r, f))
+                           NA //sys.exit(1)
+                     }
+                  if (vs.contains(NA)) (NA, NA)
+                  else if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
+               })
             }).flatten
             ds.close()
             renomeia(ds) -> sres
