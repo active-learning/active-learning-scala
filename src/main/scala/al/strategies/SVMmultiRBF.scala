@@ -38,10 +38,10 @@ case class SVMmultiRBF(pool: Seq[Pattern], algorithm: String, debug: Boolean = f
    def learner = SVMLibRBF()
 
    val id = algorithm match {
-      case "SIMPLE" => 9660091
-      case "SELF_CONF" => 9670092
-      case "KFF" => 9680093
-      case "BALANCED_EE" => 9690094
+      case "SIMPLEw" => 9660091
+      case "SELF_CONFw" => 9670092
+      case "KFFw" => 9680093
+      case "BALANCED_EEw" => 9690094
    }
 
    protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {

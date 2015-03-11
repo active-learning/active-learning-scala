@@ -54,8 +54,8 @@ trait StratsTrait {
 //      SVMmultiLinear(pool, "SIMPLEw"),
 //      SVMmultiRBFW(pool, "BALANCED_EEw"),
 //      SVMmultiRBFW(pool, "SIMPLEw"),
-      SVMmultiRBF(pool, "BALANCED_EE"),
-      SVMmultiRBF(pool, "SIMPLE"),
+      SVMmultiRBF(pool, "BALANCED_EEw"),
+      SVMmultiRBF(pool, "SIMPLEw"),
       ExpELMChange(pool) //1006600
    )
 
