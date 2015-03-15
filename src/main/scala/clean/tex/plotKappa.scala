@@ -123,7 +123,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
-         fw.write(i + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
+         fw.write((i + 10) + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
       }
       fw.close()
       println(s"$arq " + (res0.size / ls2.size.toDouble) + " datasets completos.")
