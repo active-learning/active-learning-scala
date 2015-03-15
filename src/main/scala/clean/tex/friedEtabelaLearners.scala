@@ -52,9 +52,12 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
                f <- 0 until folds
             } yield {
                try {
-                  measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse({println("passiva não encontrada");NA})
+                  measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse({
+                     println("passiva NA:" +(ds, Passive(Seq()).abr, l, r, f))
+                     NA
+                  })
                } catch {
-                  case e: Throwable => println(s"pid não encontrado")
+                  case e: Throwable => println("passiva pid NA:" +(ds, Passive(Seq()).abr, l, r, f))
                      NA
                }
             }
@@ -66,31 +69,30 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
       }
       val sorted = res0.toList.filter(!_._2.contains(NA, NA)).sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
 
-//      var fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")
-//      sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
-//         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq, ls.map(_.abr), "tab:balaccClassif" + i, measure.toString, 5))
-//      }
-//      fw.close()
-//
-//      val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls.map(_.abr))
-//
-//      fw = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex", "ISO-8859-1")
-//      fw.write(StatTests.pairTable(pairs, "tab:friedClassif", 2, caption))
-//      fw.close()
+      val fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")
+      sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
+         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq, ls.map(_.abr), "tab:balaccClassif" + i, measure.toString, 5))
+      }
+      fw.close()
+      //
+      val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls.map(_.abr))
+      val fw7 = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex", "ISO-8859-1")
+      fw7.write(StatTests.pairTable(pairs, "tab:friedClassif", 2, caption))
+      fw7.close()
       println(s"${sorted.size} datasets completos")
 
       println(s"1os lugares")
       val vics = sorted.map(x => ls.zip(x._2.map(_._1)).maxBy(_._2)._1.abr)
-      println(vics.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
+      println(vics.groupBy(x => x).map(x => x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
 
-//      println(s"")
-//      println(s"2os lugares")
-//      val vics2 = sorted.map(x => ls.zip(x._2.map(_._1)).sortBy(_._2).reverse.tail.head._1.abr)
-//      println(vics2.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
+      //      println(s"")
+      //      println(s"2os lugares")
+      //      val vics2 = sorted.map(x => ls.zip(x._2.map(_._1)).sortBy(_._2).reverse.tail.head._1.abr)
+      //      println(vics2.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
 
-//      println(s"")
-//      println(s"ambos")
-//      val vicsa = vics ++ vics2
-//   println(vicsa.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
+      //      println(s"")
+      //      println(s"ambos")
+      //      val vicsa = vics ++ vics2
+      //   println(vicsa.groupBy(x => x).map(x=> x._1 -> x._2.size).toList.sortBy(_._2).reverse.mkString("\n"))
    }
 }

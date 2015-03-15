@@ -117,7 +117,7 @@ object StatTests {
          val (vs, ds) = l.unzip
          val r = cor(vs, precision, "blue", "red").zip(cor(ds, precision, "black", "darkgreen", "black")) map {
             case ("", "") => ""
-            case (x, y) if y.contains("-2") => x
+            case (x, y) if y.contains("-9") => x
             case (x, y) => x + "/" + y
          }
          val vals = (if (take11) r.take(11) else r.drop(11)).mkString(" & ")
