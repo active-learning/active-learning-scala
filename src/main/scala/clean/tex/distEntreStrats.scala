@@ -29,12 +29,12 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntreStratstex"
    val measure = ALCKappa
-   val redux = true
+   val redux = false
    run()
 
    override def run() = {
       super.run()
-      val accs0 = for (s <- if (redux) stratsForTreeRedux().par else stratsForTree().par) yield {
+      val accs0 = for (s <- if (redux) stratsForTreeRedux().dropRight(4).par else stratsForTree().dropRight(4).par) yield {
          val res0 = for {
             dataset <- datasets
             l <- learners(learnersStr)
@@ -72,7 +72,10 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             }
             a._1 -> ds
          }
-      val fw = new PrintWriter("/home/davi/wcs/tese/stratDists" + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
+      val arq="/home/davi/wcs/tese/stratDists" + (if (redux) "Redux" else "") + ".tex"
+      println(accs.size + "datasets.")
+      println(s"$arq")
+      val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write(StatTests.distTable(dists, "stratDists" + (if (redux) "Redux" else ""), "estratégias", measure.toString))
       fw.close()
    }

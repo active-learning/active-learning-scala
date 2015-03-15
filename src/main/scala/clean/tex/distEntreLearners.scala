@@ -34,7 +34,7 @@ object distEntreLearners extends AppWithUsage with LearnerTrait with StratsTrait
    override def run() = {
       super.run()
       val ls0 = learners(learnersStr).sortBy(_.abr)
-      val ls = ls0.dropRight(2) ++ ls0.takeRight(2).reverse
+      val ls = ls0
       val accs0 = for (l <- ls.par) yield {
          val res0 = for {
             dataset <- datasets
@@ -62,7 +62,7 @@ object distEntreLearners extends AppWithUsage with LearnerTrait with StratsTrait
          }
          a._1 -> ds
       }
-      val fw = new PrintWriter("/home/davi/wcs/tese/passiveDistsATENCAO-ARQUIVO-DA-TESE-JAH-FOI-EDITADO-A-MAO.tex", "ISO-8859-1")
+      val fw = new PrintWriter("/home/davi/wcs/tese/passiveDists.tex", "ISO-8859-1")
       fw.write(StatTests.distTable(dists, "passiveDists", "algoritmos de aprendizado", measure.toString))
       fw.close()
    }

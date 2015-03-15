@@ -91,11 +91,11 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
          }
          fw.close()
          println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
-         //         val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-         //         else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-         //         val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
-         //         fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), 2, caption.replace("LEA", le.abr)))
-         //         fw2.close()
+                  val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector.map(_.abr))
+                  else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1).map(_.abr))
+                  val fw2 = new PrintWriter("/home/davi/wcs/tese/stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
+                  fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), 2, caption.replace("LEA", le.abr)))
+                  fw2.close()
       }
    }
 }

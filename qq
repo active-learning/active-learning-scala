@@ -26,8 +26,7 @@ flare
 thyroid-sick-euthyroid
 turkiye-student
 robot-failure-lp5
-#demorou
-micro-mass-pure-spectra
+#micro-mass-pure-spectra demorou
 page-blocks
 bupa
 wine-quality-white-5class
@@ -36,8 +35,7 @@ thyroid-newthyroid
 tic-tac-toe
 mfeat-fourier
 dbworld-subjects
-#demorou
-micro-mass-mixed-spectra
+#micro-mass-mixed-spectra demorou
 steel-plates-faults
 leukemia-haslinger
 indian-liver-patient
@@ -55,13 +53,10 @@ statlog-german-credit-numeric
 planning-relax
 connectionist-vowel-reduced
 abalone-3class
-#demorou
-musk
+#musk
 glass
-#demorou
-cnae-9
-#demorou
-texture
+#cnae-9 demorou nos 75
+#texture demorou nos 75
 vertebra-column-2c
 kr-vs-kp
 ozone-onehr
@@ -71,7 +66,7 @@ hill-valley-without-noise
 volcanoes-b2
 movement-libras
 semeion
-mushroom
+#mushroom
 #breast-tissue-4class
 statlog-australian-credit
 robot-nav-sensor-readings-2
@@ -110,7 +105,5 @@ wdbc
 parkinsons
 #multiple-features
 voting
-#demorou
-digits2-davi
-#demorou
-optdigits
+#digits2-davi demorou
+#optdigits demorou
