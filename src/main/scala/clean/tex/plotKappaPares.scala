@@ -29,11 +29,9 @@ import util.{Stat, StatTests}
 object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappa2"
-   val porRank = true
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val redux = true
-   val risco = false
    val strats = if (redux) stratsForTreeRedux().dropRight(1) else stratsForTree()
    val ls = learners(learnersStr)
    val sl = strats.map(_.abr)
@@ -41,7 +39,7 @@ object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait wi
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/kappa${tipoSumariz}Pares" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (risco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa${tipoSumariz}Pares" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
       val dss = datasets.filter { d =>
@@ -71,7 +69,7 @@ object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait wi
             val vs0 = vs00.map(_.take(minsiz))
             if (minsiz != vs00.map(_.size).max) println(s"$dataset $s $le " + vs0.map(_.size).min + " " + vs0.map(_.size).max)
             val ts = vs0.transpose.map { v =>
-               if (risco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
+               if (porRisco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
                else Stat.media_desvioPadrao(v.toVector)._1
             }
             val fst = ts.head
