@@ -27,23 +27,21 @@ import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
 object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
+   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r")
    val context = "plotKappa"
-   val porRank = false
    //   val tipoLearner = "best"
    val tipoLearner = "all"
    //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val redux = true
-   val risco = false
    val strats = if (redux) stratsForTreeRedux().dropRight(4) else stratsForTree()
    val sl = strats.map(_.abr)
    run()
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (risco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
       val ls2 = tipoLearner match {
@@ -98,7 +96,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
                val vs0 = vs00.flatten.map(_.take(minsiz))
                if (vs0.minBy(_.size).size != vs0.maxBy(_.size).size || minsiz != sizes.max) println(s"$dataset $s $le " + sizes.min + " " + sizes.max)
                val ts = vs0.transpose.map { v =>
-                  if (risco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
+                  if (porRisco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
                   else Stat.media_desvioPadrao(v.toVector)._1
                }
                val fst = ts.head
