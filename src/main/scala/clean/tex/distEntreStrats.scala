@@ -29,7 +29,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntreStratstex"
    val measure = ALCKappa
-   val redux = false
+   val redux = true
    run()
 
    override def run() = {
@@ -73,7 +73,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             a._1 -> ds
          }
       val arq="/home/davi/wcs/tese/stratDists" + (if (redux) "Redux" else "") + ".tex"
-      println(accs.size + "datasets.")
+      println(accs0.head._2.size + " dimensions.")
       println(s"$arq")
       val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write(StatTests.distTable(dists, "stratDists" + (if (redux) "Redux" else ""), "estratégias", measure.toString))

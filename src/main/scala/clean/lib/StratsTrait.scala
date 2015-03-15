@@ -112,17 +112,13 @@ trait StratsTrait {
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , GATU(learner, pool, "eucl") //4003006
       , GATU(learner, pool, "manh") //4003007
       , GATU(learner, pool, "maha") //4003009
       , new SGmulti(learner, pool, "consensus") //14
-      , Entropy(learner, pool) //4
       , Margin(learner, pool) //3
       , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl")
       , DensityWeightedTrainingUtility(learner, pool, "manh")
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
