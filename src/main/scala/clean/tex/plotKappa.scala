@@ -59,7 +59,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       }
       val res0 = (for {
          dataset <- dss.take(1000)
-         le0 <- ls2
+         le0 <- ls2.par
       } yield {
          val ds = Ds(dataset, readOnly = true)
          println(s"$ds")
