@@ -29,7 +29,7 @@ import util.{Stat, StatTests}
 object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "plotKappa"
-   val porRank = true
+   val porRank = false
    //   val tipoLearner = "best"
    val tipoLearner = "all"
    //      val tipo="mediano"
@@ -117,7 +117,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
 
       val plot = plot0.toList.transpose.map { x =>
-         x.sliding(10).map(y => y.sum / y.size).toList
+         x.sliding(20).map(y => y.sum / y.size).toList
       }.transpose
 
       val fw = new PrintWriter(arq, "ISO-8859-1")
