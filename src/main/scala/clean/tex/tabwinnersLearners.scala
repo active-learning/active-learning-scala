@@ -33,7 +33,6 @@ object tabwinnersLearners extends AppWithUsage with LearnerTrait with StratsTrai
       super.run()
       //            val measure = ALCBalancedAcc
       val measure = BalancedAcc
-      val strats = stratsForTreeRedux().dropRight(7)
       val ls = learners(learnersStr)
 
       val datasetLearnerAndBoth = for {
