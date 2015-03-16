@@ -34,8 +34,8 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
    //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
-   val redux = true
-   val strats = if (redux) stratsForTreeRedux().dropRight(4) else stratsForTree()
+   val redux = porRank
+   val strats = if (redux) stratsForTreeRedux().dropRight(4) else stratsForTree().dropRight(4)
    val sl = strats.map(_.abr)
    run()
 
