@@ -45,7 +45,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/kappa$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa$dist$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
       val ls2 = tipoLearner match {

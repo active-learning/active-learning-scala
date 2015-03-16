@@ -43,7 +43,7 @@ object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait wi
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/kappa${tipoSumariz}Pares" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
       val dss = datasets.filter { d =>
