@@ -40,6 +40,7 @@ trait AppWithUsage extends App with Log with ArgParser {
    lazy val passivas = args(4).contains("p")
    lazy val porRank = args(5).contains("r")
    lazy val porRisco = args(6).contains("r")
+   lazy val dist = args(7)
    lazy val normalizar = args(4).contains("y")
    lazy val path = args(4) + "/"
    lazy val trulyrnd = new SecureRandom()

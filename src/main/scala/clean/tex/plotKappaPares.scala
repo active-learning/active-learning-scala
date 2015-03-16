@@ -27,12 +27,16 @@ import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
 object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
+   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
    val context = "plotKappa2"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val redux = true
-   val strats = if (redux) stratsForTreeRedux().dropRight(1) else stratsForTree()
+   val strats = if (redux) dist match {
+      case "euc" =>stratsForTreeReduxEuc().dropRight(4)
+      case "man" =>stratsForTreeReduxMan().dropRight(4)
+      case "mah" =>stratsForTreeReduxMah().dropRight(4)
+   } else stratsForTree()
    val ls = learners(learnersStr)
    val sl = strats.map(_.abr)
    run()

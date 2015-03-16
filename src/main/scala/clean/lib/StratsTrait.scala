@@ -50,10 +50,10 @@ trait StratsTrait {
       //TROQUEI LEARNER DO SVMmultiLinear PARA SVMLibDegree1
       // (aproveitando id/queries das estratégias SVMmulti),
       // demora mais que LibLinear, mas fica em linha com artigo do Tong!
-//      SVMmultiLinear(pool, "BALANCED_EEw"),
-//      SVMmultiLinear(pool, "SIMPLEw"),
-//      SVMmultiRBFW(pool, "BALANCED_EEw"),
-//      SVMmultiRBFW(pool, "SIMPLEw"),
+      //      SVMmultiLinear(pool, "BALANCED_EEw"),
+      //      SVMmultiLinear(pool, "SIMPLEw"),
+      //      SVMmultiRBFW(pool, "BALANCED_EEw"),
+      //      SVMmultiRBFW(pool, "SIMPLEw"),
       SVMmultiRBF(pool, "BALANCED_EEw"),
       SVMmultiRBF(pool, "SIMPLEw"),
       ExpELMChange(pool) //1006600
@@ -112,15 +112,72 @@ trait StratsTrait {
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "manh") //701
-      , AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , GATU(learner, pool, "manh") //4003007
-      , GATU(learner, pool, "maha") //4003009
+      , AgDensityWeightedTrainingUtility(pool, "eucl")
+      , AgDensityWeightedTrainingUtility(pool, "manh")
+      , AgDensityWeightedTrainingUtility(pool, "maha")
+      , GATU(learner, pool, "eucl")
+      , GATU(learner, pool, "manh")
+      , GATU(learner, pool, "maha")
+      , new SGmulti(learner, pool, "consensus") //14
+      , Margin(learner, pool) //3
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , DensityWeightedTrainingUtility(learner, pool, "eucl")
+      , DensityWeightedTrainingUtility(learner, pool, "manh")
+      , DensityWeightedTrainingUtility(learner, pool, "maha")
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+
+      , SVMmultiRBF(pool, "BALANCED_EEw")
+      , SVMmultiRBF(pool, "SIMPLEw")
+      , ExpELMChange(pool), //1006600
+      QBC(pool) //1292212
+   )
+
+   def stratsForTreeReduxEuc(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , AgDensityWeightedTrainingUtility(pool, "eucl")
+      , GATU(learner, pool, "eucl")
+      , new SGmulti(learner, pool, "consensus") //14
+      , Margin(learner, pool) //3
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , DensityWeightedTrainingUtility(learner, pool, "eucl")
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+
+      , SVMmultiRBF(pool, "BALANCED_EEw")
+      , SVMmultiRBF(pool, "SIMPLEw")
+      , ExpELMChange(pool), //1006600
+      QBC(pool) //1292212
+   )
+
+   def stratsForTreeReduxMan(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , AgDensityWeightedTrainingUtility(pool, "manh")
+      , GATU(learner, pool, "manh")
       , new SGmulti(learner, pool, "consensus") //14
       , Margin(learner, pool) //3
       , DensityWeighted(learner, pool, 1, "eucl") //5
       , DensityWeightedTrainingUtility(learner, pool, "manh")
-      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+
+      , SVMmultiRBF(pool, "BALANCED_EEw")
+      , SVMmultiRBF(pool, "SIMPLEw")
+      , ExpELMChange(pool), //1006600
+      QBC(pool) //1292212
+   )
+
+   def stratsForTreeReduxMah(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
+      RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , AgDensityWeightedTrainingUtility(pool, "maha")
+      , GATU(learner, pool, "maha")
+      , new SGmulti(learner, pool, "consensus") //14
+      , Margin(learner, pool) //3
+      , DensityWeighted(learner, pool, 1, "eucl") //5
+      , DensityWeightedTrainingUtility(learner, pool, "maha")
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
 
