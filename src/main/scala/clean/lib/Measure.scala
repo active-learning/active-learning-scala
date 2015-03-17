@@ -146,7 +146,7 @@ case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: I
 
 case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
    extends InstantMeasure {
-   override val toString = "Kappa"
+   override val toString = "kappa"
    val id = 200000000 + t * 10000
    protected val instantFun = kappa _
 }
@@ -160,7 +160,7 @@ case class ALCBalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t
 
 case class ALCKappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val ti: Int, val tf: Int)
    extends RangeMeasure {
-   override val toString = "ALCKappa"
+   override val toString = "ALC-kappa"
    val id = 400000000 + ti * 10000 + tf
    protected val instantFun = kappa _
    protected val rangeFun = ALC _

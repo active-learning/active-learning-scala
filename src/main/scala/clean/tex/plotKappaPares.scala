@@ -33,9 +33,9 @@ object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait wi
    val tipoSumariz = "media"
    val redux = true
    val strats = if (redux) dist match {
-      case "euc" =>stratsForTreeReduxEuc().dropRight(4)
-      case "man" =>stratsForTreeReduxMan().dropRight(4)
-      case "mah" =>stratsForTreeReduxMah().dropRight(4)
+      case "euc" => stratsForTreeReduxEuc().dropRight(4)
+      case "man" => stratsForTreeReduxMan().dropRight(4)
+      case "mah" => stratsForTreeReduxMah().dropRight(4)
    } else stratsForTree()
    val ls = learners(learnersStr)
    val sl = strats.map(_.abr)
@@ -87,9 +87,9 @@ object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait wi
       }
       val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
       val plot = plot0.toList.transpose.map { x =>
-         x.sliding(10).map(y => y.sum / y.size).toList
+         x.sliding(20).map(y => y.sum / y.size).toList
       }.transpose
-      val n =12
+      val n = 12
       println(s"Pega apenas $n mais importantes.")
       val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.min).take(n).unzip
       val plot2 = plot3.transpose
@@ -97,7 +97,7 @@ object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait wi
       val fw = new PrintWriter(arq, "ISO-8859-1")
       fw.write("budget " + algs2.mkString(" ") + "\n")
       plot2.zipWithIndex foreach { case (re, i) =>
-         fw.write(i + " " + re.map(_ / dss.size).mkString(" ") + "\n")
+         fw.write((i + 10) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
       }
       fw.close()
       println(s"$arq")
