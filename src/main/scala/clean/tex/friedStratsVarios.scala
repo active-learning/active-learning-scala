@@ -25,7 +25,7 @@ import clean.lib._
 import clean.tex.plotKappa._
 import util.{Stat, StatTests}
 
-object friedEtabelasStratsVarios extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object friedStratsVarios extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
    val context = "friedEtabelasALCKappaAll"
    val measure = ALCKappa
@@ -39,8 +39,8 @@ object friedEtabelasStratsVarios extends AppWithUsage with LearnerTrait with Str
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
       val strats = if (redux) dist match {
-         case "euc" =>stratsForTreeReduxEuc().dropRight(4)
-         case "man" =>stratsForTreeReduxMan().dropRight(4)
+         case "euc" =>stratsForTreeReduxEuc().take(6) ++ stratsForTreeReduxEuc().drop(7).take(1) ++ stratsForTreeReduxEuc().dropRight(4).takeRight(1)
+         case "man" =>stratsForTreeReduxMan().take(6) ++ stratsForTreeReduxMan().drop(7).take(1) ++ stratsForTreeReduxMan().dropRight(4).takeRight(1)
          case "mah" =>stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().dropRight(4).takeRight(1)
          case "all" =>stratsForTreeRedux().dropRight(4)
       } else stratsForTree().dropRight(4)
@@ -71,19 +71,19 @@ object friedEtabelasStratsVarios extends AppWithUsage with LearnerTrait with Str
       }
 
       val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-      val arq1 = "/home/davi/wcs/tese/stratsALCKappaAll" + (if (redux) "Redux" else "") + comprimento + ".tex"
-      println(arq1)
-      val fw = new PrintWriter(arq1, "ISO-8859-1")
-      sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + (if (redux) "Redux" else "") + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
-         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + (if (redux) "Redux" else "") + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
-      }
-      fw.close()
+//      val arq1 = s"/home/davi/wcs/tese/strats${dist}ALCKappaAll" + (if (redux) "Redux" else "") + comprimento + ".tex"
+//      println(arq1)
+//      val fw = new PrintWriter(arq1, "ISO-8859-1")
+//      sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
+//         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + (if (redux) "Redux" else "") + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
+//         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + (if (redux) "Redux" else "") + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
+//      }
+//      fw.close()
 
       val res = sorted.filter(!_._2.contains(NA, NA))
       val pairs = if (!porRisco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-      val arq2 = "/home/davi/wcs/tese/stratsALCKappaFriedAll" + (if (porRisco) "Risco" else "") + (if (redux) "Redux" else "") + comprimento + ".tex"
+      val arq2 = s"/home/davi/wcs/tese/strats${dist}ALCKappaFriedAll" + (if (porRisco) "Risco" else "") + (if (redux) "Redux" else "") + comprimento + ".tex"
       println(arq2)
       val fw2 = new PrintWriter(arq2, "ISO-8859-1")
       fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedAll" + (if (porRisco) "Risco" else "") + (if (redux) "Redux" else "") + comprimento, 2, caption))
