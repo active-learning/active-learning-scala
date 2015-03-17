@@ -41,7 +41,7 @@ object friedEtabelasStratsVarios extends AppWithUsage with LearnerTrait with Str
       val strats = if (redux) dist match {
          case "euc" =>stratsForTreeReduxEuc().dropRight(4)
          case "man" =>stratsForTreeReduxMan().dropRight(4)
-         case "mah" =>stratsForTreeReduxMah().dropRight(4)
+         case "mah" =>stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().dropRight(4).takeRight(1)
          case "all" =>stratsForTreeRedux().dropRight(4)
       } else stratsForTree().dropRight(4)
       val sl = strats.map(_.abr)
