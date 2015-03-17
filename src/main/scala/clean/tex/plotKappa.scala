@@ -39,6 +39,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       case "euc" =>stratsForTreeReduxEuc().dropRight(4)
       case "man" =>stratsForTreeReduxMan().dropRight(4)
       case "mah" =>stratsForTreeReduxMah().dropRight(4)
+      case "all" =>stratsForTreeRedux().dropRight(4)
    } else stratsForTree().dropRight(4)
    val sl = strats.map(_.abr)
    run()

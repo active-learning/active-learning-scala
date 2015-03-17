@@ -83,7 +83,9 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
 
          val sortedFiltered = res0.filter(!_._2.contains(NA, NA)).toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
          val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-         val fw = new PrintWriter("/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex", "ISO-8859-1")
+         val arq = "/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex"
+         print(arq + "   ")
+         val fw = new PrintWriter(arq, "ISO-8859-1")
          sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
             fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}a" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
             //            if (!redux)
