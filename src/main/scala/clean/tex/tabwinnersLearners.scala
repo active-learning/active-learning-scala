@@ -40,7 +40,6 @@ object tabwinnersLearners extends AppWithUsage with LearnerTrait with StratsTrai
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         val (ti, th, tf, tpass) = ranges(ds)
          try {
             val sres = for {
                l <- ls
@@ -78,7 +77,7 @@ object tabwinnersLearners extends AppWithUsage with LearnerTrait with StratsTrai
       }
       println(algs1.map(_._2).sum + " total de vencedores")
       println(algs1.map(_._3).sum + " total de perdedores")
-      println(algs1.sortBy(_._2).reverse.map(x=>x._1).mkString(" & "))
+      println(algs1.sortBy(_._2).reverse.map(x => x._1).mkString(" & "))
       algs1.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
          println(s"${st.padTo(10, ' ')} & \t$topCount\t & \t\t$botCount\t\\\\ ")
       }
