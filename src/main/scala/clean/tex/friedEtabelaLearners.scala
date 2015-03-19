@@ -67,6 +67,8 @@ object friedEtabelaLearners extends AppWithUsage with LearnerTrait with StratsTr
          ds.close()
          renomeia(ds) -> lres.map(_._1 -> NA)
       }
+      res0 foreach (x => println(x._2.map(_._1).mkString(" ")))
+
       val sorted = res0.toList.filter(!_._2.contains(NA, NA)).sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
 
 //      val fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")

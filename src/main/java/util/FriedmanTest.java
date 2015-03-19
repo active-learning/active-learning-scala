@@ -114,6 +114,7 @@ public class FriedmanTest {
 
             if (pValue_Friedman > 0.01) {
                 System.out.println("Friedman teste pvalue: " + pValue_Friedman);
+                System.out.println("valor muito alto");
                 System.exit(1);
             }
 //            statsResults.append("Friedman teste pvalue: ").append(pValue_Friedman).append("\n\n");
