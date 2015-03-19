@@ -82,7 +82,7 @@ object friedStratsVarios extends AppWithUsage with LearnerTrait with StratsTrait
       val res = sorted.filter(!_._2.contains(NA, NA))
       res foreach println
       val pairs = if (!porRisco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-      else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2)), sl.toVector)
+      else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(100 - 100 * _._2)), sl.toVector)
       val arq2 = s"/home/davi/wcs/tese/strats${dist}ALCKappaFriedAll" + (if (porRisco) "Risco" else "") + (if (redux) "Redux" else "") + comprimento + ".tex"
       println(arq2)
       val fw2 = new PrintWriter(arq2, "ISO-8859-1")
