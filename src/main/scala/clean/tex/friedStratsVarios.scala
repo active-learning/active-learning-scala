@@ -64,7 +64,7 @@ object friedStratsVarios extends AppWithUsage with LearnerTrait with StratsTrait
                r <- 0 until runs
                f <- 0 until folds
             } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(throw new Error("NA"))
-            if (!porRisco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
+            if (!porRisco) Stat.media_desvioPadrao(vs.toVector) else Stat.media_desvioPadrao(vs.toVector)._2 -> NA
          }
          ds.close()
          renomeia(ds) -> sres
@@ -79,10 +79,10 @@ object friedStratsVarios extends AppWithUsage with LearnerTrait with StratsTrait
 //         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + (if (redux) "Redux" else "") + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
 //      }
 //      fw.close()
-
+      println(s"bla")
       val res = sorted.filter(!_._2.contains(NA, NA))
       val pairs = if (!porRisco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-      else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
+      else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - _._2)), sl.toVector)
       val arq2 = s"/home/davi/wcs/tese/strats${dist}ALCKappaFriedAll" + (if (porRisco) "Risco" else "") + (if (redux) "Redux" else "") + comprimento + ".tex"
       println(arq2)
       val fw2 = new PrintWriter(arq2, "ISO-8859-1")
