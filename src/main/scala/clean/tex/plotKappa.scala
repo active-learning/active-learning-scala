@@ -24,7 +24,7 @@ import java.io.PrintWriter
 import al.strategies.Passive
 import clean.lib._
 import ml.classifiers.NoLearner
-import util.{Stat, StatTests}
+import util.Stat
 
 object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
@@ -35,12 +35,21 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val redux = porRank
-   val strats = if (redux) dist match {
-      case "euc" =>stratsForTreeReduxEuc().dropRight(4)
-      case "man" =>stratsForTreeReduxMan().dropRight(4)
-      case "mah" =>stratsForTreeReduxMah().dropRight(4)
-      case "all" =>stratsForTreeRedux().dropRight(4)
-   } else stratsForTree().dropRight(4)
+   val strats = if (porRisco) {
+      if (redux) dist match {
+         case "euc" => stratsForTreeReduxEuc().take(6) ++ stratsForTreeReduxEuc().drop(7).take(1) ++ stratsForTreeReduxEuc().dropRight(4).takeRight(1)
+         case "man" => stratsForTreeReduxMan().take(6) ++ stratsForTreeReduxMan().drop(7).take(1) ++ stratsForTreeReduxMan().dropRight(4).takeRight(1)
+         case "mah" => stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().dropRight(4).takeRight(1)
+         case "all" => stratsForTreeRedux().dropRight(4)
+      } else stratsForTree().dropRight(4)
+   } else {
+      if (redux) dist match {
+         case "euc" => stratsForTreeReduxEuc().dropRight(4)
+         case "man" => stratsForTreeReduxMan().dropRight(4)
+         case "mah" => stratsForTreeReduxMah().dropRight(4)
+         case "all" => stratsForTreeRedux().dropRight(4)
+      } else stratsForTree().dropRight(4)
+   }
    val sl = strats.map(_.abr)
    run()
 
