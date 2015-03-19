@@ -25,7 +25,7 @@ import util.{Stat, StatTests}
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
-   val n =3
+   val n = 1
    run()
 
    override def run() = {

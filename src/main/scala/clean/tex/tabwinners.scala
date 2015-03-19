@@ -20,45 +20,43 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
-import util.StatTests
+import util.{Stat, StatTests}
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
+   //, "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
    val context = "tabwinnerstex"
+   val n = 1
    run()
 
    override def run() = {
       super.run()
-      //      val measure = ALCBalancedAcc
       val measure = ALCKappa
-      val strats = stratsForTreeRedux().dropRight(1)
-      val ss = strats.map(_.abr).toVector
+      val strats = stratsForTreeRedux().dropRight(4)
+      val ss = strats.map(_.limpa).toVector
+      val ls = learners(learnersStr)
 
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.par
-         l <- learners(learnersStr)
+         l <- ls
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
+         val (ti, th, tf, tpass) = ranges(ds)
          try {
-            val vs = for {
-               r <- 0 until runs
-               f <- 0 until folds
-               multiplicadorDeAmostra <- 0 to 7
+            val sres = for {
+               s <- strats
             } yield {
-               val poolStr = (100 * r + f).toString
-               val sres = for {
-                  s <- strats
-               } yield {
-                  ???
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
-                  val (ti, th, tf, tpass) = ranges(ds)
-                  measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
-               }
-               poolStr -> sres
+               val vs = for {
+                  r <- 0 until runs
+                  f <- 0 until folds
+               } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+                     println((ds, s, l, r, f) + ": medida não encontrada")
+                     NA
+                  }
+               s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
             }
-//            Some((ds.dataset + l.toString.take(3)) -> StatTests.winners(vs, ss), (ds.dataset + l.toString.take(3)) -> StatTests.losers(vs, ss))
-            Some((ds.dataset + l.toString.take(3)) -> StatTests.winners(vs, ss), (ds.dataset + l.toString.take(3)) -> StatTests.losers(vs, ss))
+            Some(ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
          } catch {
             case e: Throwable => println(s"$e")
                sys.exit(1) //None
