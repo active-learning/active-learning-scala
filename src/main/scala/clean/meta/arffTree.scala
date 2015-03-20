@@ -2,8 +2,9 @@ package clean.meta
 
 import java.io.FileWriter
 
-import al.strategies.Passive
+import al.strategies.{GATU, AgDensityWeightedTrainingUtility, Passive}
 import clean.lib._
+import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
 /*
@@ -31,7 +32,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    Quando ties=true, o metaexemplo é repetido em caso de empate.
    Caso contrário, apenas o melhor vencedor serve de rótulo.
     */
-   val ties = true
+   val ties = false
    val bestLearner = false
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -43,7 +44,14 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    override def run() = {
       super.run()
-      val sss = stratsForTreeRedux()
+      val sss = Seq( //stratsForTreeReduxMah()
+          GATU(NoLearner(),Seq(), "eucl")
+         , GATU(NoLearner(),Seq(), "manh")
+         , GATU(NoLearner(),Seq(), "maha")
+          , AgDensityWeightedTrainingUtility(Seq(), "eucl")
+         , AgDensityWeightedTrainingUtility(Seq(), "manh")
+         , AgDensityWeightedTrainingUtility(Seq(), "maha")
+      )
       val ss = sss.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList.par
@@ -77,7 +85,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                val poolStr = (100 * r + f).toString
                val medidas = for (s <- sss) yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                   ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
-                  -2d
+                  NA
                }
                poolStr -> medidas
             }
@@ -87,15 +95,22 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
                else None
             }.flatten
          } else {
-            val medidas = for (s <- stratsForTreeRedux()) yield {
-               val ms = for {
-                  r <- 0 until Global.runs
-                  f <- 0 until Global.folds
-               } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-                     ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
-                     -2d
-                  }
-               s.abr -> Stat.media_desvioPadrao(ms.toVector)
+            val medidas = for (s <- sss) yield {
+               try {
+                  val ms = for {
+                     r <- 0 until Global.runs
+                     f <- 0 until Global.folds
+                  } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+//                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
+                        -2d
+                     }
+                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+               } catch {
+                  case _: Throwable =>
+//                     ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l)}.", 40)
+                     s.abr ->(NA, NA)
+               }
+
             }
             if (medidas.exists(x => x._2._1 == -2d)) Seq() else Seq((ds.metaAttsHumanAndKnowingLabels, l.abr, medidas.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType))
          }
@@ -114,7 +129,9 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val pronto = header ++ data
       pronto foreach println
 
-      val fw = new FileWriter("/home/davi/wcs/ucipp/uci/metaTree" + (if (ties) "Ties" else "") + (if (bestLearner) "Best" else "") + ".arff")
+      val arq = "/home/davi/wcs/ucipp/uci/metaTree" + (if (ties) "Ties" else "") + (if (bestLearner) "Best" else "") + ".arff"
+      println(arq)
+      val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close()
       println(s"${data.size}")

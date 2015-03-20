@@ -40,12 +40,12 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
       for (le <- learners(learnersStr)) {
-         val strats = if (redux) stratsForTreeRedux() else stratsForTree()
+         val strats = if (redux) stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9) else stratsForTree()
          val sl = le match {
             case _: SVMLibRBF => strats.dropRight(2)
-            case _: NinteraELM => strats.dropRight(6) ++ strats.takeRight(2).dropRight(1)
-            case _: RF => strats.dropRight(6) ++ strats.takeRight(1)
-            case _ => strats.dropRight(6)
+            case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
+            case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
+            case _ => strats.dropRight(4)
          }
          //         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
          val res0 = for {
@@ -83,15 +83,17 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
 
          val sortedFiltered = res0.filter(!_._2.contains(NA, NA)).toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
          val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-         val arq = "/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex"
-         print(arq + "   ")
-         val fw = new PrintWriter(arq, "ISO-8859-1")
-         sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-            fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}a" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
-            //            if (!redux)
-            fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}b" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
-         }
-         fw.close()
+         sorted foreach (x => println(x._2.map(_._1).mkString(" ")))
+
+//         val arq = "/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex"
+//         print(arq + "   ")
+//         val fw = new PrintWriter(arq, "ISO-8859-1")
+//         sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
+//            fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}a" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
+//            //            if (!redux)
+//            fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}b" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
+//         }
+//         fw.close()
          println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
                   val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector.map(_.abr))
                   else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1).map(_.abr))
