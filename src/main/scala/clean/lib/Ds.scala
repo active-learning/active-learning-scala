@@ -60,7 +60,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val minority = 100 * hist.min
    lazy val majority = 100 * hist.max
    lazy val description = List[Double](poolSize, nclasses, nattributes, nomCount).map(x => x.round.toInt) -> List(majority, minority, normalized_entropy(hist))
-   lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, poolSizeByNatts, majority, minority, majority / minority, normalized_entropy(hist))
+   lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, majority, minority, majority / minority, normalized_entropy(hist))
    lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).filter(_.isNominal).map(_.name())
    lazy val numericAtts = patterns.head.enumerateAttributes().toList.filter(_.isNumeric).map(_.name())
    lazy val nominalValues = if (nominalAtts.isEmpty) List(Array("")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)

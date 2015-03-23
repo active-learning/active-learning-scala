@@ -68,13 +68,13 @@ trait StratsTrait {
       , new SGmulti(learner, pool, "consensus") //14
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , GATU(learner, pool, "eucl") //4003006
-      , GATU(learner, pool, "manh") //4003007
+      , HTU(learner, pool, "eucl") //4003006
+      , HTU(learner, pool, "manh") //4003007
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
       DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , GATU(learner, pool, "maha") //4003009
+      , HTU(learner, pool, "maha") //4003009
    )
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,9 +90,9 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , GATU(learner, pool, "eucl") //4003006
-      , GATU(learner, pool, "manh") //4003007
-      , GATU(learner, pool, "maha") //4003009
+      , HTU(learner, pool, "eucl") //4003006
+      , HTU(learner, pool, "manh") //4003007
+      , HTU(learner, pool, "maha") //4003009
       , new SGmulti(learner, pool, "consensus") //14
       , Entropy(learner, pool) //4
       , Margin(learner, pool) //3
@@ -115,9 +115,9 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "eucl")
       , AgDensityWeightedTrainingUtility(pool, "manh")
       , AgDensityWeightedTrainingUtility(pool, "maha")
-      , GATU(learner, pool, "eucl")
-      , GATU(learner, pool, "manh")
-      , GATU(learner, pool, "maha")
+      , HTU(learner, pool, "eucl")
+      , HTU(learner, pool, "manh")
+      , HTU(learner, pool, "maha")
       , new SGmulti(learner, pool, "consensus") //14
       , Margin(learner, pool) //3
       , DensityWeighted(learner, pool, 1, "eucl") //5
@@ -137,7 +137,7 @@ trait StratsTrait {
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "eucl")
-      , GATU(learner, pool, "eucl")
+      , HTU(learner, pool, "eucl")
       , new SGmulti(learner, pool, "consensus") //14
       , Margin(learner, pool) //3
       , DensityWeighted(learner, pool, 1, "eucl") //5
@@ -155,7 +155,7 @@ trait StratsTrait {
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "manh")
-      , GATU(learner, pool, "manh")
+      , HTU(learner, pool, "manh")
       , new SGmulti(learner, pool, "consensus") //14
       , Margin(learner, pool) //3
       , DensityWeighted(learner, pool, 1, "eucl") //5
@@ -173,7 +173,7 @@ trait StratsTrait {
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "maha")
-      , GATU(learner, pool, "maha")
+      , HTU(learner, pool, "maha")
       , new SGmulti(learner, pool, "consensus") //14
       , Margin(learner, pool) //3
       , DensityWeighted(learner, pool, 1, "eucl") //5

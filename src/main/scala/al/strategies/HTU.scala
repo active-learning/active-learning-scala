@@ -27,17 +27,17 @@ import util.Tempo
 
 import scala.util.Random
 
-case class GATU(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
+case class HTU(learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure with EntropyMeasure {
-   override val toString = "GATU a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "\\textbf{GATU" + distance_name.take(3) + "}"
+   override val toString = "HTU a" + alpha + " b" + beta + " (" + distance_name + ")"
+   val abr = "\\textbf{HTU" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 4003006 + (100000 * (1 - alpha)).toInt
       case "cheb" => 4003008 + (100000 * (1 - alpha)).toInt
       case "maha" => 4003009 + (100000 * (1 - alpha)).toInt
       case "manh" => 4003007 + (100000 * (1 - alpha)).toInt
-   } else throw new Error("Parametros inesperados para GATU.")
+   } else throw new Error("Parametros inesperados para HTU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val ls = labeled.size
