@@ -25,10 +25,11 @@ import util.{Datasets, Stat, StatTests}
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
+   val perdedores = false
    val bestLearner = true
    val minObjs = 4
-   //      val bestLearner = false
-   //      val minObjs = 12
+   //         val bestLearner = false
+   //         val minObjs = 12
    val measure = ALCKappa
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -40,21 +41,20 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       super.run()
       val pool = Seq()
       val learner = NoLearner()
-      val sss = Seq(
-         RandomSampling(pool)
-         , ClusterBased(pool)
-         , AgDensityWeightedTrainingUtility(pool, "maha") //
-         , HTU(learner, pool, "maha") //
-         , new SGmulti(learner, pool, "consensus") //
-         , Margin(learner, pool)
-         , DensityWeightedTrainingUtility(learner, pool, "maha") //
-         , ExpErrorReductionMargin(learner, pool, "entropy") //
-         , SVMmultiRBF(pool, "SIMPLEw")
-         , ExpELMChange(pool) //1006600
-         , QBC(pool) //1292212
-      )
+      //      val sss = Seq(
+      //         RandomSampling(pool)
+      //         , ClusterBased(pool)
+      //         , AgDensityWeightedTrainingUtility(pool, "maha") //
+      //         , HTU(learner, pool, "maha") //
+      //         , new SGmulti(learner, pool, "consensus") //
+      //         , Margin(learner, pool)
+      //         , DensityWeightedTrainingUtility(learner, pool, "maha") //
+      //         , ExpErrorReductionMargin(learner, pool, "entropy") //
+      //         , SVMmultiRBF(pool, "SIMPLEw")
+      //         , ExpELMChange(pool) //1006600
+      //         , QBC(pool) //1292212
+      //      )
 
-      val ss = sss.map(_.abr).toVector
       val metadata0 = for {
          name <- datasets.toList.par
 
@@ -78,6 +78,14 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          }
 
       } yield {
+         val strats = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+         val sss = l match {
+            case _: SVMLibRBF => strats.dropRight(2)
+            case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
+            case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
+            case _ => strats.dropRight(4)
+         }
+
          val ds = Ds(name, readOnly = true)
          ds.open()
          val medidas = for (s <- sss) yield {
@@ -98,6 +106,9 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
          }
          val res = if (medidas.exists(x => x._2._1 == -2d)) Seq()
+         else if (perdedores) medidas.groupBy(_._2._1).toList.sortBy(_._1).take(1).map(_._2.map(_._1)).flatten.map { bs =>
+            (ds.metaAttsHumanAndKnowingLabels, l.abr, bs, budix, l.attPref, l.boundaryType)
+         }
          else medidas.groupBy(_._2._1).toList.sortBy(_._1).reverse.take(1).map(_._2.map(_._1)).flatten.map { bs =>
             (ds.metaAttsHumanAndKnowingLabels, l.abr, bs, budix, l.attPref, l.boundaryType)
          }
@@ -116,15 +127,15 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val pronto = header ++ data
       pronto foreach println
 
-      val arq = "/home/davi/wcs/ucipp/uci/metaTree" + (if (bestLearner) "Best" else "") + ".arff"
+      val arq = "/home/davi/wcs/ucipp/uci/metaTree" + (if (bestLearner) "Best" else "") + s"$perdedores.arff"
       println(arq)
       val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
-      fw.close()
+      fw.close
       println(s"${data.size}")
 
       //constrói e transforma árvore
-      val tex = "/home/davi/wcs/tese/tree" + (if (bestLearner) "Best" else "") + ".tex"
+      val tex = "/home/davi/wcs/tese/tree" + (if (bestLearner) "Best" else "") + s"$perdedores.tex"
       println(tex)
       C45(laplace = false, minObjs).tree(arq, tex)
    }

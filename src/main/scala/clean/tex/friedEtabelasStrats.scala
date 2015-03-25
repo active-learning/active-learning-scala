@@ -81,7 +81,7 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
                            NA //sys.exit(1)
                      }
                   if (vs.contains(NA)) (NA, NA)
-                  else if (!risco) Stat.media_desvioPadrao(vs.toVector) else (vs.min, NA)
+                  else if (!risco) Stat.media_desvioPadrao(vs.toVector) else Stat.media_desvioPadrao(vs.toVector)._2 -> NA
                })
             }).flatten
             ds.close()

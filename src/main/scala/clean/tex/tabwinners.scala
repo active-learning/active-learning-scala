@@ -19,7 +19,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import al.strategies.RandomSampling
 import clean.lib._
+import ml.classifiers.{RF, NinteraELM, SVMLibRBF}
 import util.{Stat, StatTests}
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
@@ -32,14 +34,20 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
    override def run() = {
       super.run()
       val measure = ALCKappa
-      val strats = stratsForTreeRedux().dropRight(4)
-      val ss = strats.map(_.limpa).toVector
       val ls = learners(learnersStr)
+      val strats0 = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
 
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.par
          l <- ls
       } yield {
+         val strats0 = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+         val strats = l match {
+            case _: SVMLibRBF => strats0.dropRight(2)
+            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
+            case _: RF => strats0.dropRight(4) ++ strats0.takeRight(1)
+            case _ => strats0.dropRight(4)
+         }
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
@@ -56,7 +64,10 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                   }
                s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
             }
-            Some(ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
+            val rnd = sres.find(_._1 == RandomSampling(Seq()).limpa).get._2
+            Some(ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten,
+               ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten,
+               ds.dataset + l.abr -> sres.filter(_._2 <= rnd).map(_._1))
          } catch {
             case e: Throwable => println(s"$e")
                sys.exit(1) //None
@@ -65,21 +76,28 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          }
       }
 
-      val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
+      val (datasetLearnerAndWinners, datasetLearnerAndLosers, pioresQueRnd) = datasetLearnerAndBoth.flatten.unzip3
       println(s"${datasetLearnerAndBoth.size} tests.")
       println(s"--------$measure---------------")
       //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-      ss foreach { st =>
+      val flat3 = pioresQueRnd.flatMap(_._2)
+      val algs = strats0.map(_.limpa) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
-         println(s"${st.padTo(10, ' ')}:\t$topCount\t1st places;\t\t$botCount\tlast places")
+         val rndCount = flat3.count(_ == st)
+         (st, topCount, rndCount, botCount)
       }
-      println(s"------------------------------")
-      println(s"")
-      println(s"")
-      println(s"")
+
+      println( """\begin{tabular}{lcc}
+algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
+\hline""")
+      algs.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
+         println(s"${st.padTo(10, ' ')} & $topCount & $rndCount & $botCount \\\\")
+      }
+      println( """\label{tab:friedClassif}
+\end{tabular}""")
 
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
