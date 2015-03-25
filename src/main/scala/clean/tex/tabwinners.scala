@@ -21,8 +21,8 @@ package clean.tex
 
 import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.{RF, NinteraELM, SVMLibRBF}
-import util.{Stat, StatTests}
+import ml.classifiers.{NinteraELM, RF, SVMLibRBF}
+import util.Stat
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -90,14 +90,13 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          (st, topCount, rndCount, botCount)
       }
 
-      println( """\begin{tabular}{lcc}
+      println( """\begin{tabular}{lccc}
 algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
 \hline""")
       algs.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
          println(s"${st.padTo(10, ' ')} & $topCount & $rndCount & $botCount \\\\")
       }
-      println( """\label{tab:friedClassif}
-\end{tabular}""")
+      println( """\end{tabular}""")
 
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
