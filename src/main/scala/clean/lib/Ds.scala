@@ -461,7 +461,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       val insertIntoP = poolId(strat, learner, run, fold) match {
          case Some(pid) => if (strat.id < 2 || Global.agnosticas.dropRight(8).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
          case None =>
-            if (strat.id < 2 || Global.agnosticas.dropRight(8).contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
+            if (strat.id < 2 || Global.agnosticas.contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
             else quit(s"Missing gnostic queries pid for hits.")
       }
 
