@@ -38,43 +38,49 @@ trait StratsTrait {
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    def stratsSemLearnerExterno_FilterFree(pool: Seq[Pattern]) = List[Strategy](
-      RandomSampling(pool) //0
-      , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      , AgDensityWeightedTrainingUtility(pool, "manh") //701
+      DensityWeightedTrainingUtilityRF(pool, "manh")
+      , HTURF(pool, "manh")
+      , DensityWeightedTrainingUtilityRF(pool, "eucl")
+      , HTURF(pool, "eucl")
+      //         RandomSampling(pool) //0
+      //      , ClusterBased(pool) //1
+      //      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      //      , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , QBC(pool) //1292212
    )
 
    def stratsSemLearnerExterno_FilterDependent(pool: Seq[Pattern]) = List[Strategy](
-      AgDensityWeightedTrainingUtility(pool, "maha"), //901
-      //TROQUEI LEARNER DO SVMmultiLinear PARA SVMLibDegree1
-      // (aproveitando id/queries das estratégias SVMmulti),
-      // demora mais que LibLinear, mas fica em linha com artigo do Tong!
-      //      SVMmultiLinear(pool, "BALANCED_EEw"),
-      //      SVMmultiLinear(pool, "SIMPLEw"),
-      //      SVMmultiRBFW(pool, "BALANCED_EEw"),
-      //      SVMmultiRBFW(pool, "SIMPLEw"),
-      SVMmultiRBF(pool, "BALANCED_EEw"),
+      //      AgDensityWeightedTrainingUtility(pool, "maha"), //901
+      //      //TROQUEI LEARNER DO SVMmultiLinear PARA SVMLibDegree1
+      //      // (aproveitando id/queries das estratégias SVMmulti),
+      //      // demora mais que LibLinear, mas fica em linha com artigo do Tong!
+      //      //      SVMmultiLinear(pool, "BALANCED_EEw"),
+      //      //      SVMmultiLinear(pool, "SIMPLEw"),
+      //      //      SVMmultiRBFW(pool, "BALANCED_EEw"),
+      //      //      SVMmultiRBFW(pool, "SIMPLEw"),
+      DensityWeightedTrainingUtilityRF(pool, "maha")
+      , HTURF(pool, "maha")
+      , SVMmultiRBF(pool, "BALANCED_EEw"),
       SVMmultiRBF(pool, "SIMPLEw"),
       ExpELMChange(pool) //1006600
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl") //7
-      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      , new SGmulti(learner, pool, "consensus") //14
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , HTU(learner, pool, "eucl") //4003006
-      , HTU(learner, pool, "manh") //4003007
+      //      Entropy(learner, pool) //4
+      //      , Margin(learner, pool) //3
+      //      , DensityWeighted(learner, pool, 1, "eucl") //5
+      //      , DensityWeightedTrainingUtility(learner, pool, "eucl") //7
+      //      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
+      //      , new SGmulti(learner, pool, "consensus") //14
+      //      , ExpErrorReductionMargin(learner, pool, "balacc") //74
+      //      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      //      , HTU(learner, pool, "eucl") //4003006
+      //      , HTU(learner, pool, "manh") //4003007
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , HTU(learner, pool, "maha") //4003009
+      //      DensityWeightedTrainingUtility(learner, pool, "maha") //9
+      //      , HTU(learner, pool, "maha") //4003009
    )
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////

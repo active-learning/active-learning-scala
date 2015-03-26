@@ -25,11 +25,13 @@ import util.{Datasets, Stat, StatTests}
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-   val perdedores = false
-   val bestLearner = true
-   val minObjs = 4
-   //         val bestLearner = false
-   //         val minObjs = 12
+   val perdedores = true
+
+   //   val bestLearner = true
+   //   val minObjs = if (perdedores) 4 else 4
+   val bestLearner = false
+   val minObjs = if (perdedores) 20 else 12
+
    val measure = ALCKappa
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -39,22 +41,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 
    override def run() = {
       super.run()
-      val pool = Seq()
-      val learner = NoLearner()
-      //      val sss = Seq(
-      //         RandomSampling(pool)
-      //         , ClusterBased(pool)
-      //         , AgDensityWeightedTrainingUtility(pool, "maha") //
-      //         , HTU(learner, pool, "maha") //
-      //         , new SGmulti(learner, pool, "consensus") //
-      //         , Margin(learner, pool)
-      //         , DensityWeightedTrainingUtility(learner, pool, "maha") //
-      //         , ExpErrorReductionMargin(learner, pool, "entropy") //
-      //         , SVMmultiRBF(pool, "SIMPLEw")
-      //         , ExpELMChange(pool) //1006600
-      //         , QBC(pool) //1292212
-      //      )
-
       val metadata0 = for {
          name <- datasets.toList.par
 

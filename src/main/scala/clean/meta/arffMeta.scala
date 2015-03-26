@@ -116,55 +116,55 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
 //               }
 //               if (vs.exists(x => x._2._1 == NA)) Seq()
 //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + vs.map(_._2._1).mkString(","), budix, l.attPref, l.boundaryType, suav))
-            case "TiesDup" => //qualquer metalearner que conte prediz vencedores empatados
-               val vs = for {
-                  r <- 0 until runs
-                  f <- 0 until folds
-               //                  duplicadorDeAmostra <- 0 to 20
-               } yield {
-                  ???
-                  val poolStr = (100 * r + f).toString
-                  val medidas = for {
-                     s <- strats
-                  } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
-                     else Some(measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
-                        NA
-                     })
-                  poolStr -> medidas.flatten
-               }
-               if (vs.exists(_._2.contains(NA))) ???
-               val winners = StatTests.clearWinners(vs, ss)
-               ss.map { x =>
-                  if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, "ambos", "nenhuma", 0d)
-                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, "ambos", "nenhuma", 0d)
-                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, l.attPref, l.boundaryType, suav)
-                  else None
-               }.flatten
-            case "Ties" => //prediz vencedores empatados
-               val vs = for {
-                  r <- 0 until runs
-                  f <- 0 until folds
-               //                  duplicadorDeAmostra <- 0 to 1
-               } yield {
-                  val poolStr = (100 * r + f).toString
-                  ???
-                  val medidas = for {
-                     s <- strats
-                     le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
-                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-                        -2d
-                     }
-                  poolStr -> medidas
-               }
-               val winners = StatTests.clearWinners(vs, ss)
-               val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
-               if (vs.exists(x => x._2.contains(-2d))) Seq()
-               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
-            //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
-            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, l.attPref, l.boundaryType, suav))
-            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
+            //            case "TiesDup" => //qualquer metalearner que conte prediz vencedores empatados
+            //               val vs = for {
+            //                  r <- 0 until runs
+            //                  f <- 0 until folds
+            //               //                  duplicadorDeAmostra <- 0 to 20
+            //               } yield {
+            //                  ???
+            //                  val poolStr = (100 * r + f).toString
+            //                  val medidas = for {
+            //                     s <- strats
+            //                  } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
+            //                     else Some(measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+            //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
+            //                        NA
+            //                     })
+            //                  poolStr -> medidas.flatten
+            //               }
+            //               if (vs.exists(_._2.contains(NA))) ???
+            //               val winners = StatTests.clearWinners(vs, ss)
+            //               ss.map { x =>
+            //                  if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, "ambos", "nenhuma", 0d)
+            //                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, "ambos", "nenhuma", 0d)
+            //                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, l.attPref, l.boundaryType, suav)
+            //                  else None
+            //               }.flatten
+            //            case "Ties" => //prediz vencedores empatados
+            //               val vs = for {
+            //                  r <- 0 until runs
+            //                  f <- 0 until folds
+            //               //                  duplicadorDeAmostra <- 0 to 1
+            //               } yield {
+            //                  val poolStr = (100 * r + f).toString
+            //                  ???
+            //                  val medidas = for {
+            //                     s <- strats
+            //                     le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
+            //                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+            //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+            //                        -2d
+            //                     }
+            //                  poolStr -> medidas
+            //               }
+            //               val winners = StatTests.clearWinners(vs, ss)
+            //               val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
+            //               if (vs.exists(x => x._2.contains(-2d))) Seq()
+            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
+            //            //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
+            //            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, l.attPref, l.boundaryType, suav))
+            //            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
             case "Rank" => //prediz ranking
                val vs = for {
                   s <- strats

@@ -80,7 +80,7 @@ trait AppWithUsage extends App with Log with ArgParser {
       "mediasmin,mediasavg,mediasmax,mediasminBymediasmax," +
       "desviosmin,desviosavg,desviosmax,desviosminBydesviosmax," +
       "entropiasmin,entropiasavg,entropiasmax,entropiasminByentropiasmax," +
-      "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax," + attsFromRNames.mkString(",")
+      "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah" + attsFromRNames.mkString(",")
    //      "majority,minority,majorityByminority,classEntropy," + attsFromRNames.mkString(",")
    // <- class dependent metaatts
    val humanNumAttsNames = "\"\\\\#classes\",\"\\\\#atributos\",\"\\\\#exemplos\",\"$\\\\frac{\\\\#exemplos}{\\\\#atrib.}$\",\"\\\\%nominais\",\"\\\\%major.\",\"\\\\%minor.\",\"$\\\\frac{\\\\%major.}{\\\\%minor.}$\",\"entropia da distr. de classes\""

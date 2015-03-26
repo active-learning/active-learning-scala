@@ -101,6 +101,17 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val kurtavg = kurtoses.sum / kurtoses.size
    lazy val correlsavg = correls.sum / correls.size
 
+   //   lazy val eucqueries = quer
+   lazy val correleucmah = {
+      0d
+   }
+   lazy val correleucman = {
+      0d
+   }
+   lazy val correlmanmah = {
+      0d
+   }
+
    def divide(a: Double, b: Double) = if (b == 0) 0d else a / b
 
    lazy val metaAtts = List[Double](
@@ -112,7 +123,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       medias.min, mediasavg, medias.max, divide(medias.min, medias.max),
       desvios.min, desviosavg, desvios.max, divide(desvios.min, desvios.max),
       entropias.min, entropiasavg, entropias.max, divide(entropias.min, entropias.max),
-      correls.min, correlsavg, correls.max, divide(correls.min, correls.max))
+      correls.min, correlsavg, correls.max, divide(correls.min, correls.max), correleucmah, correleucman, correlmanmah)
    //      majority, minority, majority / minority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
