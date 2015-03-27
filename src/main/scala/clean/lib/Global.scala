@@ -25,7 +25,7 @@ object Global {
    //17176,17177,17178,17179 e 4173006,4173007,4173008,4173009 são gno com learner interno, mas recebem tratamento de agnósticas
    val gnosticasComLearnerInterno = Seq(1292212, 1006600, 10066, 966000, 967000, 968000, 969000, 966009, 967009, 968009, 969009, 9660091, 9670092, 9680093, 9690094, 3292212)
 
-   val agnosticas = Seq(211, 601, 361, 66361, 901, 391, 66391, 701, 371, 599996, 599997, 599998, 599999, 17176, 17177, 17178, 17179, 4173006, 4173007, 4173008, 4173009)
+   val agnosticas = Seq(211, 601, 361, 66361, 901, 391, 66391, 701, 371, 599996, 599997, 599998, 599999, 127176, 127177, 127178, 127179, 4172006, 4172007, 4172008, 4172009)
 
    lazy val (mysqlHostRW, mysqlPortRW, mysqlPassRW) = {
       val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
