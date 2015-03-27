@@ -29,12 +29,12 @@ case class HTURF(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, b
    val abr = "\\textbf{HTURF" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 4173006 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 4173008 + (100000 * (1 - alpha)).toInt
-      case "maha" => 4173009 + (100000 * (1 - alpha)).toInt
-      case "manh" => 4173007 + (100000 * (1 - alpha)).toInt
+      case "eucl" => 4172006 + (100000 * (1 - alpha)).toInt
+      case "cheb" => 4172008 + (100000 * (1 - alpha)).toInt
+      case "maha" => 4172009 + (100000 * (1 - alpha)).toInt
+      case "manh" => 4172007 + (100000 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para HTURF.")
-   val learner = RF()
+   val learner = RF(seed)
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val ls = labeled.size

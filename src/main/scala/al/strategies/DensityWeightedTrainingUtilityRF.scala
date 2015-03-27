@@ -28,12 +28,12 @@ case class DensityWeightedTrainingUtilityRF(pool: Seq[Pattern], distance_name: S
    val abr = "TURF" + distance_name.take(3)
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 17176 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 17178 + (100000 * (1 - alpha)).toInt
-      case "maha" => 17179 + (100000 * (1 - alpha)).toInt
-      case "manh" => 17177 + (100000 * (1 - alpha)).toInt
+      case "eucl" => 127176 + (100000 * (1 - alpha)).toInt
+      case "cheb" => 127178 + (100000 * (1 - alpha)).toInt
+      case "maha" => 127179 + (100000 * (1 - alpha)).toInt
+      case "manh" => 127177 + (100000 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para DWTURF.")
-   val learner = RF()
+   val learner = RF(seed)
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val us = unlabeled.size

@@ -25,14 +25,14 @@ import util.{Stat, StatTests}
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
-   val n = 1
+   val n = 3
    run()
 
    override def run() = {
       super.run()
       //            val measure = ALCBalancedAcc
       val measure = ALCKappa
-      val strats = stratsForTreeRedux().dropRight(7)
+      val strats = stratsForTreeReduxMah().dropRight(4)
       val ls = learners(learnersStr)
       val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
 

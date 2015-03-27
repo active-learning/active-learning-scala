@@ -108,6 +108,8 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "maha") //9
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , DensityWeightedTrainingUtilityRF(pool, "maha")
+      , HTURF(pool, "maha")
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
@@ -132,6 +134,8 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "maha")
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , DensityWeightedTrainingUtilityRF(pool, "maha")
+      , HTURF(pool, "maha")
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
@@ -186,6 +190,8 @@ trait StratsTrait {
       , DensityWeightedTrainingUtility(learner, pool, "maha")
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , DensityWeightedTrainingUtilityRF(pool, "maha")
+      , HTURF(pool, "maha")
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
