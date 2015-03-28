@@ -26,9 +26,9 @@ import util.Stat
 case class BestLearner(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
    override lazy val toString = s"BestLearner: $ds"
    lazy val id = learner.id
-   val abr: String = learner.abr
-   val attPref: String = learner.attPref
-   val boundaryType: String = learner.boundaryType
+   lazy val abr: String = learner.abr
+   lazy val attPref: String = learner.attPref
+   lazy val boundaryType: String = learner.boundaryType
    lazy val learners = Seq(
       KNNBatcha(5, "eucl", pool, weighted = true)
       , C45()
@@ -37,10 +37,8 @@ case class BestLearner(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
       , CIELMBatch(seed)
       , SVMLibRBF(seed)
    )
-   lazy val learner = learners.map { l =>
-      val vs = for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
-      l -> Stat.media_desvioPadrao(vs.toVector)._1
-   }.maxBy(_._2)._1
+   lazy val bestLearnerId = ds.bestLearnerId
+   lazy val learner = learners.find(_.id == bestLearnerId).get
    lazy val querFiltro = learner.id match {
       case 2651110 => true //rbf
       case 8001 => true //ci
