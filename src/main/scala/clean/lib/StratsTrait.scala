@@ -32,7 +32,7 @@ trait StratsTrait {
       , HTUFixo(poolForLearner, learner, pool, "manh")
       , HTUFixo(poolForLearner, learner, pool, "eucl")
       , SGmultiFixo(learner, poolForLearner, "consensus")
-      //   , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
+      // //   , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
    )
 
    def stratsFpool(poolForLearner: Seq[Pattern], learner: Learner, fpool: Seq[Pattern]) = Seq(
