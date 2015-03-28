@@ -24,6 +24,7 @@ import ml.models.Model
 import util.Stat
 
 case class BestLearner(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
+   override lazy val toString = s"BestLearner: ${learner.limpa} para $ds"
    lazy val id = learner.id
    val abr: String = learner.abr
    val attPref: String = learner.attPref
