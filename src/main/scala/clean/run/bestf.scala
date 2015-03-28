@@ -24,7 +24,7 @@ import ml.Pattern
 import ml.classifiers.{NoLearner, BestLearner}
 import weka.filters.Filter
 
-object bestf extends Exp with LearnerTrait with StratsTrait {
+object bestfs extends Exp with LearnerTrait with StratsTrait {
    val context = "bestApp"
    val arguments = superArguments
    //++ Seq("p:pesadas")
