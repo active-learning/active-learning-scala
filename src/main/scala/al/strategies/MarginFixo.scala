@@ -26,7 +26,7 @@ case class MarginFixo(learner: Learner, pool: Seq[Pattern], debug: Boolean = fal
    extends StrategyWithLearner with MarginMeasure {
    override val toString = "Margin" + learner.limpa
    val abr = "Mar" + learner.limpa
-   val id = 3000000 + convlid(learner.id)
+   lazy val id = 3000000 + convlid(learner.id)
 
    def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       unlabeled minBy margin(current_model)

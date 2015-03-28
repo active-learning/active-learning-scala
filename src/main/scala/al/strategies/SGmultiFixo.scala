@@ -28,7 +28,7 @@ case class SGmultiFixo(learner: Learner, pool: Seq[Pattern], agreement: String, 
    val abr = "\\textbf{SGmulti}" + learner.limpa
    // + agreement.head + "}"
    //+ agreement.take(3)
-   val id = agreement match {
+   lazy val id = agreement match {
       case "consensus" => 14000000 + convlid(learner.id)
       case "majority" => 15000000 + convlid(learner.id)
    }

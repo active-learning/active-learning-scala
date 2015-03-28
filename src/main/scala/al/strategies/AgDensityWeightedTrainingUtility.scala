@@ -26,7 +26,7 @@ case class AgDensityWeightedTrainingUtility(pool: Seq[Pattern], distance_name: S
    override val toString = "Density Weighted AgTU a" + alpha + " b" + beta + " (" + distance_name + ")"
    val abr = "\\textbf{ATU" + distance_name.take(3) + "}"
    //+ beta
-   val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
+   lazy val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 691 + (100 * (1 - alpha)).toInt
       case "cheb" => 891 + (100 * (1 - alpha)).toInt
       case "maha" => 991 + (100 * (1 - alpha)).toInt

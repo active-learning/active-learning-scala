@@ -37,7 +37,7 @@ case class SVMmultiRBF(pool: Seq[Pattern], algorithm: String, debug: Boolean = f
    //just to visual tests and to be referenced in db
    def learner = SVMLibRBF()
 
-   val id = algorithm match {
+   lazy val id = algorithm match {
       case "SIMPLEw" => 9660091
       case "SELF_CONFw" => 9670092
       case "KFFw" => 9680093

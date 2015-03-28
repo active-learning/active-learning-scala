@@ -26,7 +26,7 @@ case class DensityWeightedTrainingUtilityFixo(poolForLearner: Seq[Pattern], lear
    extends StrategyWithLearnerAndMaps with MarginMeasure {
    override val toString = "Density Weighted TU" + learner.limpa + " a" + alpha + " b" + beta + " (" + distance_name + ")"
    val abr = "TU" + learner.limpa + distance_name.take(3)
-   val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
+   lazy val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 127176 + convlid(learner.id)
       case "cheb" => 127178 + convlid(learner.id)
       case "maha" => 127179 + convlid(learner.id)

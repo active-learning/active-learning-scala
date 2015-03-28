@@ -24,7 +24,7 @@ import ml.Pattern
 import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
-   def stratsPool(poolForLearner: Seq[Pattern], learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = Seq(
+   def stratsPool(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern]) = Seq(
       DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
       , DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
       , MarginFixo(learner, poolForLearner)
@@ -35,7 +35,7 @@ trait StratsTrait {
       //   , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
    )
 
-   def stratsFpool(poolForLearner: Seq[Pattern], learner: Learner = NoLearner(), fpool: Seq[Pattern] = Seq()) = Seq(
+   def stratsFpool(poolForLearner: Seq[Pattern], learner: Learner, fpool: Seq[Pattern]) = Seq(
       DensityWeightedTrainingUtilityFixo(poolForLearner, learner, fpool, "maha")
       , HTUFixo(poolForLearner, learner, fpool, "maha")
       , AgDensityWeightedTrainingUtility(fpool, "maha")
