@@ -41,7 +41,7 @@ trait Strategy extends Log with Limpa {
    val delay: Double = .5
    lazy val plot = new Plot
    lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
-   //  val mea: Measure = null
+   lazy val old = id
 
    def learner: Learner
 

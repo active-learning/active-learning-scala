@@ -32,7 +32,7 @@ case class SGmultiFixo(learner: Learner, pool: Seq[Pattern], agreement: String, 
       case "consensus" => 14000000 + convlid(learner.id)
       case "majority" => 15000000 + convlid(learner.id)
    }
-
+   override lazy val old = id / 1000000
 
    def controversial(unlabeled: Seq[Pattern], current_models: Array[Model]) =
       agreement match {

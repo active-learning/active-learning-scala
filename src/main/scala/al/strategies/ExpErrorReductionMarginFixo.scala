@@ -45,6 +45,7 @@ case class ExpErrorReductionMarginFixo(learner: Learner, pool: Seq[Pattern], cri
       case VgmeansResidual => 13000000 + convlid(learner.id)
       case Balacc => 74000000 + convlid(learner.id)
    } else throw new Error(s"Parametros inesperados para EERMargin: sample:$sample")
+   override lazy val old = id / 1000000
 
    //Strategy with empty pool exists only to provide its name.
    val Ventropy = 0
