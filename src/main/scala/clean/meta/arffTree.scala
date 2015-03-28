@@ -25,12 +25,12 @@ import util.{Datasets, Stat, StatTests}
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-   val perdedores = true
+   val perdedores = false
 
-   //   val bestLearner = true
-   //   val minObjs = if (perdedores) 4 else 4
-   val bestLearner = false
-   val minObjs = if (perdedores) 20 else 12
+   val bestLearner = true
+   val minObjs = if (perdedores) 4 else 4
+   //   val bestLearner = false
+   //   val minObjs = if (perdedores) 20 else 12
 
    val measure = ALCKappa
    val context = "metaAttsTreeApp"

@@ -33,7 +33,7 @@ trait LearnerTrait {
       , C45() //3
       //      , RF(learnerSeed) //773
       , NBBatch() //12
-      , VFDT() //4
+      //      , VFDT() //4
    )
 
    def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](

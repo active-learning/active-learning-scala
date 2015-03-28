@@ -61,6 +61,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val majority = 100 * hist.max
    lazy val description = List[Double](poolSize, nclasses, nattributes, nomCount).map(x => x.round.toInt) -> List(majority, minority, normalized_entropy(hist))
    lazy val metaAttsHumanAndKnowingLabels = List[Double](nclasses, nattributes, poolSize, poolSizeByNatts, 100d * nomCount / nattributes, majority, minority, majority / minority, 0d)
+   //   lazy val metaAttsHumanAndKnowingLabels = List[Double](0, 0, 0, 0, 0, 0, 0, 0, 0d)
    //normalized_entropy(hist))
    lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).filter(_.isNominal).map(_.name())
    lazy val numericAtts = patterns.head.enumerateAttributes().toList.filter(_.isNumeric).map(_.name())
@@ -328,54 +329,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                }
          }
    }
-
-   /**
-   q = primeiro t em que atinje max num dado pool
-      mG = [(medianaG dos 25 qs p/ NB) + (medianaG dos 25 qs p/ C4.5) + (medianaG dos 25 qs p/ 5NN)] / 3
-      mA = [(medianaA dos 25 qs p/ NB) + (medianaA dos 25 qs p/ C4.5) + (medianaA dos 25 qs p/ 5NN)] / 3
-      m = maior(mG, mA) >= 50
-      Qcalculado = m <= 100
-      Q = Qcalculado >= |Y| + 2
-     */
-   //  def calculaQ(runs: Int, folds: Int, n: Int = n) {
-   //    if (isQCalculated) quit("Q already calculated!")
-   //    else {
-   //      lazy val medianaTGme_s = 1 to 3 map { l =>
-   //        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
-   //          (r, f) ->(gmeans(blobToConfusion(b, nclasses)), t)
-   //        }.groupBy(_._1).map(_._2.map(_._2))
-   //        val t_max_s = grpByPool.map { pool =>
-   //          //max gmeans no pool
-   //          val max = pool.maxBy(_._1)._1
-   //          val maxs = pool.filter(x => x._1 >= max * 0.99)
-   //          //primeiro t em que atinje max
-   //          val t = maxs.minBy(_._2)._2
-   //          (t, max)
-   //        }.toSeq
-   //        //pega mediana dentre 25 pools
-   //        t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
-   //      }
-   //
-   //      lazy val medianaTAcc_s = 1 to 3 map { l =>
-   //        val grpByPool = readBlobs4(s"select mat,t,r,f from h,p where h.p=p.id and s=0 and l=$l").map { case (b, t, r, f) =>
-   //          (r, f) ->(acc(blobToConfusion(b, nclasses)), t)
-   //        }.groupBy(_._1).map(_._2.map(_._2))
-   //        val t_max_s = grpByPool.map { pool =>
-   //          val max = pool.maxBy(_._1)._1
-   //          val maxs = pool.filter(x => x._1 >= max * 0.99)
-   //          val t = maxs.minBy(_._2)._2
-   //          (t, max)
-   //        }.toSeq
-   //        t_max_s.sortBy(_._1).get(t_max_s.size / 2 + 1)
-   //      }
-   //
-   //      val Qcalculado = 50
-   //      //      val Qcalculado = math.min(100, math.max(50, math.max(medianaTGme_s.map(_._1).sum / 3d, medianaTAcc_s.map(_._1).sum / 3d)))
-   //
-   //      val qToWrite = math.max(Qcalculado, nclasses + 2)
-   //      write(s"INSERT INTO r values (0, -1, $qToWrite)")
-   //    }
-   //  }
 
    def countQueries(strat: Strategy, run: Int, fold: Int) = {
       val pid = poolId(strat, strat.learner, run, fold).getOrElse(quit(s"Pool not found for  s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold !"))
