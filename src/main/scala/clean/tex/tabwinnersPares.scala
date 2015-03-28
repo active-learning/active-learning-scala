@@ -20,22 +20,20 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
+import ml.classifiers.{SVMLibRBF, NinteraELM, RF}
 import util.{Stat, StatTests}
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
-   val n = 3
+   val n = 1
    run()
 
    override def run() = {
       super.run()
       //            val measure = ALCBalancedAcc
       val measure = ALCKappa
-      val strats = stratsForTreeReduxMah().dropRight(4)
       val ls = learners(learnersStr)
-      val algs = (for (s <- strats; le <- ls) yield s.limpa + le.limpa).toVector
-
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.par
       } yield {
@@ -44,8 +42,16 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          val (ti, th, tf, tpass) = ranges(ds)
          try {
             val sres = for {
-               s <- strats
                l <- ls
+               s <- {
+                  val strats = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+                  l match {
+                     case _: SVMLibRBF => strats.dropRight(2)
+                     case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
+                     case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
+                     case _ => strats.dropRight(4)
+                  }
+               }
             } yield {
                val le = l //if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 1292212) s.learner else l
                val vs = for {
@@ -58,26 +64,6 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                (s.limpa -> l.limpa) -> Stat.media_desvioPadrao(vs.toVector)._1
             }
             Some(ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
-
-            //            val vs = for {
-            //               r <- 0 until runs
-            //               f <- 0 until folds
-            ////               multiplicadorDeAmostra <- 0 to 7
-            //            } yield {
-            //               val poolStr = (100 * r + f).toString
-            //               val sres = for {
-            //                  s <- strats
-            //                  l <- ls
-            //               } yield {
-            //                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-            //                  val (ti, th, tf, tpass) = ranges(ds)
-            //                  measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse(-2d)
-            //               }
-            //               poolStr -> sres
-            //            }
-            ////            Some((ds.dataset + l.toString.take(3)) -> StatTests.winners(vs, ss), (ds.dataset + l.toString.take(3)) -> StatTests.losers(vs, ss))
-            //            Some(ds.dataset -> StatTests.winners(vs, algs), ds.dataset -> StatTests.losers(vs, algs))
-
          } catch {
             case e: Throwable => println(s"$e")
                sys.exit(1) //None
@@ -93,15 +79,27 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-      val algs1 = strats.map(_.limpa) map { st =>
+      val algs1 = allStrats().map(_.limpa) map { st =>
          val topCount = flat.count(_._1 == st)
          val botCount = flat2.count(_._1 == st)
          (st, topCount, botCount)
       }
-      val algs2 = algs map { stle =>
-         val topCount = flat.count(x => x._1 + x._2 == stle)
-         val botCount = flat2.count(x => x._1 + x._2 == stle)
-         (stle, topCount, botCount)
+      val algs2 = for {
+         l <- ls
+         s <- {
+            val strats = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+            l match {
+               case _: SVMLibRBF => strats.dropRight(2)
+               case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
+               case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
+               case _ => strats.dropRight(4)
+            }
+         }
+      } yield {
+         val sl = s.limpa + l.limpa
+         val topCount = flat.count(x => x._1 + x._2 == sl)
+         val botCount = flat2.count(x => x._1 + x._2 == sl)
+         (sl, topCount, botCount)
       }
       println(algs1.map(_._2).sum + " total de vencedores")
       println(algs1.map(_._3).sum + " total de perdedores")

@@ -15,34 +15,26 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.{RF, Learner}
+import ml.classifiers._
 import ml.models.Model
 
-case class DensityWeightedTrainingUtilityRF(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
+case class DensityWeightedFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern], beta: Double = 1, distance_name: String = "eucl", debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure {
-   override val toString = "Density Weighted TURF a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "TURF" + distance_name.take(3)
+   override val toString = "Density Weighted b" + learner.limpa + beta + " (" + distance_name + ")"
+   val abr = "DW" + learner.limpa + distance_name.take(3)
    //+ beta
-   val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 127176 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 127178 + (100000 * (1 - alpha)).toInt
-      case "maha" => 127179 + (100000 * (1 - alpha)).toInt
-      case "manh" => 127177 + (100000 * (1 - alpha)).toInt
-   } else throw new Error("Parametros inesperados para DWTURF.")
-   val learner = RF(seed)
+   val id = 77000000 + convlid(learner.id)
+
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val us = unlabeled.size
-      val ls = labeled.size
       val selected = unlabeled maxBy {
          x =>
             val similarityU = mapU(x) / us
-            val similarityL = mapL(x) / ls
-            (1 - margin(current_model)(x)) * math.pow(similarityU, beta) / math.pow(similarityL, alpha)
+            (1 - margin(current_model)(m(x.id))) * math.pow(similarityU, beta)
       }
       selected
    }

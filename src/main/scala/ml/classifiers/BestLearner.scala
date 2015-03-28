@@ -24,7 +24,7 @@ import ml.models.Model
 import util.Stat
 
 case class BestLearner(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
-   val id = 4141
+   lazy val id = learner.id
    val abr: String = learner.abr
    val attPref: String = learner.attPref
    val boundaryType: String = learner.boundaryType
@@ -40,6 +40,15 @@ case class BestLearner(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
       val vs = for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
       l -> Stat.media_desvioPadrao(vs.toVector)._1
    }.maxBy(_._2)._1
+   lazy val querFiltro = learner.id match {
+      case 2651110 => true //rbf
+      case 8001 => true //ci
+      case 773 => false //rf
+      case 2 => false //knn
+      case 12 => false //nb
+      case 666003 => false //c45
+   }
+
 
    def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = learner.update(model, fast_mutable, semcrescer)(pattern)
 

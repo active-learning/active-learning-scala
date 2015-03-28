@@ -23,18 +23,18 @@ import ml.classifiers._
 import ml.models.Model
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 
-case class HTURF(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
+case class HTUFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure with EntropyMeasure {
-   override val toString = "HTURF a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "\\textbf{HTURF" + distance_name.take(3) + "}"
+   override val toString = "HTU" + learner.limpa + " a" + alpha + " b" + beta + " (" + distance_name + ")"
+   val abr = "\\textbf{HTU" + learner.limpa + distance_name.take(3) + "}"
+
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 4172006 + (100000 * (1 - alpha)).toInt
-      case "cheb" => 4172008 + (100000 * (1 - alpha)).toInt
-      case "maha" => 4172009 + (100000 * (1 - alpha)).toInt
-      case "manh" => 4172007 + (100000 * (1 - alpha)).toInt
+      case "eucl" => 94172006 + convlid(learner.id)
+      case "cheb" => 94172008 + convlid(learner.id)
+      case "maha" => 94172009 + convlid(learner.id)
+      case "manh" => 94172007 + convlid(learner.id)
    } else throw new Error("Parametros inesperados para HTURF.")
-   val learner = RF(seed)
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val ls = labeled.size
@@ -46,7 +46,7 @@ case class HTURF(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, b
       val list_gn_mix = unlabeled map { x =>
          val similarityU = mapU(x) / us
          val similarityL = mapL(x) / ls
-         val gn = 1 - margin(current_model)(x)
+         val gn = 1 - margin(current_model)(m(x.id))
          val u = math.pow(similarityU, beta)
          val l = math.pow(similarityL, alpha)
          val ag = u / l

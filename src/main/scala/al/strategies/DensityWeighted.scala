@@ -41,4 +41,6 @@ case class DensityWeighted(learner: Learner, pool: Seq[Pattern], beta: Double = 
       }
       selected
    }
+
+   val poolForLearner: Seq[Pattern] = ???
 }

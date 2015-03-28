@@ -27,10 +27,10 @@ case class AgDensityWeightedTrainingUtility(pool: Seq[Pattern], distance_name: S
    val abr = "\\textbf{ATU" + distance_name.take(3) + "}"
    //+ beta
    val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
-      case "eucl" => 601 + (100 * (1 - alpha)).toInt
-      case "cheb" => 801 + (100 * (1 - alpha)).toInt
-      case "maha" => 901 + (100 * (1 - alpha)).toInt
-      case "manh" => 701 + (100 * (1 - alpha)).toInt
+      case "eucl" => 691 + (100 * (1 - alpha)).toInt
+      case "cheb" => 891 + (100 * (1 - alpha)).toInt
+      case "maha" => 991 + (100 * (1 - alpha)).toInt
+      case "manh" => 791 + (100 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para DWAgTU.")
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {

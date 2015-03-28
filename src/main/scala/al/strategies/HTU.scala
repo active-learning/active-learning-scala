@@ -68,4 +68,6 @@ case class HTU(learner: Learner, pool: Seq[Pattern], distance_name: String, alph
       lazy val co = new PearsonsCorrelation().correlation(a.toArray, b.toArray)
       if (a.size > 1 && co < 0.999) xagmax else xmixmax
    }
+
+   val poolForLearner: Seq[Pattern] = ???
 }

@@ -20,17 +20,16 @@ package al.strategies
 
 import clean.lib.Log
 import ml.Pattern
-import ml.classifiers.Learner
+import ml.classifiers.{Limpa, Learner}
 import util.Graphics.Plot
 
 /**
  * Only distinct patterns are accepted into the pool.
  */
-trait Strategy extends Log {
+trait Strategy extends Log with Limpa {
    val context = "Strategy"
    val id: Int
    val abr: String
-   def limpa = abr.replace("\\textbf{", "").replace("}", "")
    val pool: Seq[Pattern]
    val seed = pool.take(10).map(_.id).zipWithIndex.map { case (c, i) => c * i}.sum
    lazy val distinct_pool = if (pool.distinct != pool) {
@@ -45,6 +44,15 @@ trait Strategy extends Log {
    //  val mea: Measure = null
 
    def learner: Learner
+
+   def convlid(id: Int) = id match {
+      case 773 => 0
+      case 2651110 => 10
+      case 2 => 20
+      case 12 => 30
+      case 8001 => 40
+      case 666003 => 50
+   }
 
    /**
     * Returns a stream of queries.
