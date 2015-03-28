@@ -412,7 +412,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    else {
       //Apenas agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
       val insertIntoP = poolId(strat, learner, run, fold) match {
-         case Some(pid) => if (strat.id < 2 || Global.agnosticasa.dropRight(76).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
+         case Some(pid) => if (strat.id < 2 || Global.agnosticasa.dropRight(83).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
          case None =>
             if (strat.id < 2 || Global.agnosticasa.contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
             else quit(s"Missing gnostic queries pid for hits.")

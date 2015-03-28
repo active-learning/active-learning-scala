@@ -27,12 +27,16 @@ trait StratsTrait {
    def stratsPool(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern]) = Seq(
       DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
       , DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
-      , MarginFixo(learner, poolForLearner)
-      , ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy")
       , HTUFixo(poolForLearner, learner, pool, "manh")
       , HTUFixo(poolForLearner, learner, pool, "eucl")
-      , SGmultiFixo(learner, poolForLearner, "consensus")
       // //   , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
+
+      , Margin(learner, poolForLearner)
+      , ExpErrorReductionMargin(learner, poolForLearner, "entropy")
+      , SGmulti(learner, poolForLearner, "consensus")
+//      , MarginFixo(learner, poolForLearner)
+//      , ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy")
+//      , SGmultiFixo(learner, poolForLearner, "consensus")
    )
 
    def stratsFpool(poolForLearner: Seq[Pattern], learner: Learner, fpool: Seq[Pattern]) = Seq(
