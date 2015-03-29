@@ -130,13 +130,13 @@ object a extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("best" + (stratsFpool(Seq(), NoLearner(), Seq()) ++ stratsPool(Seq(), NoLearner(), Seq()) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("a" + (stratsFpool(Seq(), NoLearner(), Seq()) ++ stratsPool(Seq(), NoLearner(), Seq()) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("bestA" + (stratsFpool(Seq(), NoLearner(), Seq()) ++ stratsPool(Seq(), NoLearner(), Seq()) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("a" + (stratsFpool(Seq(), NoLearner(), Seq()) ++ stratsPool(Seq(), NoLearner(), Seq()) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }
