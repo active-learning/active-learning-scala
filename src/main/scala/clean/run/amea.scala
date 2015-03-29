@@ -69,7 +69,7 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
       }
 
       ds.log(fila.mkString("\n"), 10)
-      ds.batchWrite(fila.toList)
+      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
       fila.clear()
    }
 
