@@ -22,7 +22,7 @@ package clean.run
 import al.strategies.Majoritary
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{SVMLibRBF, NoLearner}
+import ml.classifiers.{BestLearner, SVMLibRBF, NoLearner}
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -50,20 +50,21 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
       } else {
          ds.startbeat(run, fold)
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
+         val classif = BestLearner(ds, learnerSeed, pool)
          for {
             learner <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
             s <- stratsPool(pool, learner, pool) ++ stratsFpool(pool, learner, fpool)
          } yield {
             lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
             for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
-               poeNaFila(fila, ALCKappa(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
-               poeNaFila(fila, ALCBalancedAcc(ds, s, learner, run, fold)(ti, tf).sqlToWrite(ds))
+               poeNaFila(fila, ALCKappa(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
+               poeNaFila(fila, ALCBalancedAcc(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
             }
             for (t <- tmin to tmax) {
-               poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+               poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
             }
             val t = tpass
-            poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+            poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
          }
       }
 
