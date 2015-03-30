@@ -41,8 +41,8 @@ trait StratsTrait {
       , ClusterBased(pool) //1
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      //      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
-      //      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
+      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
+      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
    )
 
    def stratsFpool(learner: Learner, poolForLearner: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq()) = Seq(
@@ -51,7 +51,7 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(fpool, "maha")
       , SVMmultiRBF(fpool, "BALANCED_EEw")
       , SVMmultiRBF(fpool, "SIMPLEw")
-      //      , DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
+      , DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
    )
 
    def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)

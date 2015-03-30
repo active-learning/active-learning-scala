@@ -46,6 +46,7 @@ trait Strategy extends Log with Limpa {
    def learner: Learner
 
    def convlid(id: Int) = id match {
+      case 0 => -99999999
       case 773 => 0
       case 2651110 => 10
       case 2 => 20
