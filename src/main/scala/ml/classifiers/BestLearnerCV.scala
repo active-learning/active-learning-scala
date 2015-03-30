@@ -28,14 +28,14 @@ case class BestLearnerCV(ds: Ds, r: Int, f: Int, s: Strategy, queries: Seq[Patte
    lazy val id = ds.read(s"select c from classif where s=${s.id} and l=${s.learner.id} and r=$r and f=$f") match {
       case List(Vector(x)) => x.toInt
       case List() =>
-         val res = learner.id
+         val res = classif.id
          ds.write(s"insert into classif values (${s.id},${s.learner.id},$r,$f,$res)")
          res
       case x => ds.error(s"problemas: $x")
    }
-   lazy val abr: String = learner.abr
-   lazy val attPref: String = learner.attPref
-   lazy val boundaryType: String = learner.boundaryType
+   lazy val abr: String = classif.abr
+   lazy val attPref: String = classif.attPref
+   lazy val boundaryType: String = classif.boundaryType
    lazy val learners = Seq(
       KNNBatcha(5, "eucl", pool, weighted = true)
       , C45()
@@ -44,19 +44,19 @@ case class BestLearnerCV(ds: Ds, r: Int, f: Int, s: Strategy, queries: Seq[Patte
       , CIELMBatch(seed)
       , SVMLibRBF(seed)
    )
-   lazy val learner = learners.maxBy { l =>
+   lazy val classif = learners.maxBy { l =>
       val qs = if (qf(l)) fqueries.toVector else queries.toVector
       Datasets.kfoldCV(qs, 5) { (tr, ts, foldnr, minsize) =>
          kappa(l.build(tr).confusion(tr))
       }.sum
    }
-   override lazy val querFiltro = qf(learner)
+   override lazy val querFiltro = qf(classif)
 
-   def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = learner.update(model, fast_mutable, semcrescer)(pattern)
+   def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = classif.update(model, fast_mutable, semcrescer)(pattern)
 
-   def expected_change(model: Model)(pattern: Pattern) = learner.expected_change(model)(pattern)
+   def expected_change(model: Model)(pattern: Pattern) = classif.expected_change(model)(pattern)
 
-   def build(pool: Seq[Pattern]) = learner.build(pool)
+   def build(pool: Seq[Pattern]) = classif.build(pool)
 
    val context: String = "bestcv"
 }
