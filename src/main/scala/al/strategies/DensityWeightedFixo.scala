@@ -23,10 +23,10 @@ import ml.models.Model
 
 case class DensityWeightedFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern], beta: Double = 1, distance_name: String = "eucl", debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure {
-   override val toString = "Density Weighted b" + learner.limpa + beta + " (" + distance_name + ")"
-   val abr = "DW" + learner.limpa + distance_name.take(3)
+   override lazy val toString = "Density Weighted b" + learner.limpa + beta + " (" + distance_name + ")"
+   lazy val abr = "DW" + learner.limpa + distance_name.take(3)
    //+ beta
-   val id = 77000000 + convlid(learner.id)
+   lazy val id = 77000000 + convlid(learner.id)
 
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {

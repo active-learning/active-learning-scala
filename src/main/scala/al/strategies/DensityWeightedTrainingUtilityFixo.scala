@@ -24,8 +24,8 @@ import ml.models.Model
 
 case class DensityWeightedTrainingUtilityFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure {
-   override val toString = "Density Weighted TU" + learner.limpa + " a" + alpha + " b" + beta + " (" + distance_name + ")"
-   val abr = "TU" + learner.limpa + distance_name.take(3)
+   override lazy val toString = "Density Weighted TU" + learner.limpa + " a" + alpha + " b" + beta + " (" + distance_name + ")"
+   lazy val abr = "TU" + learner.limpa + distance_name.take(3)
    lazy val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 127176 + convlid(learner.id)
       case "cheb" => 127178 + convlid(learner.id)
