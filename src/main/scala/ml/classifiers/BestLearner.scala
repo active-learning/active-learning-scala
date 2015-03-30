@@ -39,15 +39,7 @@ case class BestLearner(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
    )
    lazy val bestLearnerId = ds.bestLearnerId
    lazy val learner = learners.find(_.id == bestLearnerId).get
-   lazy val querFiltro = learner.id match {
-      case 2651110 => true //rbf
-      case 8001 => true //ci
-      case 773 => false //rf
-      case 2 => false //knn
-      case 12 => false //nb
-      case 666003 => false //c45
-   }
-
+   override lazy val querFiltro = qf(learner)
 
    def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = learner.update(model, fast_mutable, semcrescer)(pattern)
 
