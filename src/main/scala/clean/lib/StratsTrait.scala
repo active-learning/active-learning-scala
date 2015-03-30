@@ -24,7 +24,7 @@ import ml.Pattern
 import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
-   def stratsPool(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern]) = Seq(
+   def stratsPool(learner: Learner, poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq()) = Seq(
       DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
       , DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
       , HTUFixo(poolForLearner, learner, pool, "manh")
@@ -34,12 +34,17 @@ trait StratsTrait {
       , Margin(learner, poolForLearner)
       , ExpErrorReductionMargin(learner, poolForLearner, "entropy")
       , SGmulti(learner, poolForLearner, "consensus")
-//      , MarginFixo(learner, poolForLearner)
-//      , ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy")
-//      , SGmultiFixo(learner, poolForLearner, "consensus")
+      //      , MarginFixo(learner, poolForLearner)
+      //      , ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy")
+      //      , SGmultiFixo(learner, poolForLearner, "consensus")
+
+      , RandomSampling(pool) //0
+      , ClusterBased(pool) //1
+      , AgDensityWeightedTrainingUtility(pool, "manh") //701
+      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
    )
 
-   def stratsFpool(poolForLearner: Seq[Pattern], learner: Learner, fpool: Seq[Pattern]) = Seq(
+   def stratsFpool(learner: Learner, poolForLearner: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq()) = Seq(
       DensityWeightedTrainingUtilityFixo(poolForLearner, learner, fpool, "maha")
       , HTUFixo(poolForLearner, learner, fpool, "maha")
       , AgDensityWeightedTrainingUtility(fpool, "maha")

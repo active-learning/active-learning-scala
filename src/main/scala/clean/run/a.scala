@@ -43,7 +43,7 @@ object a extends Exp with LearnerTrait with StratsTrait {
          val classif = if (semFiltro.querFiltro) BestLearner(ds, learnerSeed, fpool) else semFiltro
 
          learnersPool(pool, learnerSeed) foreach { learner =>
-            stratsPool(pool, learner, pool) foreach { strat =>
+            stratsPool(learner, pool, pool) foreach { strat =>
                ds.log(s"$learner $strat ...")
 
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -63,7 +63,7 @@ object a extends Exp with LearnerTrait with StratsTrait {
                }
             }
 
-            stratsFpool(pool, learner, fpool) foreach { fstrat =>
+            stratsFpool(learner, pool, fpool) foreach { fstrat =>
                ds.log(s"$learner $fstrat ...")
 
                val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
@@ -85,7 +85,7 @@ object a extends Exp with LearnerTrait with StratsTrait {
          }
 
          learnersFpool(learnerSeed) foreach { learner =>
-            stratsPool(fpool, learner, pool) foreach { strat =>
+            stratsPool(learner, fpool, pool) foreach { strat =>
                ds.log(s"$learner $strat ...")
 
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -105,7 +105,7 @@ object a extends Exp with LearnerTrait with StratsTrait {
                }
             }
 
-            stratsFpool(fpool, learner, fpool) foreach { fstrat =>
+            stratsFpool(learner, fpool, fpool) foreach { fstrat =>
                ds.log(s"$learner $fstrat ...")
 
                val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
@@ -130,13 +130,13 @@ object a extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("a" + (stratsFpool(Seq(), NoLearner(), Seq()) ++ stratsPool(Seq(), NoLearner(), Seq()) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("a" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("a" + (stratsFpool(Seq(), NoLearner(), Seq()) ++ stratsPool(Seq(), NoLearner(), Seq()) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("a" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }
