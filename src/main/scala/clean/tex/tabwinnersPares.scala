@@ -40,31 +40,30 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
-         val l = BestLearner(ds, 42, Seq())
-         println(l.learner.limpa)
+         val le = BestLearner(ds, 42, Seq())
+         println(le.learner.limpa)
          val sres = for {
-            s <- {
-               stratsPool(l) ++ stratsFpool(l) //stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
-               //                  l match {
-               //                     case _: SVMLibRBF => strats.dropRight(2)
-               //                     case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
-               //                     case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
-               //                     case _ => strats.dropRight(4)
-               //                  }
-            }
+            s <- stratsPool(le) ++ stratsFpool(le) //stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+         //                  l match {
+         //                     case _: SVMLibRBF => strats.dropRight(2)
+         //                     case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
+         //                     case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
+         //                     case _ => strats.dropRight(4)
+         //                  }
+
          } yield {
-            val le = l //if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000 || s.id == 1006600 || s.id == 1292212) s.learner else l
             val vs = for {
-                  r <- 0 until runs
-                  f <- 0 until folds
-               } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                     println((ds, s, le, r, f) + ": medida não encontrada")
-                     NA
-                  }
-            (s.limpa -> l.limpa) -> Stat.media_desvioPadrao(vs.toVector)._1
+               r <- 0 until runs
+               f <- 0 until folds
+            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+                  println((ds, s, le, r, f) + ": medida não encontrada")
+                  NA
+               }
+            (s.limpa -> le.limpa) -> Stat.media_desvioPadrao(vs.toVector)._1
          }
-         Some(ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
+         val res = Some(ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
          ds.close()
+         res
       }
 
       val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
