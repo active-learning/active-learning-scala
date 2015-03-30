@@ -28,9 +28,9 @@ case class BestLearnerCV(ds: Ds, r: Int, f: Int, s: Strategy, queries: Seq[Patte
    lazy val id = ds.read(s"select c from classif where s=${s.id} and l=${s.learner.id} and r=$r and f=$f") match {
       case List(Vector(x)) => x.toInt
       case List() =>
-         val r = learner.id
-         ds.write(s"insert into classif values (${s.id},${s.learner.id},$r,$f,$r)")
-         r
+         val res = learner.id
+         ds.write(s"insert into classif values (${s.id},${s.learner.id},$r,$f,$res)")
+         res
       case x => ds.error(s"problemas: $x")
    }
    lazy val abr: String = learner.abr

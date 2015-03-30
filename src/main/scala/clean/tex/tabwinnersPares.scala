@@ -20,8 +20,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
-import ml.classifiers.{BestLearner, SVMLibRBF, NinteraELM, RF}
-import util.{Stat, StatTests}
+import ml.classifiers.{BestLearner, NinteraELM, RF, SVMLibRBF}
+import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -40,7 +40,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
-         //aqui pode trocar de classif pra learner se quiser deixar como exp original
+         //aqui pode trocar de classif pra learner se quiser deixar como exp original; ou pra bestcv
          val le = BestLearner(ds, 42, Seq())
          println(le.learner.limpa)
          val sres = for {
