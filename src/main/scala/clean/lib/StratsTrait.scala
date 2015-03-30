@@ -29,7 +29,8 @@ trait StratsTrait {
       , DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
       , HTUFixo(poolForLearner, learner, pool, "manh")
       , HTUFixo(poolForLearner, learner, pool, "eucl")
-      // //   , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
+      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
+      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
 
       , Margin(learner, poolForLearner)
       , ExpErrorReductionMargin(learner, poolForLearner, "entropy")
@@ -50,6 +51,7 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(fpool, "maha")
       , SVMmultiRBF(fpool, "BALANCED_EEw")
       , SVMmultiRBF(fpool, "SIMPLEw")
+      , DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
    )
 
    def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)
@@ -93,7 +95,7 @@ trait StratsTrait {
       , DensityWeighted(learner, pool, 1, "eucl") //5
       , DensityWeightedTrainingUtility(learner, pool, "eucl") //7
       , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      , new SGmulti(learner, pool, "consensus") //14
+      , SGmulti(learner, pool, "consensus") //14
       , ExpErrorReductionMargin(learner, pool, "balacc") //74
       , ExpErrorReductionMargin(learner, pool, "entropy") //11
       , HTU(learner, pool, "eucl") //4003006
