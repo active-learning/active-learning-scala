@@ -40,6 +40,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
+         //aqui pode trocar de classif pra learner se quiser deixar como exp original
          val le = BestLearner(ds, 42, Seq())
          println(le.learner.limpa)
          val sres = for {

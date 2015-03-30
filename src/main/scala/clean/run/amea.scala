@@ -19,10 +19,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.run
 
-import al.strategies.Majoritary
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{BestLearner, SVMLibRBF, NoLearner}
+import ml.classifiers._
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -50,10 +49,10 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
       } else {
          ds.startbeat(run, fold)
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
-         val classif = BestLearner(ds, learnerSeed, pool)
          for {
             learner <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
             s <- stratsPool(learner, pool, pool) ++ stratsFpool(learner, pool, fpool)
+            classif <- Seq(BestLearner(ds, learnerSeed, pool), BestLearnerCVPerPool(ds, run, fold, s), learner)
          } yield {
             lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
             for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
@@ -75,13 +74,13 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("amea" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("amea2" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea2" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }

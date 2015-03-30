@@ -50,7 +50,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(strat, run, fold, maxQueries(ds))
                val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
-               Seq(BestLearnerCV(ds, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestLearnerCV(ds, run, fold, strat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
@@ -72,7 +72,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
                val queries = ds.queries(fstrat, run, fold, null, null)
 
-               Seq(BestLearnerCV(ds, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestLearnerCV(ds, run, fold, fstrat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
@@ -96,7 +96,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(strat, run, fold, maxQueries(ds))
                val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
-               Seq(BestLearnerCV(ds, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestLearnerCV(ds, run, fold, strat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
@@ -118,7 +118,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
                val queries = ds.queries(fstrat, run, fold, null, null)
 
-               Seq(BestLearnerCV(ds, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestLearnerCV(ds, run, fold, fstrat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
@@ -136,13 +136,13 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("acv" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("acv2" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv2" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }

@@ -17,14 +17,22 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.classifiers
 
+import al.strategies.Strategy
 import clean.lib.{CM, Ds}
 import ml.Pattern
 import ml.models.Model
 import util.Datasets
 
-case class BestLearnerCV(ds: Ds, queries: Seq[Pattern], fqueries: Seq[Pattern], seed: Int, pool: Seq[Pattern]) extends Learner with CM {
+case class BestLearnerCV(ds: Ds, r: Int, f: Int, s: Strategy, queries: Seq[Pattern], fqueries: Seq[Pattern], seed: Int, pool: Seq[Pattern]) extends Learner with CM {
    override lazy val toString = s"BestLearnerCV: $ds"
-   lazy val id = learner.id
+   lazy val id = ds.read(s"select c from classif where s=${s.id} and l=${s.learner.id} and r=$r and f=$f") match {
+      case List(Vector(x)) => x.toInt
+      case List() =>
+         val r = learner.id
+         ds.write(s"insert into classif values (${s.id},${s.learner.id},$r,$f,$r)")
+         r
+      case x => ds.error(s"problemas: $x")
+   }
    lazy val abr: String = learner.abr
    lazy val attPref: String = learner.attPref
    lazy val boundaryType: String = learner.boundaryType
