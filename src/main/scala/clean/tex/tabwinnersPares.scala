@@ -43,14 +43,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          val le = BestLearner(ds, 42, Seq())
          println(le.learner.limpa)
          val sres = for {
-            s <- stratsPool(le) ++ stratsFpool(le) //stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
-         //                  l match {
-         //                     case _: SVMLibRBF => strats.dropRight(2)
-         //                     case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
-         //                     case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
-         //                     case _ => strats.dropRight(4)
-         //                  }
-
+            s <- stratsPool(le) ++ stratsFpool(le)
          } yield {
             val vs = for {
                r <- 0 until runs
