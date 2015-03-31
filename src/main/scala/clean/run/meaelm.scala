@@ -95,7 +95,7 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
             }
          }
          ds.log(fila.mkString("\n"), 10)
-         if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+         if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList.distinct)
          fila.clear()
       }
    }

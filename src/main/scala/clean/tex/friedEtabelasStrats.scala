@@ -55,7 +55,8 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
                ds.open()
                val r = ds.nclasses
                ds.close()
-               r == 2
+               //               r == 2
+               true
             }
          } yield {
             val ds = Ds(dataset, readOnly = true)
@@ -72,12 +73,12 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
                   } yield
                      try {
                         measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse({
-                           println("NA:" +(ds, s.abr, le, r, f))
+                           println("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))
                            NA
                         })
                      } catch {
                         case e: Throwable =>
-                           println("NA:" +(ds, s.abr, le, r, f))
+                           println("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))
                            NA //sys.exit(1)
                      }
                   if (vs.contains(NA)) (NA, NA)
