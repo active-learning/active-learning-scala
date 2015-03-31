@@ -108,7 +108,11 @@ object meaall extends Exp with LearnerTrait with StratsTrait with Lock with CM w
             }
          }
          ds.log(fila.mkString("\n"), 10)
-         if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList.distinct)
+         if (fila.exists(_.startsWith("insert"))) {
+            val sqls = fila.toList.distinct.filter(_.startsWith("insert"))
+            sqls foreach println
+            ds.batchWrite(sqls)
+         }
          fila.clear()
       }
    }
