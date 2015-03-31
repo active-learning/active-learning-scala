@@ -4,7 +4,7 @@ while true; do
     available=$(free -m | head -2 | tail -1 | awk '{print $4}')
     if [ "$threshold" -ge "$available" ]; then
 	echo "memoria quase cheia:$available"
-        memorykiller.sh
+	/home/davi/wcs/als/memorykiller.sh
     fi
     sleep 10
 done
