@@ -27,17 +27,18 @@ import weka.filters.Filter
 import scala.collection.mutable
 
 object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
-   val context = "ameaApp"
+   val context = "amea4App"
    val arguments = superArguments
    val ignoreNotDone = false
    var outroProcessoVaiTerminarEsteDataset = false
+   var acabou = true
    run()
 
    def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
       try {
          fila += f
       } catch {
-         case e: Throwable => justQuit(e.getMessage)
+         case e: Throwable => acabou = false
       }
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
@@ -74,14 +75,15 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
    }
 
    def datasetFinished(ds: Ds) = {
-      if (!outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("amea3" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+      if (acabou && !outroProcessoVaiTerminarEsteDataset) {
+         ds.markAsFinishedRun("amea4" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
+      acabou = true
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea3" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea4" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }
