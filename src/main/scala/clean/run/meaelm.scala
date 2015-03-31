@@ -31,7 +31,7 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
    val context = "meaelmApp"
    val arguments = superArguments ++ Seq("p:passivas")
    val ignoreNotDone = false
-   var acabou = false
+   var acabou = true
    val strats = stratsSemLearnerExterno_FilterFree(Seq()).dropRight(1) ++ stratsSemLearnerExterno_FilterDependent(Seq()).dropRight(3) ++ stratsSemLearnerExterno_FilterDependent(Seq()).takeRight(1) ++ stratsComLearnerExterno_FilterFree(Seq(), NoLearner()) ++ stratsComLearnerExterno_FilterDependent(Seq(), NoLearner())
    run()
 
@@ -39,7 +39,7 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
       try {
          fila += f
       } catch {
-         case e: Throwable =>
+         case e: Throwable => acabou = false
       }
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
@@ -77,8 +77,10 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
             strat match {
                case Majoritary(Seq(), false) => //| SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
-                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11))
+                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11)) {
                      poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+                     poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+                  }
             }
          }
          for (strat <- strats; learner <- Seq(NinteraELM(learnerSeed))) {
@@ -86,27 +88,28 @@ object meaelm extends Exp with LearnerTrait with StratsTrait with Lock with CM w
             strat match {
                case Majoritary(Seq(), false) => // | SVMmulti(Seq(), "KFFw", false) | SVMmulti(Seq(), "BALANCED_EEw", false) => //jah foi acima
                case s =>
-                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11))
+                  if (!Global.gnosticasComLearnerInterno.contains(strat.id) || (strat.id == 1006600 && learner.id == 11)) {
+                     poeNaFila(fila, Kappa(ds, s, learner, run, fold)(t).sqlToWrite(ds))
                      poeNaFila(fila, BalancedAcc(ds, s, learner, run, fold)(t).sqlToWrite(ds))
+                  }
             }
          }
-         ds.log(fila.mkString("\n"),10)
+         ds.log(fila.mkString("\n"), 10)
          if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-         else if (fila.count(_ != "select 7") == 0) acabou = true
          fila.clear()
       }
    }
 
    def datasetFinished(ds: Ds) {
       if (acabou) {
-         ds.markAsFinishedMea(passivas + strats.map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
+         ds.markAsFinishedMea("k" + passivas + strats.map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
+      acabou = true
    }
 
    def isAlreadyDone(ds: Ds) = {
-      acabou = false
-      ds.isFinishedMea(passivas + strats.map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
+      ds.isFinishedMea("k" + passivas + strats.map(_.limpa).mkString + Seq(NinteraELM()).map(_.limpa).mkString)
    }
 
    def end(res: Map[String, Boolean]): Unit = {
