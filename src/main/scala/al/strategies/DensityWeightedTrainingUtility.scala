@@ -49,5 +49,5 @@ case class DensityWeightedTrainingUtility(learner: Learner, pool: Seq[Pattern], 
       selected
    }
 
-   val poolForLearner: Seq[Pattern] = ???
+   lazy val poolForLearner: Seq[Pattern] = ???
 }

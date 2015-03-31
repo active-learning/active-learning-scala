@@ -25,7 +25,7 @@ import ml.models.Model
 trait StrategyWithLearnerAndMaps extends Strategy with DistanceMeasure {
    val learner: Learner
    val poolForLearner: Seq[Pattern]
-   val m = poolForLearner.map(x => x.id -> x).toMap
+   lazy val m = poolForLearner.map(x => x.id -> x).toMap
 
    protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val initial_mapU = unlabeled.map(x => x -> unlabeled.diff(Seq(x)).map(u => 1d / (1 + d(x, u))).sum).toMap

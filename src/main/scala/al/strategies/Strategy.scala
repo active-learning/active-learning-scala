@@ -20,7 +20,7 @@ package al.strategies
 
 import clean.lib.Log
 import ml.Pattern
-import ml.classifiers.{Limpa, Learner}
+import ml.classifiers.{NoLearner, Limpa, Learner}
 import util.Graphics.Plot
 
 /**
@@ -31,7 +31,7 @@ trait Strategy extends Log with Limpa {
    val id: Int
    val abr: String
    val pool: Seq[Pattern]
-   val seed = pool.take(10).map(_.id).zipWithIndex.map { case (c, i) => c * i}.sum
+   lazy val seed = pool.take(10).map(_.id).zipWithIndex.map { case (c, i) => c * i}.sum
    lazy val distinct_pool = if (pool.distinct != pool) {
       println("The pool cannot have repeated instances!")
       sys.exit(1)
@@ -42,6 +42,17 @@ trait Strategy extends Log with Limpa {
    lazy val plot = new Plot
    lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
    lazy val old = id
+
+   lazy val abrev = abr + (learner match {
+      case NoLearner() => ""
+      case _ => learner.abr
+   })
+   lazy val igualdade = id -> learner.id
+
+   override def equals(that: Any) = that match {
+      case that: Strategy => that.igualdade == igualdade
+      case _ => false
+   }
 
    def learner: Learner
 

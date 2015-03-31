@@ -69,5 +69,5 @@ case class HTU(learner: Learner, pool: Seq[Pattern], distance_name: String, alph
       if (a.size > 1 && co < 0.999) xagmax else xmixmax
    }
 
-   val poolForLearner: Seq[Pattern] = ???
+   lazy val poolForLearner: Seq[Pattern] = ???
 }

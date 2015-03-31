@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
-import ml.classifiers.{BestLearner, NinteraELM, RF, SVMLibRBF}
+import ml.classifiers.{BestClassif, BestClassifCVReadOnly}
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
@@ -34,31 +34,45 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       //            val measure = ALCBalancedAcc
       val measure = ALCKappa
       val ls = learners(learnersStr)
-      val datasetLearnerAndBoth = for {
+      val sts = (for {l <- ls; s <- stratsPool().map(_(l)) ++ stratsFpool().map(_(l))} yield s).distinct
+      sts.map(_.limpa) foreach println
+      val datasetLearnerAndBoth = (for {
          dataset <- datasets.toList.par
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
-         //aqui pode trocar de classif pra learner se quiser deixar como exp original; ou pra bestcv
-         val le = BestLearner(ds, 42, Seq())
-         println(le.learner.limpa)
          val sres = for {
-            s <- stratsPool(le) ++ stratsFpool(le)
+            s <- sts
          } yield {
             val vs = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                  println((ds, s, le, r, f) + ": medida não encontrada")
-                  NA
+            } yield {
+               try {
+                  val classif = BestClassifCVReadOnly(ds, r, f, s)
+                  //                  val classif = BestClassif(ds, 42, Seq())
+                  measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
+                     println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
+                     NA
+                  }
+               } catch {
+                  case e: Throwable => println((ds, s, s.learner, r, f) + e.getMessage)
+                     NA
                }
-            (s.limpa -> le.limpa) -> Stat.media_desvioPadrao(vs.toVector)._1
+            }
+            if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)
          }
-         val res = Some(ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
-         ds.close()
-         res
-      }
+         if (sres.contains(None)) {
+            ds.close()
+            None
+         } else {
+            val sorted = sres.flatten.groupBy(_._2).toList.sortBy(_._1)
+            val res = Some(ds.dataset -> sorted.reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sorted.take(n).map(_._2.map(_._1)).flatten)
+            ds.close()
+            Some(res)
+         }
+      }).flatten
 
       val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
       println(s"$n primeiros/últimos")
@@ -67,46 +81,46 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-      val algs1 = allStrats().map(_.limpa) map { st =>
-         val topCount = flat.count(_._1 == st)
-         val botCount = flat2.count(_._1 == st)
+      val algs1 = sts.map(_.limpa) map { st =>
+         val topCount = flat.count(_ == st)
+         val botCount = flat2.count(_ == st)
          (st, topCount, botCount)
       }
-      val algs2 = for {
-         l <- ls
-         s <- {
-            val strats = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
-            l match {
-               case _: SVMLibRBF => strats.dropRight(2)
-               case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
-               case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
-               case _ => strats.dropRight(4)
-            }
-         }
-      } yield {
-         val sl = s.limpa + l.limpa
-         val topCount = flat.count(x => x._1 + x._2 == sl)
-         val botCount = flat2.count(x => x._1 + x._2 == sl)
-         (sl, topCount, botCount)
-      }
+      //      val algs2 = for {
+      //         l <- ls
+      //         s <- {
+      //            val strats = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+      //            l match {
+      //               case _: SVMLibRBF => strats.dropRight(2)
+      //               case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
+      //               case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
+      //               case _ => strats.dropRight(4)
+      //            }
+      //         }
+      //      } yield {
+      //         val sl = s.limpa + l.limpa
+      //         val topCount = flat.count(x => x == sl)
+      //         val botCount = flat2.count(x => x._1 + x._2 == sl)
+      //         (sl, topCount, botCount)
+      //      }
       println(algs1.map(_._2).sum + " total de vencedores")
       println(algs1.map(_._3).sum + " total de perdedores")
       algs1.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
          println(s"${st.padTo(10, ' ')}:\t$topCount\taparições entre os $n primeiros;\t\t$botCount\taparições entre os $n últimos")
       }
-      println(s"------------------------------")
-      println(s"")
-      println(s"")
-      println(s"")
-      println(algs2.map(_._2).sum + " total de 1fst places")
-      println(algs2.map(_._3).sum + " total de last places")
-      algs2.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
-         println(s"${st.padTo(10, ' ')}:\t$topCount\t1st places;\t\t$botCount\tlast places")
-      }
-      println(s"------------------------------")
-      println(s"")
-      println(s"")
-      println(s"")
+      //      println(s"------------------------------")
+      //      println(s"")
+      //      println(s"")
+      //      println(s"")
+      //      println(algs2.map(_._2).sum + " total de 1fst places")
+      //      println(algs2.map(_._3).sum + " total de last places")
+      //      algs2.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
+      //         println(s"${st.padTo(10, ' ')}:\t$topCount\t1st places;\t\t$botCount\tlast places")
+      //      }
+      //      println(s"------------------------------")
+      //      println(s"")
+      //      println(s"")
+      //      println(s"")
 
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50

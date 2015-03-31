@@ -17,13 +17,11 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.classifiers
 
-import al.strategies.Passive
-import clean.lib.{Global, Kappa, Ds}
+import clean.lib.Ds
 import ml.Pattern
 import ml.models.Model
-import util.Stat
 
-case class BestLearner(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
+case class BestClassif(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
    override lazy val toString = s"BestLearner: $ds"
    lazy val id = learner.id
    lazy val abr: String = learner.abr

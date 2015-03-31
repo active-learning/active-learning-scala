@@ -24,34 +24,33 @@ import ml.Pattern
 import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
-   def stratsPool(learner: Learner, poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq()) = Seq(
-      DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
-      , DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
-      , HTUFixo(poolForLearner, learner, pool, "manh")
-      , HTUFixo(poolForLearner, learner, pool, "eucl")
+   def stratsPool(poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq()) = Seq(
+      (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
+      , (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
+      , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "manh")
+      , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "eucl")
 
-      , Margin(learner, poolForLearner)
-      , ExpErrorReductionMargin(learner, poolForLearner, "entropy")
-      , SGmulti(learner, poolForLearner, "consensus")
-      //      , MarginFixo(learner, poolForLearner)
-      //      , ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy")
-      //      , SGmultiFixo(learner, poolForLearner, "consensus")
+      //essas strats não mudaram (tipo filtro na manh etc)
+      //elas não precisam ser Fixo porque todas agora são tratadas como agnósticas
+      , (learner: Learner) => Margin(learner, poolForLearner)
+      , (learner: Learner) => ExpErrorReductionMargin(learner, poolForLearner, "entropy")
+      , (learner: Learner) => SGmulti(learner, poolForLearner, "consensus")
 
-      , RandomSampling(pool) //0
-      , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "manh") //701
-      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
-      , DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
+      , (learner: Learner) => RandomSampling(pool) //0
+      , (learner: Learner) => ClusterBased(pool) //1
+      , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "manh") //701
+      , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
+      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
    )
 
-   def stratsFpool(learner: Learner, poolForLearner: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq()) = Seq(
-      DensityWeightedTrainingUtilityFixo(poolForLearner, learner, fpool, "maha")
-      , HTUFixo(poolForLearner, learner, fpool, "maha")
-      , AgDensityWeightedTrainingUtility(fpool, "maha")
-      , SVMmultiRBF(fpool, "BALANCED_EEw")
-      , SVMmultiRBF(fpool, "SIMPLEw")
-      , DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
+   def stratsFpool(poolForLearner: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq()) = Seq(
+      (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, fpool, "maha")
+      , (learner: Learner) => HTUFixo(poolForLearner, learner, fpool, "maha")
+      , (learner: Learner) => AgDensityWeightedTrainingUtility(fpool, "maha")
+      , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw")
+      , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw")
+      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
    )
 
    def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)
