@@ -43,8 +43,8 @@ trait Measure extends CM with Blob {
       s match {
          case Passive(s.pool, false) =>
             ds.write(s"insert into p values (NULL, ${s.id}, ${l.id}, $r, $f)")
-            ds.poolId(s, l, r, f).getOrElse(error(s"Could not create pid for ${(s, l, r, f)}."))
-         case _ => throw new Error(s"No pid for ${(s, l, r, f)}.")
+            ds.poolId(s, l, r, f).getOrElse(throw new Exception(s"Could not create pid for ${(s, l, r, f)}."))
+         case _ => throw new Exception(s"No pid for ${(s, l, r, f)}.")
       }
    }
 
@@ -65,7 +65,7 @@ trait Measure extends CM with Blob {
          if (cm != null) ds.write(s"insert into r values ($id, $pid, ${instantFun(cm)})")
          else value match {
             case Some(v) => ds.write(s"insert into r values ($id, $pid, $v)")
-            case None => ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
+            case None => throw new Exception(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
          }
       }
    }
@@ -74,42 +74,15 @@ trait Measure extends CM with Blob {
       if (!existia) {
          if (cm != null) s"insert into r values ($id, $pid, ${instantFun(cm)})"
          else value match {
-            case Some(v) =>
-               try {
-                  s"insert into r values ($id, $pid, $v)"
-               } catch {
-                  case exp: Exception => ds.log(exp.getMessage, 30); "select 1"
-               }
-            case None =>
-               ds.log(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
-               "select 1"
+            case Some(v) => s"insert into r values ($id, $pid, $v)"
+            case None => throw new Exception(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
          }
       } else {
          ds.log(s"Pool $r.$f já existia para a medida $this.", 10)
-         "select 7"
+         "select 1"
       }
    }
-
-   //   protected def qs2hs(qs: Int) = qs - ds.nclasses + 1
-   //
-   //   protected def t2qs(t: Int) = t + 1
-   //
-   //   protected def t2hs(t: Int) = qs2hs(t2qs(t))
-   //
-   //   protected def t2hi(t: Int) = t - ds.nclasses
 }
-
-//object InstantMeasure {
-//   def apply() = 0
-//
-//   def unapply() = 0
-//}
-//
-//object RangeMeasure {
-//   def apply() = 0
-//
-//   def unapply() = 0
-//}
 
 sealed trait InstantMeasure extends Measure {
    val t: Int

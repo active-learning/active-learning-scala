@@ -25,7 +25,7 @@ import ml.models.Model
 case class MarginFixo(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyWithLearner with MarginMeasure {
    override val toString = "Margin" + learner.limpa
-   val abr = "Mar" + learner.limpa
+   val abr = "Mar"
    lazy val id = 3000000 + convlid(learner.id)
    override lazy val old = 3
 

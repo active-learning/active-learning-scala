@@ -26,7 +26,7 @@ import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 case class HTUFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends StrategyWithLearnerAndMaps with MarginMeasure with EntropyMeasure {
    override lazy val toString = "HTU" + learner.limpa + " a" + alpha + " b" + beta + " (" + distance_name + ")"
-   lazy val abr = "\\textbf{HTU" + learner.limpa + distance_name.take(3) + "}"
+   lazy val abr = "\\textbf{HTU" + distance_name.take(3) + "}"
 
    //+ beta
    lazy val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {

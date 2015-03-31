@@ -25,7 +25,7 @@ import ml.models.Model
 case class SGmultiFixo(learner: Learner, pool: Seq[Pattern], agreement: String, debug: Boolean = false)
    extends StrategySGmulti {
    override val toString = "SGmulti (" + learner.limpa + agreement + ")"
-   val abr = "\\textbf{SGmulti}" + learner.limpa
+   val abr = "\\textbf{SGmulti}"
    // + agreement.head + "}"
    //+ agreement.take(3)
    lazy val id = agreement match {
