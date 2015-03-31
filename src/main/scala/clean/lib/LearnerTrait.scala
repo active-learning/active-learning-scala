@@ -42,6 +42,22 @@ trait LearnerTrait {
       , SVMLibRBF(learnerSeed)
    )
 
+   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
+      KNNBatcha(5, "eucl", pool, weighted = true) //2
+      , C45() //3
+      //      , RF(learnerSeed) //773
+      , NBBatch() //12
+      //      , VFDT() //4
+   )
+
+   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
+      CIELMBatch(learnerSeed) //8001
+      //      , NinteraELM(learnerSeed) //11
+      ////      , LogReg(learnerSeed) //556665
+      //      , SVMLibDegree1(learnerSeed)//165111
+      ////      , SVMLibRBF(learnerSeed)
+   )
+
    def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
       case "nbb" => NBBatch()
       case "5nna" => KNNBatcha(5, "eucl", pool, weighted = true)
