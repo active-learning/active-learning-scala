@@ -21,7 +21,7 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{BestLearnerCV, NoLearner, BestLearner}
+import ml.classifiers.{BestClassif, BestClassifCV, NoLearner}
 import weka.filters.Filter
 
 object acv extends Exp with LearnerTrait with StratsTrait {
@@ -39,9 +39,10 @@ object acv extends Exp with LearnerTrait with StratsTrait {
       } else {
          ds.startbeat(run, fold)
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
+         val best = BestClassif(ds, learnerSeed, pool)
 
          learnersPool(pool, learnerSeed) foreach { learner =>
-            stratsPool(learner, pool, pool) foreach { strat =>
+            stratsPool(pool, pool).map(_(learner)) foreach { strat =>
                ds.log(s"$learner $strat ...")
 
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -50,7 +51,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(strat, run, fold, maxQueries(ds))
                val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
-               Seq(BestLearnerCV(ds, run, fold, strat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestClassifCV(ds, run, fold, strat, queries, fqueries, learnerSeed, pool), best, learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
@@ -63,7 +64,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                }
             }
 
-            stratsFpool(learner, pool, fpool) foreach { fstrat =>
+            stratsFpool(pool, fpool).map(_(learner)) foreach { fstrat =>
                ds.log(s"$learner $fstrat ...")
 
                val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
@@ -72,7 +73,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
                val queries = ds.queries(fstrat, run, fold, null, null)
 
-               Seq(BestLearnerCV(ds, run, fold, fstrat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestClassifCV(ds, run, fold, fstrat, queries, fqueries, learnerSeed, pool), best, learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
@@ -87,7 +88,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
          }
 
          learnersFpool(learnerSeed) foreach { learner =>
-            stratsPool(learner, fpool, pool) foreach { strat =>
+            stratsPool(fpool, pool).map(_(learner)) foreach { strat =>
                ds.log(s"$learner $strat ...")
 
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -96,7 +97,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(strat, run, fold, maxQueries(ds))
                val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
-               Seq(BestLearnerCV(ds, run, fold, strat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestClassifCV(ds, run, fold, strat, queries, fqueries, learnerSeed, pool), best, learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
@@ -109,7 +110,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                }
             }
 
-            stratsFpool(learner, fpool, fpool) foreach { fstrat =>
+            stratsFpool(fpool, fpool).map(_(learner)) foreach { fstrat =>
                ds.log(s"$learner $fstrat ...")
 
                val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
@@ -118,7 +119,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
                val queries = ds.queries(fstrat, run, fold, null, null)
 
-               Seq(BestLearnerCV(ds, run, fold, fstrat, queries, fqueries, learnerSeed, pool), learner) foreach { classif =>
+               Seq(BestClassifCV(ds, run, fold, fstrat, queries, fqueries, learnerSeed, pool), best, learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
@@ -136,13 +137,13 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (!outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("acv2" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("acv3" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv2" + (stratsFpool(NoLearner()) ++ stratsPool(NoLearner()) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv3" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }
