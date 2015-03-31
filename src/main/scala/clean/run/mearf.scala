@@ -97,8 +97,12 @@ object mearf extends Exp with LearnerTrait with StratsTrait with Lock with CM wi
          ds.log(fila.mkString("\n"), 10)
          if (fila.exists(_.startsWith("insert"))) {
             val sqls = fila.toList.distinct.filter(_.startsWith("insert"))
-            sqls foreach println
-            ds.batchWrite(sqls)
+            try {
+               ds.batchWrite(sqls)
+            } catch {
+               case e: Throwable => sqls.sorted foreach println
+                  justQuit("batchWrite:" + e.getMessage)
+            }
          }
          fila.clear()
       }
