@@ -25,32 +25,41 @@ import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
    def stratsPool(poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq()) = Seq(
+      //essas ganharam ids por par s/l porque suas medidas de distancia foram afetadas por filtros
       (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
       , (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
       , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "manh")
       , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "eucl")
+      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
+      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
 
-      //essas strats não mudaram (tipo filtro na manh etc)
-      //elas não precisam ser Fixo porque todas agora são tratadas como agnósticas
+      //essas não precisam ser Fixo porque não são afetadas pelo filtro do learner (e todas agora são tratadas como agnósticas)
       , (learner: Learner) => Margin(learner, poolForLearner)
       , (learner: Learner) => ExpErrorReductionMargin(learner, poolForLearner, "entropy")
       , (learner: Learner) => SGmulti(learner, poolForLearner, "consensus")
 
+      //essas naturalmente não usaram filtro e cada 'learner' decidiu sozinho se usava filtro ou não (all.scala mostra que hits foi feito c/s filtro de acordo com classif)
+      //(svm.scala força filtro nas strats, porém, por serem agnósticas, as queries já foram geradas corretamente antes pelo all.scala ou rf.scala
       , (learner: Learner) => RandomSampling(pool) //0
       , (learner: Learner) => ClusterBased(pool) //1
       , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "manh") //701
       , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "eucl") //601
-      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
-      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
    )
 
    def stratsFpool(poolForLearner: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq()) = Seq(
+      //essas ganharam ids por par s/l porque medem distancia filtradas e afetaram seus learners (e precisavam ser reimplementadas para receber pools independentes)
       (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, fpool, "maha")
       , (learner: Learner) => HTUFixo(poolForLearner, learner, fpool, "maha")
+      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
+
+      //essa strat pede filtro, então forçou filtro no classif (que era chamado de learner)
+      //mudei id de 991 pra 591
       , (learner: Learner) => AgDensityWeightedTrainingUtility(fpool, "maha")
+
+      //só passou a aceitar classif diferente de learner no acv.scala. não devo mais rodar os antigos
+      //mesmo porque já estavam terminados e o acv.scala contempla o caso classif = learner
       , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw")
       , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw")
-      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
    )
 
    def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)
