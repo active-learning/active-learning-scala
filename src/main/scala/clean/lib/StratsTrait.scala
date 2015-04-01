@@ -36,6 +36,7 @@ trait StratsTrait {
       //essas não precisam ser Fixo porque não são afetadas pelo filtro do learner (e todas agora são tratadas como agnósticas)
       , (learner: Learner) => Margin(learner, poolForLearner)
       , (learner: Learner) => ExpErrorReductionMargin(learner, poolForLearner, "entropy")
+      , (learner: Learner) => ExpErrorReductionMargin(learner, poolForLearner, "balacc")
       , (learner: Learner) => SGmulti(learner, poolForLearner, "consensus")
 
       //essas naturalmente não usaram filtro e cada 'learner' decidiu sozinho se usava filtro ou não (all.scala mostra que hits foi feito c/s filtro de acordo com classif)
