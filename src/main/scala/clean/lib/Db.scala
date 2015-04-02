@@ -128,7 +128,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
             resultSet.close()
             statement.close()
             val idPast = queue.head._3
-            idPast != id
+            val res = idPast != id
+            if (res) log(s"Passaram na frente: $idPast", 30)
+            res
          }
       } catch {
          case e: Throwable => //e.printStackTrace()

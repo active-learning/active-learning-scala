@@ -79,14 +79,14 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
 
    def datasetFinished(ds: Ds) = {
       if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("amea10" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("amea11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
       acabou = true
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea10" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }
