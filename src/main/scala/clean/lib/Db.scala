@@ -20,7 +20,7 @@ package clean.lib
 
 import java.io.File
 import java.sql.{Connection, DriverManager, Statement, Timestamp}
-import java.util.{Calendar, UUID}
+import java.util.{Random, Calendar, UUID}
 
 
 /**
@@ -33,6 +33,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    val connectionWait_ms = 60000
    var alive = Array.fill(Global.runs)(Array.fill(Global.folds)(false))
    val id = new File("/proc/self").getCanonicalFile.getName + java.net.InetAddress.getLocalHost.getHostName + System.currentTimeMillis() + UUID.randomUUID().toString
+   val rnd = new Random(id.map(_.toByte).sum)
 
    def open() {
       try {
@@ -103,8 +104,32 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          val past = toDate(queue.head._4)
          val idPast = queue.head._3
          val elapsedSeconds = (now.getTime - past.getTime) / 1000d
-         if (idPast != id && elapsedSeconds < lifetimeSeconds) log(s"meu:$id outro:$idPast\n lifetime:$elapsedSeconds r=$r and f=$f", 30)
-         idPast != id && elapsedSeconds < lifetimeSeconds
+         val ocupado = idPast != id && elapsedSeconds < lifetimeSeconds
+         if (ocupado) {
+            log(s"meu:$id outro:$idPast\n lifetime:$elapsedSeconds r=$r and f=$f", 30)
+            true
+         } else {
+            //marca e espera pra ver se tem alguém concorrendo
+            heartbeat(r, f)
+            Thread.sleep(rnd.nextInt(1000))
+            Thread.sleep(rnd.nextInt(1000))
+            val statement = connection.createStatement()
+            val resultSet = statement.executeQuery(sql)
+            val rsmd = resultSet.getMetaData
+            val numColumns = rsmd.getColumnCount
+            val columnsType = new Array[Int](numColumns + 1)
+            columnsType(0) = 0
+            1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
+            val queue = collection.mutable.Queue[(Int, Int, String, Timestamp)]()
+            while (resultSet.next()) {
+               val tup = (resultSet.getInt(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getTimestamp(4))
+               queue.enqueue(tup)
+            }
+            resultSet.close()
+            statement.close()
+            val idPast = queue.head._3
+            idPast != id
+         }
       } catch {
          case e: Throwable => //e.printStackTrace()
             log(s"\nProblems executing SQL query '$sql': ${e.getMessage} .\nTrying againg in 60s.\n", 30)
