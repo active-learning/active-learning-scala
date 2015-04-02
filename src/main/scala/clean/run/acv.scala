@@ -78,7 +78,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                         b.write(ds, CM)
                      }
                   } catch {
-                     case e: NoPidForNonPassive => log(e.getMessage)
+                     case e: NoPidForNonPassive => log(e.getMessage, 30)
                         acabou = false
                   }
                }
@@ -119,7 +119,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                         b.write(ds, CM)
                      }
                   } catch {
-                     case e: NoPidForNonPassive => log(e.getMessage)
+                     case e: NoPidForNonPassive => log(e.getMessage, 30)
                         acabou = false
                   }
                }
@@ -162,7 +162,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                         b.write(ds, CM)
                      }
                   } catch {
-                     case e: NoPidForNonPassive => log(e.getMessage)
+                     case e: NoPidForNonPassive => log(e.getMessage, 30)
                         acabou = false
                   }
                }
@@ -203,7 +203,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                         b.write(ds, CM)
                      }
                   } catch {
-                     case e: NoPidForNonPassive => log(e.getMessage)
+                     case e: NoPidForNonPassive => log(e.getMessage, 30)
                         acabou = false
                   }
                }
