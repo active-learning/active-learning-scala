@@ -24,6 +24,15 @@ import ml.Pattern
 import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
+   /*
+   % procedimento pra transformar strat em Fixo
+   % copy
+   % tostr
+   % abr+learner
+   % muda id e +convlid
+   % põe no strats
+   % põe id na lista
+    */
    def stratsPool(poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq()) = Seq(
       //essas ganharam ids por par s/l porque suas medidas de distancia foram afetadas por filtros
       (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
@@ -33,11 +42,12 @@ trait StratsTrait {
       , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
       , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
 
-      //essas não precisam ser Fixo porque não são afetadas pelo filtro do learner (e todas agora são tratadas como agnósticas)
-      , (learner: Learner) => Margin(learner, poolForLearner)
-      , (learner: Learner) => ExpErrorReductionMargin(learner, poolForLearner, "entropy")
-      , (learner: Learner) => ExpErrorReductionMargin(learner, poolForLearner, "balacc")
-      , (learner: Learner) => SGmulti(learner, poolForLearner, "consensus")
+      //essas precisam ser Fixo porque os hits ficam sem vinculo com o learner gerador das queries (por isso dava duplicated key)
+      //copiei as qs e os hs porque todos já estavam gerados desde antigamente
+      , (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
+      , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy") //pid:200000 ... 200050; sid:11000000 ... 11000050
+      , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "balacc") //pid:300000 ... 300050; sid:74000000 ... 74000050
+      , (learner: Learner) => SGmultiFixo(learner, poolForLearner, "consensus") //pid:400000 ... 400050; sid:14000000 ... 14000050
 
       //essas naturalmente não usaram filtro e cada 'learner' decidiu sozinho se usava filtro ou não (all.scala mostra que hits foi feito c/s filtro de acordo com classif)
       //(svm.scala força filtro nas strats, porém, por serem agnósticas, as queries já foram geradas corretamente antes pelo all.scala ou rf.scala
@@ -54,11 +64,10 @@ trait StratsTrait {
       , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
 
       //essa strat pede filtro, então forçou filtro no classif (que era chamado de learner)
-      //mudei id de 991 pra 591
+      //apaguei somente learners que não querem filtro no mysql: id voltou pra 991
       , (learner: Learner) => AgDensityWeightedTrainingUtility(fpool, "maha")
 
-      //só passou a aceitar classif diferente de learner no acv.scala. não devo mais rodar os antigos
-      //mesmo porque já estavam terminados e o acv.scala contempla o caso classif = learner
+      //apaguei todos os hits de classifs diferentes de svmrbf.
       , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw")
       , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw")
    )

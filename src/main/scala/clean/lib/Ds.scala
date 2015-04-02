@@ -36,7 +36,7 @@ import scala.util.Random
  * Cada instancia desta classe representa um ML dataset.
  */
 case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM with EntropyMeasure with FilterTrait with LearnerTrait {
-   lazy val bestLearnerId = {
+   lazy val bestPassiveLearnerId = {
       lazy val learners = Seq(
          KNNBatcha(5, "eucl", Seq(), weighted = true)
          , C45()

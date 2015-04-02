@@ -30,7 +30,7 @@ case class SGmultiFixo(learner: Learner, pool: Seq[Pattern], agreement: String, 
    //+ agreement.take(3)
    lazy val id = agreement match {
       case "consensus" => 14000000 + convlid(learner.id)
-      case "majority" => 15000000 + convlid(learner.id)
+      //      case "majority" => 15000000 + convlid(learner.id)
    }
    override lazy val old = id / 1000000
 

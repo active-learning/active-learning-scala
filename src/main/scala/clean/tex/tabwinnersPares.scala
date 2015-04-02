@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
-import ml.classifiers.{BestClassif, BestClassifCVReadOnly}
+import ml.classifiers.BestClassifCVReadOnly
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {

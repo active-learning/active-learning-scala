@@ -41,8 +41,8 @@ case class ExpErrorReductionMarginFixo(learner: Learner, pool: Seq[Pattern], cri
    val abr = "EER" + (if (criterion == "balacc") "acu" else criterion.take(3))
    lazy val id = if (sample == 100 || sample == 2) criterionInt match {
       case Ventropy => 11000000 + convlid(learner.id)
-      case Vaccuracy => 12000000 + convlid(learner.id)
-      case VgmeansResidual => 13000000 + convlid(learner.id)
+      //      case Vaccuracy => 12000000 + convlid(learner.id)
+      //      case VgmeansResidual => 13000000 + convlid(learner.id)
       case Balacc => 74000000 + convlid(learner.id)
    } else throw new Error(s"Parametros inesperados para EERMargin: sample:$sample")
    override lazy val old = id / 1000000

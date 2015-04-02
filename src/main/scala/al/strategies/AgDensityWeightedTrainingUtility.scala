@@ -19,7 +19,6 @@
 package al.strategies
 
 import ml.Pattern
-import ml.classifiers.Learner
 
 case class AgDensityWeightedTrainingUtility(pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false)
    extends AgStrategyMaps with MarginMeasure {
@@ -29,7 +28,7 @@ case class AgDensityWeightedTrainingUtility(pool: Seq[Pattern], distance_name: S
    lazy val id = if (alpha == 1 && beta == 1 || alpha == 0.5 && beta == 0.5) distance_name match {
       case "eucl" => 691 + (100 * (1 - alpha)).toInt
       case "cheb" => 891 + (100 * (1 - alpha)).toInt
-      case "maha" => 591 + (100 * (1 - alpha)).toInt
+      case "maha" => 991 + (100 * (1 - alpha)).toInt
       case "manh" => 791 + (100 * (1 - alpha)).toInt
    } else throw new Error("Parametros inesperados para DWAgTU.")
 

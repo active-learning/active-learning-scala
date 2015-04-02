@@ -21,7 +21,7 @@ import clean.lib.Ds
 import ml.Pattern
 import ml.models.Model
 
-case class BestClassif(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
+case class BestPassiveClassif(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
    override lazy val toString = s"BestLearner: $ds"
    lazy val id = learner.id
    lazy val abr: String = learner.abr
@@ -35,7 +35,7 @@ case class BestClassif(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
       , CIELMBatch(seed)
       , SVMLibRBF(seed)
    )
-   lazy val bestLearnerId = ds.bestLearnerId
+   lazy val bestLearnerId = ds.bestPassiveLearnerId
    lazy val learner = learners.find(_.id == bestLearnerId).get
    override lazy val querFiltro = qf(learner)
 

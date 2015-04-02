@@ -50,11 +50,12 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
       } else {
          ds.startbeat(run, fold)
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
-         val best = BestClassif(ds, 42, Seq())
+         //         val best = BestPassiveClassif(ds, 42, Seq())
          for {
             learner <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
             s <- stratsPool(pool, pool).map(_(learner)) ++ stratsFpool(pool, fpool).map(_(learner))
-            classif <- Seq(BestClassifCVReadOnly(ds, run, fold, s), best, learner)
+            classif <- Seq(learner)
+         //            classif <- Seq(BestClassifCVReadOnly(ds, run, fold, s), best, learner)
          } yield {
             lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
             for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
@@ -78,14 +79,14 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
 
    def datasetFinished(ds: Ds) = {
       if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("amea7" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("amea10" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
       acabou = true
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea7" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("amea10" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }
