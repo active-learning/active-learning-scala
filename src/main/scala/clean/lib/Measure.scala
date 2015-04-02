@@ -32,6 +32,7 @@ trait Measure extends CM with Blob {
    val r: Int
    val f: Int
    val value: Option[Double]
+   val forcePid: Boolean
    val context = "MeaTrait"
    protected val instantFun: (Array[Array[Int]]) => Double
    lazy val existia = {
@@ -42,12 +43,10 @@ trait Measure extends CM with Blob {
    lazy val pid = ds.poolId(s, l, r, f).getOrElse {
       if (ds.readOnly) throw new Exception(s"readOnly: Could not create pid for ${(s, l, r, f)}.")
       ds.log(s"Tentando criar pool ${(s, l, r, f)}", 30)
-      s match {
-         case Passive(s.pool, false) =>
-            ds.write(s"insert into p values (NULL, ${s.id}, ${l.id}, $r, $f)")
-            ds.poolId(s, l, r, f).getOrElse(throw new Exception(s"Could not create pid for ${(s, l, r, f)}."))
-         case _ => throw new NoPidForNonPassive(s"No pid for ${(s, l, r, f)}.")
-      }
+      if (s.id == 22 || forcePid) {
+         ds.write(s"insert into p values (NULL, ${s.id}, ${l.id}, $r, $f)")
+         ds.poolId(s, l, r, f).getOrElse(throw new Exception(s"Could not create pid for ${(s, l, r, f)}."))
+      } else throw new NoPidForNonPassive(s"No pid for ${(s, l, r, f)}.")
    }
 
    def readAll(ds: Ds) = ds.read(s"select v from r where m div 100000000=${id / 100000000} and p=$pid order by m") match {
@@ -88,6 +87,7 @@ trait Measure extends CM with Blob {
 
 sealed trait InstantMeasure extends Measure {
    val t: Int
+   val forcePid: Boolean
    protected lazy val cms = {
       if (t < ds.nclasses - 1 || t >= ds.expectedPoolSizes(Global.folds).min)
          ds.error(s"t $t fora dos limites t:[${ds.nclasses};${ds.expectedPoolSizes(Global.folds).min}]")
@@ -100,6 +100,7 @@ sealed trait InstantMeasure extends Measure {
 }
 
 sealed trait RangeMeasure extends Measure {
+   val forcePid = false
    val ti: Int
    val tf: Int
    protected val rangeFun: (Seq[Array[Array[Int]]]) => (Array[Array[Int]] => Double) => Double
@@ -112,14 +113,14 @@ sealed trait RangeMeasure extends Measure {
    lazy val value = if (cms.size != tf - ti + 1) None else Some(calc(instantFun))
 }
 
-case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
+case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, forcePid: Boolean = false)(val t: Int)
    extends InstantMeasure {
    override val toString = "acurácia balanceada"
    val id = 100000000 + t * 10000
    protected val instantFun = accBal _
 }
 
-case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t: Int)
+case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, forcePid: Boolean = false)(val t: Int)
    extends InstantMeasure {
    override val toString = "kappa"
    val id = 200000000 + t * 10000
