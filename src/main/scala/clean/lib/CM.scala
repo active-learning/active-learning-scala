@@ -90,7 +90,7 @@ trait CM extends Log {
    def accPorClasse(m: Array[Array[Int]]) = {
       m.zipWithIndex map { case (li, idx) =>
          val s = li.sum.toDouble
-         if (s == 0) justQuit("accPorClasse: Pelo menos uma classe não aparece no conjunto de teste!")
+         if (s == 0) error("accPorClasse: Pelo menos uma classe não aparece no conjunto de teste!")
          li(idx) / s
       }
    }

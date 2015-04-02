@@ -47,7 +47,7 @@ case class BestClassifCV100(ds: Ds, r: Int, f: Int, s: Strategy, queries: Seq[Pa
    lazy val classif = learners.maxBy { l =>
       val qs = if (qf(l)) fqueries.toVector else queries.toVector
       Datasets.kfoldCV(qs, 5) { (tr, ts, foldnr, minsize) =>
-         accBal(l.build(tr).confusion(ts))
+         kappa(l.build(tr).confusion(ts)) //não pode ser accBal porque pode não haver um exemplo por classe
       }.sum
    }
    override lazy val querFiltro = qf(classif)
