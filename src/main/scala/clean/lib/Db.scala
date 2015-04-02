@@ -111,8 +111,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
          } else {
             //marca e espera pra ver se tem alguém concorrendo
             heartbeat(r, f)
-            Thread.sleep(rnd.nextInt(1000))
-            Thread.sleep(rnd.nextInt(1000))
+            Thread.sleep(rnd.nextInt(3000))
             val statement = connection.createStatement()
             val resultSet = statement.executeQuery(sql)
             val rsmd = resultSet.getMetaData
@@ -129,8 +128,56 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
             statement.close()
             val idPast = queue.head._3
             val res = idPast != id
-            if (res) log(s"Passaram na frente: $idPast", 30)
-            res
+            if (res) {
+               log(s"Passaram na frente: $idPast", 30)
+               true
+            } else {
+               //marca e espera pra ver se tem alguém concorrendo
+               heartbeat(r, f)
+               Thread.sleep(rnd.nextInt(3000))
+               val statement = connection.createStatement()
+               val resultSet = statement.executeQuery(sql)
+               val rsmd = resultSet.getMetaData
+               val numColumns = rsmd.getColumnCount
+               val columnsType = new Array[Int](numColumns + 1)
+               columnsType(0) = 0
+               1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
+               val queue = collection.mutable.Queue[(Int, Int, String, Timestamp)]()
+               while (resultSet.next()) {
+                  val tup = (resultSet.getInt(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getTimestamp(4))
+                  queue.enqueue(tup)
+               }
+               resultSet.close()
+               statement.close()
+               val idPast = queue.head._3
+               val res = idPast != id
+               if (res) {
+                  log(s"Passaram na frente: $idPast", 30)
+                  true
+               } else {
+                  //marca e espera pra ver se tem alguém concorrendo
+                  heartbeat(r, f)
+                  Thread.sleep(rnd.nextInt(3000))
+                  val statement = connection.createStatement()
+                  val resultSet = statement.executeQuery(sql)
+                  val rsmd = resultSet.getMetaData
+                  val numColumns = rsmd.getColumnCount
+                  val columnsType = new Array[Int](numColumns + 1)
+                  columnsType(0) = 0
+                  1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
+                  val queue = collection.mutable.Queue[(Int, Int, String, Timestamp)]()
+                  while (resultSet.next()) {
+                     val tup = (resultSet.getInt(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getTimestamp(4))
+                     queue.enqueue(tup)
+                  }
+                  resultSet.close()
+                  statement.close()
+                  val idPast = queue.head._3
+                  val res = idPast != id
+                  if (res) log(s"Passaram na frente: $idPast", 30)
+                  res
+               }
+            }
          }
       } catch {
          case e: Throwable => //e.printStackTrace()
