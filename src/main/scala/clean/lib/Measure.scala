@@ -22,6 +22,8 @@ package clean.lib
 import al.strategies.{Passive, Strategy}
 import ml.classifiers.Learner
 
+class NoPidForNonPassive(str: String) extends Exception(str)
+
 trait Measure extends CM with Blob {
    val id: Int
    val ds: Ds
@@ -44,7 +46,7 @@ trait Measure extends CM with Blob {
          case Passive(s.pool, false) =>
             ds.write(s"insert into p values (NULL, ${s.id}, ${l.id}, $r, $f)")
             ds.poolId(s, l, r, f).getOrElse(throw new Exception(s"Could not create pid for ${(s, l, r, f)}."))
-         case _ => throw new Exception(s"No pid for ${(s, l, r, f)}.")
+         case _ => throw new NoPidForNonPassive(s"No pid for ${(s, l, r, f)}.")
       }
    }
 

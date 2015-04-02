@@ -29,6 +29,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
    val arguments = superArguments
    val ignoreNotDone = false
    var outroProcessoVaiTerminarEsteDataset = false
+   var acabou = true
    run()
 
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
@@ -69,11 +70,17 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   val classif = BestClassifCV100(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, strat, classif, run, fold)(-1)
                   val b = BalancedAcc(ds, strat, classif, run, fold)(-1)
-                  if (!k.existia || !b.existia) {
-                     val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-                     val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                     k.write(ds, CM)
-                     b.write(ds, CM)
+                  try {
+                     if (!k.existia || !b.existia) {
+                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+                        k.write(ds, CM)
+                        b.write(ds, CM)
+                     }
+                  } catch {
+                     case e: NoPidForNonPassive => log(e.getMessage)
+                        acabou = false
+                     case e => justQuit(e.getMessage)
                   }
                }
             }
@@ -105,11 +112,17 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   val classif = BestClassifCV100(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, fstrat, classif, run, fold)(-1)
                   val b = BalancedAcc(ds, fstrat, classif, run, fold)(-1)
-                  if (!k.existia || !b.existia) {
-                     val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-                     val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                     k.write(ds, CM)
-                     b.write(ds, CM)
+                  try {
+                     if (!k.existia || !b.existia) {
+                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+                        k.write(ds, CM)
+                        b.write(ds, CM)
+                     }
+                  } catch {
+                     case e: NoPidForNonPassive => log(e.getMessage)
+                        acabou = false
+                     case e => justQuit(e.getMessage)
                   }
                }
             }
@@ -143,11 +156,17 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   val classif = BestClassifCV100(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, strat, classif, run, fold)(-1)
                   val b = BalancedAcc(ds, strat, classif, run, fold)(-1)
-                  if (!k.existia || !b.existia) {
-                     val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-                     val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                     k.write(ds, CM)
-                     b.write(ds, CM)
+                  try {
+                     if (!k.existia || !b.existia) {
+                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+                        k.write(ds, CM)
+                        b.write(ds, CM)
+                     }
+                  } catch {
+                     case e: NoPidForNonPassive => log(e.getMessage)
+                        acabou = false
+                     case e => justQuit(e.getMessage)
                   }
                }
             }
@@ -179,11 +198,17 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   val classif = BestClassifCV100(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, fstrat, classif, run, fold)(-1)
                   val b = BalancedAcc(ds, fstrat, classif, run, fold)(-1)
-                  if (!k.existia || !b.existia) {
-                     val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-                     val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                     k.write(ds, CM)
-                     b.write(ds, CM)
+                  try {
+                     if (!k.existia || !b.existia) {
+                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+                        k.write(ds, CM)
+                        b.write(ds, CM)
+                     }
+                  } catch {
+                     case e: NoPidForNonPassive => log(e.getMessage)
+                        acabou = false
+                     case e => justQuit(e.getMessage)
                   }
                }
             }
@@ -192,11 +217,12 @@ object acv extends Exp with LearnerTrait with StratsTrait {
    }
 
    def datasetFinished(ds: Ds) = {
-      if (!outroProcessoVaiTerminarEsteDataset) {
+      if (acabou && !outroProcessoVaiTerminarEsteDataset) {
          ds.markAsFinishedRun("acv10" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
+      acabou = true
    }
 
    def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv10" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
