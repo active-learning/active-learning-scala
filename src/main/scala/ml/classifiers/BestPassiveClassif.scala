@@ -22,7 +22,7 @@ import ml.Pattern
 import ml.models.Model
 
 case class BestPassiveClassif(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Learner {
-   override lazy val toString = s"BestLearner: $ds"
+   override lazy val toString = s"BestLearner: $learner"
    lazy val id = learner.id
    lazy val abr: String = learner.abr
    lazy val attPref: String = learner.attPref

@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
-import ml.classifiers.BestClassifCVReadOnly
+import ml.classifiers.{BestClassifCV100ReadOnly, BestPassiveClassif, BestClassifCVReadOnly}
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
@@ -32,16 +32,22 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
    override def run() = {
       super.run()
       //            val measure = ALCBalancedAcc
-      val measure = ALCKappa
+      val measure = BalancedAcc
       val ls = learners(learnersStr)
       val sts = (for {l <- ls; s <- stratsPool().map(_(l)) ++ stratsFpool().map(_(l))} yield s).distinct
-      sts.map(_.limpa) foreach println
+      println(sts.map(_.limpa).mkString(" "))
       val datasetLearnerAndBoth = (for {
-         dataset <- datasets.toList.par
+         dataset <- datasets.toList.filter { dataset =>
+            val ds = Ds(dataset, readOnly = true)
+            ds.open()
+            val r = ds.poolSize >= 200
+            ds.close()
+            r
+         }.par
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         val (ti, th, tf, tpass) = ranges(ds)
+         lazy val (ti, th, tf, tpass) = ranges(ds)
          val sres = for {
             s <- sts
          } yield {
@@ -50,15 +56,16 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                f <- 0 until folds
             } yield {
                try {
-                  val classif = BestClassifCVReadOnly(ds, r, f, s)
-                  //                  val classif = BestClassif(ds, 42, Seq())
-                  measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
+                  //                  val classif = BestPassiveClassif(ds,42,Seq())
+                  //                  measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
+                  val classif = BestClassifCV100ReadOnly(ds, r, f, s)
+                  measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                      NA
                   }
                } catch {
                   case e: Throwable => println((ds, s, s.learner, r, f) + e.getMessage)
-                     NA
+                     sys.exit(0) //NA
                }
             }
             if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)

@@ -126,9 +126,9 @@ object acv extends Exp with LearnerTrait with StratsTrait {
             }
          }
 
-         learnersFpool(learnerSeed) foreach { learner =>
-            stratsPool(fpool, pool).map(_(learner)) foreach { strat =>
-               ds.log(s"$learner $strat ...")
+         learnersFpool(learnerSeed) foreach { flearner =>
+            stratsPool(fpool, pool).map(_(flearner)) foreach { strat =>
+               ds.log(s"$flearner $strat ...")
 
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
                   ds.log(s" Queries  done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
@@ -136,14 +136,14 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(strat, run, fold, maxQueries(ds))
                val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
-               Seq(learner) foreach { classif =>
+               Seq(flearner) foreach { classif =>
                   //               Seq(BestClassifCV(ds, run, fold, strat, queries, fqueries, learnerSeed, pool), best, learner) foreach { classif =>
                   if (classif.querFiltro) {
-                     ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
+                     ds.log(s"fHits [$flearner $strat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
                      else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
                   } else {
-                     ds.log(s"Hits [$learner $strat $classif] at pool $run.$fold.")
+                     ds.log(s"Hits [$flearner $strat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(pool.size, testSet, strat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
                      else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
                   }
@@ -168,8 +168,8 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                }
             }
 
-            stratsFpool(fpool, fpool).map(_(learner)) foreach { fstrat =>
-               ds.log(s"$learner $fstrat ...")
+            stratsFpool(fpool, fpool).map(_(flearner)) foreach { fstrat =>
+               ds.log(s"$flearner $fstrat ...")
 
                val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
                   ds.log(s"fQueries  done for ${fstrat.abr}/${fstrat.learner} at pool $run.$fold. Retrieving from disk.")
@@ -177,14 +177,14 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
                val queries = ds.queries(fstrat, run, fold, null, null)
 
-               Seq(learner) foreach { classif =>
+               Seq(flearner) foreach { classif =>
                   //               Seq(BestClassifCV(ds, run, fold, fstrat, queries, fqueries, learnerSeed, pool), best, learner) foreach { classif =>
                   if (classif.querFiltro) {
-                     ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
+                     ds.log(s"fHits [$flearner $fstrat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
                      else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
                   } else {
-                     ds.log(s"Hits [$learner $fstrat $classif] at pool $run.$fold.")
+                     ds.log(s"Hits [$flearner $fstrat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(pool.size, testSet, fstrat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
                      else ds.writeHits(pool.size, testSet, queries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
                   }

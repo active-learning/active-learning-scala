@@ -29,7 +29,7 @@ case class BestClassifCV100ReadOnly(ds: Ds, r: Int, f: Int, s: Strategy) extends
    lazy val boundaryType = classif.boundaryType
    lazy val id = ds.read(s"select c from classif100 where s=${s.id} and l=${s.learner.id} and r=$r and f=$f") match {
       case List(Vector(x)) => x.toInt
-      case x => throw new Exception(s"classif não encontrado: $x")
+      case x => throw new Exception(s"classif ${s.learner} não encontrado, retornou: $x")
    }
    lazy val classif = learners.find(_.id == id).get
    lazy val learners = Seq(
