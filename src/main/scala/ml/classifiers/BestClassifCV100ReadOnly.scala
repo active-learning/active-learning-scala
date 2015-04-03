@@ -23,7 +23,7 @@ import ml.Pattern
 import ml.models.Model
 
 case class BestClassifCV100ReadOnly(ds: Ds, r: Int, f: Int, s: Strategy) extends Learner {
-   override lazy val toString = s"BestClassifCV100ReadOnly: $classif"
+   override lazy val toString = s"${super.toString}: $classif"
    lazy val abr = classif.abr
    lazy val attPref = classif.attPref
    lazy val boundaryType = classif.boundaryType
