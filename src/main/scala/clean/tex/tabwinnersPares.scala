@@ -70,7 +70,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                }
             }).unzip
             println(s"")
-            if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)
+            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
          }
          if (sres.contains(None)) {
             ds.close()
