@@ -51,7 +51,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          val sres = for {
             s <- sts
          } yield {
-            val vs = for {
+            val (cs, vs) = (for {
                r <- 0 until runs
                f <- 0 until folds
             } yield {
@@ -60,7 +60,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                   //                  measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
                   val classif = BestClassifCV100ReadOnly(ds, r, f, s)
                   print(classif + " ")
-                  measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
+                  classif.limpa -> measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                      sys.exit(0) //NA
                   }
@@ -68,7 +68,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                   case e: Throwable => println((ds, s, s.learner, r, f) + e.getMessage)
                      sys.exit(0) //NA
                }
-            }
+            }).unzip
             println(s"")
             if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)
          }
