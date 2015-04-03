@@ -59,15 +59,17 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                   //                  val classif = BestPassiveClassif(ds,42,Seq())
                   //                  measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
                   val classif = BestClassifCV100ReadOnly(ds, r, f, s)
+                  print(classif + " ")
                   measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
-                     NA
+                     sys.exit(0) //NA
                   }
                } catch {
                   case e: Throwable => println((ds, s, s.learner, r, f) + e.getMessage)
                      sys.exit(0) //NA
                }
             }
+            println(s"")
             if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)
          }
          if (sres.contains(None)) {
