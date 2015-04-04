@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import clean.lib._
-import ml.classifiers.{BestClassifCV100ReadOnly, BestPassiveClassif, BestClassifCVReadOnly}
+import ml.classifiers.BestClassifCV100ReadOnly
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
@@ -40,7 +40,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          dataset <- datasets.toList.filter { dataset =>
             val ds = Ds(dataset, readOnly = true)
             ds.open()
-            val r = ds.poolSize >= 200
+            val r = ds.poolSize >= 209
             ds.close()
             r
          }.par
@@ -70,7 +70,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                }
             }).unzip
             println(s"")
-            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
+            //            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
+            if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)
          }
          if (sres.contains(None)) {
             ds.close()

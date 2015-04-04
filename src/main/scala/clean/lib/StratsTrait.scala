@@ -108,21 +108,24 @@ trait StratsTrait {
    )
 
    def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl") //7
-      , DensityWeightedTrainingUtility(learner, pool, "manh") //7
-      , SGmulti(learner, pool, "consensus") //14
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
-      , HTU(learner, pool, "eucl") //4003006
-      , HTU(learner, pool, "manh") //4003007
+      //      Entropy(learner, pool) //4
+      MarginFixo(learner, pool) //3
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "eucl") //5
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "manh") //5
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "eucl") //7
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "manh") //7
+
+      , SGmultiFixo(learner, pool, "consensus") //14
+      , ExpErrorReductionMarginFixo(learner, pool, "balacc") //74
+      , ExpErrorReductionMarginFixo(learner, pool, "entropy") //11
+      , HTUFixo(Seq(), learner, pool, "eucl") //4003006
+      , HTUFixo(Seq(), learner, pool, "manh") //4003007
    )
 
    def stratsComLearnerExterno_FilterDependent(pool: Seq[Pattern], learner: Learner) = List[Strategy](
-      DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , HTU(learner, pool, "maha") //4003009
+      DensityWeightedFixo(Seq(), learner, pool, 1, "maha") //9
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "maha") //9
+      , HTUFixo(Seq(), learner, pool, "maha") //4003009
    )
 
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,18 +141,20 @@ trait StratsTrait {
       , AgDensityWeightedTrainingUtility(pool, "eucl") //601
       , AgDensityWeightedTrainingUtility(pool, "manh") //701
       , AgDensityWeightedTrainingUtility(pool, "maha") //901
-      , HTU(learner, pool, "eucl") //4003006
-      , HTU(learner, pool, "manh") //4003007
-      , HTU(learner, pool, "maha") //4003009
-      , new SGmulti(learner, pool, "consensus") //14
-      , Entropy(learner, pool) //4
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl")
-      , DensityWeightedTrainingUtility(learner, pool, "manh")
-      , DensityWeightedTrainingUtility(learner, pool, "maha") //9
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , HTUFixo(Seq(), learner, pool, "eucl") //4003006
+      , HTUFixo(Seq(), learner, pool, "manh") //4003007
+      , HTUFixo(Seq(), learner, pool, "maha") //4003009
+      , new SGmultiFixo(learner, pool, "consensus") //14
+      //      , Entropy(learner, pool) //4
+      , MarginFixo(learner, pool) //3
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "eucl") //5
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "manh") //5
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "maha") //5
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "eucl")
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "manh")
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "maha") //9
+      , ExpErrorReductionMarginFixo(learner, pool, "balacc") //74
+      , ExpErrorReductionMarginFixo(learner, pool, "entropy") //11
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
@@ -160,20 +165,23 @@ trait StratsTrait {
    def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "eucl")
-      , AgDensityWeightedTrainingUtility(pool, "manh")
-      , AgDensityWeightedTrainingUtility(pool, "maha")
-      , HTU(learner, pool, "eucl")
-      , HTU(learner, pool, "manh")
-      , HTU(learner, pool, "maha")
-      , new SGmulti(learner, pool, "consensus") //14
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl")
-      , DensityWeightedTrainingUtility(learner, pool, "manh")
-      , DensityWeightedTrainingUtility(learner, pool, "maha")
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      , AgDensityWeightedTrainingUtility(pool, "manh") //701
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901
+      , HTUFixo(Seq(), learner, pool, "eucl") //4003006
+      , HTUFixo(Seq(), learner, pool, "manh") //4003007
+      , HTUFixo(Seq(), learner, pool, "maha") //4003009
+      , new SGmultiFixo(learner, pool, "consensus") //14
+      //      , Entropy(learner, pool) //4
+      , MarginFixo(learner, pool) //3
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "eucl") //5
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "manh") //5
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "maha") //5
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "eucl")
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "manh")
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "maha") //9
+      , ExpErrorReductionMarginFixo(learner, pool, "balacc") //74
+      , ExpErrorReductionMarginFixo(learner, pool, "entropy") //11
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
@@ -184,14 +192,15 @@ trait StratsTrait {
    def stratsForTreeReduxEuc(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "eucl")
-      , HTU(learner, pool, "eucl")
-      , new SGmulti(learner, pool, "consensus") //14
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "eucl")
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      , HTUFixo(Seq(), learner, pool, "eucl") //4003006
+      , new SGmultiFixo(learner, pool, "consensus") //14
+      //      , Entropy(learner, pool) //4
+      , MarginFixo(learner, pool) //3
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "eucl") //5
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "eucl")
+      , ExpErrorReductionMarginFixo(learner, pool, "balacc") //74
+      , ExpErrorReductionMarginFixo(learner, pool, "entropy") //11
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
@@ -202,14 +211,15 @@ trait StratsTrait {
    def stratsForTreeReduxMan(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "manh")
-      , HTU(learner, pool, "manh")
-      , new SGmulti(learner, pool, "consensus") //14
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "manh")
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , AgDensityWeightedTrainingUtility(pool, "manh") //701
+      , HTUFixo(Seq(), learner, pool, "manh") //4003009
+      , new SGmultiFixo(learner, pool, "consensus") //14
+      //      , Entropy(learner, pool) //4
+      , MarginFixo(learner, pool) //3
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "manh") //5
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "manh") //9
+      , ExpErrorReductionMarginFixo(learner, pool, "balacc") //74
+      , ExpErrorReductionMarginFixo(learner, pool, "entropy") //11
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
@@ -220,14 +230,15 @@ trait StratsTrait {
    def stratsForTreeReduxMah(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
       RandomSampling(pool) //0
       , ClusterBased(pool) //1
-      , AgDensityWeightedTrainingUtility(pool, "maha")
-      , HTU(learner, pool, "maha")
-      , new SGmulti(learner, pool, "consensus") //14
-      , Margin(learner, pool) //3
-      , DensityWeighted(learner, pool, 1, "eucl") //5
-      , DensityWeightedTrainingUtility(learner, pool, "maha")
-      , ExpErrorReductionMargin(learner, pool, "balacc") //74
-      , ExpErrorReductionMargin(learner, pool, "entropy") //11
+      , AgDensityWeightedTrainingUtility(pool, "maha") //901
+      , HTUFixo(Seq(), learner, pool, "maha") //4003009
+      , new SGmultiFixo(learner, pool, "consensus") //14
+      //      , Entropy(learner, pool) //4
+      , MarginFixo(learner, pool) //3
+      , DensityWeightedFixo(Seq(), learner, pool, 1, "maha") //5
+      , DensityWeightedTrainingUtilityFixo(Seq(), learner, pool, "maha") //9
+      , ExpErrorReductionMarginFixo(learner, pool, "balacc") //74
+      , ExpErrorReductionMarginFixo(learner, pool, "entropy") //11
 
       , SVMmultiRBF(pool, "BALANCED_EEw")
       , SVMmultiRBF(pool, "SIMPLEw")
