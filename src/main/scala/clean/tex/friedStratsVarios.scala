@@ -58,7 +58,12 @@ object friedStratsVarios extends AppWithUsage with LearnerTrait with StratsTrait
             case "50" => 49
          }
          val sres = for {
-            s <- strats
+            s <- if (redux) dist match {
+               case "euc" => stratsForTreeReduxEuc().take(6) ++ stratsForTreeReduxEuc().drop(7).take(1) ++ stratsForTreeReduxEuc().dropRight(4).takeRight(1)
+               case "man" => stratsForTreeReduxMan().take(6) ++ stratsForTreeReduxMan().drop(7).take(1) ++ stratsForTreeReduxMan().dropRight(4).takeRight(1)
+               case "mah" => stratsForTreeReduxMah(Seq(), le).take(6) ++ stratsForTreeReduxMah(Seq(), le).drop(7).take(1) ++ stratsForTreeReduxMah(Seq(), le).dropRight(4).takeRight(1)
+               case "all" => stratsForTreeRedux().dropRight(4)
+            } else stratsForTree().dropRight(4)
          } yield {
             val vs = for {
                r <- 0 until runs
