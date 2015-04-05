@@ -41,7 +41,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          dataset <- datasets.toList.par
          l <- ls
       } yield {
-         val strats0 = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+         val strats0 = stratsForTreeReduxMah(Seq(), l)
          val strats = l match {
             case _: SVMLibRBF => strats0.dropRight(2)
             case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)

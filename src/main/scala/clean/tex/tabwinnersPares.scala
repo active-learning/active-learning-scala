@@ -31,8 +31,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      //            val measure = ALCBalancedAcc
-      val measure = BalancedAcc
+      val measure = Kappa
+      //val measure = BalancedAcc
       val ls = learners(learnersStr)
       val sts = (for {l <- ls; s <- stratsPool().map(_(l)) ++ stratsFpool().map(_(l))} yield s).distinct
       println(sts.map(_.limpa).mkString(" "))
@@ -40,7 +40,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          dataset <- datasets.toList.filter { dataset =>
             val ds = Ds(dataset, readOnly = true)
             ds.open()
-            val r = ds.poolSize >= 209
+            val r = ds.poolSize >= 200
             ds.close()
             r
          }.par
