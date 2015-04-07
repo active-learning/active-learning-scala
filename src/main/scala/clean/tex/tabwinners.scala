@@ -38,7 +38,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val strats0 = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
 
       val datasetLearnerAndBoth = for {
-         dataset <- datasets.toList.par
+         dataset <- datasets.toList
          l <- ls
       } yield {
          val strats0 = stratsForTreeReduxMah(Seq(), l)
