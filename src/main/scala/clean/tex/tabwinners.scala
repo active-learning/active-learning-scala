@@ -29,7 +29,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
    //, "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
    val context = "tabwinnerstex"
    val n = 1
-   val dista = "man"
+   val dista = "euc"
    run()
 
    override def run() = {
