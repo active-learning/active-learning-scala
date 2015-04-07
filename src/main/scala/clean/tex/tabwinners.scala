@@ -36,7 +36,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val measure = ALCKappa
       val ls = learners(learnersStr)
       val datasetLearnerAndBoth = for {
-         dataset <- datasets.toList //.par
+         dataset <- datasets.toList.par
          l <- ls
       } yield {
          val sts = stratsPool() ++ (l match {
