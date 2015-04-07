@@ -78,6 +78,8 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       }
 
       val (datasetLearnerAndWinners, datasetLearnerAndLosers, pioresQueRnd) = datasetLearnerAndBoth.flatten.unzip3
+
+      println(datasetLearnerAndWinners)
       println(s"${datasetLearnerAndBoth.size} tests.")
       println(s"--------$measure---------------")
       //      datasetLearnerAndWinners foreach println
