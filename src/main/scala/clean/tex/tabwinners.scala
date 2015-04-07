@@ -29,6 +29,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
    //, "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
    val context = "tabwinnerstex"
    val n = 1
+   val dista = "man"
    run()
 
    override def run() = {
@@ -39,8 +40,8 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          dataset <- datasets.toList.par
          l <- ls
       } yield {
-         val sts = stratsPool("mah") ++ (l match {
-            case _: SVMLibRBF => stratsFpool()
+         val sts = stratsPool(dista) ++ (l match {
+            case _: SVMLibRBF => stratsFpool().dropRight(6)
             case _ => stratsFpool().dropRight(2)
             //            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
             //            case _: RF => strats0.dropRight(4) ++ strats0.takeRight(1)
@@ -85,7 +86,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
-      val algs = (for (s <- stratsPool("mah") ++ stratsFpool()) yield s(NoLearner()).limpa) map { st =>
+      val algs = (for (s <- stratsPool(dista) ++ stratsFpool()) yield s(NoLearner()).limpa) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          val rndCount = flat3.count(_ == st)

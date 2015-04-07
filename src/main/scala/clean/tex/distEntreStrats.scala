@@ -50,11 +50,12 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
                   measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                      println(s"incompleto para ${(ds, s, l, r, f)}!")
                      NA
-                     //                  ds.error(s"incompleto para ${(ds, s, l, r, f)}!")
+                     ds.error(s"incompleto para ${(ds, s, l, r, f)}!")
                   }
                } catch {
                   case _: Throwable => println(s"incompleto para ${(ds, s, l, r, f)}!")
                      NA
+                     ds.error(s"incompleto para ${(ds, s, l, r, f)}!")
                }
             //            println(s"$ds $vs")
             ds.close()
