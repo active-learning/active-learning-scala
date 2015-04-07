@@ -21,7 +21,7 @@ package clean.tex
 
 import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.{NinteraELM, RF, SVMLibRBF}
+import ml.classifiers.{NoLearner, NinteraELM, RF, SVMLibRBF}
 import util.Stat
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
@@ -84,7 +84,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
-      val algs = (for (l <- ls; s <- sts) yield s(l)) map (_.limpa) map { st =>
+      val algs = (for (s <- sts) yield s(NoLearner()).limpa) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          val rndCount = flat3.count(_ == st)
