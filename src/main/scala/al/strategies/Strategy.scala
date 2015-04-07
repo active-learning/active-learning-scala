@@ -43,8 +43,8 @@ trait Strategy extends Log with Limpa {
    lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
    lazy val old = id
 
-   lazy val abrev = abr + (learner match {
-      case NoLearner() => ""
+   lazy val abrev = abr + ((this, learner) match {
+      case (_, NoLearner()) | (_: SVMmultiRBF, _) => ""
       case _ => " " + learner.abr
    })
    lazy val igualdade = id -> learner.id
