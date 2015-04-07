@@ -41,8 +41,8 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          l <- ls
       } yield {
          val sts = stratsPool(dista) ++ (l match {
-            case _: SVMLibRBF => stratsFpool().dropRight(6)
-            case _ => stratsFpool().dropRight(2)
+            case _: SVMLibRBF => stratsFpool().drop(4)
+            case _ => stratsFpool().drop(4).dropRight(2)
             //            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
             //            case _: RF => strats0.dropRight(4) ++ strats0.takeRight(1)
             //            case _ => strats0.dropRight(4)
