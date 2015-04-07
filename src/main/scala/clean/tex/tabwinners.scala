@@ -60,7 +60,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                   f <- 0 until folds
                } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                      println((ds, s, l, r, f) + ": medida não encontrada")
-                     NA
+                     sys.exit(1)
                   }
                s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
             }
@@ -70,7 +70,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                ds.dataset + l.abr -> sres.filter(_._2 <= rnd).map(_._1))
          } catch {
             case e: Throwable => println(s"$e")
-               sys.exit(1) //None
+               sys.exit(1)
          } finally {
             ds.close()
          }
