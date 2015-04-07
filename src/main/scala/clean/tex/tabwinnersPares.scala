@@ -34,7 +34,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       //val measure = Kappa
       val measure = ALCBalancedAcc
       val ls = learners(learnersStr)
-      val sts = (for {l <- ls; s <- stratsPool().map(_(l)) ++ stratsFpool().map(_(l))} yield s).distinct
+      val sts = (for {l <- ls; s <- stratsPool("all").map(_(l)) ++ stratsFpool().map(_(l))} yield s).distinct
       println(sts.map(_.limpa).mkString(" "))
       val datasetLearnerAndBoth = (for {
          dataset <- datasets.toList.filter { dataset =>

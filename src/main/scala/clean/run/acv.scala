@@ -43,7 +43,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
          //         val best = BestPassiveClassif(ds, learnerSeed, pool)
 
          learnersPool(pool, learnerSeed) foreach { learner =>
-            stratsPool(pool, pool).map(_(learner)) foreach { strat =>
+            stratsPool("all", pool, pool).map(_(learner)) foreach { strat =>
                ds.log(s"$learner $strat ...")
 
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -127,7 +127,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
          }
 
          learnersFpool(learnerSeed) foreach { flearner =>
-            stratsPool(fpool, pool).map(_(flearner)) foreach { strat =>
+            stratsPool("all", fpool, pool).map(_(flearner)) foreach { strat =>
                ds.log(s"$flearner $strat ...")
 
                val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
@@ -214,14 +214,14 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("acv11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("acv11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
       acabou = true
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool().map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }

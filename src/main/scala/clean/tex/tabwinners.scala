@@ -39,7 +39,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          dataset <- datasets.toList.par
          l <- ls
       } yield {
-         val sts = stratsPool() ++ (l match {
+         val sts = stratsPool("mah") ++ (l match {
             case _: SVMLibRBF => stratsFpool()
             case _ => stratsFpool().dropRight(2)
             //            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
@@ -85,7 +85,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
-      val algs = (for (s <- stratsPool() ++ stratsFpool()) yield s(NoLearner()).limpa) map { st =>
+      val algs = (for (s <- stratsPool("mah") ++ stratsFpool()) yield s(NoLearner()).limpa) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          val rndCount = flat3.count(_ == st)
