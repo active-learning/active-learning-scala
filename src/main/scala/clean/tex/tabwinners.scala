@@ -63,7 +63,6 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                }
             s.limpa.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._1
          }
-         println(sresa)
          val rnd = sres.find(_._1 == RandomSampling(Seq()).limpa).get._2
          val r = Some(ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten,
             ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten,
