@@ -23,21 +23,22 @@ import java.io.PrintWriter
 
 import al.strategies.Passive
 import clean.lib._
+import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
 object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntreStratstex"
    val measure = ALCKappa
-   val redux = !true
    run()
 
    override def run() = {
       super.run()
-      val accs0 = for (s <- if (redux) stratsForTreeReduxEuc().dropRight(4).par else stratsForTree().dropRight(4).par) yield {
+      val accs0 = for (s0 <- stratsPool("all") ++ stratsFpool()) yield {
          val res0 = for {
             dataset <- datasets
             l <- learners(learnersStr)
+            s = s0(l)
          } yield {
             val ds = Ds(dataset, readOnly = true)
             ds.open()
@@ -59,7 +60,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             ds.close()
             Stat.media_desvioPadrao(vs.toVector)._1
          }
-         s.abr -> res0
+         s0(NoLearner()).abr -> res0
       }
       val accs = accs0.toList //.sortBy(_._1)
       val dists = for (a <- accs) yield {
@@ -72,11 +73,11 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             }
             a._1 -> ds
          }
-      val arq="/home/davi/wcs/tese/stratDists" + (if (redux) "Redux" else "") + ".tex"
+      val arq = "/home/davi/wcs/tese/stratDists" + ".tex"
       println(accs0.head._2.size + " dimensions.")
       println(s"$arq")
       val fw = new PrintWriter(arq, "ISO-8859-1")
-      fw.write(StatTests.distTable(dists, "stratDists" + (if (redux) "Redux" else ""), "estratégias", measure.toString))
+      fw.write(StatTests.distTable(dists, "stratDists", "estratégias", measure.toString))
       fw.close()
    }
 }
