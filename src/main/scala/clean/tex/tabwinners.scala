@@ -35,7 +35,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       super.run()
       val measure = ALCKappa
       val ls = learners(learnersStr)
-      val strats0 = stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9)
+      val strats0 = stratsForTreeReduxMah()
 
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList
