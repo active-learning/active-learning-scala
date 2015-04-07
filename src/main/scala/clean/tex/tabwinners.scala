@@ -35,25 +35,26 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       super.run()
       val measure = ALCKappa
       val ls = learners(learnersStr)
-      val strats0 = stratsForTreeReduxMah()
+      val sts = stratsPool() ++ stratsFpool()
 
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList
          l <- ls
       } yield {
-         val strats0 = stratsForTreeReduxMah(Seq(), l)
-         val strats = l match {
-            case _: SVMLibRBF => strats0.dropRight(2)
-            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
-            case _: RF => strats0.dropRight(4) ++ strats0.takeRight(1)
-            case _ => strats0.dropRight(4)
-         }
+         //         val strats0 = stratsForTreeReduxMah(Seq(), l)
+         //         val strats = l match {
+         //            case _: SVMLibRBF => strats0.dropRight(2)
+         //            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
+         //            case _: RF => strats0.dropRight(4) ++ strats0.takeRight(1)
+         //            case _ => strats0.dropRight(4)
+         //         }
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
          try {
             val sres = for {
-               s <- strats
+               s0 <- sts
+               s = s0(l)
             } yield {
                val vs = for {
                   r <- 0 until runs
@@ -83,7 +84,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
-      val algs = strats0.map(_.limpa) map { st =>
+      val algs = (for (l <- ls; s <- sts) yield s(l)) map (_.limpa) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          val rndCount = flat3.count(_ == st)
