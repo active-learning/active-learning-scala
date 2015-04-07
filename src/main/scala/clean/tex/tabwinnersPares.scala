@@ -43,7 +43,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
             val r = ds.poolSize >= 200
             ds.close()
             r
-         }.par
+         }
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
@@ -60,9 +60,10 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                   //                  measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
                   val classif = BestClassifCV100ReadOnly(ds, r, f, s)
                   print(classif + " ")
-                  //classif.limpa -> measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {//usa cv pra descobrir best classif e usa ele em 100
+                  //usa cv pra descobrir best classif e usa ele em 100
+                  //classif.limpa -> measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
+                  //usa cv pra descobrir best classif e fica com ele de 100 até 200
                   classif.limpa -> measure(ds, s, classif, r, f)(th, tf).read(ds).getOrElse {
-                     //usa cv pra descobrir best classif e fica com ele de 100 até 200
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                      sys.exit(0) //NA
                   }

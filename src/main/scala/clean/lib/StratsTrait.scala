@@ -53,8 +53,8 @@ trait StratsTrait {
       //(svm.scala força filtro nas strats, porém, por serem agnósticas, as queries já foram geradas corretamente antes pelo all.scala ou rf.scala
       , (learner: Learner) => RandomSampling(pool) //0
       , (learner: Learner) => ClusterBased(pool) //1
-      , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "manh") //701
-      , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "eucl") //601
+      , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "manh") //791
+      , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "eucl") //691
    )
 
    def stratsFpool(poolForLearner: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq()) = Seq(
@@ -65,11 +65,11 @@ trait StratsTrait {
 
       //essa strat pede filtro, então forçou filtro no classif (que era chamado de learner)
       //apaguei somente learners que não querem filtro no mysql: id voltou pra 991
-      , (learner: Learner) => AgDensityWeightedTrainingUtility(fpool, "maha")
+      , (learner: Learner) => AgDensityWeightedTrainingUtility(fpool, "maha") //991
 
       //apaguei todos os hits de classifs diferentes de svmrbf.
-      , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw")
-      , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw")
+      , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw") //9690094
+      , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw") //9660091
    )
 
    def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)
