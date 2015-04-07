@@ -32,7 +32,7 @@ import scala.util.Random
  */
 case class SVMmultiRBF(pool: Seq[Pattern], algorithm: String, debug: Boolean = false) extends Strategy {
    override val toString = s"SVMmultiRBF ($algorithm)"
-   val abr = "SVM" + algorithm.take(3).toLowerCase
+   val abr = "SVM" //+ algorithm.take(3).toLowerCase
 
    //just to visual tests and to be referenced in db
    def learner = SVMLibRBF()

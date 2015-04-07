@@ -43,10 +43,11 @@ trait Strategy extends Log with Limpa {
    lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
    lazy val old = id
 
-   lazy val abrev = abr + (learner match {
-      case NoLearner() => ""
-      case _ => learner.abr
-   })
+   lazy val abrev = abr
+   //   + (learner match {
+   //      case NoLearner() => ""
+   //      case _ => learner.abr
+   //   })
    lazy val igualdade = id -> learner.id
 
    override def equals(that: Any) = that match {
