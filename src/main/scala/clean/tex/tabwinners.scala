@@ -38,7 +38,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val sts = stratsPool() ++ stratsFpool()
 
       val datasetLearnerAndBoth = for {
-         dataset <- datasets.toList
+         dataset <- datasets.toList.par
          l <- ls
       } yield {
          //         val strats0 = stratsForTreeReduxMah(Seq(), l)
