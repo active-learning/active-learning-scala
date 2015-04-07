@@ -35,19 +35,17 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       super.run()
       val measure = ALCKappa
       val ls = learners(learnersStr)
-      val sts = stratsPool() ++ stratsFpool()
-
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.par
          l <- ls
       } yield {
-         //         val strats0 = stratsForTreeReduxMah(Seq(), l)
-         //         val strats = l match {
-         //            case _: SVMLibRBF => strats0.dropRight(2)
+         val sts = stratsPool() ++ (l match {
+            case _: SVMLibRBF => stratsFpool()
+            case _ => stratsFpool().dropRight(2)
          //            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
          //            case _: RF => strats0.dropRight(4) ++ strats0.takeRight(1)
          //            case _ => strats0.dropRight(4)
-         //         }
+         })
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
@@ -86,7 +84,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
-      val algs = (for (s <- sts) yield s(NoLearner()).limpa) map { st =>
+      val algs = (for (s <- stratsPool() ++ stratsFpool()) yield s(NoLearner()).limpa) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          val rndCount = flat3.count(_ == st)
