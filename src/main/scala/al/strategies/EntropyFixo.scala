@@ -24,9 +24,9 @@ import ml.models.Model
 
 case class EntropyFixo(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyWithLearner with EntropyMeasure {
-   override val toString = "EntropyFixo"
-   val abr = "Ent"
-   val id = 4000000 + convlid(learner.id)
+   override lazy val toString = "EntropyFixo"
+   lazy val abr = "Ent"
+   lazy val id = 4000000 + convlid(learner.id)
 
    protected def next(current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
       val selected = unlabeled maxBy {
