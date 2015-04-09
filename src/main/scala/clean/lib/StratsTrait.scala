@@ -24,6 +24,33 @@ import ml.Pattern
 import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
+   def stratsTex(dist: String) = {
+      val fakePool = Seq()
+      Seq(
+         Some((learner: Learner) => RandomSampling(fakePool)) //0
+         , Some((learner: Learner) => ClusterBased(fakePool)) //1
+         , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
+         , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
+         , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
+         , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
+         , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
+         , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
+         , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
+         , Some((learner: Learner) => EntropyFixo(learner, fakePool))
+         , Some((learner: Learner) => MarginFixo(learner, fakePool))
+         , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
+         , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")) else None
+         , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "maha")) else None
+         , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
+         , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
+         , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
+         , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "balacc"))
+         , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
+         , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+         , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
+      ).flatten
+   }
+
    /*
    % procedimento pra transformar strat em Fixo
    % copy
@@ -31,28 +58,28 @@ trait StratsTrait {
    % abr+learner
    % muda id e +convlid
    % põe no strats
-   % põe id na lista
+   % põe id na lista do Global (não tem mais lista.drop no Ds.scala)
     */
    def stratsPool(dist: String, poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq()) =
    //essas ganharam ids por par s/l porque suas medidas de distancia foram afetadas por filtros
       (dist match {
          case "man" => Seq((learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
             , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "manh")
-            //            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
+            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
             , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "manh") //791
          )
          case "euc" => Seq((learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
             , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "eucl")
-            //            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
+            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
             , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "eucl") //691
          )
          case "all" => Seq((learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
             , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "manh")
-            //            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
+            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
             , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "manh") //791
             , (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "eucl")
             , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "eucl")
-            //            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
+            , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "eucl")
             , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "eucl") //691
          )
          case "mah" => Seq()
@@ -60,7 +87,8 @@ trait StratsTrait {
 
          //essas precisam ser Fixo porque os hits ficam sem vinculo com o learner gerador das queries (por isso dava duplicated key)
          //copiei as qs e os hs porque todos já estavam gerados desde antigamente
-         (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
+         (learner: Learner) => EntropyFixo(learner, poolForLearner) //
+         , (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
          , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy") //pid:200000 ... 200050; sid:11000000 ...          //11000050
          , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "balacc") //pid:300000 ... 300050; sid:74000000 ... 74000050
          , (learner: Learner) => SGmultiFixo(learner, poolForLearner, "consensus") //pid:400000 ... 400050; sid:14000000 ... 14000050
@@ -75,7 +103,7 @@ trait StratsTrait {
       //essas ganharam ids por par s/l porque medem distancia filtradas e afetaram seus learners (e precisavam ser reimplementadas para receber pools independentes)
       (learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, fpool, "maha")
       , (learner: Learner) => HTUFixo(poolForLearner, learner, fpool, "maha")
-      //      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
+      , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, fpool, 1, "maha")
 
       //essa strat pede filtro, então forçou filtro no classif (que era chamado de learner)
       //apaguei somente learners que não querem filtro no mysql: id voltou pra 991

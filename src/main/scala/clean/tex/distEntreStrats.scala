@@ -34,9 +34,9 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      val accs0 = for (s0 <- stratsPool("all") ++ stratsFpool()) yield {
+      val accs0 = for (s0 <- stratsTex("all").dropRight(2)) yield {
          val res0 = for {
-            dataset <- datasets
+            dataset <- datasets.par
             l <- learners(learnersStr)
             s = s0(l)
          } yield {
@@ -49,12 +49,10 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             } yield try {
                   measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                      println(s"incompleto para ${(ds, s, l, r, f)}!")
-                     NA
                      ds.error(s"incompleto para ${(ds, s, l, r, f)}!")
                   }
                } catch {
                   case _: Throwable => println(s"incompleto para ${(ds, s, l, r, f)}!")
-                     NA
                      ds.error(s"incompleto para ${(ds, s, l, r, f)}!")
                }
             //            println(s"$ds $vs")
