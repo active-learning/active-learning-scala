@@ -34,83 +34,83 @@ object friedEtabelasStrats extends AppWithUsage with LearnerTrait with StratsTra
    run()
 
    override def run() = {
-      super.run()
-      val caption = language match {
-         case "pt" => s"Um contra um (LEA). Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
-         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
-      }
-      for (le <- learners(learnersStr)) {
-         val strats = if (redux) stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().drop(9) else stratsForTree()
-         //         val strats = if (redux) stratsForTreeReduxMan().take(6) ++ stratsForTreeReduxMan().drop(7).take(1) ++ stratsForTreeReduxMan().drop(9) else stratsForTree()
-         val sl = le match {
-            case _: SVMLibRBF => strats.dropRight(2)
-            case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
-            case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
-            case _ => strats.dropRight(4)
-         }
-         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
-         val res0 = for {
-            dataset <- datasets.par.filter { d =>
-               val ds = Ds(d, readOnly = true)
-               ds.open()
-               val r = ds.nclasses
-               ds.close()
-               //               r == 2
-               true
-            }
-         } yield {
-            val ds = Ds(dataset, readOnly = true)
-            ds.open()
-            val (ti, th, tf, tpass) = ranges(ds)
-            val sres = (for {
-               s <- sl
-            } yield {
-               if (Global.gnosticasComLearnerInterno.contains(s.id) && s.learner.id != le.id) None
-               else Some({
-                  val vs = for {
-                     r <- 0 until runs
-                     f <- 0 until folds
-                  } yield
-                     try {
-                        measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse({
-                           println("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))
-                           NA
-                        })
-                     } catch {
-                        case e: Throwable =>
-                           println("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))
-                           NA //sys.exit(1)
-                     }
-                  if (vs.contains(NA)) (NA, NA)
-                  else if (!risco) Stat.media_desvioPadrao(vs.toVector) else Stat.media_desvioPadrao(vs.toVector)._2 -> NA
-               })
-            }).flatten
-            ds.close()
-            renomeia(ds) -> sres
-         }
-
-         val sortedFiltered = res0.filter(!_._2.contains(NA, NA)).toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-         val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-         sorted foreach (x => println(x._2.map(_._1).mkString(" ")))
-
-         //         val arq = "/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex"
-         //         print(arq + "   ")
-         //         val fw = new PrintWriter(arq, "ISO-8859-1")
-         //         sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-         //            fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}a" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
-         //            //            if (!redux)
-         //            fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}b" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
-         //         }
-         //         fw.close()
-         println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
-         val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector.map(_.abr))
-         else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1).map(_.abr))
-         val arq = "/home/davi/wcs/tese/stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex"
-         println(s"")
-         println(arq)
-         val fw2 = new PrintWriter(arq, "ISO-8859-1")
-         fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), 2, caption.replace("LEA", le.abr)))
-         fw2.close()
-      }
+      //      super.run()
+      //      val caption = language match {
+      //         case "pt" => s"Um contra um (LEA). Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
+      //         case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
+      //      }
+      //      for (le <- learners(learnersStr)) {
+      //         val strats = stratsTex("all")
+      //         //         val strats = if (redux) stratsForTreeReduxMan().take(6) ++ stratsForTreeReduxMan().drop(7).take(1) ++ stratsForTreeReduxMan().drop(9) else stratsForTree()
+      //         val sl = le match {
+      //            case _: SVMLibRBF => strats.dropRight(2)
+      //            case _: NinteraELM => strats.dropRight(4) ++ strats.takeRight(2).dropRight(1)
+      //            case _: RF => strats.dropRight(4) ++ strats.takeRight(1)
+      //            case _ => strats.dropRight(4)
+      //         }
+      //         println(s"${le.abr} ${sl.size} ${sl.map(_.abr)} ")
+      //         val res0 = for {
+      //            dataset <- datasets.filter { d =>
+      //               val ds = Ds(d, readOnly = true)
+      //               ds.open()
+      //               val r = ds.nclasses
+      //               ds.close()
+      //               //               r == 2
+      //               true
+      //            }.par
+      //         } yield {
+      //            val ds = Ds(dataset, readOnly = true)
+      //            ds.open()
+      //            val (ti, th, tf, tpass) = ranges(ds)
+      //            val sres = (for {
+      //               s <- sl
+      //            } yield {
+      //               if (Global.gnosticasComLearnerInterno.contains(s.id) && s.learner.id != le.id) None
+      //               else Some({
+      //                  val vs = for {
+      //                     r <- 0 until runs
+      //                     f <- 0 until folds
+      //                  } yield
+      //                     try {
+      //                        measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse({
+      //                           println("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))
+      //                           NA
+      //                        })
+      //                     } catch {
+      //                        case e: Throwable =>
+      //                           println("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))
+      //                           NA //sys.exit(1)
+      //                     }
+      //                  if (vs.contains(NA)) (NA, NA)
+      //                  else if (!risco) Stat.media_desvioPadrao(vs.toVector) else Stat.media_desvioPadrao(vs.toVector)._2 -> NA
+      //               })
+      //            }).flatten
+      //            ds.close()
+      //            renomeia(ds) -> sres
+      //         }
+      //
+      //         val sortedFiltered = res0.filter(!_._2.contains(NA, NA)).toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
+      //         val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
+      //         sorted foreach (x => println(x._2.map(_._1).mkString(" ")))
+      //
+      //         //         val arq = "/home/davi/wcs/tese/stratsALCKappa" + le.abr + (if (redux) "Redux" else "") + ".tex"
+      //         //         print(arq + "   ")
+      //         //         val fw = new PrintWriter(arq, "ISO-8859-1")
+      //         //         sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
+      //         //            fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}a" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
+      //         //            //            if (!redux)
+      //         //            fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.abr), s"stratsALCKappa${i}b" + le.abr + (if (redux) "Redux" else ""), "ALCKappa para " + le.abr, 7))
+      //         //         }
+      //         //         fw.close()
+      //         println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
+      //         val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector.map(_.abr))
+      //         else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1).map(_.abr))
+      //         val arq = "/home/davi/wcs/tese/stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else "") + ".tex"
+      //         println(s"")
+      //         println(arq)
+      //         val fw2 = new PrintWriter(arq, "ISO-8859-1")
+      //         fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFried" + le.abr + (if (risco) "Risco" else "") + (if (redux) "Redux" else ""), 2, caption.replace("LEA", le.abr)))
+      //         fw2.close()
+      //      }
    }
 }

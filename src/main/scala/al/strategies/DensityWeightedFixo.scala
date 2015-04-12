@@ -26,7 +26,12 @@ case class DensityWeightedFixo(poolForLearner: Seq[Pattern], learner: Learner, p
    override lazy val toString = "Density Weighted b" + learner.limpa + beta + " (" + distance_name + ")"
    lazy val abr = "DW" + distance_name.take(3)
    //+ beta
-   lazy val id = 77000000 + convlid(learner.id)
+   lazy val id = distance_name match {
+      case "eucl" => 77000000 + convlid(learner.id)
+      case "cheb" => 78000000 + convlid(learner.id)
+      case "maha" => 79000000 + convlid(learner.id)
+      case "manh" => 80000000 + convlid(learner.id)
+   }
 
 
    protected def next(mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
