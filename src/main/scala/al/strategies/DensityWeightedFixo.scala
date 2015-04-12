@@ -27,7 +27,7 @@ case class DensityWeightedFixo(poolForLearner: Seq[Pattern], learner: Learner, p
    lazy val abr = "DW" + distance_name.take(3)
    //+ beta
    lazy val id = distance_name match {
-      case "eucl" => 77000000 + convlid(learner.id)
+      case "eucl" => 81000000 + convlid(learner.id)
       case "cheb" => 78000000 + convlid(learner.id)
       case "maha" => 79000000 + convlid(learner.id)
       case "manh" => 80000000 + convlid(learner.id)
