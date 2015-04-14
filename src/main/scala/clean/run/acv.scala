@@ -134,8 +134,6 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   }
                }
             }
-            if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-            fila.clear()
          }
 
          learnersFpool(learnerSeed) foreach { flearner =>
@@ -220,9 +218,9 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   }
                }
             }
-            if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-            fila.clear()
          }
+         if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+         fila.clear()
       }
    }
 
