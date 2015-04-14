@@ -24,7 +24,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 object Global {
    //17176,17177,17178,17179 e 4173006,4173007,4173008,4173009 são gno com learner interno, mas recebem tratamento de agnósticas
    //9660091, 9670092, 9680093, 9690094 passaram pro outro grupo para permitir RF no hits, por exemplo
-   val gnosticasComLearnerInterno = Seq(1292212, 1006600, 10066, 966000, 967000, 968000, 969000, 966009, 967009, 968009, 969009, 3292212)
+   val gnosticasComLearnerInterno = Seq(1292212, 1006600, 10066, 966000, 967000, 968000, 969000, 966009, 967009, 968009, 969009)
 
    val agnosticasa = Seq(211, 691, 361, 66361, 991, 391, 66391, 791, 371, 599996, 599997, 599998, 599999,
 
@@ -48,6 +48,7 @@ object Global {
       3,
       11, 12, 13, 74,
       14, 15
+      , 3292212
    )
 
    lazy val (mysqlHostRW, mysqlPortRW, mysqlPassRW) = {
