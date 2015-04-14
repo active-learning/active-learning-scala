@@ -31,8 +31,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      //val measure = Kappa
-      val measure = ALCBalancedAcc
+      val measure = BalancedAcc
+      //      val measure = ALCBalancedAcc
       val ls = learners(learnersStr)
       val sts = (for {l <- ls; s <- stratsPool("all").map(_(l)) ++ stratsFpool().map(_(l))} yield s).distinct
       println(sts.map(_.limpa).mkString(" "))
@@ -59,11 +59,11 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                   //                  val classif = BestPassiveClassif(ds,42,Seq())
                   //                  measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
                   val classif = BestClassifCV100ReadOnly(ds, r, f, s)
-                  print(classif + " ")
-                  //usa cv pra descobrir best classif e usa ele em 100
-                  //classif.limpa -> measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
+                  //                  print(classif + " ")
+                  //                  usa cv pra descobrir best classif e usa ele em 100
+                  classif.limpa -> measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
                   //usa cv pra descobrir best classif e fica com ele de 100 até 200
-                  classif.limpa -> measure(ds, s, classif, r, f)(th, tf).read(ds).getOrElse {
+                     //                  classif.limpa -> measure(ds, s, classif, r, f)(th, tf).read(ds).getOrElse {
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                      sys.exit(0) //NA
                   }
@@ -72,7 +72,6 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                      sys.exit(0) //NA
                }
             }).unzip
-            println(s"")
             //            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
             if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)
          }

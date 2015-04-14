@@ -120,7 +120,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       }.transpose
 
       val fw = new PrintWriter(arq, "ISO-8859-1")
-      fw.write("budget " + sls.map(_.limpa).mkString(" ") + "\n")
+      fw.write("budget " + sls.map(_.limp).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
          fw.write((i + 10) + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
       }
