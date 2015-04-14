@@ -54,8 +54,8 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
          for {
             learner <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
             s <- stratsPool("all", pool, pool).map(_(learner)) ++ stratsFpool(pool, fpool).map(_(learner))
-            classif <- Seq(learner)
-         //            classif <- Seq(BestClassifCVReadOnly(ds, run, fold, s), best, learner)
+            //            classif <- Seq(learner)
+            classif <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
          } yield {
             lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
             for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
