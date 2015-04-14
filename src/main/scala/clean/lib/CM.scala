@@ -56,9 +56,12 @@ trait CM extends Log {
       s
    }
 
-   def gmeans(cms: Array[Array[Int]]) = math.pow(accPorClasse(cms).product, 1d / cms.head.size)
+   def gmeans(cms: Array[Array[Int]]) = math.pow(accPorClasse(cms)._1.product, 1d / cms.head.size)
 
-   def accBal(cms: Array[Array[Int]]) = accPorClasse(cms).sum / cms.head.size
+   def accBal(cms: Array[Array[Int]]) = {
+      val ac = accPorClasse(cms)
+      ac._1.sum / ac._2
+   }
 
    def totPerLin(cms: Array[Array[Int]]) = cms.map(_.sum)
 
@@ -88,11 +91,16 @@ trait CM extends Log {
    }
 
    def accPorClasse(m: Array[Array[Int]]) = {
-      m.zipWithIndex map { case (li, idx) =>
+      var classesPresentes = m.head.size
+      val r = m.zipWithIndex map { case (li, idx) =>
          val s = li.sum.toDouble
-         if (s == 0) error("accPorClasse: Pelo menos uma classe não aparece no conjunto de teste!")
-         li(idx) / s
+         if (s == 0) {
+            classesPresentes -= 1
+            0d
+         } else li(idx) / s
+         //error("accPorClasse: Pelo menos uma classe não aparece no conjunto de teste!")
       }
+      r -> classesPresentes
    }
 
    def ALC(CMs: Seq[Array[Array[Int]]])(f: Array[Array[Int]] => Double) = (CMs map f).sum / CMs.size
