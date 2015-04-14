@@ -21,8 +21,10 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{BestPassiveClassif, BestClassifCV100_10fold, NoLearner}
+import ml.classifiers.{BestClassifCV100_10fold, NoLearner}
 import weka.filters.Filter
+
+import scala.collection.mutable
 
 object acv extends Exp with LearnerTrait with StratsTrait {
    val context = "acvApp"
@@ -32,7 +34,15 @@ object acv extends Exp with LearnerTrait with StratsTrait {
    var acabou = true
    run()
 
+   def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
+      try {
+         fila += f
+      } catch {
+         case e: Throwable => acabou = false
+      }
+
    def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+      val fila = mutable.Set[String]()
       if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
       else if (ds.isAliveByOtherJob(run, fold)) {
          outroProcessoVaiTerminarEsteDataset = true
@@ -74,8 +84,8 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                      if (!k.existia || !b.existia) {
                         val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                        k.write(ds, CM)
-                        b.write(ds, CM)
+                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+                        poeNaFila(fila, b.sqlToWrite(ds, CM))
                      }
                   } catch {
                      case e: NoPidForNonPassive => log(e.getMessage, 30)
@@ -115,8 +125,8 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                      if (!k.existia || !b.existia) {
                         val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                        k.write(ds, CM)
-                        b.write(ds, CM)
+                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+                        poeNaFila(fila, b.sqlToWrite(ds, CM))
                      }
                   } catch {
                      case e: NoPidForNonPassive => log(e.getMessage, 30)
@@ -124,6 +134,8 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   }
                }
             }
+            if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+            fila.clear()
          }
 
          learnersFpool(learnerSeed) foreach { flearner =>
@@ -158,8 +170,8 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                      if (!k.existia || !b.existia) {
                         val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                        k.write(ds, CM)
-                        b.write(ds, CM)
+                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+                        poeNaFila(fila, b.sqlToWrite(ds, CM))
                      }
                   } catch {
                      case e: NoPidForNonPassive => log(e.getMessage, 30)
@@ -199,8 +211,8 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                      if (!k.existia || !b.existia) {
                         val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-                        k.write(ds, CM)
-                        b.write(ds, CM)
+                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+                        poeNaFila(fila, b.sqlToWrite(ds, CM))
                      }
                   } catch {
                      case e: NoPidForNonPassive => log(e.getMessage, 30)
@@ -208,6 +220,8 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                   }
                }
             }
+            if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+            fila.clear()
          }
       }
    }

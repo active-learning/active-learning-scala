@@ -78,8 +78,9 @@ trait Measure extends CM with Blob {
             case Some(v) => s"insert into r values ($id, $pid, $v)"
             case None => throw new Exception(s"Pool $r.$f incompleto. Impossivel calcular a medida $this.")
          }
-      } else {
-         ds.log(s"Pool $r.$f já existia para a medida $this.", 10)
+      }
+      else {
+         //         ds.log(s"Pool $r.$f já existia para a medida $this.", 20)
          "select 1"
       }
    }
