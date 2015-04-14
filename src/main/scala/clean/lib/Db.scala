@@ -401,8 +401,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
    def batchWrite(sqls: List[String]): Unit = if (readOnly) error("read only")
    else {
       if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
-      log("batch write blob ... head: " + sqls.head, 10)
-      //      sqls foreach (m => log(m, 2))
+      //      log("batch write blob ... head: " + sqls.head, 10)
+      sqls foreach (m => log(m, 20))
+      log("\n\n", 20)
       var statement: Statement = null
       try {
          acquire()
