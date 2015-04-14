@@ -53,7 +53,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
                //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif => //todos leas só pra sbmmulti e qbc
-               Seq(learner, BestPassiveClassif(ds, learnerSeed, pool)) foreach { classif =>
+               Seq(learner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
@@ -93,7 +93,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
                val queries = ds.queries(fstrat, run, fold, null, null)
 
-               Seq(learner, BestPassiveClassif(ds, learnerSeed, pool)) foreach { classif =>
+               Seq(learner) foreach { classif =>
                   //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
@@ -136,7 +136,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                } else ds.writeQueries(strat, run, fold, maxQueries(ds))
                val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
-               Seq(flearner, BestPassiveClassif(ds, learnerSeed, pool)) foreach { classif =>
+               Seq(flearner) foreach { classif =>
                   //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$flearner $strat $classif] at pool $run.$fold.")
@@ -178,7 +178,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                val queries = ds.queries(fstrat, run, fold, null, null)
 
                //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
-               Seq(flearner, BestPassiveClassif(ds, learnerSeed, pool)) foreach { classif =>
+               Seq(flearner) foreach { classif =>
                   if (classif.querFiltro) {
                      ds.log(s"fHits [$flearner $fstrat $classif] at pool $run.$fold.")
                      if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
