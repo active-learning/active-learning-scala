@@ -49,7 +49,7 @@ object friedStratsVarios extends AppWithUsage with LearnerTrait with StratsTrait
             case "50" => 49
          }
          val (sts, sres) = (for {
-            s <- stratsTex(dist).dropRight(5)
+            s <- stratsTex(dist).dropRight(2)
          } yield {
             val vs = for {
                r <- 0 until runs

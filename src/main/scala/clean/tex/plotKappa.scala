@@ -34,28 +34,12 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
    //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
-   val redux = porRank
-   val strats = if (porRisco) {
-      if (redux) dist match {
-         case "euc" => stratsForTreeReduxEuc().take(6) ++ stratsForTreeReduxEuc().drop(7).take(1) ++ stratsForTreeReduxEuc().dropRight(4).takeRight(1)
-         case "man" => stratsForTreeReduxMan().take(6) ++ stratsForTreeReduxMan().drop(7).take(1) ++ stratsForTreeReduxMan().dropRight(4).takeRight(1)
-         case "mah" => stratsForTreeReduxMah().take(6) ++ stratsForTreeReduxMah().drop(7).take(1) ++ stratsForTreeReduxMah().dropRight(4).takeRight(1)
-         case "all" => stratsForTreeRedux().dropRight(4)
-      } else stratsForTree().dropRight(4)
-   } else {
-      if (redux) dist match {
-         case "euc" => stratsForTreeReduxEuc().dropRight(4)
-         case "man" => stratsForTreeReduxMan().dropRight(4)
-         case "mah" => stratsForTreeReduxMah().dropRight(4)
-         case "all" => stratsForTreeRedux().dropRight(4)
-      } else stratsForTree().dropRight(4)
-   }
-   val sl = strats.map(_.abr)
+   val strats = stratsTex(dist)
    run()
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/kappa$dist$tipoSumariz$tipoLearner" + (if (redux) "Redux" else "") + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/kappa$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
       val ls2 = tipoLearner match {
@@ -69,7 +53,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          ds.close()
          U > 200
       }
-      val res0 = (for {
+      val (sls0, res9) = (for {
          dataset <- dss.take(1000)
          le0 <- ls2.par
       } yield {
@@ -89,9 +73,10 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          }
 
 
-         val sres = for {
-            s <- strats
+         val (sls, sres) = (for {
+            s0 <- strats
          } yield {
+            val s = s0(le)
             val vs00 = try {
                for {
                   r <- 0 until runs
@@ -101,7 +86,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
                case _: Throwable => println(s"NA: ${(ds, s, le.abr)}")
                   Seq(None)
             }
-            if (vs00.contains(None)) {
+            s -> (if (vs00.contains(None)) {
                println(s"NA: ${(ds, s, le.abr)}")
                None
             } else Some({
@@ -115,17 +100,19 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
                }
                val fst = ts.head
                ts.reverse.padTo(200, fst).reverse.toList
-            })
-         }
-         if (sres.contains(None)) None
+            }))
+         }).unzip
+         sls -> (if (sres.contains(None)) None
          else {
             ds.close()
             val sresf = sres.flatten
             lazy val rank = sresf.transpose map ranqueia
             val tmp = if (porRank) rank else sresf.transpose
             Some(tmp)
-         }
-      }).flatten
+         })
+      }).unzip
+      val sls = sls0.head
+      val res0 = res9.flatten
       val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
 
       val plot = plot0.toList.transpose.map { x =>
@@ -133,7 +120,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       }.transpose
 
       val fw = new PrintWriter(arq, "ISO-8859-1")
-      fw.write("budget " + sl.map(_.replace("}", "").replace("\\textbf{", "")).mkString(" ") + "\n")
+      fw.write("budget " + sls.map(_.limpa).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
          fw.write((i + 10) + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
       }
