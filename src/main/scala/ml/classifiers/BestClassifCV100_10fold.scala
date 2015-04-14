@@ -48,7 +48,7 @@ case class BestClassifCV100_10fold(ds: Ds, r: Int, f: Int, s: Strategy, queries:
    )
    lazy val classif = learners.maxBy { l =>
       val qs = new Random(seed).shuffle(if (qf(l)) fqueries.toVector else queries.toVector)
-      Datasets.kfoldCV(qs, 10, parallel = true) { (tr, ts, foldnr, minsize) =>
+      Datasets.kfoldCV(qs, 10) { (tr, ts, foldnr, minsize) =>
          //         kappa(l.build(tr).confusion(ts)) //não pode ser accBal porque pode não haver um exemplo por classe
          accBal(l.build(tr).confusion(ts)) //não pode ser accBal porque pode não haver um exemplo por classe
       }.sum
