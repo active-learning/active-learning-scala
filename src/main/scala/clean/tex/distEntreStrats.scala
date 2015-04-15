@@ -29,7 +29,7 @@ import util.{Stat, StatTests}
 object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "distEntreStratstex"
-   val measure = ALCKappa
+   val measure = ALCBalancedAcc
    run()
 
    override def run() = {
@@ -74,9 +74,10 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
          }
       val arq = "/home/davi/wcs/tese/stratDists" + ".tex"
       println(accs0.head._2.size + " dimensions.")
-      println(s"$arq")
-      val fw = new PrintWriter(arq, "ISO-8859-1")
-      fw.write(StatTests.distTable(dists, "stratDists", "estratégias", measure.toString))
-      fw.close()
+      //      println(s"$arq")
+      //      val fw = new PrintWriter(arq, "ISO-8859-1")
+      println(StatTests.distTable(dists, "stratDists", "estratégias", measure.toString))
+      //      fw.write(StatTests.distTable(dists, "stratDists", "estratégias", measure.toString))
+      //      fw.close()
    }
 }
