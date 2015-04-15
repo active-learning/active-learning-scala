@@ -19,9 +19,6 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import java.io.PrintWriter
-
-import al.strategies.Passive
 import clean.lib._
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
@@ -36,8 +33,8 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
       super.run()
       val accs0 = for (s0 <- stratsTex("all").dropRight(2)) yield {
          val res0 = for {
-            dataset <- datasets.par
-            l <- learners(learnersStr)
+            dataset <- datasets
+            l <- learners(learnersStr).par
             s = s0(l)
          } yield {
             val ds = Ds(dataset, readOnly = true)
