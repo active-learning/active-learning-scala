@@ -33,7 +33,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
       super.run()
       val accs0 = for (s0 <- stratsTex("all")) yield {
          val res0 = for {
-            dataset <- datasets
+            dataset <- datasets.par
             l <- learners(learnersStr)
             s = s0(l)
          } yield {
