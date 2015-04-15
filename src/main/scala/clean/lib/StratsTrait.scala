@@ -36,6 +36,7 @@ trait StratsTrait {
          , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
          , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
          , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
+         , Some((learner: Learner) => QBC(fakePool))
          , Some((learner: Learner) => EntropyFixo(learner, fakePool))
          , Some((learner: Learner) => MarginFixo(learner, fakePool))
          , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
