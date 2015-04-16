@@ -27,7 +27,7 @@ import util.{Stat, StatTests}
 object fried_tabela_strats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
    val context = "friedEtabelasALCKappaAll"
-   val measure = ALCKappa
+   val measure = ALCBalancedAcc
    run()
 
    override def run() = {
