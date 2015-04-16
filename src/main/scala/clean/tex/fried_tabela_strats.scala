@@ -65,14 +65,14 @@ object fried_tabela_strats extends AppWithUsage with LearnerTrait with StratsTra
       val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
       val arq1 = s"/home/davi/wcs/tese/strats${dist}ALCKappaAll" + comprimento + ".tex"
       println(arq1)
-      //      val fw = new PrintWriter(arq1, "ISO-8859-1")
+      val fw = new PrintWriter(arq1, "ISO-8859-1")
       sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-         //         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
-         //         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
-         println(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
-         println(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
+         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
+         fw.write(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
+         //         println(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
+         //         println(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
       }
-      //      fw.close()
+      fw.close()
 
       val res = sorted.filter(!_._2.contains(NA, NA))
       res foreach (x => println(x._2.map(_._1).mkString(" ")))
@@ -81,9 +81,9 @@ object fried_tabela_strats extends AppWithUsage with LearnerTrait with StratsTra
       val arq2 = s"/home/davi/wcs/tese/stratsfried${dist}" + (if (porRisco) "Risco" else "") + comprimento + ".tex"
       println(arq2)
       val fw2 = new PrintWriter(arq2, "ISO-8859-1")
-      //      println(s"")
-      //      println(s"")
-      //      println(StatTests.pairTable(pairs, "stratsFried" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
+      println(s"")
+      println(s"")
+      println(StatTests.pairTable(pairs, "stratsFried" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
       fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedAll" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
       fw2.close()
       println(s"${res.size} datasets completos")
