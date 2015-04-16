@@ -73,7 +73,7 @@ object fried_tabela_leas extends AppWithUsage with LearnerTrait with StratsTrait
 
       val fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")
       sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
-         fw.write(StatTests.extensiveTable2(true, 100, res1.toSeq, ls.map(_.abr), "tab:balaccClassif" + i, measure.toString, 5))
+         fw.write(StatTests.extensiveTable2("", true, 100, res1.toSeq, ls.map(_.abr), "tab:balaccClassif" + i, measure.toString, 5))
       }
       fw.close()
       //

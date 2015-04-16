@@ -67,22 +67,24 @@ object StatTests {
 
    def winsLossesTies(measures: Seq[(String, Seq[Double])], strategies: Vector[String]) = ???
 
-   private def table(core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") = {
+   private def table(capti: String, core: String, nstrats: Int, strategies: Vector[String], tableName: String, measure: String, language: String = "pt") = {
       val contemStdDev = if (core.contains("/")) " Os menores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}." else ""
       if (nstrats != strategies.size) {
          println(s"Inconsistency #measures-in-the-first-row != strategies.size: $nstrats != ${strategies.size}: $strategies")
          sys.exit(1)
       }
       val caption = language match {
-         case "pt" => s"$measure: " + (if (contemStdDev.nonEmpty) "Os maiores valores da média e desvio padrão" else "O maior valor") + " de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente." +
-            s" Valores isolados estão sublinhados.$contemStdDev Apenas negrito indica segundo melhor valor."
+         case "pt" =>
+            if (capti != "") capti
+            else s"$measure: " + (if (contemStdDev.nonEmpty) "Os maiores valores da média e desvio padrão" else "O maior valor") + " de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente." +
+               s" Valores isolados estão sublinhados.$contemStdDev Apenas negrito indica segundo melhor valor."
          case "en" => s"$measure: Highest average (std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined." +
             s" Lowest std. values are in \\textcolor{darkgreen}{green}. Bold face only number shows second best value."
       }
       """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
 \begin{table}[h]
 \caption{""" + caption + """}
-\begin{center}""" + (if (strategies.size > 8) "\\scalebox{0.7}{" else "") +
+\begin{center}""" + (if (strategies.size > 8) "\\scalebox{0.75}{" else "") +
          """\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + """\\ \hline """ +
          core +
          """\end{tabular}""" + (if (strategies.size > 8) "}" else "") +
@@ -111,7 +113,7 @@ object StatTests {
       }
    }
 
-   def extensiveTable2(take11: Boolean, precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
+   def extensiveTable2(capti: String, take11: Boolean, precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
       val nstrats = if (take11) measures.head._2.take(11).length else measures.head._2.drop(11).length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip
@@ -123,7 +125,7 @@ object StatTests {
          val vals = (if (take11) r.take(11) else r.drop(11)).mkString(" & ")
          s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
       }.filter(_.nonEmpty).mkString("\n")
-      if (core.nonEmpty) table(core, nstrats, if (take11) strategies.take(11) else strategies.drop(11), tableName, measure, language) else ""
+      if (core.nonEmpty) table(capti, core, nstrats, if (take11) strategies.take(11) else strategies.drop(11), tableName, measure, language) else ""
    }
 
    /**

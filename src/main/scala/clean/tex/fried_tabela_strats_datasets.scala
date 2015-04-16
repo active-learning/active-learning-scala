@@ -81,9 +81,17 @@ object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with 
          print(arq + "   ")
          val fw = new PrintWriter(arq, "ISO-8859-1")
          sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-            fw.write(StatTests.extensiveTable2(true, 100, res1, sl.toVector, s"strats${i}a" + le.abr, "ALC para " + le.abr, 7))
+            fw.write(StatTests.extensiveTable2("Comparação de estratégias com aprendiz (se aplicável) e classificador " + le.abr +
+               ". \\textit{Média e desvio padrão da ALC da acurácia balanceada. " +
+               "Maior e menor média de cada base estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. " +
+               "Maiores médias isoladas estão sublinhadas. " +
+               "Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}", true, 100, res1, sl.toVector, s"strats${i}a" + le.abr, "ALC para " + le.abr, 7))
             //            if (!redux)
-            fw.write(StatTests.extensiveTable2(false, 100, res1, sl.toVector, s"strats${i}b" + le.abr, "ALC para " + le.abr, 7))
+            fw.write(StatTests.extensiveTable2("Comparação de estratégias com aprendiz (se aplicável) e classificador " + le.abr +
+               ". \\textit{Média e desvio padrão da ALC da acurácia balanceada. " +
+               "Maior e menor média de cada base estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. " +
+               "Maiores médias isoladas estão sublinhadas. " +
+               "Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}", false, 100, res1, sl.toVector, s"strats${i}b" + le.abr, "ALC para " + le.abr, 7))
          }
          fw.close()
 
