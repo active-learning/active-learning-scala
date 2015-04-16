@@ -49,7 +49,7 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
             case "50" => 49
          }
          val (sts, sres) = (for {
-            s <- stratsTex(dist).dropRight(2)
+            s <- stratsTex(dist)
          } yield {
             val vs = for {
                r <- 0 until runs
@@ -63,17 +63,17 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
       val sl = sls.head
 
       val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
-      val arq1 = s"/home/davi/wcs/tese/stratstab${dist}" + comprimento + ".tex"
-      println(arq1)
-      val fw = new PrintWriter(arq1, "ISO-8859-1")
-      sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
-         fw.write(StatTests.extensiveTable2("", true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratstab${i}All" + comprimento + "a", "ALC para todos aprendizes", 7))
-         fw.write(StatTests.extensiveTable2("", false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratstab${i}All" + comprimento + "b", "ALC para todos aprendizes", 7))
-         fw.write("\n\\clearpage\n")
-         //         println(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
-         //         println(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
-      }
-      fw.close()
+      //      val arq1 = s"/home/davi/wcs/tese/stratstab${dist}" + comprimento + ".tex"
+      //      println(arq1)
+      //      val fw = new PrintWriter(arq1, "ISO-8859-1")
+      //      sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
+      //         fw.write(StatTests.extensiveTable2("", true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratstab${i}All" + comprimento + "a", "ALC para todos aprendizes", 7))
+      //         fw.write(StatTests.extensiveTable2("", false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratstab${i}All" + comprimento + "b", "ALC para todos aprendizes", 7))
+      //         fw.write("\n\\clearpage\n")
+      //         //         println(StatTests.extensiveTable2(true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "a", "ALCKappa para todos aprendizes half", 7))
+      //         //         println(StatTests.extensiveTable2(false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratsALCKappa${i}All" + comprimento + "b", "ALCKappa para todos aprendizes half", 7))
+      //      }
+      //      fw.close()
 
       val res = sorted.filter(!_._2.contains(NA, NA))
       res foreach (x => println(x._2.map(_._1).mkString(" ")))
