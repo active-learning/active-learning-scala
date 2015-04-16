@@ -78,14 +78,14 @@ object fried_tabela_strats extends AppWithUsage with LearnerTrait with StratsTra
       res foreach (x => println(x._2.map(_._1).mkString(" ")))
       val pairs = if (!porRisco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - 1 * _._2)), sl.toVector)
-      //      val arq2 = s"/home/davi/wcs/tese/strats${dist}ALCKappaFriedAll" + (if (porRisco) "Risco" else "") + comprimento + ".tex"
-      //      println(arq2)
-      //      val fw2 = new PrintWriter(arq2, "ISO-8859-1")
-      println(s"")
-      println(s"")
-      println(StatTests.pairTable(pairs, "stratsALCKappaFriedAll" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
-      //      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedAll" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
-      //      fw2.close()
+      val arq2 = s"/home/davi/wcs/tese/stratsfried${dist}" + (if (porRisco) "Risco" else "") + comprimento + ".tex"
+      println(arq2)
+      val fw2 = new PrintWriter(arq2, "ISO-8859-1")
+      //      println(s"")
+      //      println(s"")
+      //      println(StatTests.pairTable(pairs, "stratsFried" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
+      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedAll" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
+      fw2.close()
       println(s"${res.size} datasets completos")
    }
 }
