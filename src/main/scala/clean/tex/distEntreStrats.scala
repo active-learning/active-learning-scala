@@ -24,10 +24,10 @@ import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
 object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "reduz:r")
+   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "reduz:r", "nada", "dist:all|maha|manh|eucl")
    val context = "distEntreStratstex"
    val measure = ALCBalancedAcc
-   val strats = if (reduz) stratsTexRedux("all") else stratsTex("all")
+   val strats = if (reduz) stratsTexRedux(dist) else stratsTex(dist)
    run()
 
    override def run() = {
