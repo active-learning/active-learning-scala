@@ -39,6 +39,7 @@ trait AppWithUsage extends App with Log with ArgParser {
    //   lazy val todas = args(4).contains("t")
    lazy val passivas = args(4).contains("p")
    lazy val porRank = args(5).contains("r")
+   lazy val reduz = args(5).contains("r")
    lazy val comprimento = args(5)
    lazy val porRisco = args(6).contains("r")
    lazy val dist = args(7)

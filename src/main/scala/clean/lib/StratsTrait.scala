@@ -24,6 +24,28 @@ import ml.Pattern
 import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
+   def stratsTexRedux(dist: String) = {
+      val fakePool = Seq()
+      Seq(
+         Some((learner: Learner) => RandomSampling(fakePool)) //0
+         , Some((learner: Learner) => ClusterBased(fakePool)) //1
+         , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
+         , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
+         , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
+         , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
+         , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
+         , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
+         , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
+         , Some((learner: Learner) => QBC(fakePool))
+         , Some((learner: Learner) => MarginFixo(learner, fakePool))
+         , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
+         , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
+         , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
+         , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
+         , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+      ).flatten
+   }
+
    def stratsTex(dist: String) = {
       val fakePool = Seq()
       Seq(

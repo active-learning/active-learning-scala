@@ -24,14 +24,15 @@ import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
 object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
+   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "reduz:r")
    val context = "distEntreStratstex"
    val measure = ALCBalancedAcc
+   val strats = if (reduz) stratsTexRedux("all") else stratsTex("all")
    run()
 
    override def run() = {
       super.run()
-      val accs0 = for (s0 <- stratsTex("all")) yield {
+      val accs0 = for (s0 <- strats) yield {
          val res0 = for {
             dataset <- datasets
             l <- learners(learnersStr).par
