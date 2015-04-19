@@ -24,19 +24,13 @@ import util.{Datasets, Stat, StatTests}
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
+object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = false
-
-   val bestLearners = true
-   val minObjs = if (bestLearners) 18 else 40
-   //   val bestLearner = false
-   //   val minObjs = if (perdedores) 20 else 12
-
-   val measure = ALCBalancedAcc
-   val context = "metaAttsTreeApp"
+   val minObjs = 5
+   val measure = BalancedAcc
+   val context = "arffTreeLearnerApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val n = 3
-   val n2 = 3
+   val n = 1
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
@@ -45,16 +39,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       super.run()
       val metadata0 = for {
          name <- datasets.toList.par
-
-         l <- if (bestLearners) learners(learnersStr).map { l =>
-            val ds = Ds(name, readOnly = true)
-            ds.open()
-            val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
-            ds.close()
-            l -> Stat.media_desvioPadrao(vs.toVector)._1
-         }.groupBy(_._2).toList.sortBy(_._1).reverse.take(n2).map(_._2.map(_._1)).flatten
-         else learners(learnersStr)
-
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -64,28 +48,28 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //                        Seq((tmin, thalf, "baixo"), (thalf, tmax, "alto"))
             Seq((tmin, tmax, "alto"))
          }
-
       } yield {
-         val strats = stratsTex("all")
          val ds = Ds(name, readOnly = true)
          ds.open()
-         val medidas = for (s0 <- strats) yield {
-            val s = s0(l)
+         val medidas = for (l <- learners(learnersStr)) yield {
             try {
                val ms = for {
                   r <- 0 until Global.runs
                   f <- 0 until Global.folds
-               } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse(ds.error(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}."))
-               s.abr -> Stat.media_desvioPadrao(ms.toVector)
+               } yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.error(s" base incompleta para intervalo [$ti;$tf] e pool ${(l, r, f)}."))
+               l.abr -> Stat.media_desvioPadrao(ms.toVector)
             } catch {
-               case _: Throwable => ds.error(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l)}.")
+               case _: Throwable => ds.error(s" base incompleta para intervalo [$ti;$tf] e pool ${l}.")
             }
-
          }
-         val res = if (perdedores) medidas.groupBy(_._2._1).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten.map { bs =>
-            (ds.metaAttsHumanAndKnowingLabels, l.abr, bs, budix, l.attPref, l.boundaryType)
-         } else medidas.groupBy(_._2._1).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten.map { bs =>
-            (ds.metaAttsHumanAndKnowingLabels, l.abr, bs, budix, l.attPref, l.boundaryType)
+         val vlst0 = medidas.groupBy(_._2._1).toList.sortBy(_._1).reverse
+         val vlst = if (vlst0.head._2.size >= n) vlst0.take(1) else vlst0.take(n)
+         val plst0 = medidas.groupBy(_._2._1).toList.sortBy(_._1)
+         val plst = if (plst0.head._2.size >= n) plst0.take(1) else plst0.take(n)
+         val res = if (perdedores) plst.map(_._2.map(_._1)).flatten.map { bs =>
+            (ds.metaAttsHumanAndKnowingLabels, "NB", bs, budix, "ambos", "nenhuma")
+         } else vlst.map(_._2.map(_._1)).flatten.map { bs =>
+            (ds.metaAttsHumanAndKnowingLabels, "NB", bs, budix, "ambos", "nenhuma")
          }
          ds.close()
          res
@@ -98,11 +82,12 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val labels = pred.distinct.sorted
       val data = metadata.map { case (numericos, learne, vencedora, budget, attPref, boundaryType) => numericos.mkString(",") + s",$budget,$learne,$attPref,$boundaryType," + "\"" + vencedora + "\""}
       val numAtts = humanNumAttsNames
-      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute algoritmo {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+      val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++
+         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}", "@attribute algoritmo {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
       val pronto = header ++ data
       //      pronto foreach println
 
-      val arq = "/home/davi/wcs/ucipp/uci/metaTree" + (if (bestLearners) "Best" else "") + s"$perdedores.arff"
+      val arq = "/home/davi/wcs/ucipp/uci/metaTreeLearner" + s"$perdedores.arff"
       println(arq)
       val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
@@ -110,7 +95,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       println(s"${data.size}")
 
       //constrói e transforma árvore
-      val tex = "/home/davi/wcs/tese/tree" + (if (bestLearners) "Best" else "") + s"$perdedores.tex"
+      val tex = "/home/davi/wcs/tese/treeLearner" + s"$perdedores.tex"
       println(tex)
       C45(laplace = false, minObjs, 0.25, true).tree(arq, tex)
    }

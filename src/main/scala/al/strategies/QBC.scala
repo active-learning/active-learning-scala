@@ -25,7 +25,7 @@ import weka.core.Utils
 case class QBC(pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyAgnostic {
    override val toString = "QBC"
-   val abr = "QBC"
+   val abr = "QBCRFw"
    val id = 3292212
    //acrescentei 1 na frente porque a estrat estava erradamente como filterdependent; troquei por 3 pq o JS tava equivalente a Entropy
    val learner = RF(seed)

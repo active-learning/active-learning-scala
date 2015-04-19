@@ -31,7 +31,6 @@ object tabwinnersLearners extends AppWithUsage with LearnerTrait with StratsTrai
 
    override def run() = {
       super.run()
-      //                  val measure = Kappa
       val measure = BalancedAcc
       val ls = learners(learnersStr)
 
