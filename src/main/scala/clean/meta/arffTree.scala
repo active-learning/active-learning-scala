@@ -26,12 +26,8 @@ import util.{Datasets, Stat, StatTests}
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = false
-
    val bestLearners = true
-   val minObjs = if (bestLearners) 18 else 40
-   //   val bestLearner = false
-   //   val minObjs = if (perdedores) 20 else 12
-
+   val minObjs = if (bestLearners) 10 else 10
    val measure = ALCBalancedAcc
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -46,13 +42,13 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val metadata0 = for {
          name <- datasets.toList.par
 
-         l <- if (bestLearners) learners(learnersStr).map { l =>
+         l <- if (bestLearners) dispensaMelhores(learners(learnersStr).map { l =>
             val ds = Ds(name, readOnly = true)
             ds.open()
             val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
             ds.close()
             l -> Stat.media_desvioPadrao(vs.toVector)._1
-         }.groupBy(_._2).toList.sortBy(_._1).reverse.take(n2).map(_._2.map(_._1)).flatten
+         }, n2)(-_._2).map(_._1)
          else learners(learnersStr)
 
          (ti, tf, budix) <- {
@@ -82,10 +78,10 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             }
 
          }
-         val res = if (perdedores) medidas.groupBy(_._2._1).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten.map { bs =>
-            (ds.metaAttsHumanAndKnowingLabels, l.abr, bs, budix, l.attPref, l.boundaryType)
-         } else medidas.groupBy(_._2._1).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten.map { bs =>
-            (ds.metaAttsHumanAndKnowingLabels, l.abr, bs, budix, l.attPref, l.boundaryType)
+         val res = if (perdedores) pegaMelhores(medidas, n)(-_._2._1).map { bs =>
+            (ds.metaAttsHumanAndKnowingLabels, l.abr, bs._1, budix, l.attPref, l.boundaryType)
+         } else pegaMelhores(medidas, n)(_._2._1).map { bs =>
+            (ds.metaAttsHumanAndKnowingLabels, l.abr, bs._1, budix, l.attPref, l.boundaryType)
          }
          ds.close()
          res
@@ -112,6 +108,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //constrói e transforma árvore
       val tex = "/home/davi/wcs/tese/tree" + (if (bestLearners) "Best" else "") + s"$perdedores.tex"
       println(tex)
-      C45(laplace = false, minObjs, 0.25, true).tree(arq, tex)
+      C45(laplace = false, minObjs, 0.75, true).tree(arq, tex)
    }
 }

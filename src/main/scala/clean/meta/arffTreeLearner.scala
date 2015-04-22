@@ -25,8 +25,8 @@ import util.{Datasets, Stat, StatTests}
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-   val perdedores = false
-   val minObjs = 5
+   val perdedores = true
+   val minObjs = 3
    val measure = BalancedAcc
    val context = "arffTreeLearnerApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -38,7 +38,7 @@ object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait w
    override def run() = {
       super.run()
       val metadata0 = for {
-         name <- datasets.toList.par
+         name <- datasets.toList
          (ti, tf, budix) <- {
             val ds = Ds(name, readOnly = true)
             ds.open()
@@ -62,13 +62,9 @@ object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait w
                case _: Throwable => ds.error(s" base incompleta para intervalo [$ti;$tf] e pool ${l}.")
             }
          }
-         val vlst0 = medidas.groupBy(_._2._1).toList.sortBy(_._1).reverse
-         val vlst = if (vlst0.head._2.size >= n) vlst0.take(1) else vlst0.take(n)
-         val plst0 = medidas.groupBy(_._2._1).toList.sortBy(_._1)
-         val plst = if (plst0.head._2.size >= n) plst0.take(1) else plst0.take(n)
-         val res = if (perdedores) plst.map(_._2.map(_._1)).flatten.map { bs =>
+         val res = if (perdedores) pegaMelhores(medidas, n)(-_._2._1).map(_._1).map { bs =>
             (ds.metaAttsHumanAndKnowingLabels, "NB", bs, budix, "ambos", "nenhuma")
-         } else vlst.map(_._2.map(_._1)).flatten.map { bs =>
+         } else pegaMelhores(medidas, n)(_._2._1).map(_._1).map { bs =>
             (ds.metaAttsHumanAndKnowingLabels, "NB", bs, budix, "ambos", "nenhuma")
          }
          ds.close()
@@ -97,6 +93,6 @@ object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait w
       //constrói e transforma árvore
       val tex = "/home/davi/wcs/tese/treeLearner" + s"$perdedores.tex"
       println(tex)
-      C45(laplace = false, minObjs, 0.25, true).tree(arq, tex)
+      C45(laplace = false, minObjs, 1, true).tree(arq, tex)
    }
 }

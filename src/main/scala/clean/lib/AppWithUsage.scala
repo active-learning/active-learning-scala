@@ -137,4 +137,28 @@ trait AppWithUsage extends App with Log with ArgParser {
       }
       name.take(18).split("-").mkString(" ") + reticencias
    }
+
+   /**
+    * pega n melhores e todas as que empatarem com a n melhor
+    */
+   def pegaMelhores[T](s: Seq[T], n: Int)(f: T => Double) = {
+      var t = 0
+      val (bef, aft) = s.groupBy(f).toList.sortBy(_._1).reverse.span { case (k, vs) =>
+         t += vs.size
+         t < n
+      }
+      (bef :+ aft.head).map(_._2).flatten
+   }
+
+   /**
+    * dispensa n melhores e todas as que empatarem com a n melhor
+    */
+   def dispensaMelhores[T](s: Seq[T], n: Int)(f: T => Double) = {
+      var t = 0
+      val (_, aft) = s.groupBy(f).toList.sortBy(_._1).reverse.span { case (k, vs) =>
+         t += vs.size
+         t < n
+      }
+      aft.map(_._2).flatten
+   }
 }

@@ -26,7 +26,7 @@ import util.Stat
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
-   val n = 1
+   val n = 5
    run()
 
    override def run() = {
@@ -37,7 +37,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       val ls = learners(learnersStr)
       val sts = (for {l <- ls; s <- stratsPool("all").map(_(l)) ++ stratsFpool().map(_(l))} yield s).distinct
       println(sts.map(_.limpa).mkString(" "))
-      val datasetLearnerAndBoth = (for {
+      val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.filter { dataset =>
             val ds = Ds(dataset, readOnly = true)
             ds.open()
@@ -48,7 +48,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         lazy val (ti, th, tf, tpass) = ranges(ds)
+         //         lazy val (ti, th, tf, tpass) = ranges(ds)
          val sres = for {
             s <- sts
          } yield {
@@ -63,7 +63,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                   //                  print(classif + " ")
                   //                  usa cv pra descobrir best classif e usa ele em 100
                   classif.limpa -> measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
-                  //usa cv pra descobrir best classif e fica com ele de 100 até 200
+                     //usa cv pra descobrir best classif e fica com ele de 100 até 200
                      //                  classif.limpa -> measure(ds, s, classif, r, f)(th, tf).read(ds).getOrElse {
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                      sys.exit(0) //NA
@@ -74,20 +74,14 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                }
             }).unzip
             //            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
-            if (vs.contains(NA)) None else Some(s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1)
+            s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
          }
-         if (sres.contains(None)) {
-            ds.close()
-            None
-         } else {
-            val sorted = sres.flatten.groupBy(_._2).toList.sortBy(_._1)
-            val res = Some(ds.dataset -> sorted.reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sorted.take(n).map(_._2.map(_._1)).flatten)
-            ds.close()
-            Some(res)
-         }
-      }).flatten
+         val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1), ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1))
+         ds.close()
+         res
+      }
 
-      val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.flatten.unzip
+      val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.unzip
       println(s"$n primeiros/últimos")
       println(s"${datasetLearnerAndBoth.size} tests.")
       println(s"--------$measure---------------")
