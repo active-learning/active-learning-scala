@@ -34,7 +34,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
    //      val tipo="mediano"
    //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
-   val strats = stratsTex(dist)
+   val strats = stratsTexRedux(dist)
    run()
 
    override def run() = {
