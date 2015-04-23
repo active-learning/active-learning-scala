@@ -155,10 +155,9 @@ trait AppWithUsage extends App with Log with ArgParser {
     */
    def dispensaMelhores[T](s: Seq[T], n: Int)(f: T => Double) = {
       var t = 0
-      val (_, aft) = s.groupBy(f).toList.sortBy(_._1).reverse.span { case (k, vs) =>
+      s.groupBy(f).toList.sortBy(_._1).reverse.dropWhile { case (k, vs) =>
          t += vs.size
          t < n
-      }
-      aft.map(_._2).flatten
+      }.tail.map(_._2).flatten
    }
 }

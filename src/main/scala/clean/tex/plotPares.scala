@@ -26,7 +26,7 @@ import clean.lib._
 import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
-object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
+object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
    val context = "plotKappa2"
    //   val tipoSumariz = "mediana"
@@ -67,7 +67,7 @@ object plotKappaPares extends AppWithUsage with LearnerTrait with StratsTrait wi
             val vs00 = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield Kappa(ds, s, le, r, f)(0).readAll(ds).getOrElse(throw new Error(s"NA: ${(ds, s, le.abr, r, f)}"))
+            } yield BalancedAcc(ds, s, le, r, f)(0).readAll(ds).getOrElse(throw new Error(s"NA: ${(ds, s, le.abr, r, f)}"))
             val sizes = vs00.map(_.size)
             val minsiz = sizes.min
             val vs0 = vs00.map(_.take(minsiz))

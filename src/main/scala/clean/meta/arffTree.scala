@@ -27,8 +27,8 @@ import util.{Datasets, Stat, StatTests}
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = false
    val bestLearners = true
-   val minObjs = if (bestLearners) 50 else 40
-   val mostrar = 0.6
+   val minObjs = if (bestLearners) 30 else 40
+   val mostrar = 0.67
    val measure = ALCBalancedAcc
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -46,7 +46,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          l <- if (bestLearners) dispensaMelhores(learners(learnersStr).map { l =>
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
+            val vs = for (r <- 0 until runs; f <- 0 until folds) yield BalancedAcc(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
             ds.close()
             l -> Stat.media_desvioPadrao(vs.toVector)._1
          }, pioresAignorar)(-_._2).map(_._1)
