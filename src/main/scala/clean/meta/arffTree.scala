@@ -27,12 +27,13 @@ import util.{Datasets, Stat, StatTests}
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = false
    val bestLearners = true
-   val minObjs = if (bestLearners) 10 else 10
+   val minObjs = if (bestLearners) 50 else 40
+   val mostrar = 0.6
    val measure = ALCBalancedAcc
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val n = 3
-   val n2 = 3
+   val pioresAignorar = 3
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
@@ -48,7 +49,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
             ds.close()
             l -> Stat.media_desvioPadrao(vs.toVector)._1
-         }, n2)(-_._2).map(_._1)
+         }, pioresAignorar)(-_._2).map(_._1)
          else learners(learnersStr)
 
          (ti, tf, budix) <- {
@@ -108,6 +109,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //constrói e transforma árvore
       val tex = "/home/davi/wcs/tese/tree" + (if (bestLearners) "Best" else "") + s"$perdedores.tex"
       println(tex)
-      C45(laplace = false, minObjs, 0.75).tree(arq, tex)
+      C45(laplace = false, minObjs, mostrar).tree(arq, tex)
    }
 }
