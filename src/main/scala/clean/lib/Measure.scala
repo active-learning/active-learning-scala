@@ -49,11 +49,7 @@ trait Measure extends CM with Blob {
       } else throw new NoPidForNonPassive(s"No pid for ${(s, l, r, f)}.")
    }
 
-   def readAll(ds: Ds) = ds.read(s"select v from r where m div 100000000=${id / 100000000} and p=$pid order by m") match {
-      case List() => None
-      case lst: List[Vector[Double]] => Some(lst.map(_.head))
-      case x => ds.error(s"Retorno estranho: $x.")
-   }
+   def readAll(ds: Ds): Option[List[Double]]
 
    def read(ds: Ds) = ds.read(s"select v from r where m=$id and p=$pid") match {
       case List(Vector(v)) => Some(v)
@@ -119,6 +115,12 @@ case class BalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, forcePid
    override val toString = "acurácia balanceada"
    val id = 100000000 + t * 10000
    protected val instantFun = accBal _
+
+   def readAll(ds: Ds) = ds.read(s"select v from r where m >= ${100000000 + 10000} and m <= ${100000000 + 10000 * 199} and p=$pid order by m") match {
+      case List() => None
+      case lst: List[Vector[Double]] => Some(lst.map(_.head))
+      case x => ds.error(s"Retorno estranho: $x.")
+   }
 }
 
 case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, forcePid: Boolean = false)(val t: Int)
@@ -126,6 +128,12 @@ case class Kappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int, forcePid: Bool
    override val toString = "kappa"
    val id = 200000000 + t * 10000
    protected val instantFun = kappa _
+
+   def readAll(ds: Ds) = ds.read(s"select v from r where m >= ${200000000 + 10000} and m <= ${200000000 + 10000 * 199} and p=$pid order by m") match {
+      case List() => None
+      case lst: List[Vector[Double]] => Some(lst.map(_.head))
+      case x => ds.error(s"Retorno estranho: $x.")
+   }
 }
 
 case class ALCBalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val ti: Int, val tf: Int)
@@ -133,6 +141,8 @@ case class ALCBalancedAcc(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val t
    val id = 300000000 + ti * 10000 + tf
    protected val instantFun = accBal _
    protected val rangeFun = ALC _
+
+   def readAll(ds: Ds) = ???
 }
 
 case class ALCKappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val ti: Int, val tf: Int)
@@ -141,4 +151,6 @@ case class ALCKappa(ds: Ds, s: Strategy, l: Learner, r: Int, f: Int)(val ti: Int
    val id = 400000000 + ti * 10000 + tf
    protected val instantFun = kappa _
    protected val rangeFun = ALC _
+
+   def readAll(ds: Ds) = ???
 }

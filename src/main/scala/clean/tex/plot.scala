@@ -89,38 +89,30 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
                for {
                   r <- 0 until runs
                   f <- 0 until folds
-               } yield BalancedAcc(ds, s, le, r, f)(0).readAll(ds)
+               } yield BalancedAcc(ds, s, le, r, f)(0).readAll(ds).get
             } catch {
-               case _: Throwable => println(s"NA: ${(ds, s, le.abr)}")
-                  Seq(None)
+               case _: Throwable => throw new Error(s"NA: ${(ds, s, le.abr)}")
             }
-            s -> (if (vs00.contains(None)) {
-               println(s"NA: ${(ds, s, le.abr)}")
-               None
-            } else Some({
-               val sizes = vs00.flatten.map(_.size)
-               val minsiz = sizes.min
-               val vs0 = vs00.flatten.map(_.take(minsiz))
-               if (vs0.minBy(_.size).size != vs0.maxBy(_.size).size || minsiz != sizes.max) println(s"$dataset $s $le " + sizes.min + " " + sizes.max)
-               val ts = vs0.transpose.map { v =>
-                  if (porRisco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
-                  else Stat.media_desvioPadrao(v.toVector)._1
-               }
-               val fst = ts.head
-               ts.reverse.padTo(200, fst).reverse.toList
-            }))
+            val sizes = vs00.map(_.size)
+            val minsiz = sizes.min
+            val vs0 = vs00.map(_.take(minsiz))
+            //            if (vs0.minBy(_.size).size != vs0.maxBy(_.size).size || minsiz != sizes.max) println(s"$dataset $s $le " + sizes.min + " " + sizes.max)
+            val ts = vs0.transpose.map { v =>
+               if (porRisco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
+               else Stat.media_desvioPadrao(v.toVector)._1
+            }
+            val fst = ts.head
+            s -> ts.reverse.padTo(200, fst).reverse.toList
          }).unzip
-         sls -> (if (sres.contains(None)) None
-         else {
-            ds.close()
-            val sresf = sres.flatten
-            lazy val rank = sresf.transpose map ranqueia
-            val tmp = if (porRank) rank else sresf.transpose
-            Some(tmp)
-         })
+         ds.close()
+         val sresf = sres
+         sresf foreach (x => println(x.size))
+         lazy val rank = sresf.transpose map ranqueia
+         val tmp = if (porRank) rank else sresf.transpose
+         sls -> tmp
       }).unzip
       val sls = sls0.head
-      val res0 = res9.flatten
+      val res0 = res9
       val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
 
       val plot = plot0.toList.transpose.map { x =>
