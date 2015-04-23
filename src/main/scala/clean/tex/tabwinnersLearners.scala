@@ -27,11 +27,11 @@ object tabwinnersLearners extends AppWithUsage with LearnerTrait with StratsTrai
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersLearners"
    val n = 1
+   val measure = Kappa
    run()
 
    override def run() = {
       super.run()
-      val measure = BalancedAcc
       val ls = learners(learnersStr)
 
       val datasetLearnerAndBoth = for {
@@ -53,7 +53,7 @@ object tabwinnersLearners extends AppWithUsage with LearnerTrait with StratsTrai
                      }
                l.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
             }
-            Some(ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten, ds.dataset -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten)
+            Some(ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1), ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1))
          } catch {
             case e: Throwable => println(s"$e")
                sys.exit(1) //None

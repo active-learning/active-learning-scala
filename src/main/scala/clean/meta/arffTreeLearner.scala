@@ -1,12 +1,3 @@
-package clean.meta
-
-import java.io.{PrintWriter, FileWriter}
-
-import al.strategies._
-import clean.lib._
-import ml.classifiers._
-import util.{Datasets, Stat, StatTests}
-
 /*
  active-learning-scala: Active Learning library for Scala
  Copyright (c) 2014 Davi Pereira dos Santos
@@ -24,10 +15,19 @@ import util.{Datasets, Stat, StatTests}
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package clean.meta
+
+import java.io.{PrintWriter, FileWriter}
+
+import al.strategies._
+import clean.lib._
+import ml.classifiers._
+import util.{Datasets, Stat, StatTests}
+
 object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-   val perdedores = true
+   val perdedores = false
    val minobjs = 10
-   val measure = BalancedAcc
+   val measure = Kappa
    val context = "arffTreeLearnerApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val n = 1
@@ -83,7 +83,7 @@ object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait w
       val pronto = header ++ data
       //      pronto foreach println
 
-      val arq = "/home/davi/wcs/ucipp/uci/metaTreeLearner" + s"$perdedores.arff"
+      val arq = s"/home/davi/wcs/ucipp/uci/metaTreeLearner$measure" + s"${if (perdedores) "perd" else ""}.arff"
       println(arq)
       val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
@@ -91,7 +91,7 @@ object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait w
       println(s"${data.size}")
 
       //constrói e transforma árvore
-      val tex = "/home/davi/wcs/tese/treeLearner" + s"$perdedores.tex"
+      val tex = s"/home/davi/wcs/tese/treeLearner$measure" + s"${if (perdedores) "perd" else ""}.tex"
       println(tex)
       C45(laplace = false, minobjs, 1).tree(arq, tex)
    }
