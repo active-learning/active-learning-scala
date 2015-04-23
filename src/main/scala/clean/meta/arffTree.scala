@@ -108,6 +108,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //constrói e transforma árvore
       val tex = "/home/davi/wcs/tese/tree" + (if (bestLearners) "Best" else "") + s"$perdedores.tex"
       println(tex)
-      C45(laplace = false, minObjs, 0.75, true).tree(arq, tex)
+      C45(laplace = false, minObjs, 0.75).tree(arq, tex)
    }
 }

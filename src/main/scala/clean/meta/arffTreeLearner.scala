@@ -26,7 +26,7 @@ import util.{Datasets, Stat, StatTests}
  */
 object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = true
-   val minObjs = 3
+   val minobjs = 10
    val measure = BalancedAcc
    val context = "arffTreeLearnerApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -93,6 +93,6 @@ object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait w
       //constrói e transforma árvore
       val tex = "/home/davi/wcs/tese/treeLearner" + s"$perdedores.tex"
       println(tex)
-      C45(laplace = false, minObjs, 1, true).tree(arq, tex)
+      C45(laplace = false, minobjs, 1).tree(arq, tex)
    }
 }
