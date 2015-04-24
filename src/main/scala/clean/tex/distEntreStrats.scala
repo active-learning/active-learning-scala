@@ -26,7 +26,7 @@ import util.{Stat, StatTests}
 object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "reduz:r", "nada", "dist:all|maha|manh|eucl")
    val context = "distEntreStratstex"
-   val measure = ALCBalancedAcc
+   val measure = ALCKappa
    val strats = if (reduz) stratsTexRedux(dist) else stratsTex(dist)
    run()
 
@@ -70,7 +70,7 @@ object distEntreStrats extends AppWithUsage with LearnerTrait with StratsTrait w
             }
             a._1 -> ds
          }
-      val arq = "/home/davi/wcs/tese/stratDists" + ".tex"
+      val arq = s"/home/davi/wcs/tese/stratDists${if (reduz) "redux" else ""}" + ".tex"
       println(accs0.head._2.size + " dimensions.")
       //      println(s"$arq")
       //      val fw = new PrintWriter(arq, "ISO-8859-1")

@@ -26,17 +26,18 @@ import clean.lib._
 import ml.classifiers.NoLearner
 import util.Stat
 
-object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
+object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
-   val context = "plotKappa"
+   val context = "plot"
    val tipoLearner = "all"
    val tipoSumariz = "media"
    val strats = stratsTexRedux(dist)
+   val measure = Kappa
    run()
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/balacc$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/tese/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
       val ls2 = tipoLearner match {
@@ -59,11 +60,11 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          ds.open()
          val le = tipoLearner match {
             case "mediano" => ls.map { l =>
-               val vs = for (r <- 0 until runs; f <- 0 until folds) yield BalancedAcc(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
+               val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
                l -> Stat.media_desvioPadrao(vs.toVector)._1
             }.sortBy(_._2).apply(ls.size / 2)._1
             case "best" => ls.map { l =>
-               val vs = for (r <- 0 until runs; f <- 0 until folds) yield BalancedAcc(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
+               val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
                l -> Stat.media_desvioPadrao(vs.toVector)._1
             }.maxBy(_._2)._1
             case "all" => le0
@@ -78,7 +79,7 @@ object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with Ra
                for {
                   r <- 0 until runs
                   f <- 0 until folds
-               } yield BalancedAcc(ds, s, le, r, f)(0).readAll(ds)
+               } yield measure(ds, s, le, r, f)(0).readAll(ds)
             } catch {
                case _: Throwable => println(s"NA: ${(ds, s, le.abr)}")
                   Seq(None)
