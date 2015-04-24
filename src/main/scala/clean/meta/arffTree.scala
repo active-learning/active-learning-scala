@@ -26,27 +26,27 @@ import util.{Datasets, Stat, StatTests}
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = false
-   val bestLearners = true
-   val minObjs = if (bestLearners) 30 else 40
    val mostrar = 0.67
-   val measure = ALCBalancedAcc
+   val measure = ALCKappa
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val n = 3
-   val pioresAignorar = 3
+   val pioresAignorar = 0
+   val minObjs = if (pioresAignorar == 0) 50 else 30
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
 
    override def run() = {
       super.run()
+      val bestLearners = pioresAignorar > 0
       val metadata0 = for {
          name <- datasets.toList.par
 
          l <- if (bestLearners) dispensaMelhores(learners(learnersStr).map { l =>
             val ds = Ds(name, readOnly = true)
             ds.open()
-            val vs = for (r <- 0 until runs; f <- 0 until folds) yield BalancedAcc(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
+            val vs = for (r <- 0 until runs; f <- 0 until folds) yield Kappa(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit("Kappa passiva não encontrada"))
             ds.close()
             l -> Stat.media_desvioPadrao(vs.toVector)._1
          }, pioresAignorar)(-_._2).map(_._1)
@@ -99,15 +99,14 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val pronto = header ++ data
       //      pronto foreach println
 
-      val arq = "/home/davi/wcs/ucipp/uci/metaTree" + (if (bestLearners) "Best" else "") + s"$perdedores.arff"
-      println(arq)
+      val arq = s"/home/davi/wcs/ucipp/uci/metaTree$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}.arff"
       val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close
       println(s"${data.size}")
 
       //constrói e transforma árvore
-      val tex = "/home/davi/wcs/tese/tree" + (if (bestLearners) "Best" else "") + s"$perdedores.tex"
+      val tex = s"/home/davi/wcs/tese/tree$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}.tex"
       println(tex)
       C45(laplace = false, minObjs, mostrar).tree(arq, tex)
    }

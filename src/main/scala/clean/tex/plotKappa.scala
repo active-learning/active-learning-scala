@@ -29,10 +29,7 @@ import util.Stat
 object plotKappa extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
    val context = "plotKappa"
-   //   val tipoLearner = "best"
    val tipoLearner = "all"
-   //      val tipo="mediano"
-   //   val tipoSumariz = "mediana"
    val tipoSumariz = "media"
    val strats = stratsTexRedux(dist)
    run()

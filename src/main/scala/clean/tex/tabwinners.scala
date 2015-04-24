@@ -28,29 +28,22 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    //, "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
    val context = "tabwinnerstex"
-   val n = 1
-   val dista = "man"
+   val n = 3
+   val dista = "all"
+   val measure = ALCKappa
    run()
 
    override def run() = {
       super.run()
-      val measure = ALCKappa
       val ls = learners(learnersStr)
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.par
          l <- ls
       } yield {
-         val sts = stratsPool(dista) ++ (l match {
-            case _: SVMLibRBF => stratsFpool().drop(4)
-            case _ => stratsFpool().drop(4).dropRight(2)
-            //            case _: NinteraELM => strats0.dropRight(4) ++ strats0.takeRight(2).dropRight(1)
-            //            case _: RF => strats0.dropRight(4) ++ strats0.takeRight(1)
-            //            case _ => strats0.dropRight(4)
-         })
+         val sts = stratsTex(dista)
          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf, tpass) = ranges(ds)
-         //         try {
          val sres = for {
             s0 <- sts
             s = s0(l)
@@ -59,21 +52,15 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                r <- 0 until runs
                f <- 0 until folds
             } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-                  println((ds, s, l, r, f) + ": medida não encontrada")
-                  sys.exit(1)
+                  throw new Error((ds, s, l, r, f) + ": medida não encontrada")
                }
             s.limpa.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._1
          }
          val rnd = sres.find(_._1 == RandomSampling(Seq()).limpa).get._2
-         val r = Some(ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).reverse.take(n).map(_._2.map(_._1)).flatten,
-            ds.dataset + l.abr -> sres.groupBy(_._2).toList.sortBy(_._1).take(n).map(_._2.map(_._1)).flatten,
+         val r = Some(ds.dataset + l.abr -> pegaMelhores(sres, n)(_._2).map(_._1),
+            ds.dataset + l.abr -> pegaMelhores(sres, n)(-_._2).map(_._1),
             ds.dataset + l.abr -> sres.filter(_._2 <= rnd).map(_._1))
-         //         } catch {
-         //            case e: Throwable => println(s"$e")
-         //               sys.exit(1)
-         //         } finally {
          ds.close()
-         //         }
          r
       }
 
