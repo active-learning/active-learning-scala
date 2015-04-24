@@ -25,11 +25,11 @@ import ml.classifiers.{NoLearner, NinteraELM, RF, SVMLibRBF}
 import util.Stat
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   //, "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
+   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "comprimento:all,half,50")
+   //, "porRisco:r", "dist:euc,man,mah")
    val context = "tabwinnerstex"
    val n = 3
-   val dista = "all"
+   val dista = "maha"
    val measure = ALCKappa
    run()
 
@@ -40,10 +40,15 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          dataset <- datasets.toList.par
          l <- ls
       } yield {
-         val sts = stratsTex(dista)
+         val sts = stratsTexRedux(dista)
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         val (ti, th, tf, tpass) = ranges(ds)
+         val (ti, th, tf0, tpass) = ranges(ds)
+         val tf = comprimento match {
+            case "half" => th
+            case "all" => tf0
+            case "50" => 49
+         }
          val sres = for {
             s0 <- sts
             s = s0(l)
@@ -56,7 +61,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
                }
             s.limpa.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._1
          }
-         val rnd = sres.find(_._1 == RandomSampling(Seq()).limpa).get._2
+         val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).get._2
          val r = Some(ds.dataset + l.abr -> pegaMelhores(sres, n)(_._2).map(_._1),
             ds.dataset + l.abr -> pegaMelhores(sres, n)(-_._2).map(_._1),
             ds.dataset + l.abr -> sres.filter(_._2 <= rnd).map(_._1))
@@ -73,7 +78,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
-      val algs = (for (s <- stratsPool(dista) ++ stratsFpool()) yield s(NoLearner()).limpa) map { st =>
+      val algs = (for (s <- stratsTexRedux(dista)) yield s(NoLearner()).limp) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          val rndCount = flat3.count(_ == st)
@@ -82,11 +87,14 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
 
       println( """\begin{tabular}{lccc}
 algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
-\hline""")
+\hline
+               """)
       algs.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
          println(s"${st.padTo(10, ' ')} & $topCount & $rndCount & $botCount \\\\")
       }
-      println( """\end{tabular}""")
+      println(
+         """\end{tabular}
+         """.stripMargin)
 
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
       //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
@@ -97,3 +105,39 @@ algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \ma
    }
 
 }
+
+/*
+\begin{tabular}{lccc}
+algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
+\hline
+
+EERent     & 275 & 186 & 122 \\
+HTUmah     & 230 & 195 & 104 \\
+Mar        & 210 & 231 & 192 \\
+TUmah      & 206 & 219 & 128 \\
+ATUmah     & 199 & 210 & 144 \\
+SGmulti    & 175 & 246 & 131 \\
+SVMbal     & 145 & 330 & 295 \\
+QBCRFw     & 110 & 330 & 272 \\
+Clu        & 105 & 228 & 143 \\
+Rnd        & 84 & 564 & 195 \\
+\end{tabular}
+
+
+\begin{tabular}{lccc}
+algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
+\hline
+
+EERent     & 267 & 192 & 126 \\
+HTUmah     & 234 & 225 & 118 \\
+ATUmah     & 208 & 232 & 149 \\
+TUmah      & 193 & 245 & 140 \\
+Mar        & 178 & 260 & 189 \\
+SGmulti    & 162 & 268 & 146 \\
+SVMbal     & 143 & 331 & 279 \\
+Clu        & 134 & 234 & 119 \\
+Rnd        & 105 & 564 & 186 \\
+QBCRFw     & 104 & 343 & 274 \\
+\end{tabular}
+
+ */

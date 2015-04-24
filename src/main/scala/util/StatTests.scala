@@ -85,12 +85,13 @@ object StatTests {
 \begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}""" + (if (strategies.size > 8) "\\scalebox{0.75}{" else "") +
-         """\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + """\\ \hline """ +
+         """\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + "\\\\\n" + """ \hline """ + "\n" +
          core +
-         """\end{tabular}""" + (if (strategies.size > 8) "}" else "") +
+         """\end{tabular}""" + "\n" + (if (strategies.size > 8) "}" else "") +
          """\label{""" + tableName + """}
 \end{center}
-\end{table}"""
+\end{table}
+                                     """
    }
 
    def cor(ns0: Seq[Double], precision: Double, alto: String, baixo: String, baixo2: String = "") = {
@@ -149,7 +150,7 @@ object StatTests {
             }).mkString(" & ") + """ \\""" +
                (if (i % seps == seps - 1) """ \hline""" else "")
          }.mkString("\n") +
-         """\end{tabular}""" +
+         """\end{tabular}""" + "\n" +
          (if (pairs.size > 10 && pairs.size < 20) "}" else "") +
          """
 \label{""" + tableName + """}
@@ -210,7 +211,7 @@ object StatTests {
       """\begin{table}[h]
 \caption{""" + caption + """}
 \begin{center}""" + (if (header.head.contains("sideways")) if (pairs.size > 12) """\scalebox{0.8}{""" else """\scalebox{0.9}{""" else "") +
-         """\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + header.mkString(" & ") + """ \\""" +
+         """\begin{tabular}{l""" + Seq.fill(pairs.size)("c").grouped(seps).map(_.mkString).mkString("|") + "}\n \t\t\t\t& " + header.mkString(" & ") + """ \\""" + "\n" +
          pairs.zipWithIndex.map { case ((s, l), i) =>
             val Mx = l.filter(_ != 1).max
             val Mn = l.min
@@ -222,10 +223,11 @@ object StatTests {
                case (ll, _) => f2(ll)
             }.mkString(" & ") + """ \\""" + (if (i % seps == seps - 1) " \\hline" else "")
          }.mkString("\n") +
-         """\end{tabular}""" + (if (header.head.contains("sideways")) "}" else "") +
+         """\end{tabular}""" + "\n" + (if (header.head.contains("sideways")) "}" else "") +
          """\label{""" + tableName + """}
 \end{center}
-\end{table}"""
+\end{table}
+                                     """
    }
 }
 

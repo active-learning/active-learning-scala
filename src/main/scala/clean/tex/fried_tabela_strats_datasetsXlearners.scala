@@ -27,13 +27,13 @@ import util.{Stat, StatTests}
 object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "comprimento:all,half,50", "porRisco:r", "dist:euc,man,mah")
    val context = "friedEtabelasALCKappaAll"
-   val measure = ALCBalancedAcc
+   val measure = ALCKappa
    run()
 
    override def run() = {
       super.run()
       val caption = language match {
-         case "pt" => s"Um contra um para todos os algoritmos de aprendizado. Medida: ALC-kappa. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
+         case "pt" => s"Um contra um para todos os algoritmos de aprendizado. Medida: kappa médio. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
       val (sls, res0) = (for {
@@ -49,7 +49,7 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
             case "50" => 49
          }
          val (sts, sres) = (for {
-            s <- stratsTex(dist)
+            s <- stratsTexRedux(dist)
          } yield {
             val vs = for {
                r <- 0 until runs
