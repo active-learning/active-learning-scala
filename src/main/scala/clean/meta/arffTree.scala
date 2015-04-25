@@ -25,14 +25,14 @@ import util.{Datasets, Stat, StatTests}
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-   val perdedores = false
+   val perdedores = true
    val mostrar = 0.67
    val measure = ALCKappa
    val context = "metaAttsTreeApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val n = 3
+   val n = if (!perdedores) 3 else 1
    val pioresAignorar = 0
-   val minObjs = if (pioresAignorar == 0) 50 else 30
+   val minObjs = if (!perdedores) 50 else 45
    run()
 
    def ff(x: Double) = (x * 100).round / 100d

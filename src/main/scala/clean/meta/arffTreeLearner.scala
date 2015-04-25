@@ -25,8 +25,8 @@ import ml.classifiers._
 import util.{Datasets, Stat, StatTests}
 
 object arffTreeLearner extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-   val perdedores = false
-   val minobjs = 10
+   val perdedores = true
+   val minobjs = 8
    val measure = Kappa
    val context = "arffTreeLearnerApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
