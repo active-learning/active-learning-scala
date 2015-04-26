@@ -67,7 +67,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
             val vs00 = for {
                r <- 0 until runs
                f <- 0 until folds
-            } yield BalancedAcc(ds, s, le, r, f)(0).readAll(ds).getOrElse(throw new Error(s"NA: ${(ds, s, le.abr, r, f)}"))
+            } yield Kappa(ds, s, le, r, f)(0).readAll(ds).getOrElse(throw new Error(s"NA: ${(ds, s, le.abr, r, f)}"))
             val sizes = vs00.map(_.size)
             val minsiz = sizes.min
             val vs0 = vs00.map(_.take(minsiz))

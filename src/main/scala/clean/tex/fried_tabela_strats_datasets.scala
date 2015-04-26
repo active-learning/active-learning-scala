@@ -27,15 +27,15 @@ import util.{Stat, StatTests}
 
 object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val context = "friedALCKappatex"
-   val measure = ALCBalancedAcc
+   val context = "friedALCtex"
+   val measure = ALCKappa
    val risco = false
    run()
 
    override def run() = {
       super.run()
       val caption = language match {
-         case "pt" => s"Um contra um (LEA). Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
+         case "pt" => s"Um contra um (STR). Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
       val strats = stratsTex("all")
@@ -77,18 +77,18 @@ object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with 
          val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
          sorted foreach (x => println(x._2.map(_._1).mkString(" ")))
 
-         val arq = "/home/davi/wcs/tese/stratstab" + le.abr + ".tex"
+         val arq = s"/home/davi/wcs/tese/stratstab$measure" + le.abr + ".tex"
          print(arq + "   ")
          val fw = new PrintWriter(arq, "ISO-8859-1")
          sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
             fw.write(StatTests.extensiveTable2("Comparação de estratégias com aprendiz (se aplicável) e classificador " + le.abr +
-               ". \\textit{Média e desvio padrão da ALC da acurácia balanceada. " +
+               ". \\textit{Média e desvio padrão da ALC da medida kappa multiclasse. " +
                "Maior e menor média de cada base estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. " +
                "Maiores médias isoladas estão sublinhadas. " +
                "Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}", true, 100, res1, sl.toVector, s"strats${i}a" + le.abr, "ALC para " + le.abr, 7))
             //            if (!redux)
             fw.write(StatTests.extensiveTable2("Comparação de estratégias com aprendiz (se aplicável) e classificador " + le.abr +
-               ". \\textit{Média e desvio padrão da ALC da acurácia balanceada. " +
+               ". \\textit{Média e desvio padrão da ALC da medida kappa multiclasse. " +
                "Maior e menor média de cada base estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. " +
                "Maiores médias isoladas estão sublinhadas. " +
                "Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}", false, 100, res1, sl.toVector, s"strats${i}b" + le.abr, "ALC para " + le.abr, 7))
@@ -98,7 +98,7 @@ object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with 
          println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
          val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
          else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-         val arq2 = "/home/davi/wcs/tese/stratsfried" + le.abr + (if (risco) "Risco" else "") + ".tex"
+         val arq2 = s"/home/davi/wcs/tese/stratsfried$measure" + le.abr + (if (risco) "Risco" else "") + ".tex"
          println(s"")
          println(arq2)
          val fw2 = new PrintWriter(arq2, "ISO-8859-1")

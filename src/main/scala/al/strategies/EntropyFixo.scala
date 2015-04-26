@@ -24,7 +24,7 @@ import ml.models.Model
 
 case class EntropyFixo(learner: Learner, pool: Seq[Pattern], debug: Boolean = false)
    extends StrategyWithLearner with EntropyMeasure {
-   override lazy val toString = "EntropyFixo"
+   override lazy val toString = "EntropyFixo" + learner.limpa
    lazy val abr = "Ent"
    lazy val id = 4000000 + convlid(learner.id)
 

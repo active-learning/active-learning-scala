@@ -21,7 +21,7 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{BestClassifCV100_10fold, NoLearner}
+import ml.classifiers.{BestClassifCV100_10foldKappa, BestClassifCV100_10fold, NoLearner}
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -77,7 +77,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
                if (pool.size >= 200) {
                   val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10fold(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
+                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
                   val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
                   try {
@@ -118,7 +118,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
                if (pool.size >= 200) {
                   val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10fold(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
+                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
                   val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
                   try {
@@ -163,7 +163,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
                if (pool.size >= 200) {
                   val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10fold(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
+                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
                   val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
                   try {
@@ -204,7 +204,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
                if (pool.size >= 200) {
                   val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10fold(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
+                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
                   val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
                   val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
                   try {
