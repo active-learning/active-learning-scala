@@ -21,7 +21,7 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{BestClassifCV100_10foldKappa, BestClassifCV100_10fold, NoLearner}
+import ml.classifiers.{BestClassifCV100_10foldKappa, NoLearner}
 import weka.filters.Filter
 
 import scala.collection.mutable
