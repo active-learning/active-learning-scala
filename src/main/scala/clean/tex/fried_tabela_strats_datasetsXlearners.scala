@@ -65,7 +65,8 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
       val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
       //      val arq1 = s"/home/davi/wcs/tese/stratstab${dist}" + comprimento + ".tex"
       //      println(arq1)
-      //      val fw = new PrintWriter(arq1, "ISO-8859-1")
+      // //      val fw = new PrintWriter(arq1, "ISO-8859-1")
+      //      val fw = new PrintWriter(arq1, "UTF-8")
       //      sorted.grouped(32).zipWithIndex.foreach { case (res1, i) =>
       //         fw.write(StatTests.extensiveTable2("", true, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratstab${i}All" + comprimento + "a", "ALC para todos aprendizes", 7))
       //         fw.write(StatTests.extensiveTable2("", false, 100, res1.toSeq.map(x => x._1 -> x._2), sl.toVector.map(_.toString), s"stratstab${i}All" + comprimento + "b", "ALC para todos aprendizes", 7))
@@ -81,12 +82,13 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - 1 * _._2)), sl.toVector)
       val arq2 = s"/home/davi/wcs/tese/stratsfried${dist}" + (if (porRisco) "Risco" else "") + comprimento + ".tex"
       println(arq2)
-      val fw2 = new PrintWriter(arq2, "ISO-8859-1")
+      //      val fw2 = new PrintWriter(arq2, "UTF-8")
+      // //      val fw2 = new PrintWriter(arq2, "ISO-8859-1")
       println(s"")
       println(s"")
       println(StatTests.pairTable(pairs, "stratsFried" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
-      fw2.write(StatTests.pairTable(pairs, "stratsALCKappaFriedAll" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
-      fw2.close()
+      //      fw2.write(StatTests.pairTable(pairs, s"strats${measure}FriedAll" + (if (porRisco) "Risco" else "") + comprimento, 2, caption))
+      //      fw2.close()
       println(s"${res.size} datasets completos")
    }
 }

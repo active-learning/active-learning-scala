@@ -42,8 +42,15 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
       val bestLearners = pioresAignorar > 0
       val ls = learners(learnersStr)
       val strats = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
-      println(strats)
-      val metadata0 = for {name <- datasets.toList} yield {
+      val metadata0 = for {
+         name <- datasets.toList.filter { dataset =>
+            val ds = Ds(dataset, readOnly = true)
+            ds.open()
+            val r = ds.poolSize >= 200
+            ds.close()
+            r
+         }
+      } yield {
          val ds = Ds(name, readOnly = true)
          ds.open()
          val medidas = for (s <- strats) yield {
@@ -51,7 +58,6 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
                r <- 0 until runs
                f <- 0 until folds
             } yield {
-               println(s"mudar pra bestcv100-10fKappa !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s)
                classif.limpa -> measure(ds, s, classif, r, f)(-2).read(ds).getOrElse {
                   println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")

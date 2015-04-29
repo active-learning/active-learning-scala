@@ -27,15 +27,13 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
    val n = 3
+   val measure = Kappa
    run()
 
    override def run() = {
       super.run()
-      val measure = Kappa
-      //      val measure = ALCBalancedAcc
       val ls = learners(learnersStr)
       val strats = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
-      println(strats)
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.filter { dataset =>
             val ds = Ds(dataset, readOnly = true)
