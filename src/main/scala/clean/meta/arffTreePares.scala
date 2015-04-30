@@ -26,13 +26,13 @@ import util.Stat
  */
 object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = false
-   val mostrar = 0.67
+   val mostrar = 0.333
    val measure = Kappa
    val context = "metaAttsTreeparesApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val n = if (!perdedores) 3 else 1
+   val n = if (perdedores) 1 else 3
    val pioresAignorar = 0
-   val minObjs = if (!perdedores) 50 else 45
+   val minObjs = if (perdedores) 45 else 20
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
@@ -64,7 +64,7 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
                   sys.exit(0) //NA
                }
             }) map (_._2)
-            s.abr -> Stat.media_desvioPadrao(ms.toVector)
+            s.abrev -> Stat.media_desvioPadrao(ms.toVector)
          }
          val res = if (perdedores) pegaMelhores(medidas, n)(-_._2._1).map { bs => (ds.metaAttsHumanAndKnowingLabels, bs._1)}
          else pegaMelhores(medidas, n)(_._2._1).map { bs => (ds.metaAttsHumanAndKnowingLabels, bs._1)}
@@ -90,7 +90,7 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
       println(s"${data.size}")
 
       //constrói e transforma árvore
-      val tex = s"/home/davi/wcs/tese/tree$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}.tex"
+      val tex = s"/home/davi/wcs/tese/treePares$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}.tex"
       println(tex)
       C45(laplace = false, minObjs, mostrar).tree(arq, tex)
    }
