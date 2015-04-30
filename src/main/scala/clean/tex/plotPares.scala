@@ -29,7 +29,6 @@ import util.{Stat, StatTests}
 object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
    val context = "plotPares"
-   val n = 10
    //   val tipoSumariz = "mediana"
    val measure = Kappa
    val tipoSumariz = "media"
@@ -41,7 +40,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       super.run()
       val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
-      val algs = (for {s <- strats; l <- ls} yield s(l).limp + " " + l.limp).toVector
+      val algs = (for {s <- strats; l <- ls} yield s(l).limp + "-" + l.limp).toVector
       val dss = datasets.filter { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
@@ -50,7 +49,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          U > 200
       }
       val res0 = for {
-         dataset <- dss.take(8753)
+         dataset <- dss.take(1000)
       } yield {
          val ds = Ds(dataset, readOnly = true)
          println(s"$ds")
@@ -91,8 +90,8 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       val plot = plot0.toList.transpose.map { x =>
          x.sliding(20).map(y => y.sum / y.size).toList
       }.transpose
-      println(s"Pega apenas $n mais importantes.")
-      val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.min).take(n).unzip
+      println(s"Ordena pela soma dos ranks para que eu pegue só os mais importantes")
+      val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.sum).reverse.unzip
       val plot2 = plot3.transpose
 
       val fw = new PrintWriter(arq, "ISO-8859-1")

@@ -45,7 +45,7 @@ trait Strategy extends Log with Limpa {
 
    lazy val abrev = abr + ((this, learner) match {
       case (_, NoLearner()) | (_: SVMmultiRBF, _) => ""
-      case _ => " " + learner.abr
+      case _ => "-" + learner.abr
    })
    lazy val igualdade = id -> learner.id
 
