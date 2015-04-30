@@ -29,7 +29,7 @@ import util.{Stat, StatTests}
 object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
    val context = "plotPares"
-   val n = 12
+   val n = 10
    //   val tipoSumariz = "mediana"
    val measure = Kappa
    val tipoSumariz = "media"
@@ -50,7 +50,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
          U > 200
       }
       val res0 = for {
-         dataset <- dss.take(3)
+         dataset <- dss.take(8753)
       } yield {
          val ds = Ds(dataset, readOnly = true)
          println(s"$ds")
