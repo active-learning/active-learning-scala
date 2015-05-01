@@ -90,8 +90,8 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       val plot = plot0.toList.transpose.map { x =>
          x.sliding(20).map(y => y.sum / y.size).toList
       }.transpose
-      println(s"Ordena pela soma dos ranks para que eu pegue só os mais importantes")
-      val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.sum).reverse.unzip
+      println(s"Ordena pelo pico para que eu pegue só os mais importantes")
+      val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.min).unzip
       val plot2 = plot3.transpose
 
       val fw = new PrintWriter(arq, "ISO-8859-1")
