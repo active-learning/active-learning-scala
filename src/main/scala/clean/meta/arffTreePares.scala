@@ -26,7 +26,8 @@ import util.Stat
  */
 object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
    val perdedores = false
-   val mostrar = 0.333
+   val mostrar = 1
+   //0.333
    val measure = Kappa
    val context = "metaAttsTreeparesApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
