@@ -21,7 +21,7 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{BestClassifCV100_10foldKappa, NoLearner}
+import ml.classifiers.{BestClassifCV50_10foldKappa, BestClassifCV100_10foldKappa, NoLearner}
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -75,14 +75,14 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                //                  }
                //               }
 
-               if (pool.size >= 200) {
-                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
-                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
-                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
+               if (pool.size >= 100) {
+                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
+                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-3)
+                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-3)
                   try {
                      if (!k.existia || !b.existia) {
-                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
                         poeNaFila(fila, k.sqlToWrite(ds, CM))
                         poeNaFila(fila, b.sqlToWrite(ds, CM))
@@ -92,6 +92,24 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                         acabou = false
                   }
                }
+               //
+               //               if (pool.size >= 200) {
+               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
+               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
+               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
+               //                  try {
+               //                     if (!k.existia || !b.existia) {
+               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+               //                     }
+               //                  } catch {
+               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+               //                        acabou = false
+               //                  }
+               //               }
             }
 
             stratsFpool(pool, fpool).map(_(learner)) foreach { fstrat =>
@@ -116,14 +134,31 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                //                  }
                //               }
 
-               if (pool.size >= 200) {
-                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
-                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
-                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+               //               if (pool.size >= 200) {
+               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
+               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+               //                  try {
+               //                     if (!k.existia || !b.existia) {
+               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+               //                     }
+               //                  } catch {
+               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+               //                        acabou = false
+               //                  }
+               //               }
+               if (pool.size >= 100) {
+                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
+                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-3)
+                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-3)
                   try {
                      if (!k.existia || !b.existia) {
-                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
                         poeNaFila(fila, k.sqlToWrite(ds, CM))
                         poeNaFila(fila, b.sqlToWrite(ds, CM))
@@ -161,14 +196,32 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                //                  }
                //               }
 
-               if (pool.size >= 200) {
-                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
-                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
-                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
+               //               if (pool.size >= 200) {
+               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
+               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
+               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
+               //                  try {
+               //                     if (!k.existia || !b.existia) {
+               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+               //                     }
+               //                  } catch {
+               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+               //                        acabou = false
+               //                  }
+               //               }
+
+               if (pool.size >= 100) {
+                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
+                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-3)
+                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-3)
                   try {
                      if (!k.existia || !b.existia) {
-                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
                         poeNaFila(fila, k.sqlToWrite(ds, CM))
                         poeNaFila(fila, b.sqlToWrite(ds, CM))
@@ -202,14 +255,31 @@ object acv extends Exp with LearnerTrait with StratsTrait {
                //                  }
                //               }
 
-               if (pool.size >= 200) {
-                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
-                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
-                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+               //               if (pool.size >= 200) {
+               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
+               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+               //                  try {
+               //                     if (!k.existia || !b.existia) {
+               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+               //                     }
+               //                  } catch {
+               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+               //                        acabou = false
+               //                  }
+               //               }
+               if (pool.size >= 100) {
+                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
+                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-3)
+                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-3)
                   try {
                      if (!k.existia || !b.existia) {
-                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
                         val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
                         poeNaFila(fila, k.sqlToWrite(ds, CM))
                         poeNaFila(fila, b.sqlToWrite(ds, CM))
@@ -228,14 +298,14 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
    def datasetFinished(ds: Ds) = {
       if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-         ds.markAsFinishedRun("acv11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+         ds.markAsFinishedRun("acv50" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
       acabou = true
    }
 
-   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv11" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+   def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acv50" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
 
    def end(res: Map[String, Boolean]): Unit = {
    }

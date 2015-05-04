@@ -2,7 +2,6 @@ package clean.meta
 
 import java.io.FileWriter
 
-import al.strategies._
 import clean.lib._
 import ml.classifiers._
 import util.Stat
@@ -34,6 +33,7 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
    val n = if (perdedores) 1 else 3
    val pioresAignorar = 0
    val minObjs = if (perdedores) 45 else 20
+   val qs50 = true
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
@@ -41,6 +41,10 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
    override def run() = {
       super.run()
       val bestLearners = pioresAignorar > 0
+      val arq = s"/home/davi/wcs/ucipp/uci/metaTree$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}${if (qs50) "50" else ""}.arff"
+      println(arq)
+      val tex = s"/home/davi/wcs/tese/treePares$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}${if (qs50) "50" else ""}.tex"
+      println(tex)
       val ls = learners(learnersStr)
       val strats = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
       val metadata0 = for {
@@ -59,8 +63,8 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
                r <- 0 until runs
                f <- 0 until folds
             } yield {
-               val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s)
-               classif.limpa -> measure(ds, s, classif, r, f)(-2).read(ds).getOrElse {
+               val classif = if (qs50) BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) else BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s)
+               classif.limpa -> measure(ds, s, classif, r, f)(if (qs50) -3 else -2).read(ds).getOrElse {
                   println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
                }
@@ -84,15 +88,12 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
       val pronto = header ++ data
       //      pronto foreach println
 
-      val arq = s"/home/davi/wcs/ucipp/uci/metaTree$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}.arff"
       val fw = new FileWriter(arq)
       pronto foreach (x => fw.write(s"$x\n"))
-      fw.close
+      fw.close()
       println(s"${data.size}")
 
       //constrói e transforma árvore
-      val tex = s"/home/davi/wcs/tese/treePares$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}.tex"
-      println(tex)
       C45(laplace = false, minObjs, mostrar).tree(arq, tex)
    }
 }

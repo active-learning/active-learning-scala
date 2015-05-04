@@ -100,7 +100,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       //      pronto foreach println
 
       val arq = s"/home/davi/wcs/ucipp/uci/metaTree$measure" + (if (bestLearners) s"Best-$pioresAignorar" else "") + s"${if (perdedores) "perd" else ""}.arff"
-      val fw = new FileWriter(arq)
+      val fw = new PrintWriter(arq, "UTF-8")
       pronto foreach (x => fw.write(s"$x\n"))
       fw.close
       println(s"${data.size}")
