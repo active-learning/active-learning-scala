@@ -39,7 +39,7 @@ object fried_tabela_datasets_Pares extends AppWithUsage with LearnerTrait with S
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
       val ls = learners(learnersStr)
-      val strats = (for {l <- ls; s <- stratsTexRedux("maha").map(_(l))} yield s).distinct
+      val strats = (for {l <- ls; s <- stratsTexRedux("all").map(_(l))} yield s).distinct
 
       val (sls, res0) = (for {
          dataset <- datasets.toList.filter { dataset =>
@@ -60,7 +60,7 @@ object fried_tabela_datasets_Pares extends AppWithUsage with LearnerTrait with S
                f <- 0 until folds
             } yield {
                val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s)
-               classif.limpa -> measure(ds, s, classif, r, f)(-1).read(ds).getOrElse {
+               classif.limpa -> measure(ds, s, classif, r, f)(-2).read(ds).getOrElse {
                   println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
                }
