@@ -19,6 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
+import al.strategies.RandomSampling
 import clean.lib._
 import ml.classifiers.{BestClassifCV100_10foldReadOnlyKappa, BestClassifCV100_10foldReadOnly, BestClassifCV100ReadOnly}
 import util.Stat
@@ -66,29 +67,38 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
             //            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
             s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
          }
-         val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1), ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1))
+         val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).get._2
+         val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1),
+            ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1),
+            ds.dataset -> sres.filter(_._2 <= rnd).map(_._1).toList)
          ds.close()
          res
       }
 
-      val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.unzip
+      val (datasetLearnerAndWinners, datasetLearnerAndLosers, pioresQueRnd) = datasetLearnerAndBoth.unzip3
       println(s"$n primeiros/últimos")
       println(s"${datasetLearnerAndBoth.size} tests.")
       println(s"--------$measure---------------")
       //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
+      val flat3 = pioresQueRnd.flatMap(_._2)
       val algs1 = strats.map(_.limpa) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
-         (st, topCount, botCount)
+         val rndCount = flat3.count(_ == st)
+         (st, topCount, rndCount, botCount)
       }
 
-      println(algs1.map(_._2).sum + " total de vencedores")
-      println(algs1.map(_._3).sum + " total de perdedores")
-      algs1.sortBy(_._2).reverse.foreach { case (st, topCount, botCount) =>
-         println(s"${st.padTo(10, ' ')}\t\t\t&\t$topCount\t&\t\t$botCount\t \\\\")
-         //         println(s"${st.padTo(10, ' ')}:\t$topCount\taparições entre os $n primeiros;\t\t$botCount\taparições entre os $n últimos")
+      println( """\begin{tabular}{lccc}
+algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
+\hline
+               """)
+      algs1.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
+         println(s"${st.padTo(10, ' ')} & $topCount & $rndCount & $botCount \\\\")
       }
+      println(
+         """\end{tabular}
+         """.stripMargin)
    }
 }
