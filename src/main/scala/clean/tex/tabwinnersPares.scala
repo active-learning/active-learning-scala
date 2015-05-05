@@ -21,7 +21,7 @@ package clean.tex
 
 import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.{BestClassifCV100_10foldReadOnlyKappa, BestClassifCV100_10foldReadOnly, BestClassifCV100ReadOnly}
+import ml.classifiers.{BestClassifCV50_10foldReadOnlyKappa, BestClassifCV100_10foldReadOnlyKappa, BestClassifCV100_10foldReadOnly, BestClassifCV100ReadOnly}
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
@@ -29,6 +29,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
    val context = "tabwinnersPares"
    val n = 3
    val measure = Kappa
+   val qs50 = true
    run()
 
    override def run() = {
@@ -53,9 +54,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                f <- 0 until folds
             } yield {
                try {
-                  val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s)
-                  //                  usa cv pra descobrir best classif e usa ele em 100
-                  classif.limpa -> measure(ds, s, classif, r, f)(-2).read(ds).getOrElse {
+                  val classif = if (qs50) BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) else BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s)
+                  classif.limpa -> measure(ds, s, classif, r, f)(if (qs50) -3 else -2).read(ds).getOrElse {
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                      sys.exit(0) //NA
                   }
@@ -79,7 +79,6 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       println(s"$n primeiros/últimos")
       println(s"${datasetLearnerAndBoth.size} tests.")
       println(s"--------$measure---------------")
-      //      datasetLearnerAndWinners foreach println
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
@@ -90,6 +89,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          (st, topCount, rndCount, botCount)
       }
 
+      println(s"${if (qs50) "50" else ""}")
       println( """\begin{tabular}{lccc}
 algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
 \hline
