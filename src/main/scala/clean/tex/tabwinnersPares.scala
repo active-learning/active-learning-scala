@@ -21,15 +21,16 @@ package clean.tex
 
 import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.{BestClassifCV50_10foldReadOnlyKappa, BestClassifCV100_10foldReadOnlyKappa, BestClassifCV100_10foldReadOnly, BestClassifCV100ReadOnly}
+import ml.classifiers._
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
    val n = 3
+   val qs = "u2"
+   // 50 100
    val measure = Kappa
-   val qs50 = true
    run()
 
    override def run() = {
@@ -40,9 +41,9 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          dataset <- datasets.toList.filter { dataset =>
             val ds = Ds(dataset, readOnly = true)
             ds.open()
-            val r = ds.poolSize >= 200
+            val r = ds.poolSize >= (if (qs == "50") 100 else 200)
             ds.close()
-            r
+            if (qs == "u2") !r else r
          }
       } yield {
          val ds = Ds(dataset, readOnly = true)
@@ -54,8 +55,12 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
                f <- 0 until folds
             } yield {
                try {
-                  val classif = if (qs50) BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) else BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s)
-                  classif.limpa -> measure(ds, s, classif, r, f)(if (qs50) -3 else -2).read(ds).getOrElse {
+                  val (classif, nr) = qs match {
+                     case "100" => BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s) -> -2
+                     case "50" => BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) -> -3
+                     case "u2" => BestClassifCVU2_10foldReadOnlyKappa(ds, r, f, s) -> -4
+                  }
+                  classif.limpa -> measure(ds, s, classif, r, f)(nr).read(ds).getOrElse {
                      println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                      sys.exit(0) //NA
                   }
@@ -89,7 +94,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
          (st, topCount, rndCount, botCount)
       }
 
-      println(s"${if (qs50) "50" else ""}")
+      println(s"${if (qs == "50") "50" else ""}")
       println( """\begin{tabular}{lccc}
 algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
 \hline

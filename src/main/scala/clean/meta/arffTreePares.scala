@@ -33,7 +33,7 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
    val n = if (perdedores) 1 else 3
    val pioresAignorar = 0
    val minObjs = if (perdedores) 45 else 20
-   val qs50 = true
+   val qs50 = false
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
@@ -51,7 +51,7 @@ object arffTreePares extends AppWithUsage with StratsTrait with LearnerTrait wit
          name <- datasets.toList.filter { dataset =>
             val ds = Ds(dataset, readOnly = true)
             ds.open()
-            val r = ds.poolSize >= 200
+            val r = ds.poolSize >= (if (qs50) 100 else 200)
             ds.close()
             r
          }
