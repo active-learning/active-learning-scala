@@ -128,6 +128,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
    def divide(a: Double, b: Double) = if (b == 0) 0d else a / b
 
+   lazy val submetaAtts = List[Double](nclasses, poolSizeByNatts, 100d * nomCount / nattributes)
    lazy val metaAtts = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
@@ -378,7 +379,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
    def queries(stratid: Int, lid: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) = {
       val patts = read(s"SELECT i.id FROM i, q, p where i.id=q.i and p.id=p and p.s=$stratid and p.l=$lid and p.r=$run and p.f=$fold order by t asc") match {
-         case List() => quit("No queries found!" +(stratid, lid, run, fold))
+         case List() => error("No queries found!" +(stratid, lid, run, fold))
          case list: List[Vector[Double]] =>
             val ids = list.map(_.head.toInt)
             val m = (patterns map (p => p.id -> p)).toMap
@@ -472,7 +473,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       val le = allLearners(patterns, 42).find(_.id == l.id).getOrElse(quit("suavidade problems"))
       val ts = new Random(0).shuffle(patterns).take(15 * nclasses)
       val (fts, binaf, zscof) = criaFiltro(patterns, 0)
-      val tr = queries(3, l.id, 0, 0, null, null).take(nclasses)
+      val tr = queries(0, 0, 0, 0, null, null).take(nclasses)
       lazy val ftr = aplicaFiltro(tr, 0, binaf, zscof)
       val tr2 = if (Seq(6, 8, 11).contains(l.id)) ftr else tr
       val ts2 = if (Seq(6, 8, 11).contains(l.id)) fts else ts

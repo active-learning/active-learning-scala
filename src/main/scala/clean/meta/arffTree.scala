@@ -61,7 +61,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //                        Seq((tmin, thalf, "baixo"), (thalf, tmax, "alto"))
             Seq((tmin, tmax, "alto"))
          }
-
       } yield {
          val strats = stratsTex("all")
          val ds = Ds(name, readOnly = true)
@@ -77,7 +76,6 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             } catch {
                case _: Throwable => ds.error(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l)}.")
             }
-
          }
          val res = if (perdedores) pegaMelhores(medidas, n)(-_._2._1).map { bs =>
             (ds.metaAttsHumanAndKnowingLabels, l.abr, bs._1, budix, l.attPref, l.boundaryType)

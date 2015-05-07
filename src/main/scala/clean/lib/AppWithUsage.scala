@@ -3,6 +3,8 @@ package clean.lib
 import java.security.SecureRandom
 import java.util.UUID
 
+import al.strategies.Strategy
+import ml.classifiers.Learner
 import util.XSRandom
 
 import scala.util.Random
@@ -72,7 +74,7 @@ trait AppWithUsage extends App with Log with ArgParser {
    lazy val memlimit = Global.memlimit
    lazy val attsFromRNames = Seq("AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
       "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
-      "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y").map(x => "\"" + x + "\"")
+      "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y").map(x => "\"" + x + "\"").mkString(",")
    val nonHumanNumAttsNames = "\"#classes\",\"#atributos\",\"#exemplos\"," +
       "\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," +
       "skewnessesmin,skewavg,skewnessesmax,skewnessesminByskewnessesmax," +
@@ -81,7 +83,8 @@ trait AppWithUsage extends App with Log with ArgParser {
       "mediasmin,mediasavg,mediasmax,mediasminBymediasmax," +
       "desviosmin,desviosavg,desviosmax,desviosminBydesviosmax," +
       "entropiasmin,entropiasavg,entropiasmax,entropiasminByentropiasmax," +
-      "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah" + attsFromRNames.mkString(",")
+      "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah"
+   val subnonHumanNumAttsNames = "\"#classes\",\"#exemplos/#atributos\",\"%nominais\""
    //      "majority,minority,majorityByminority,classEntropy," + attsFromRNames.mkString(",")
    // <- class dependent metaatts
    val humanNumAttsNames = "\"\\\\#classes\",\"\\\\#atributos\",\"\\\\#exemplos\",\"$\\\\frac{\\\\#exemplos}{\\\\#atrib.}$\",\"\\\\%nominais\",\"\\\\%major.\",\"\\\\%minor.\",\"$\\\\frac{\\\\%major.}{\\\\%minor.}$\",\"entropia da distr. de classes\""
@@ -159,5 +162,35 @@ trait AppWithUsage extends App with Log with ArgParser {
          t += vs.size
          t < n
       }.tail.map(_._2).flatten
+   }
+
+
+   def accsPerPool(ds: Ds, s0: (Learner) => Strategy, learners: Seq[Learner], measure: (Strategy, Learner, Int, Int) => Measure) = for {
+      r <- 0 until runs
+      f <- 0 until folds
+   } yield for (le <- learners) yield {
+         val s = s0(le)
+         (le, measure(s, le, r, f).read(ds).getOrElse(error("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))), r, f)
+      }
+
+
+   //   def winnersPerPool(ds: Ds, s0: (Learner) => Strategy, learners: Seq[Learner], measure: (Strategy, Learner, Int, Int) => Measure) = {
+   //      val r = for (le <- learners) yield {
+   //         val s = s0(le)
+   //         val accs = for {
+   //            r <- 0 until runs
+   //            f <- 0 until folds
+   //         } yield measure(s, le, r, f).read(ds).getOrElse(error("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f)))
+   //         le -> accs.sum
+   //      }
+   //      r.sortBy(_._2)
+   //   }
+
+   def DsByMinSize(lst: List[String], size: Int) = datasets.toList.filter { dataset =>
+      val ds = Ds(dataset, readOnly = true)
+      ds.open()
+      val r = ds.poolSize >= size
+      ds.close()
+      r
    }
 }

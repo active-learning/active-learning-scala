@@ -20,289 +20,253 @@ package clean.meta
 
 import java.io.FileWriter
 
+import al.strategies._
 import clean.lib._
 import ml.Pattern
 import ml.classifiers._
 import ml.models.ELMModel
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
-import util.{Datasets, Stat, StatTests}
+import util.{Datasets, Stat}
 
 import scala.collection.mutable
+import scala.util.Random
 
 object arffMetaPares extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator with FilterTrait with Rank {
    /*
-   "Rank" => prediz ranking das strats
-   "Ties" => prediz vencedores empatados (via multirrótulo no ARFF) com ELM
-             se a predição estiver entre os empatados, então acertou
-   "TiesDup" => prediz vencedores empatados (via repetição de exemplos no ARFF)
-                com learners que façam contagem (NB, C45, KNN, VFDT)
+   "acc" => prediz vencedores empatados (via repetição de exemplos no ARFF)
+                com learners que façam contagem (NB, C45, KNN, VFDT, RF?)
                 se a predição estiver entre os empatados, então acertou
-   "Winner" => prediz apenas o melhor
-   "WinnerDP" => prediz apenas o melhor, mas roda LOO várias vezes sorteando aprendiz; pode retornar Desvio Padrão no futuro
-   "Acc" => prediz acc em cada strat com ELM
-
-   Escolher mais abaixo se sorteia learner, budget ou nada.
-   Escolher tb quais metaatts fazem parte (suav etc)
+   "Spear" => prediz ranking das strats
+   "Winner" => prediz apenas o melhor (preterir por TiesDup?)
    */
-   //   val modo = "Rank"
-   //      val modo = "Ties"
-   //      val modo = "TiesDup"
-   val modo = "Winner"
-   //   val modo = "WinnerDP"
-   val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
-   val context = "metaAttsAccApp"
+   val context = "metaParesApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   val measure = ALCKappa
-   //   val measure = ALCBalancedAcc
-   val redux = true
-   val n = 3
+   //modo: dup rank
+   val measure = Kappa
+   val n = 1
+   //qs: 50 100 50ou100
+   val qs = "100"
+   val modo = "dup"
+   val arq = s"/home/davi/wcs/ucipp/uci/metaPares$modo$qs.arff"
    run()
 
    def ff(x: Double) = (x * 100).round / 100d
 
    override def run() = {
       super.run()
-      val mapaAtts = mutable.Map[Ds, List[Double]]()
-      val mapaSuav = mutable.Map[(Ds, Learner), Double]()
-      val strats = if (redux) stratsTexRedux("all") else stratsTex("all")
-      val metadata0 = for {
-         name <- datasets.toList.take(150).par
-         (ti, tf, budix) <- {
-            val ds = Ds(name, readOnly = true)
+      val mapaAtts = mutable.Map[Ds, List[String]]()
+      val fakePool = Seq()
+      val pares = Seq(
+         MarginFixo(RF(), Seq()),
+         ////         SVMmultiRBF(fakePool, "BALANCED_EEw"),
+         ExpErrorReductionMarginFixo(RF(), Seq(), "entropy"),
+         //                  HTUFixo(Seq(), SVMLibRBF(), Seq(), "maha"),
+         //                  HTUFixo(Seq(), RF(), Seq(), "eucl"),
+         HTUFixo(Seq(), RF(), Seq(), "manh")
+         //
+         //         DensityWeightedTrainingUtilityFixo(Seq(), CIELMBatch(), Seq(), "maha"),
+         //         DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl"),
+         //         DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "manh"),
+         //         DensityWeightedFixo(Seq(), RF(), Seq(), 1, "maha"),
+         //         AgDensityWeightedTrainingUtility(Seq(), "maha"),
+         //         AgDensityWeightedTrainingUtility(Seq(), "eucl"),
+         //         AgDensityWeightedTrainingUtility(Seq(), "manh"),
+         //         ClusterBased(Seq()),
+         //         SGmultiFixo(KNNBatcha(5, "eucl", Seq(), weighted = true), Seq(), "consensus"),
+         //         RandomSampling(Seq())
+      )
+      val metadata0 = (for {
+         dataset <- datasets.toList.filter { dataset =>
+            val ds = Ds(dataset, readOnly = true)
             ds.open()
-            //varia budget(cuidado: válido apenas para TiesDup, Winner ou outro modo que faça o LOO por patterns agrupados)
-            Seq((0, 0, 0))
+            val r = ds.poolSize >= (if (qs == "50") 100 else 200)
+            ds.close()
+            if (qs == "u2") !r else r
+         }
+         b <- qs match {
+            case "50ou100" => Seq(50, 100)
+            case "u2" | "50" | "100" => Seq(0)
          }
       } yield {
-         val ds = Ds(name, readOnly = true)
+         val ds = Ds(dataset, readOnly = true)
          ds.open()
-         //         val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.metaAtts)
-         //         lazy val suav = mapaSuav.getOrElseUpdate((ds, l), ds.suavidade(l))
-         //         //escolher se sorteia, fixa ou varia learner (pra variar, comentar abaixo e descomentar mais acima)
-         //         //         val l = allLearners()(rnd.nextInt(allLearners().size)) //warning: estrats de learner único permanecem sempre com seus learners (basicamente ExpELMC)
-         //         //         val l = KNNBatch(5, "eucl", Seq(), weighted = true)
-
+         val metaAtts = mapaAtts.getOrElseUpdate(ds, ds.submetaAtts.map(_.toString))
+         //poderia colocar a suavidade de cada learner como metaatributos, mas acho que o efeito negativo da dureza ocorre bem menos qnd o aprendiz é desvinculado de classificador
          val seqratts = (for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield ds.attsFromR(r, f)).transpose.map(_.toVector)
          val rattsmd = seqratts map Stat.media_desvioPadrao
-         val (rattsm, _) = rattsmd.unzip
+         val (rattsm0, rattsd) = rattsmd.unzip
+         val rattsm = Seq() //rattsm0.map(_.toString)
 
-         val res = for {
-            l <- learners(learnersStr)
-            s0 <- strats
-            s = s0(l)
+         val sres = (for {
+            s <- pares.par
          } yield {
-
+            val (cs, vs) = (for {
+               r <- 0 until runs
+               f <- 0 until folds
+            } yield {
+               val (classif, nr) = qs match {
+                  case "50ou100" if b == 50 => BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) -> -3
+                  case "50ou100" if b == 100 => BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s) -> -2
+                  case "u2" => BestClassifCVU2_10foldReadOnlyKappa(ds, r, f, s) -> -4
+                  case "50" => BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) -> -3
+                  case "100" => BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s) -> -2
+               }
+               classif.limpa -> measure(ds, s, classif, r, f)(nr).read(ds).getOrElse {
+                  println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
+                  sys.exit(0) //NA
+               }
+            }).unzip
+            s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
+         }).toList
+         lazy val rank = "multilabel" + ranqueia(sres.map(_._2)).mkString(",")
+         val res = modo match {
+            case "acc" => pegaMelhores(sres, n)(_._2).map(_._1) map (x => metaAtts ++ rattsm :+ b.toString :+ "\"" + x + "\"")
+            case "Spear" => Seq(metaAtts ++ rattsm :+ b.toString :+ "\"" + rank + "\"")
+            //            case "acc" => pegaMelhores(sres, n)(_._2).map(_._1) map (x => metaAtts.map(_ => "0") ++ rattsm :+ b.toString :+ "\"" + x + "\"")
+            //            case "Spear" => Seq(metaAtts.map(_ => "0") ++ rattsm :+ b.toString :+ "\"" + rank + "\"")
+            //            case "acc" => pegaMelhores(sres, n)(_._2).map(_._1) map (x => metaAtts ++ rattsm.map(_ => "0") :+ b.toString :+ "\"" + x + "\"")
+            //            case "Spear" => Seq(metaAtts ++ rattsm.map(_ => "0") :+ b.toString :+ "\"" + rank + "\"")
          }
-
-         //            modo match {
-         //            case "Acc" => //prediz acc em cada strat
-         //               println(s"filtrar sVMmulti com learner errado");
-         //               ???
-         //               val vs = for {
-         //                  s <- strats
-         //               } yield {
-         //                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-         //                  val ms = for {
-         //                     r <- 0 until Global.runs
-         //                     f <- 0 until Global.folds
-         //                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-         //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-         //                        NA
-         //                     }
-         //                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
-         //               }
-         //               if (vs.exists(x => x._2._1 == NA)) Seq()
-         //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + vs.map(_._2._1).mkString(","), budix, l.attPref, l.boundaryType, suav))
-         //            case "TiesDup" => //qualquer metalearner que conte prediz vencedores empatados
-         //               val vs = for {
-         //                  r <- 0 until runs
-         //                  f <- 0 until folds
-         //               //                  duplicadorDeAmostra <- 0 to 20
-         //               } yield {
-         //                  ???
-         //                  val poolStr = (100 * r + f).toString
-         //                  val medidas = for {
-         //                     s <- strats
-         //                  } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
-         //                     else Some(measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-         //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
-         //                        NA
-         //                     })
-         //                  poolStr -> medidas.flatten
-         //               }
-         //               if (vs.exists(_._2.contains(NA))) ???
-         //               val winners = StatTests.clearWinners(vs, ss)
-         //               ss.map { x =>
-         //                  if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, "ambos", "nenhuma", 0d)
-         //                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, l.abr, x, budix, "ambos", "nenhuma", 0d)
-         //                  //                if (winners.contains(x)) Option(metaAtts ++ rattsm, "na", x, budix, l.attPref, l.boundaryType, suav)
-         //                  else None
-         //               }.flatten
-         //            case "Ties" => //prediz vencedores empatados
-         //               val vs = for {
-         //                  r <- 0 until runs
-         //                  f <- 0 until folds
-         //               //                  duplicadorDeAmostra <- 0 to 1
-         //               } yield {
-         //                  val poolStr = (100 * r + f).toString
-         //                  ???
-         //                  val medidas = for {
-         //                     s <- strats
-         //                     le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
-         //                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-         //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-         //                        -2d
-         //                     }
-         //                  poolStr -> medidas
-         //               }
-         //               val winners = StatTests.clearWinners(vs, ss)
-         //               val binario = ss.map(x => if (winners.contains(x)) 1 else 0)
-         //               if (vs.exists(x => x._2.contains(-2d))) Seq()
-         //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
-         //            //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
-         //            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, l.attPref, l.boundaryType, suav))
-         //            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
-         //            case "Rank" => //prediz ranking
-         //               val vs = for {
-         //                  s <- strats
-         //               } yield {
-         //                  ???
-         //                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
-         //                  val ms = for {
-         //                     r <- 0 until Global.runs
-         //                     f <- 0 until Global.folds
-         //                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-         //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-         //                        -2d
-         //                     }
-         //                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
-         //               }
-         //               lazy val rank = ranqueia(vs.map(_._2._1))
-         //               if (vs.exists(x => x._2._1 == -2d)) Seq()
-         //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + rank.mkString(","), budix, l.attPref, l.boundaryType, suav))
-         //            case "Winner" | "WinnerDP" => //qualquer learner prediz apenas o melhor
-         //               ???
-         //               val vs0 = for {
-         //                     s <- strats
-         //               } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
-         //                  else {
-         //                     val ms = for {
-         //                        r <- 0 until Global.runs
-         //                        f <- 0 until Global.folds
-         //                     } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-         //                           ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
-         //                           NA
-         //                        }
-         //                     Some(s.abr -> Stat.media_desvioPadrao(ms.toVector))
-         //                  }
-         //               val vs = vs0.flatten
-         //               if (vs.exists(_._2._1 == NA)) ???
-         //               //                                             else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
-         //               //               else Seq((metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
-         //               //                           else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
-         //               else Seq((metaAtts ++ rattsm, l.abr, vs.maxBy(_._2._1)._1, budix, l.attPref, l.boundaryType, suav))
-         //         }
-
          ds.close()
          res
-      }
-      val metadata = metadata0.flatten.toList
+      }).flatten
+      val metadata = metadata0.toList
 
-      //      //cria ARFF
-      //      val pred = metadata.map(_._3)
-      //      val labels = pred.distinct.sorted
-      //      val data = metadata.map { case (numericos, learner, vencedores, budget, attPref, boundaryType, suavidade) =>
-      //         numericos.mkString(",") + s",$budget,$learner,$attPref,$boundaryType,$suavidade," + "\"" + vencedores + "\""
-      //      }
-      //      val header = List("@relation data") ++
-      //         nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
-      //         List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}",
-      //            "@attribute aprendiz {" + ls.map(x => "\"" + x.abr + "\"").mkString(",") + ",na}",
-      //            "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}",
-      //            "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}",
-      //            "@attribute suavidade numeric",
-      //            "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
-      //
-      //      val pronto = header ++ data
-      //
-      //      println(s"$arq")
-      //      val fw = new FileWriter(arq)
-      //      pronto foreach (x => fw.write(s"$x\n"))
-      //      fw.close()
-      //      pronto foreach println
-      //
-      //      //processa arff
-      //      println(s"${data.size} metaexemplos")
-      //      println(labels.size + " pseudoclasses")
-      //
-      //      //NB, C45, KNN, VFDT
-      //      Datasets.arff(arq, dedup = false) match {
-      //         case Left(str) => error("problemas abrindo arff:" + str)
-      //         case Right(patterns) =>
-      //            val grupos = patterns.groupBy(x => x.vector.dropRight(5)).map(_._2).toArray
-      //            print(s" qtd de grupos = ${grupos.size} ")
-      //            val accs = Datasets.LOO(grupos) { (tr: Seq[Vector[Pattern]], ts: Vector[Pattern]) =>
-      //               modo match {
-      //                  case "Rank" | "Ties" =>
-      //                     //                  println(s"Pool $run.$fold (${tr.size} instances) ...")
-      //                     val learnerSeed = 0
-      //                     val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
-      //                     val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
-      //                     val l = NinteraELM(learnerSeed)
-      //                     var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
-      //                     m = l.modelSelectionFull(m)
-      //                     val rankMedio = media(ftestSet.toSeq map (p => p.nominalSplit))
-      //                     val hitsELMeSpears = ftestSet map { p =>
-      //                        val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
-      //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.nominalSplit)
-      //                        (if (p.nominalSplit(m.predict(p).toInt) == p.nominalSplit.max) 1d else 0d, (spear, spearMaj))
-      //                     }
-      //                     val (hitsELM, spears) = hitsELMeSpears.unzip
-      //                     val (spearELM, spearMaj) = spears.unzip
-      //                     val hitsMaj = ftestSet map { p => if (p.nominalSplit(2) == p.nominalSplit.max) 1d else 0d}
-      //                     modo match {
-      //                        case "Rank" => Seq(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
-      //                        case "Ties" => Seq(Stat.media_desvioPadrao(hitsELM)._1, Stat.media_desvioPadrao(hitsMaj)._1)
-      //                     }
-      //                  case "Winner" | "WinnerDP" | "TiesDup" =>
-      //                     val ls = Seq(C45(),
-      //                        NBBatch(),
-      //                        //                  KNNBatch(5, "eucl", tr.flatten, weighted = true),
-      //                        KNNBatchb(5, "eucl", tr.flatten, weighted = false),
-      //                        //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
-      //                        //                  SVMLib(), //não tira proveito de exemplos duplicados
-      //                        //                  NinteraELM(), //não tira proveito de exemplos duplicados
-      //                        Maj())
-      //                     val trios = ls map {
-      //                        case l: NinteraELM =>
-      //                           val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
-      //                           val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
-      //                           var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
-      //                           m = l.modelSelectionFull(m)
-      //                           (m, ftestSet)
-      //                        case l =>
-      //                           val m = l.build(tr.flatten)
-      //                           (m, ts)
-      //                     }
-      //                     modo match {
-      //                        case "TiesDup" => trios map { case (m, tes) =>
-      //                           val hitsByDupGroup = tes.groupBy(x => x) map { case (pat, pats) =>
-      //                              if (pats.map(_.label).contains(m.predict(pat))) 1d else 0d
-      //                           }
-      //                           hitsByDupGroup.sum / hitsByDupGroup.size
-      //                        }
-      //                        case "Winner" | "WinnerDP" => trios map { case (m, tes) =>
-      //                           m.accuracy(tes)
-      //                        }
-      //                     }
-      //               }
-      //            }
-      //            print(accs.transpose.map { x =>
-      //               val (m, d) = Stat.media_desvioPadrao(x.toVector)
-      //               "%5.3f".format(m) + "/" + "%5.3f".format(d)
-      //            }.mkString(" "))
-      //            print(s" qtd de grupos = ${grupos.size} ")
-      //      }
-      //      println(s"qtd de metaexemplos: ${data.size} $modo")
+      //cria ARFF
+      val pred = metadata map (_.last)
+      val labels = pred.distinct.sorted
+      val data = metadata map (x => x.mkString(","))
+      val header = List("@relation data") ++
+         subnonHumanNumAttsNames.split(",").map(i => "@attribute " + i + " numeric") ++ List("@attribute budget numeric", "@attribute class {" + labels.mkString(",") + "}", "@data")
+      val pronto = header ++ data
+      println(s"$arq")
+      val fw = new FileWriter(arq)
+      pronto foreach (x => fw.write(s"$x\n"))
+      fw.close()
+      pronto foreach println
+
+      //processa arff
+      println(s"${data.size} metaexemplos; ${metadata.head.size} metaatributos")
+      println(labels.size + " pseudometaclasses")
+
+      //NB, C45, KNN, VFDT
+      Datasets.arff(arq, dedup = false) match {
+         case Left(str) => error("problemas abrindo arff:" + str)
+         case Right(patterns) =>
+            val grupos = new Random(346).shuffle(patterns).groupBy(x => x.vector.dropRight(1)).map(_._2).toArray
+            print(s" qtd de grupos = ${grupos.size} ")
+            val accs = Datasets.LOO(grupos) { (tr: Seq[Vector[Pattern]], ts: Vector[Pattern]) =>
+               modo match {
+                  case "acc" =>
+                     val ls = Seq(
+                        C45(),
+                        RF(50),
+                        NBBatch(),
+                        KNNBatcha(5, "eucl", tr.flatten, weighted = true),
+                        KNNBatcha(5, "eucl", tr.flatten, weighted = false),
+                        KNNBatchb(5, "eucl", tr.flatten, weighted = true),
+                        SVMLibRBF(), //não tira proveito de exemplos duplicados
+                        NinteraELM(), //não tira proveito de exemplos duplicados
+                        Maj())
+                     val trios = ls map {
+                        case l: NinteraELM =>
+                           val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
+                           val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
+                           var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
+                           m = l.modelSelectionFull(m)
+                           (m, ftestSet)
+                        case l: SVMLibRBF =>
+                           val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
+                           val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
+                           val m = l.build(fpool)
+                           (m, ftestSet)
+                        case l =>
+                           val m = l.build(tr.flatten)
+                           (m, ts)
+                     }
+                     trios map { case (m, tes) =>
+                        val hitsByDupGroup = tes.groupBy(x => x.vector.dropRight(1)) map { case (pat, pats) =>
+                           if (pats.map(_.label).contains(m.predict(pats.head))) 1d else 0d
+                        }
+                        hitsByDupGroup.sum / hitsByDupGroup.size
+                     }
+
+                  case "Spear" =>
+                     val learnerSeed = 0
+                     val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
+                     val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
+                     val l = NinteraELM(learnerSeed)
+                     var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
+                     m = l.modelSelectionFull(m)
+                     val rankMedio = media(tr.flatten.toSeq map (p => p.nominalSplit))
+                     val twoSpears = ftestSet map { p =>
+                        val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
+                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.nominalSplit)
+                        //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio.zipWithIndex.map(_._2.toDouble), p.nominalSplit)
+                        (spear, spearMaj)
+                     }
+                     val (spearELM, spearMaj) = twoSpears.unzip
+                     Seq(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
+               }
+            }
+            //            val accs = Datasets.LTO(grupos) { (tr: Seq[Vector[Pattern]], ts: Seq[Vector[Pattern]]) =>
+            //               modo match {
+            //                  case "acc" =>
+            //                     val ls = Seq(
+            //                        RF(),
+            //                        //                        C45(),
+            //                        //                                                NBBatch(),
+            //                        //                                                                  KNNBatchb(5, "eucl", tr.flatten, weighted = true),
+            //                        //                                                KNNBatcha(5, "eucl", tr.flatten, weighted = true),
+            //                        //                        //                  KNNBatch(50, "eucl", tr.flatten, weighted = true),
+            //                        //                        //                  SVMLib(), //não tira proveito de exemplos duplicados
+            //                        Maj())
+            //                     val trios = ls map {
+            //                        case l: NinteraELM =>
+            //                           val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
+            //                           val ftestSet = aplicaFiltro(ts.flatten, 1, binaf, zscof)
+            //                           var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
+            //                           m = l.modelSelectionFull(m)
+            //                           (m, ftestSet)
+            //                        case l =>
+            //                           val m = l.build(tr.flatten)
+            //                           (m, ts.flatten)
+            //                     }
+            //                     trios map { case (m, tes) =>
+            //                        val hitsByDupGroup = tes.groupBy(x => x) map { case (pat, pats) =>
+            //                           if (pats.map(_.label).contains(m.predict(pat))) 1d else 0d
+            //                        }
+            //                        hitsByDupGroup.sum / hitsByDupGroup.size
+            //                     }
+            //
+            //                  case "Spear" =>
+            //                     val learnerSeed = 0
+            //                     val (fpool, binaf, zscof) = criaFiltro(tr.flatten, 1)
+            //                     val ftestSet = aplicaFiltro(ts.flatten, 1, binaf, zscof)
+            //                     val l = NinteraELM(learnerSeed)
+            //                     var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
+            //                     m = l.modelSelectionFull(m)
+            //                     val rankMedio = media(ftestSet.toSeq map (p => p.nominalSplit))
+            //                     val twoSpears = ftestSet map { p =>
+            //                        val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
+            //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.nominalSplit)
+            //                        spear -> spearMaj
+            //                     }
+            //                     val (spearELM, spearMaj) = twoSpears.unzip
+            //                     Seq(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
+            //               }
+            //            }
+            println(s"")
+            println(s"$modo\t\tdesvio\n" + accs.transpose.map { x =>
+               val (m, d) = Stat.media_desvioPadrao(x.toVector)
+               "%5.3f".format(m) + "\t\t" + "%5.3f".format(d)
+            }.mkString("\n"))
+            println(s" qtd de grupos = ${grupos.size} ")
+
+         //            val wil = accs.map(x => ("a", x(0)) ->("b", x(1)))
+         //            println(wil)
+         //            println(Stat.wilcoxon(wil))
+      }
+      println(s"qtd de metaexemplos: ${data.size}")
    }
 }

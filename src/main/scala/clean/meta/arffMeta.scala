@@ -47,8 +47,8 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
    //   val modo = "Rank"
    //      val modo = "Ties"
    //      val modo = "TiesDup"
-   val modo = "Winner"
-   //   val modo = "WinnerDP"
+   //   val modo = "Winner"
+   val modo = "WinnerDP"
    val arq = s"/home/davi/wcs/ucipp/uci/metaAcc$modo.arff"
    val context = "metaAttsAccApp"
    val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -64,8 +64,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
       val ls = learners(learnersStr)
       val mapaAtts = mutable.Map[Ds, List[Double]]()
       val mapaSuav = mutable.Map[(Ds, Learner), Double]()
-      val strats = if (redux) stratsForTreeRedux().dropRight(1) else stratsForTree()
-      val ss = strats.map(_.abr).toVector
+      val strats = stratsTexRedux("maha")
       val metadata0 = for {
          name <- datasets.toList.take(150).par
          (ti, tf, budix) <- {
@@ -98,24 +97,24 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          val (rattsm, _) = rattsmd.unzip
 
          val res = modo match {
-//            case "Acc" => //prediz acc em cada strat
-//               println(s"filtrar sVMmulti com learner errado");
-//               ???
-//               val vs = for {
-//                  s <- strats
-//               } yield {
-//                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
-//                  val ms = for {
-//                     r <- 0 until Global.runs
-//                     f <- 0 until Global.folds
-//                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-//                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-//                        NA
-//                     }
-//                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
-//               }
-//               if (vs.exists(x => x._2._1 == NA)) Seq()
-//               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + vs.map(_._2._1).mkString(","), budix, l.attPref, l.boundaryType, suav))
+            //            case "Acc" => //prediz acc em cada strat
+            //               println(s"filtrar sVMmulti com learner errado");
+            //               ???
+            //               val vs = for {
+            //                  s <- strats
+            //               } yield {
+            //                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968 || s.id == 969) s.learner else l
+            //                  val ms = for {
+            //                     r <- 0 until Global.runs
+            //                     f <- 0 until Global.folds
+            //                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+            //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+            //                        NA
+            //                     }
+            //                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+            //               }
+            //               if (vs.exists(x => x._2._1 == NA)) Seq()
+            //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + vs.map(_._2._1).mkString(","), budix, l.attPref, l.boundaryType, suav))
             //            case "TiesDup" => //qualquer metalearner que conte prediz vencedores empatados
             //               val vs = for {
             //                  r <- 0 until runs
@@ -165,39 +164,39 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             //            //               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d))
             //            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, l.attPref, l.boundaryType, suav))
             //            //               else Seq((ds.metaAtts ++ rattsm, "na", "multilabel" + binario.mkString(","), budix, "ambos", "nenhuma", 0d)) //l.attPref, l.boundaryType, suav))
-            case "Rank" => //prediz ranking
-               val vs = for {
-                  s <- strats
+            //            case "Rank" => //prediz ranking
+            //               val vs = for {
+            //                  s <- strats
+            //               } yield {
+            //                  ???
+            //                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
+            //                  val ms = for {
+            //                     r <- 0 until Global.runs
+            //                     f <- 0 until Global.folds
+            //                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
+            //                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
+            //                        -2d
+            //                     }
+            //                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+            //               }
+            //               lazy val rank = "multilabel" + ranqueia(vs.map(_._2._1)).mkString(",")
+            //               if (vs.exists(x => x._2._1 == -2d)) Seq()
+            //               else Seq((ds.metaAtts ++ rattsm, l.abr, rank, budix, l.attPref, l.boundaryType, suav))
+            case "Winner" | "WinnerDP" => //qualquer learner prediz apenas o melhor
+               //               ???
+               val vs0 = for {
+                  s0 <- strats
+                  s = s0(l)
                } yield {
-                  ???
-                  val le = if (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000) s.learner else l
                   val ms = for {
                      r <- 0 until Global.runs
                      f <- 0 until Global.folds
-                  } yield measure(ds, s, le, r, f)(ti, tf).read(ds).getOrElse {
-                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, le, r, f)}.", 40)
-                        -2d
+                  } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
+                        ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
+                        NA
                      }
-                  s.abr -> Stat.media_desvioPadrao(ms.toVector)
+                  Some(s.abr -> Stat.media_desvioPadrao(ms.toVector))
                }
-               lazy val rank = ranqueia(vs.map(_._2._1))
-               if (vs.exists(x => x._2._1 == -2d)) Seq()
-               else Seq((ds.metaAtts ++ rattsm, l.abr, "multilabel" + rank.mkString(","), budix, l.attPref, l.boundaryType, suav))
-            case "Winner" | "WinnerDP" => //qualquer learner prediz apenas o melhor
-               ???
-               val vs0 = for {
-                     s <- strats
-               } yield if (l.id != 5 && (s.id >= 17 && s.id <= 21 || s.id == 968000 || s.id == 969000)) None
-                  else {
-                     val ms = for {
-                        r <- 0 until Global.runs
-                        f <- 0 until Global.folds
-                     } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-                           ds.log(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l, r, f)}.", 40)
-                           NA
-                        }
-                     Some(s.abr -> Stat.media_desvioPadrao(ms.toVector))
-                  }
                val vs = vs0.flatten
                if (vs.exists(_._2._1 == NA)) ???
                //                                             else Seq((metaAtts ++ rattsm, "na", vs.maxBy(_._2._1)._1, budix, "ambos", "nenhuma", 0d))
@@ -218,7 +217,7 @@ object arffMeta extends AppWithUsage with StratsTrait with LearnerTrait with Ran
          numericos.mkString(",") + s",$budget,$learner,$attPref,$boundaryType,$suavidade," + "\"" + vencedores + "\""
       }
       val header = List("@relation data") ++
-         nonHumanNumAttsNames.split(",").map(i => s"@attribute $i numeric") ++
+         (nonHumanNumAttsNames + "," + attsFromRNames).split(",").map(i => s"@attribute $i numeric") ++
          List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",baixo,alto}",
             "@attribute aprendiz {" + ls.map(x => "\"" + x.abr + "\"").mkString(",") + ",na}",
             "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}",
