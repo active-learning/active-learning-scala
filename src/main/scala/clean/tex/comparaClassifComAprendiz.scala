@@ -33,7 +33,7 @@ object comparaClassifComAprendiz extends AppWithUsage with LearnerTrait with Str
 
    override def run() = {
       super.run()
-      val measure = ALCKappa
+      val measure = Kappa
       val strats = stratsTex("all")
       val out = for {
          dataset <- DsByMinSize(datasets, 200).par
@@ -44,7 +44,7 @@ object comparaClassifComAprendiz extends AppWithUsage with LearnerTrait with Str
          val (ti, th, tf, tpass) = ranges(ds)
 
          //descobre best aprendizes (tem sido só um por pool)
-         val hists = accsPerPool(ds, s0, learners(learnersStr), (s: Strategy, l: Learner, r: Int, f: Int) => measure(ds, s, l, r, f)(ti, tf))
+         val hists = accsPerPool(ds, s0, learners(learnersStr), (s: Strategy, l: Learner, r: Int, f: Int) => measure(ds, s, l, r, f)(th))
          val aprendizes = hists map (hist => pegaMelhores(hist, 1)(_._2).head)
 
          //descobre best classifs pra Rnd Samp (gravei um por pool na base)
@@ -53,11 +53,18 @@ object comparaClassifComAprendiz extends AppWithUsage with LearnerTrait with Str
          //            f <- 0 until folds
          //         } yield BestClassifCV100_10foldReadOnlyKappa(ds, r, f, RandomSampling(Seq()))
 
+         //descobre best 'aprendizes'(hiters) do Rnd (tem sido só um por pool)
+         //         val hists2 = accsPerPool(ds, (lean:Learner)=>RandomSampling(Seq()), learners(learnersStr), (s: Strategy, l: Learner, r: Int, f: Int) => measure(ds, s, l, r, f)(ti, tf))
+         //         val aprendizes2 = hists2 map (hist => pegaMelhores(hist, 1)(_._2).head)
+         //         val comp = aprendizes.map(_._1.limpa).zip(aprendizes2.map(_._1.limpa)).groupBy(x => x).map(x => x._1 -> x._2.size).toList.sortBy(_._2).reverse
+
          ds.close()
+
          val comp = aprendizes.map(_._1.limpa).zip(aprendizes.map { case (lea, v, r, f) =>
             BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s0(lea)).limpa
          }).groupBy(x => x).map(x => x._1 -> x._2.size).toList.sortBy(_._2).reverse
          //                  comp.maxBy(_._2)._2 -> ("\n" + dataset + s" / ${s0(NBBatch()).limp}:\n" + comp.map(x => x._1 + ":" + x._2).mkString("\t"))
+
          comp.maxBy(_._2)._2 -> comp.filter { case (ss, i) => ss._1 == ss._2}.map(_._2).sum
       }
       //            out.toList.sortBy(_._1).reverse.map(_._2) foreach println
