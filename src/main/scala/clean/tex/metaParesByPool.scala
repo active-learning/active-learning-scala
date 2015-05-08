@@ -33,54 +33,69 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
    // 50 100 u2
    val qs = "100"
    val measure = Kappa
-   val arq = s"/home/davi/wcs/ucipp/uci/$context.arff"
    run()
 
    override def run() = {
       super.run()
       val pares = Seq(
-         //         MarginFixo(RF(), Seq()),
+         MarginFixo(RF(), Seq()),
          HTUFixo(Seq(), RF(), Seq(), "eucl"),
          DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl"),
-         AgDensityWeightedTrainingUtility(Seq(), "eucl")
-         //         RandomSampling(Seq())
+         AgDensityWeightedTrainingUtility(Seq(), "eucl"),
+         RandomSampling(Seq())
       )
+      val arq = s"/home/davi/wcs/ucipp/uci/$context${pares.size}.arff"
 
-      //cada dataset produz um bag de metaexemplos (|lista| >= 25)
-      lazy val bags = DsByMinSize(datasets, 200).par map { d => (for {
-         r <- 0 until runs
-         f <- 0 until folds
-      } yield {
+      //cada dataset produz um bag de metaexemplos (|bag| >= 25)
+      def bags = DsByMinSize(datasets, 200).par map { d =>
          val ds = Ds(d, readOnly = true)
          ds.open()
+         val res = for {
+            r <- 0 until runs
+            f <- 0 until folds
+         } yield {
+            //descobre vencedores deste pool
+            val accs = pares map { p =>
+               val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, p)
+               p -> measure(ds, p, classif, r, f)(-2).read(ds).getOrElse(error("sem medida"))
+            }
+            val melhores = pegaMelhores(accs, n)(_._2).map(_._1)
 
-         //descobre vencedores deste pool
-         val accs = pares map { p =>
-            val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, p)
-            p -> measure(ds, p, classif, r, f)(-2).read(ds).getOrElse(error("sem medida"))
+            //transforma vencedores em metaexemplos
+            val metaatts = ds.metaAttsrf(r, f) ++ ds.metaAttsFromR(r, f)
+            val exs = melhores map (m => metaatts -> m.limpa)
+            exs
          }
-         val melhores = pegaMelhores(accs, n)(_._2).map(_._1)
-
-         //transforma vencedores em metaexemplos
-         val metaatts = ds.metaAttsrf(r, f) ++ ds.metaAttsFromR(r, f)
-         val exs = melhores map (m => metaatts -> m.limpa)
          ds.close()
-         exs
-      }).flatten
+         res.flatten
       }
 
+      println(s"$arq")
       grava(arq, arff(bags.toList.flatten), print = true)
       println(s"$arq")
 
-      Datasets.arff(arq, dedup = false) match {
-         case Left(str) => error(str)
-         case Right(patterns) =>
-            //            refaz bags
-            println(arq)
-            val bags = patterns.groupBy(_.vector)
-
-      }
-
+      val patterns = Datasets.arff(arq, dedup = false).right.get
+      // refaz bags
+      val bagsFromFile = patterns.groupBy(_.vector).values.toSeq
+      val (accsc45, accsmaj) = ((1 to 10) map { run =>
+         Datasets.kfoldCV2(bagsFromFile) { (trbags, tsbags, fold, minSize) =>
+            val tr = trbags.flatten
+            val mc45 = C45(false, 6).build(tr)
+            val mmaj = Maj().build(tr)
+            val bags = tsbags.flatten.groupBy(_.label)
+            //                  mc45.accuracy(tsbags.flatten) -> mmaj.accuracy(tsbags.flatten)
+            ((bags.map(_._2) map { tsbag =>
+               //                     println(tsbag.size)
+               if (tsbag.map(_.label).contains(mc45.predict(tsbag.head))) 1d else 0d
+            }).sum / bags.size
+               ,
+               (tsbags.flatten.groupBy(_.label).map(_._2) map { tsbag =>
+                  //                     println(tsbag.size)
+                  if (tsbag.map(_.label).contains(mmaj.predict(tsbag.head))) 1d else 0d
+               }).sum / bags.size)
+         }
+      }).flatten.unzip
+      println(s"${accsc45.sum / accsc45.size}")
+      println(s"${accsmaj.sum / accsmaj.size}")
    }
-
 }

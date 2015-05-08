@@ -626,7 +626,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       case l => Some(l.map(_.head.toInt))
    }
 
-   val poolMap = mutable.Map[(Int, Int), Seq[Pattern]]()
+   lazy val poolMap = mutable.Map[(Int, Int), Seq[Pattern]]()
 
    def getPool(r: Int, f: Int) = poolMap getOrElseUpdate((r, f), queries(0, 0, r, f, null, null))
 
