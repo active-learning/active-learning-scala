@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import al.strategies.RandomSampling
+import al.strategies._
 import clean.lib._
 import ml.classifiers._
 import util.Stat
@@ -27,16 +27,23 @@ import util.Stat
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = "tabwinnersPares"
-   val n = 3
-   val qs = "u2"
-   // 50 100
+   val n = 1
+   val qs = "100"
+   // 50 100 u2
    val measure = Kappa
    run()
 
    override def run() = {
       super.run()
       val ls = learners(learnersStr)
-      val strats = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
+      val strats = Seq(
+         //         MarginFixo(RF(), Seq()),
+         HTUFixo(Seq(), RF(), Seq(), "eucl"),
+         DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl"),
+         AgDensityWeightedTrainingUtility(Seq(), "eucl")
+         //         RandomSampling(Seq())
+      )
+      //(for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
       val datasetLearnerAndBoth = for {
          dataset <- datasets.toList.filter { dataset =>
             val ds = Ds(dataset, readOnly = true)
@@ -72,7 +79,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
             //            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
             s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
          }
-         val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).get._2
+         val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).getOrElse("" -> 0d)._2
          val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1),
             ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1),
             ds.dataset -> sres.filter(_._2 <= rnd).map(_._1).toList)
@@ -100,7 +107,7 @@ algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \ma
 \hline
                """)
       algs1.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
-         println(s"${st.padTo(10, ' ')} & $topCount & $rndCount & $botCount \\\\")
+         println(s"${st.padTo(10, ' ')} & \t$topCount & \t$rndCount & \t$botCount \\\\")
       }
       println(
          """\end{tabular}

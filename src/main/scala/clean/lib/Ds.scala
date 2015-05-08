@@ -64,6 +64,10 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       val Us = expectedPoolSizes(Global.folds)
       Us.sum / Us.size.toDouble
    }
+
+   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
    lazy val poolSizeByNatts = poolSize / nattributes
    //  lazy val QbyUavg = Q / Uavg
    lazy val nomCount = patterns.head.enumerateAttributes().count(_.isNominal)
@@ -78,9 +82,9 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    //normalized_entropy(hist))
    lazy val nominalAtts = patterns.head.enumerateAttributes().toList.dropRight(1).filter(_.isNominal).map(_.name())
    lazy val numericAtts = patterns.head.enumerateAttributes().toList.filter(_.isNumeric).map(_.name())
-   lazy val nominalValues = if (nominalAtts.isEmpty) List(Array("")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)
-   lazy val nominalValuesCount = nominalValues.map(_.distinct.size)
-   lazy val nominalValuesCountAvg = nominalValuesCount.sum / nominalValuesCount.size
+   lazy val nominalDistinctValues = if (nominalAtts.isEmpty) List(Array("")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)
+   lazy val nominalDistinctCount = nominalDistinctValues.map(_.distinct.size)
+   lazy val nominalDistinctCountAvg = nominalDistinctCount.sum / nominalDistinctCount.size
    lazy val numericValues = if (numericAtts.isEmpty) List(Array(0d)) else read(s"select ${numericAtts.mkString(",")} from i").transpose.map(_.toArray)
    lazy val (medias, desvios) = numericValues.map(x => Stat.media_desvioPadrao(x.toVector)).unzip
    lazy val entropias = if (numericAtts.isEmpty) List(0d)
@@ -115,7 +119,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    lazy val kurtavg = kurtoses.sum / kurtoses.size
    lazy val correlsavg = correls.sum / correls.size
 
-   //   lazy val eucqueries = quer
    lazy val correleucmah = {
       0d
    }
@@ -126,28 +129,128 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       0d
    }
 
-   def divide(a: Double, b: Double) = if (b == 0) 0d else a / b
+   def divideMinPorMax(a: Double, b: Double) = if (b == 0) 0d else a / b
+
+   //   val subnonHumanNumAttsNames = "\"#classes\",\"#exemplos/#atributos\",\"%nominais\""
+   val humanNumAttsNames = "\"\\\\#classes\",\"\\\\#atributos\",\"\\\\#exemplos\",\"$\\\\frac{\\\\#exemplos}{\\\\#atrib.}$\",\"\\\\%nominais\",\"\\\\%major.\",\"\\\\%minor.\",\"$\\\\frac{\\\\%major.}{\\\\%minor.}$\",\"entropia da distr. de classes\""
+   //   val descriptionNames = Seq("""\pbox{20cm}{\#exemplos\\($|\mathcal{U}|$)}""", """\pbox{20cm}{\#classes\\($|Y|$)}""", "\\#atributos", "\\#nominais", "\\%majoritária", "\\%minoritária", """\pbox{20cm}{entropia da \\distr. de classes}""")
+   val descriptionNames = Seq( """$|\mathcal{U}|$""", """$|Y|$""", "atributos", "nominais", """\makecell{majoritária\\(\%)}""", """\makecell{minoritária\\(\%)}""", """\makecell{entropia da \\distr. de classes}""")
 
    lazy val submetaAtts = List[Double](nclasses, poolSizeByNatts, 100d * nomCount / nattributes)
-   lazy val metaAtts = List[Double](
-      nclasses, nattributes, poolSize,
-      poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
-      skewnesses.min, skewavg, skewnesses.max, divide(skewnesses.min, skewnesses.max),
-      kurtoses.min, kurtavg, kurtoses.max, divide(kurtoses.min, kurtoses.max),
-      nominalValuesCount.min, nominalValuesCountAvg, nominalValuesCount.max, divide(nominalValuesCount.min, nominalValuesCount.max),
-      medias.min, mediasavg, medias.max, divide(medias.min, medias.max),
-      desvios.min, desviosavg, desvios.max, divide(desvios.min, desvios.max),
-      entropias.min, entropiasavg, entropias.max, divide(entropias.min, entropias.max),
-      correls.min, correlsavg, correls.max, divide(correls.min, correls.max), correleucmah, correleucman, correlmanmah)
-   //      majority, minority, majority / minority, normalized_entropy(hist)) // <- retirar, pois usa info de classe
+   lazy val nonHumanNumAttsNames = ("\"#classes\",\"#atributos\",\"#exemplos\"," +
+      "\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," +
+      "skewnessesmin,skewavg,skewnessesmax,skewnessesminByskewnessesmax," +
+      "kurtosesmin,kurtavg,kurtosesmax,kurtosesminBykurtosesmax," +
+      "nominalValuesCountmin,nominalValuesCountAvg,nominalValuesCountmax,nominalValuesCountminBynominalValuesCountmax," +
+      "mediasmin,mediasavg,mediasmax,mediasminBymediasmax," +
+      "desviosmin,desviosavg,desviosmax,desviosminBydesviosmax," +
+      "entropiasmin,entropiasavg,entropiasmax,entropiasminByentropiasmax," +
+      "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah").split(",")
+   lazy val metaAttsrfmap = mutable.Map[(Int, Int), Seq[(String, Double, String)]]()
+
+   lazy val metaAtts = {
+      val r = List[Double](
+         nclasses, nattributes, poolSize,
+         poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
+         skewnesses.min, skewavg, skewnesses.max, divideMinPorMax(skewnesses.min, skewnesses.max),
+         kurtoses.min, kurtavg, kurtoses.max, divideMinPorMax(kurtoses.min, kurtoses.max),
+         nominalDistinctCount.min, nominalDistinctCountAvg, nominalDistinctCount.max, divideMinPorMax(nominalDistinctCount.min, nominalDistinctCount.max),
+         medias.min, mediasavg, medias.max, divideMinPorMax(medias.min, medias.max),
+         desvios.min, desviosavg, desvios.max, divideMinPorMax(desvios.min, desvios.max),
+         entropias.min, entropiasavg, entropias.max, divideMinPorMax(entropias.min, entropias.max),
+         correls.min, correlsavg, correls.max, divideMinPorMax(correls.min, correls.max), correleucmah, correleucman, correlmanmah)
+      nonHumanNumAttsNames zip r map (x => (x._1, x._2, "numeric"))
+   }
+
+   def kurtosesrf(r: Int, f: Int) = if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(0d)))) List(0d)
+   else numericValuesrf(r, f) map { x =>
+      if (x.forall(_ == x.head)) 0d
+      else {
+         val tmp = new Kurtosis().evaluate(x)
+         if (tmp.isNaN) {
+            println(s"kurt NaN: ${x.toList} \n${patternsrf(r, f).head.enumerateAttributes().toList}")
+            sys.exit(0)
+         }
+         tmp
+      }
+   }
+
+   def metaAttsrf(r: Int, f: Int) = metaAttsrfmap getOrElseUpdate((r, f), {
+      val res = List[Double](
+         nclasses, nattributes, poolSize,
+         poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
+         skewnessesrf(r, f).min, skewavgrf(r, f), skewnessesrf(r, f).max, divideMinPorMax(skewnessesrf(r, f).min, skewnessesrf(r, f).max),
+         kurtosesrf(r, f).min, kurtavgrf(r, f), kurtosesrf(r, f).max, divideMinPorMax(kurtosesrf(r, f).min, kurtosesrf(r, f).max),
+         nominalDistinctCount.min, nominalDistinctCountAvg, nominalDistinctCount.max, divideMinPorMax(nominalDistinctCount.min, nominalDistinctCount.max),
+         mediasrf(r, f).min, mediasavgrf(r, f), mediasrf(r, f).max, divideMinPorMax(mediasrf(r, f).min, mediasrf(r, f).max),
+         desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, divideMinPorMax(desviosrf(r, f).min, desviosrf(r, f).max),
+         entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, divideMinPorMax(entropiasrf(r, f).min, entropiasrf(r, f).max),
+         correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, divideMinPorMax(correlsrf(r, f).min, correlsrf(r, f).max), correleucmah, correleucman, correlmanmah)
+      nonHumanNumAttsNames zip res map (x => (x._1, x._2, "numeric"))
+   })
+
+   def kurtavgrf(r: Int, f: Int) = kurtosesrf(r, f).sum / kurtosesrf(r, f).size
+
+   def correlsavgrf(r: Int, f: Int) = correlsrf(r, f).sum / correlsrf(r, f).size
+
+   lazy val correlsrfmap = mutable.Map[(Int, Int), List[Double]]()
+
+   def correlsrf(r: Int, f: Int) = correlsrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).size < 2) List(0d) else for (a1 <- numericValuesrf(r, f); a2 <- numericValuesrf(r, f)) yield new PearsonsCorrelation().correlation(a1, a2))
+
+   def entropiasavgrf(r: Int, f: Int) = entropiasrf(r, f).sum / entropiasrf(r, f).size
+
+   lazy val entropiasrfmap = mutable.Map[(Int, Int), List[Double]]()
+
+   def entropiasrf(r: Int, f: Int) = entropiasrfmap getOrElseUpdate((r, f), if (numericAtts.isEmpty) List(0d)
+   else numericValuesrf(r, f) map { x =>
+      val tmp = normalized_entropy(x.map(_ / n))
+      if (tmp.isNaN) 0d else tmp
+   })
+
+   def mediasavgrf(r: Int, f: Int) = mediasrf(r, f).sum / mediasrf(r, f).size
+
+   def desviosavgrf(r: Int, f: Int) = desviosrf(r, f).sum / desviosrf(r, f).size
+
+   def mediasrf(r: Int, f: Int) = numericValuesrf(r, f).map(x => Stat.media_desvioPadrao(x.toVector)._1)
+
+   def desviosrf(r: Int, f: Int) = numericValuesrf(r, f).map(x => Stat.media_desvioPadrao(x.toVector)._2)
+
+   def skewavgrf(r: Int, f: Int) = skewnessesrf(r, f).sum / skewnessesrf(r, f).size
+
+   lazy val skewnessesrfmap = mutable.Map[(Int, Int), List[Double]]()
+
+   def skewnessesrf(r: Int, f: Int) = skewnessesrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(0d)))) List(0d)
+   else numericValuesrf(r, f) map { x =>
+      if (x.forall(_ == x.head)) 0d
+      else {
+         val tmp = new Skewness().evaluate(x)
+         if (tmp.isNaN) {
+            println(s"skew NaN: ${x.toList} \n${patternsrf(r, f).head.enumerateAttributes().toList} \n${numericValuesrf(r, f).map(_.toList.mkString(" ")).mkString("\n")}")
+            sys.exit(0)
+         } else tmp
+      }
+   })
+
+   lazy val numericValuesrfmap = mutable.Map[(Int, Int), List[Array[Double]]]()
+   lazy val allAtts = patterns.head.enumerateAttributes().toList.dropRight(1)
+
+   def numericValuesrf(r: Int, f: Int) = numericValuesrfmap.getOrElseUpdate((r, f), if (numericAtts.isEmpty) List(Array(0d))
+   else (for (p <- patternsrf(r, f)) yield p.vector.zip(allAtts).filter(_._2.isNumeric).map(_._1).toArray).toList).transpose.map(_.toArray)
+
+   def patternsrf(r: Int, f: Int) = getPool(r, f)
+
+   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    //  lazy val maj = read("select count(1) from i group by c").map(_.head).sorted.last / n
+   lazy val attsFromRNames = Seq("AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
+      "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
+      "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y").map(x => "\"" + x + "\"")
 
-   def attsFromR(r: Int, f: Int) = {
-      val s = Source.fromFile(s"/home/davi/wcs/als/csv/$this-r1-f0-normalized-pool.arff.csv")
-      val r = s.getLines().toList.last.split(",").map(_.toDouble)
+   def metaAttsFromR(r: Int, f: Int) = {
+      val s = Source.fromFile(s"/home/davi/wcs/als/csv/$this-r$r-f$f-normalized-pool.arff.csv")
+      val res = s.getLines().toList.last.split(",").map(_.toDouble)
       s.close()
-      r
+      attsFromRNames zip res map (x => (x._1, x._2, "numeric"))
    }
 
    def isFinishedMea(stratsLeas: String) = readString(s"select finished from mea") match {
@@ -188,7 +291,11 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     * @param learners
     * @return
     */
-   def progress(strats: Seq[Int], learners: Seq[Int]) = read(s"select count(0) from r,p where p.id=p and p.s in (${strats.mkString(",")}) and p.l in (${learners.mkString(",")})").head.head / (strats.size * learners.size * Global.runs * Global.folds)
+   def progress(strats: Seq[Int], learners: Seq[Int]) = read(s"select count(0) from r,p where p.id=p and p.s in (${
+      strats.mkString(",")
+   }) and p.l in (${
+      learners.mkString(",")
+   })").head.head / (strats.size * learners.size * Global.runs * Global.folds)
 
    /**
     * Reads all SQLite patterns according to given SQL conditions.
@@ -199,7 +306,11 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       val ids = read("select i.id from " + sqlTail).map(_.head.toInt)
       log(s"Fetching patterns...")
       val query = new InstanceQuerySQLite()
-      val url = s"jdbc:mysql://${Global.mysqlHost(readOnly = true)}:${Global.mysqlPort(readOnly = true)}/" + database
+      val url = s"jdbc:mysql://${
+         Global.mysqlHost(readOnly = true)
+      }:${
+         Global.mysqlPort(readOnly = true)
+      }/" + database
       query.setDatabaseURL(url)
       query.setUsername("davi")
       query.setPassword(Global.mysqlPass(readOnly = true))
@@ -246,7 +357,9 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                case List(Vector(c, m)) => c.toInt -> m.toInt
                case List() => error(s"Inconsistency: there is a pool $pid for no queries!")
             }
-            if (qs != lastT + 1) error(s"Inconsistency: $qs queries differs from last timeStep+1 ${lastT + 1}")
+            if (qs != lastT + 1) error(s"Inconsistency: $qs queries differs from last timeStep+1 ${
+               lastT + 1
+            }")
             sid match {
                case x if x == 0 => qs match {
                   case 0 => error(s"Inconsistency: there is a pool $pid for no queries! l:$lid")
@@ -257,18 +370,27 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                   case 0 => error(s"Inconsistency: there is a pool $pid for no queries!  l:$lid  s:$sid")
                   case q if q >= expectedAmount => true
                   case q => if (completeIt) {
-                     log(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${strat.learner}. Completing it...", 20)
+                     log(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${
+                        strat.learner
+                     }. Completing it...", 20)
                      val qrs = queries(strat, run, fold, binaf, zscof)
                      val newqrs = strat.resume_queries(qrs).take(expectedAmount - q)
-                     if (newqrs.size + q != expectedAmount) quit(s"wrong new total of queries: ${newqrs.size + q}")
-                     val sqls = newqrs.zipWithIndex map { case (patt, t0) =>
-                        val t = t0 + lastT + 1
-                        s"INSERT INTO q values ($pid, $t, ${patt.id})"
+                     if (newqrs.size + q != expectedAmount) quit(s"wrong new total of queries: ${
+                        newqrs.size + q
+                     }")
+                     val sqls = newqrs.zipWithIndex map {
+                        case (patt, t0) =>
+                           val t = t0 + lastT + 1
+                           s"INSERT INTO q values ($pid, $t, ${
+                              patt.id
+                           })"
                      }
                      batchWrite(sqls.toList)
                      sqls.size + q == expectedAmount
                   } else {
-                     log(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${strat.learner}. |U|=$poolSize. But not allowed to complete it...", 20)
+                     log(s"$qs previous $q queries should be at least $expectedAmount. s:$strat l:${
+                        strat.learner
+                     }. |U|=$poolSize. But not allowed to complete it...", 20)
                      false
                   }
                }
@@ -280,7 +402,9 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    else {
       val ExpectedHitsForFullPool = poolSize - nclasses + 1
       val expectedAmount = math.min(ExpectedHitsForFullPool, expectedAmount0)
-      if (learner.id != strat.learner.id && strat.id > 1 && !Global.agnosticasa.contains(strat.id)) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
+      if (learner.id != strat.learner.id && strat.id > 1 && !Global.agnosticasa.contains(strat.id)) error(s"areHitsFinished: Provided learner $learner is different from gnostic strategy's learner $strat.${
+         strat.learner
+      }")
       else if (!areQueriesFinished(poolSize, strat, run, fold, null, null, completeIt = false, expectedAmount + nclasses - 1)) error(s"Queries must be finished to check hits! |U|=$poolSize")
       else
          poolId(strat, learner, run, fold) match {
@@ -290,7 +414,9 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                val hs = (read(s"SELECT COUNT(1),max(t+0) FROM h WHERE p=$pid") match {
                   case List(Vector(0)) | List(Vector(0, 0)) => 0d
                   case List(Vector(c, m)) => if (c == m - nclasses + 2) c
-                  else error(s"Inconsistency: $c cms differs from last timeStep+1 = ${m - nclasses + 2}")
+                  else error(s"Inconsistency: $c cms differs from last timeStep+1 = ${
+                     m - nclasses + 2
+                  }")
                   case _ => error(s"Inconsistency: there is a pool $pid for no hits! s=$strat l=$learner")
                }).toInt
 
@@ -302,12 +428,13 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
                   val (usedPatterns, rest) = queries(strat, run, fold, binaf, zscof).take(expectedAmount + nclasses - 1).splitAt(usedQueries)
                   if (usedPatterns.size != usedQueries) error("Problems taking hit-used queries.")
                   var m = learner.build(usedPatterns)
-                  val tuples = rest.zipWithIndex.map { case (patt, idx) =>
-                     val t = idx + lastUsedT + 1
-                     m = learner.update(m, fast_mutable = true)(patt)
-                     val cm = m.confusion(testSet)
-                     val blob = confusionToBlob(cm)
-                     (s"INSERT INTO h values ($pid, $t, ?)", blob)
+                  val tuples = rest.zipWithIndex.map {
+                     case (patt, idx) =>
+                        val t = idx + lastUsedT + 1
+                        m = learner.update(m, fast_mutable = true)(patt)
+                        val cm = m.confusion(testSet)
+                        val blob = confusionToBlob(cm)
+                        (s"INSERT INTO h values ($pid, $t, ?)", blob)
                   }.toList
                   val (sqls, blobs) = tuples.unzip
                   log(tuples.mkString("\n"), 20)
@@ -345,7 +472,11 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    }
 
    def countQueries(strat: Strategy, run: Int, fold: Int) = {
-      val pid = poolId(strat, strat.learner, run, fold).getOrElse(quit(s"Pool not found for  s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold !"))
+      val pid = poolId(strat, strat.learner, run, fold).getOrElse(quit(s"Pool not found for  s=${
+         strat.id
+      } and l=${
+         strat.learner.id
+      } and r=$run and f=$fold !"))
       read(s"SELECT COUNT(1) FROM q WHERE p=$pid") match {
          case List() => 0
          case List(seq) => seq.head.toInt
@@ -395,12 +526,25 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    def writeQueries(strat: Strategy, run: Int, fold: Int, q: Int) = if (readOnly) error("read only")
    else {
       poolId(strat, strat.learner, run, fold) match {
-         case Some(queryPoolId) => quit(s"Pool $run.$fold já estava gravado para $strat.${strat.learner} referente às queries a gravar.")
+         case Some(queryPoolId) => quit(s"Pool $run.$fold já estava gravado para $strat.${
+            strat.learner
+         } referente às queries a gravar.")
          case None =>
             val qs = strat.queries.take(q).toList
-            val poolSQL = s"INSERT INTO p VALUES (NULL, ${strat.id}, ${strat.learner.id}, $run, $fold)"
-            val sqls = poolSQL +: (qs.zipWithIndex map { case (patt, t) =>
-               s"INSERT INTO q select id, $t, ${patt.id} from p where s=${strat.id} and l=${strat.learner.id} and r=$run and f=$fold"
+            val poolSQL = s"INSERT INTO p VALUES (NULL, ${
+               strat.id
+            }, ${
+               strat.learner.id
+            }, $run, $fold)"
+            val sqls = poolSQL +: (qs.zipWithIndex map {
+               case (patt, t) =>
+                  s"INSERT INTO q select id, $t, ${
+                     patt.id
+                  } from p where s=${
+                     strat.id
+                  } and l=${
+                     strat.learner.id
+                  } and r=$run and f=$fold"
             })
             batchWrite(sqls.toList)
             qs
@@ -422,20 +566,28 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     */
    def writeHits(poolSize: Int, testSet: Seq[Pattern], queries: Vector[Pattern], strat: Strategy, run: Int, fold: Int, h: Int)(learner: Learner) = if (readOnly) error("read only")
    else if (learner.id != strat.learner.id && strat.id > 1 && !Global.agnosticasa.contains(strat.id))
-      error(s"Provided learner $learner is different from gnostic strategy's learner $strat.${strat.learner}")
+      error(s"Provided learner $learner is different from gnostic strategy's learner $strat.${
+         strat.learner
+      }")
    else {
       //Apenas agnostic strats gravam um poolId que tem NoLearner, não-reutilizável pra hits.
       val insertIntoP = poolId(strat, learner, run, fold) match {
          case Some(pid) => if (strat.id < 2) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
          //         case Some(pid) => if (strat.id < 2 || Global.agnosticasa.dropRight(83).contains(strat.id)) quit(s"Pool $run.$fold já estava gravado para $strat.$learner referente aos hits de $strat.") else "SELECT 1"
          case None =>
-            if (strat.id < 2 || Global.agnosticasa.contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${strat.id}, ${learner.id}, $run, $fold)"
+            if (strat.id < 2 || Global.agnosticasa.contains(strat.id)) s"INSERT INTO p VALUES (NULL, ${
+               strat.id
+            }, ${
+               learner.id
+            }, $run, $fold)"
             else quit(s"Missing gnostic queries pid for hits.")
       }
 
       //para rnd e quaisquer learners, |queries| = |U|.
       val expectedQ = if (strat.id == 0) poolSize else h + nclasses - 1
-      if (expectedQ > queries.size) quit(s"Number of ${queries.size} provided queries for hits is lesser than $expectedQ expected!")
+      if (expectedQ > queries.size) quit(s"Number of ${
+         queries.size
+      } provided queries for hits is lesser than $expectedQ expected!")
 
       //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
       val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else h + nclasses - 1
@@ -444,12 +596,17 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
       //gera hits e sql strs
       var m = learner.build(initialPatterns)
-      val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map { case (patt, idx) =>
-         val t = idx + nclasses - 1
-         if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
-         val cm = m.confusion(testSet)
-         val blob = confusionToBlob(cm)
-         (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${strat.id} and l=${learner.id} and r=$run and f=$fold", blob)
+      val tuples = (insertIntoP, null) +: ((null +: rest).zipWithIndex map {
+         case (patt, idx) =>
+            val t = idx + nclasses - 1
+            if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
+            val cm = m.confusion(testSet)
+            val blob = confusionToBlob(cm)
+            (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${
+               strat.id
+            } and l=${
+               learner.id
+            } and r=$run and f=$fold", blob)
       }).toList
       val (sqls, blobs) = tuples.unzip
       log(tuples.mkString("\n"), 20)
@@ -468,6 +625,10 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       case List() => None
       case l => Some(l.map(_.head.toInt))
    }
+
+   val poolMap = mutable.Map[(Int, Int), Seq[Pattern]]()
+
+   def getPool(r: Int, f: Int) = poolMap getOrElseUpdate((r, f), queries(0, 0, r, f, null, null))
 
    def suavidade(l: Learner) = {
       val le = allLearners(patterns, 42).find(_.id == l.id).getOrElse(quit("suavidade problems"))
