@@ -29,7 +29,7 @@ import util.{Datasets, Stat}
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = this.getClass.getName.split('.').last.dropRight(1)
-   val n = 2
+   val n = 3
    // 50 100 u2
    val qs = "100"
    val melhor = 1
@@ -38,14 +38,19 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
    override def run() = {
       super.run()
-      val pares = Seq(
-         MarginFixo(RF(), Seq()),
-         HTUFixo(Seq(), RF(), Seq(), "eucl"),
-         DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl"),
-         AgDensityWeightedTrainingUtility(Seq(), "eucl"),
-         RandomSampling(Seq())
-      )
-      val arq = s"/home/davi/wcs/ucipp/uci/$context${pares.map(_.limpa).mkString}n$n$melhor$measure$qs.arff"
+      val ls = learners(learnersStr)
+      val pares = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
+
+      //      val pares =         Seq(
+      //         MarginFixo(RF(), Seq()),
+      //         HTUFixo(Seq(), RF(), Seq(), "eucl"),
+      //         DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl"),
+      //         AgDensityWeightedTrainingUtility(Seq(), "eucl"),
+      //         RandomSampling(Seq())
+      //      )
+      val arq = s"/home/davi/wcs/ucipp/uci/$context-n${n}best${melhor}m$measure${qs}qs-${pares.map(_.id).mkString("-").hashCode}.arff"
+      println(arq)
+      println(arq.size)
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
       def bags = DsByMinSize(datasets, 200).par map { d =>
@@ -78,7 +83,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val patterns = Datasets.arff(arq, dedup = false).right.get
       // refaz bags por base
       val bagsFromFile = patterns.groupBy(_.vector).values.toSeq
-      val (accsc45, accsmaj) = ((1 to 10).par map { run =>
+      val (accsc45, accsmaj) = ((1 to 30).par map { run =>
          Datasets.kfoldCV2(bagsFromFile) { (trbags, tsbags, fold, minSize) =>
             val tr = trbags.flatten
             val mc45 = C45(false, 6).build(tr)

@@ -162,7 +162,6 @@ trait AppWithUsage extends App with Log with ArgParser {
    //   }
 
    def DsByMinSize(lst: List[String], size: Int) = datasets.toList.filter { dataset =>
-      println(s"$dataset")
       val ds = Ds(dataset, readOnly = true)
       ds.open()
       val r = ds.poolSize >= size
