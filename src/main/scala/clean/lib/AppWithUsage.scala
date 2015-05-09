@@ -169,6 +169,14 @@ trait AppWithUsage extends App with Log with ArgParser {
       r
    }
 
+   def binaryDs(lst: List[String]) = datasets.toList.filter { dataset =>
+      val ds = Ds(dataset, readOnly = true)
+      ds.open()
+      val r = ds.nclasses == 2
+      ds.close()
+      r
+   }
+
    def arff(exemplos: Seq[(Seq[(String, Double, String)], String)], print: Boolean = false) = {
       val labels = exemplos.map(_._2).distinct.sorted
       val classAtt = "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}"

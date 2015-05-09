@@ -33,30 +33,30 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
    val tipoSumariz = "media"
    val fakePool = Seq()
    val measure = Kappa
-   //   val strats = stratsTexRedux(dist)
+   val strats0 = stratsTexRedux(dist)
    val strats = Seq(
       Some((learner: Learner) => RandomSampling(fakePool)) //0
       , Some((learner: Learner) => ClusterBased(fakePool)) //1
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
-      , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
+      //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
+      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
-      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
-      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-      , Some((learner: Learner) => QBC(fakePool))
+      //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
+      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
+      //      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
+      //      , Some((learner: Learner) => QBC(fakePool))
       , Some((learner: Learner) => MarginFixo(learner, fakePool))
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
-      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
-      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
-      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+      //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
+      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
+      //      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
+      //      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
    ).flatten
    run()
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/artigos/bracis2015/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/artigos/bracis15/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       //      val arq = s"/home/davi/wcs/tese/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
@@ -64,15 +64,10 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
          case "best" | "mediano" => Seq(NoLearner())
          case "all" => ls
       }
-      val dss = datasets.filter { d =>
-         val ds = Ds(d, readOnly = true)
-         ds.open()
-         val U = ds.poolSize.toInt
-         ds.close()
-         U > 200
-      }
+      val dss = binaryDs(datasets)
+      println(dss.size)
       val (sls0, res9) = (for {
-         dataset <- dss.take(1000)
+         dataset <- dss
          le0 <- ls2.par
       } yield {
          val ds = Ds(dataset, readOnly = true)
