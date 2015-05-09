@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import java.io.FileWriter
+import java.io.{File, FileWriter}
 
 import al.strategies._
 import clean.lib._
@@ -29,9 +29,10 @@ import util.{Datasets, Stat}
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
    lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    val context = this.getClass.getName.split('.').last.dropRight(1)
-   val n = 1
+   val n = 2
    // 50 100 u2
    val qs = "100"
+   val melhor = 1
    val measure = Kappa
    run()
 
@@ -44,7 +45,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
          AgDensityWeightedTrainingUtility(Seq(), "eucl"),
          RandomSampling(Seq())
       )
-      val arq = s"/home/davi/wcs/ucipp/uci/$context${pares.size}.arff"
+      val arq = s"/home/davi/wcs/ucipp/uci/$context${pares.map(_.limpa).mkString}n$n$melhor$measure$qs.arff"
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
       def bags = DsByMinSize(datasets, 200).par map { d =>
@@ -59,7 +60,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
                val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, p)
                p -> measure(ds, p, classif, r, f)(-2).read(ds).getOrElse(error("sem medida"))
             }
-            val melhores = pegaMelhores(accs, n)(_._2).map(_._1)
+            val melhores = pegaMelhores(accs, n)(_._2 * melhor).map(_._1)
 
             //transforma vencedores em metaexemplos
             val metaatts = ds.metaAttsrf(r, f) ++ ds.metaAttsFromR(r, f)
@@ -71,31 +72,32 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       }
 
       println(s"$arq")
-      grava(arq, arff(bags.toList.flatten), print = true)
+      if (!new File(arq).exists()) grava(arq, arff(bags.toList.flatten), print = true)
       println(s"$arq")
 
       val patterns = Datasets.arff(arq, dedup = false).right.get
-      // refaz bags
+      // refaz bags por base
       val bagsFromFile = patterns.groupBy(_.vector).values.toSeq
-      val (accsc45, accsmaj) = ((1 to 10) map { run =>
+      val (accsc45, accsmaj) = ((1 to 10).par map { run =>
          Datasets.kfoldCV2(bagsFromFile) { (trbags, tsbags, fold, minSize) =>
             val tr = trbags.flatten
             val mc45 = C45(false, 6).build(tr)
             val mmaj = Maj().build(tr)
-            val bags = tsbags.flatten.groupBy(_.label)
+            //refaz bags por duplicidade
+            val bags = tsbags.flatten.groupBy(x => x.vector)
             //                  mc45.accuracy(tsbags.flatten) -> mmaj.accuracy(tsbags.flatten)
             ((bags.map(_._2) map { tsbag =>
                //                     println(tsbag.size)
                if (tsbag.map(_.label).contains(mc45.predict(tsbag.head))) 1d else 0d
             }).sum / bags.size
                ,
-               (tsbags.flatten.groupBy(_.label).map(_._2) map { tsbag =>
+               (bags.map(_._2) map { tsbag =>
                   //                     println(tsbag.size)
                   if (tsbag.map(_.label).contains(mmaj.predict(tsbag.head))) 1d else 0d
                }).sum / bags.size)
          }
-      }).flatten.unzip
-      println(s"${accsc45.sum / accsc45.size}")
-      println(s"${accsmaj.sum / accsmaj.size}")
+      }).flatten.toVector.unzip
+      println(s"${Stat.media_desvioPadrao(accsc45)}")
+      println(s"${Stat.media_desvioPadrao(accsmaj)}")
    }
 }
