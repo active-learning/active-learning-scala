@@ -20,7 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import java.io.{File, FileWriter}
-
+import scala.util.Random
 import al.strategies._
 import clean.lib._
 import ml.classifiers._
@@ -83,8 +83,9 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val patterns = Datasets.arff(arq, dedup = false).right.get
       // refaz bags por base
       val bagsFromFile = patterns.groupBy(_.vector).values.toSeq
-      val (accsc45, accsmaj) = ((1 to 30).par map { run =>
-         Datasets.kfoldCV2(bagsFromFile) { (trbags, tsbags, fold, minSize) =>
+      val (accsc45, accsmaj) = ((1 to 10).par map { run =>
+         val shuffledbagsFromFile = new Random(run).shuffle(bagsFromFile)
+         Datasets.kfoldCV2(shuffledbagsFromFile, 10, parallel = true) { (trbags, tsbags, fold, minSize) =>
             val tr = trbags.flatten
             val mc45 = C45(false, 6).build(tr)
             val mmaj = Maj().build(tr)

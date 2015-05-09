@@ -21,9 +21,9 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies.Passive
+import al.strategies._
 import clean.lib._
-import ml.classifiers.NoLearner
+import ml.classifiers.{Learner, NoLearner}
 import util.Stat
 
 object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
@@ -31,13 +31,33 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
    val context = "plot"
    val tipoLearner = "all"
    val tipoSumariz = "media"
-   val strats = stratsTexRedux(dist)
+   val fakePool = Seq()
    val measure = Kappa
+   //   val strats = stratsTexRedux(dist)
+   val strats = Seq(
+      Some((learner: Learner) => RandomSampling(fakePool)) //0
+      , Some((learner: Learner) => ClusterBased(fakePool)) //1
+      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
+      , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
+      , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
+      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
+      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
+      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
+      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
+      , Some((learner: Learner) => QBC(fakePool))
+      , Some((learner: Learner) => MarginFixo(learner, fakePool))
+      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
+      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
+      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
+      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
+      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+   ).flatten
    run()
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/tese/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+      val arq = s"/home/davi/wcs/artigos/bracis2015/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+      //      val arq = s"/home/davi/wcs/tese/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
       val ls2 = tipoLearner match {
@@ -117,7 +137,7 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
          x.sliding(20).map(y => y.sum / y.size).toList
       }.transpose
 
-      val fw = new PrintWriter(arq, "ISO-8859-1")
+      val fw = new PrintWriter(arq, "UTF-8")
       fw.write("budget " + sls.map(_.limp).mkString(" ") + "\n")
       plot.zipWithIndex foreach { case (re, i) =>
          fw.write((i + 10) + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
