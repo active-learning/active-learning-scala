@@ -45,8 +45,9 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
       //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
       //      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
       //      , Some((learner: Learner) => QBC(fakePool))
-      , Some((learner: Learner) => MarginFixo(learner, fakePool))
+     , Some((learner: Learner) => EntropyFixo(learner, fakePool))
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
+     , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
       //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
       //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
       //      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
@@ -56,7 +57,7 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
 
    override def run() = {
       super.run()
-      val arq = s"/home/davi/wcs/artigos/bracis15/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+     val arq = s"/home/davi/wcs/artigos/bracis15/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
       //      val arq = s"/home/davi/wcs/tese/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
       println(s"$arq")
       val ls = learners(learnersStr)
