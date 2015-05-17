@@ -149,7 +149,7 @@ object StatTests {
                case (0, _) => " "
             }).mkString(" & ") + """ \\""" +
                (if (i % seps == seps - 1) """ \hline""" else "")
-         }.mkString("\n") +
+         }.mkString("\n") + "\n" +
          """\end{tabular}""" + "\n" +
          (if (pairs.size > 10 && pairs.size < 20) "}" else "") +
          """

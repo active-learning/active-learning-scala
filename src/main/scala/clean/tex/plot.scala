@@ -27,118 +27,99 @@ import ml.classifiers.{Learner, NoLearner}
 import util.Stat
 
 object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
-   val context = "plot"
-   val tipoLearner = "all"
-   val tipoSumariz = "media"
-   val fakePool = Seq()
-   val measure = Kappa
-   val strats0 = stratsTexRedux(dist)
-   val strats = Seq(
-      Some((learner: Learner) => RandomSampling(fakePool)) //0
-      , Some((learner: Learner) => ClusterBased(fakePool)) //1
-      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
-      //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
-      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
-      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
-      //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
-      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
-      //      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-      //      , Some((learner: Learner) => QBC(fakePool))
-     , Some((learner: Learner) => EntropyFixo(learner, fakePool))
-      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
-     , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
-      //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
-      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
-      //      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
-      //      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
-   ).flatten
-   run()
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
+  val context = "plot"
+  val tipoLearner = "all"
+  val tipoSumariz = "media"
+  val measure = Kappa
+//  val strats0 = stratsTexRedux(dist)
+  val strats = stratsForBRACIS15(dist)
+  run()
 
-   override def run() = {
-      super.run()
-     val arq = s"/home/davi/wcs/artigos/bracis15/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
-      //      val arq = s"/home/davi/wcs/tese/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
-      println(s"$arq")
-      val ls = learners(learnersStr)
-      val ls2 = tipoLearner match {
-         case "best" | "mediano" => Seq(NoLearner())
-         case "all" => ls
-      }
-      val dss = binaryDs(datasets)
-      println(dss.size)
-      val (sls0, res9) = (for {
-         dataset <- dss
-         le0 <- ls2.par
-      } yield {
-         val ds = Ds(dataset, readOnly = true)
-         println(s"$ds")
-         ds.open()
-         val le = tipoLearner match {
-            case "mediano" => ls.map { l =>
-               val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
-               l -> Stat.media_desvioPadrao(vs.toVector)._1
-            }.sortBy(_._2).apply(ls.size / 2)._1
-            case "best" => ls.map { l =>
-               val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
-               l -> Stat.media_desvioPadrao(vs.toVector)._1
-            }.maxBy(_._2)._1
-            case "all" => le0
-         }
+  override def run() = {
+    super.run()
+    val arq = s"/home/davi/wcs/artigos/bracis15/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
+    //      val arq = s"/home/davi/wcs/tese/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+    println(s"$arq")
+    val ls = learners(learnersStr)
+    val ls2 = tipoLearner match {
+      case "best" | "mediano" => Seq(NoLearner())
+      case "all" => ls
+    }
+    val dss = DsByMinSize(binaryDs(datasets), 200)
+    println(dss.size)
+    val (sls0, res9) = (for {
+      dataset <- dss
+      le0 <- ls2.par
+    } yield {
+        val ds = Ds(dataset, readOnly = true)
+        println(s"$ds")
+        ds.open()
+        val le = tipoLearner match {
+          case "mediano" => ls.map { l =>
+            val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
+            l -> Stat.media_desvioPadrao(vs.toVector)._1
+          }.sortBy(_._2).apply(ls.size / 2)._1
+          case "best" => ls.map { l =>
+            val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
+            l -> Stat.media_desvioPadrao(vs.toVector)._1
+          }.maxBy(_._2)._1
+          case "all" => le0
+        }
 
 
-         val (sls, sres) = (for {
-            s0 <- strats
-         } yield {
+        val (sls, sres) = (for {
+          s0 <- strats
+        } yield {
             val s = s0(le)
             val vs00 = try {
-               for {
-                  r <- 0 until runs
-                  f <- 0 until folds
-               } yield measure(ds, s, le, r, f)(0).readAll(ds)
+              for {
+                r <- 0 until runs
+                f <- 0 until folds
+              } yield measure(ds, s, le, r, f)(0).readAll(ds)
             } catch {
-               case _: Throwable => println(s"NA: ${(ds, s, le.abr)}")
-                  Seq(None)
+              case _: Throwable => println(s"NA: ${(ds, s, le.abr)}")
+                Seq(None)
             }
             s -> (if (vs00.contains(None)) {
-               println(s"NA: ${(ds, s, le.abr)}")
-               None
+              println(s"NA: ${(ds, s, le.abr)}")
+              None
             } else Some({
-               val sizes = vs00.flatten.map(_.size)
-               val minsiz = sizes.min
-               val vs0 = vs00.flatten.map(_.take(minsiz))
-               if (vs0.minBy(_.size).size != vs0.maxBy(_.size).size || minsiz != sizes.max) println(s"$dataset $s $le " + sizes.min + " " + sizes.max)
-               val ts = vs0.transpose.map { v =>
-                  if (porRisco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
-                  else Stat.media_desvioPadrao(v.toVector)._1
-               }
-               val fst = ts.head
-               ts.reverse.padTo(200, fst).reverse.toList
+              val sizes = vs00.flatten.map(_.size)
+              val minsiz = sizes.min
+              val vs0 = vs00.flatten.map(_.take(minsiz))
+              if (vs0.minBy(_.size).size != vs0.maxBy(_.size).size || minsiz != sizes.max) println(s"$dataset $s $le " + sizes.min + " " + sizes.max)
+              val ts = vs0.transpose.map { v =>
+                if (porRisco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
+                else Stat.media_desvioPadrao(v.toVector)._1
+              }
+              val fst = ts.head
+              ts.reverse.padTo(200, fst).reverse.toList
             }))
-         }).unzip
-         sls -> (if (sres.contains(None)) None
-         else {
-            ds.close()
-            val sresf = sres.flatten
-            lazy val rank = sresf.transpose map ranqueia
-            val tmp = if (porRank) rank else sresf.transpose
-            Some(tmp)
-         })
+          }).unzip
+        sls -> (if (sres.contains(None)) None
+        else {
+          ds.close()
+          val sresf = sres.flatten
+          lazy val rank = sresf.transpose map ranqueia
+          val tmp = if (porRank) rank else sresf.transpose
+          Some(tmp)
+        })
       }).unzip
-      val sls = sls0.head
-      val res0 = res9.flatten
-      val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
+    val sls = sls0.head
+    val res0 = res9.flatten
+    val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
 
-      val plot = plot0.toList.transpose.map { x =>
-         x.sliding(20).map(y => y.sum / y.size).toList
-      }.transpose
+    val plot = plot0.toList.transpose.map { x =>
+      x.sliding(20).map(y => y.sum / y.size).toList
+    }.transpose
 
-      val fw = new PrintWriter(arq, "UTF-8")
-      fw.write("budget " + sls.map(_.limp).mkString(" ") + "\n")
-      plot.zipWithIndex foreach { case (re, i) =>
-         fw.write((i + 10) + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
-      }
-      fw.close()
-      println(s"$arq " + (res0.size / ls2.size.toDouble) + " datasets completos.")
-   }
+    val fw = new PrintWriter(arq, "UTF-8")
+    fw.write("budget " + sls.map(_.limp).mkString(" ") + "\n")
+    plot.zipWithIndex foreach { case (re, i) =>
+      fw.write((i + 10) + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
+    }
+    fw.close()
+    println(s"$arq " + (res0.size / ls2.size.toDouble) + " datasets completos.")
+  }
 }

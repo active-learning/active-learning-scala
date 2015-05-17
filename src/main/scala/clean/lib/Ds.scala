@@ -36,7 +36,7 @@ import scala.util.Random
  * Cada instancia desta classe representa um ML dataset.
  */
 case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOnly) with Blob with CM with EntropyMeasure with FilterTrait with LearnerTrait {
-  lazy val bestPassiveLearnerId = {
+  lazy val bestPassiveLearner = {
     lazy val learners = Seq(
       KNNBatcha(5, "eucl", Seq(), weighted = true)
       , C45()
@@ -48,7 +48,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     learners.map { l =>
       val vs = for (r <- 0 until Global.runs; f <- 0 until Global.folds) yield Kappa(this, Passive(Seq()), l, r, f)(-1).read(this).getOrElse(quit("Kappa passiva não encontrada"))
       l -> Stat.media_desvioPadrao(vs.toVector)._1
-    }.maxBy(_._2)._1.id
+    }.maxBy(_._2)._1
   }
   override lazy val toString = dataset
   override val context = dataset

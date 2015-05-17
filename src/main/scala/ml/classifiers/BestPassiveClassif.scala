@@ -35,7 +35,7 @@ case class BestPassiveClassif(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Lea
       , CIELMBatch(seed)
       , SVMLibRBF(seed)
    )
-   lazy val bestLearnerId = ds.bestPassiveLearnerId
+  lazy val bestLearnerId = ds.bestPassiveLearner.id
    lazy val learner = learners.find(_.id == bestLearnerId).get
    override lazy val querFiltro = qf(learner)
 

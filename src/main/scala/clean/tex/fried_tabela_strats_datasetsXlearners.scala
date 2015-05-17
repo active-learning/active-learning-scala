@@ -36,20 +36,29 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
          case "pt" => s"Um contra um para todos os algoritmos de aprendizado. Medida: kappa médio. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
-      val (sls, res0) = (for {
-         dataset <- datasets
+     val dss = DsByMinSize(binaryDs(datasets), 200)
+     val (sls, res0) = (for {
+         dataset <- dss
          le <- learners(learnersStr)
       } yield {
          val ds = Ds(dataset, readOnly = true)
          ds.open()
-         val (ti, th, tf0, tpass) = ranges(ds)
+         val (ti0, th, tf0, tpass) = ranges(ds)
+         val ti = comprimento match {
+            case "half" => ti0
+            case "half2" => th
+            case "all" => ti0
+            case "50" => ti0
+         }
          val tf = comprimento match {
             case "half" => th
+            case "half2" => tf0
             case "all" => tf0
             case "50" => 49
          }
          val (sts, sres) = (for {
-            s <- stratsTexRedux(dist)
+            s <- stratsForBRACIS15(dist)
+//            s <- stratsTexRedux(dist)
          } yield {
             val vs = for {
                r <- 0 until runs
@@ -80,8 +89,8 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
       res foreach (x => println(x._2.map(_._1).mkString(" ")))
       val pairs = if (!porRisco) StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
       else StatTests.friedmanNemenyi(res.map(x => x._1 -> x._2.map(1 - 1 * _._2)), sl.toVector)
-      val arq2 = s"/home/davi/wcs/tese/stratsfried${dist}" + (if (porRisco) "Risco" else "") + comprimento + ".tex"
-      println(arq2)
+//      val arq2 = s"/home/davi/wcs/tese/stratsfried${dist}" + (if (porRisco) "Risco" else "") + comprimento + ".tex"
+//      println(arq2)
       //      val fw2 = new PrintWriter(arq2, "UTF-8")
       // //      val fw2 = new PrintWriter(arq2, "ISO-8859-1")
       println(s"")
