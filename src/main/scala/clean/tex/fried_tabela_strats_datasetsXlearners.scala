@@ -57,7 +57,7 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
             case "50" => 49
          }
          val (sts, sres) = (for {
-            s <- stratsForBRACIS15(dist)
+            s <- stratsForBRACIS15
 //            s <- stratsTexRedux(dist)
          } yield {
             val vs = for {
