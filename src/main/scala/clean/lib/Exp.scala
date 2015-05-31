@@ -19,7 +19,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.lib
 
+import al.strategies.Strategy
 import ml.Pattern
+import ml.classifiers.Learner
 import util.Datasets
 import weka.filters.Filter
 
@@ -82,4 +84,14 @@ trait Exp extends AppWithUsage with FilterTrait {
    }
 
    def end(res: Map[String, Boolean])
+
+  def accsPerPool(ds: Ds, s0: (Learner) => Strategy, learners: Seq[Learner], measure: (Strategy, Learner, Int, Int) => Measure) = for {
+    r <- 0 until runs
+    f <- 0 until folds
+  } yield for (le <- learners) yield {
+      val s = s0(le)
+      (le, measure(s, le, r, f).read(ds).getOrElse(error("NA:" +(ds, s.abr, le, r, f) + "NA:" +(ds, s.id, le.id, r, f))), r, f)
+    }
+
+  def maxQueries(ds: Ds) = math.max(ds.nclasses, math.min(ds.expectedPoolSizes(folds).min, maxQueries0))
 }

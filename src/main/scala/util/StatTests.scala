@@ -1,5 +1,6 @@
 package util
 
+import clean.lib.RoundFilter
 import clean.tex.tabwinners
 
 /*
@@ -19,12 +20,10 @@ import clean.tex.tabwinners
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-object StatTests {
+object StatTests extends RoundFilter {
    def f3(x: Double) = "%6.3f".format(x)
 
    def f2(x: Double) = "%6.2f".format(x)
-
-   def ff(precision: Double)(x: Double) = (x * precision).round / precision
 
    /**
     * Takes a map DatasetName -> strategyMeasuresTheHigherTheBetter

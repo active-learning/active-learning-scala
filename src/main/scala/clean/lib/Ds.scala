@@ -113,12 +113,12 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   }
 
   lazy val correls = if (numericValues.size < 2) List(0d) else for (a1 <- numericValues; a2 <- numericValues) yield new PearsonsCorrelation().correlation(a1, a2)
-  lazy val mediasavg = medias.sum / medias.size
-  lazy val desviosavg = desvios.sum / desvios.size
-  lazy val entropiasavg = entropias.sum / entropias.size
-  lazy val skewavg = skewnesses.sum / skewnesses.size
-  lazy val kurtavg = kurtoses.sum / kurtoses.size
-  lazy val correlsavg = correls.sum / correls.size
+  lazy val mediasavg = divideMinPorMax(medias.sum, medias.size)
+  lazy val desviosavg = divideMinPorMax(desvios.sum, desvios.size)
+  lazy val entropiasavg = divideMinPorMax(entropias.sum, entropias.size)
+  lazy val skewavg = divideMinPorMax(skewnesses.sum, skewnesses.size)
+  lazy val kurtavg = divideMinPorMax(kurtoses.sum, kurtoses.size)
+  lazy val correlsavg = divideMinPorMax(correls.sum, correls.size)
 
   lazy val correleucmah = {
     0d
@@ -175,6 +175,13 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     }
   }
 
+  /**
+   * 3 ultimos metaatts não implementados, e nem lembro o que seria
+   * falta implementar algo que considere o balanceamento dentro de cada atributo nominal
+   * @param r
+   * @param f
+   * @return
+   */
   def metaAttsrf(r: Int, f: Int) = metaAttsrfmap getOrElseUpdate((r, f), {
     val res = List[Double](
       nclasses, nattributes, poolSize,
@@ -189,15 +196,10 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     nonHumanNumAttsNames zip res map (x => (x._1, x._2, "numeric"))
   })
 
-  def kurtavgrf(r: Int, f: Int) = kurtosesrf(r, f).sum / kurtosesrf(r, f).size
-
-  def correlsavgrf(r: Int, f: Int) = correlsrf(r, f).sum / correlsrf(r, f).size
 
   lazy val correlsrfmap = mutable.Map[(Int, Int), List[Double]]()
 
   def correlsrf(r: Int, f: Int) = correlsrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).size < 2) List(0d) else for (a1 <- numericValuesrf(r, f); a2 <- numericValuesrf(r, f)) yield new PearsonsCorrelation().correlation(a1, a2))
-
-  def entropiasavgrf(r: Int, f: Int) = entropiasrf(r, f).sum / entropiasrf(r, f).size
 
   lazy val entropiasrfmap = mutable.Map[(Int, Int), List[Double]]()
 
@@ -207,17 +209,24 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     if (tmp.isNaN) 0d else tmp
   })
 
-  def mediasavgrf(r: Int, f: Int) = mediasrf(r, f).sum / mediasrf(r, f).size
-
-  def desviosavgrf(r: Int, f: Int) = desviosrf(r, f).sum / desviosrf(r, f).size
-
   def mediasrf(r: Int, f: Int) = numericValuesrf(r, f).map(x => Stat.media_desvioPadrao(x.toVector)._1)
+
+
+  lazy val skewnessesrfmap = mutable.Map[(Int, Int), List[Double]]()
 
   def desviosrf(r: Int, f: Int) = numericValuesrf(r, f).map(x => Stat.media_desvioPadrao(x.toVector)._2)
 
-  def skewavgrf(r: Int, f: Int) = skewnessesrf(r, f).sum / skewnessesrf(r, f).size
+  def mediasavgrf(r: Int, f: Int) = divideMinPorMax(mediasrf(r, f).sum, mediasrf(r, f).size)
 
-  lazy val skewnessesrfmap = mutable.Map[(Int, Int), List[Double]]()
+  def desviosavgrf(r: Int, f: Int) = divideMinPorMax(desviosrf(r, f).sum, desviosrf(r, f).size)
+
+  def entropiasavgrf(r: Int, f: Int) = divideMinPorMax(entropiasrf(r, f).sum, entropiasrf(r, f).size)
+
+  def skewavgrf(r: Int, f: Int) = divideMinPorMax(skewnessesrf(r, f).sum, skewnessesrf(r, f).size)
+
+  def kurtavgrf(r: Int, f: Int) = divideMinPorMax(kurtosesrf(r, f).sum, kurtosesrf(r, f).size)
+
+  def correlsavgrf(r: Int, f: Int) = divideMinPorMax(correlsrf(r, f).sum, correlsrf(r, f).size)
 
   def skewnessesrf(r: Int, f: Int) = skewnessesrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(0d)))) List(0d)
   else numericValuesrf(r, f) map { x =>

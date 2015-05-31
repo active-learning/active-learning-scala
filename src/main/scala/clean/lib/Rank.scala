@@ -19,11 +19,70 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.lib
 
-trait Rank {
-   def fff(precision: Double)(x: Double) = (x * precision).round / precision
+import ml.Pattern
+import ml.classifiers.Learner
+import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
+import util.{Stat, Datasets}
+
+import scala.util.Random
+
+trait Rank extends FilterTrait with RoundFilter {
+  def cv10x10fold(bagsFromFile: Vector[Vector[Pattern]], leas: Vector[Pattern] => Vector[Learner]) = (1 to 10).par map { run =>
+    val shuffledbagsFromFile = new Random(run).shuffle(bagsFromFile)
+    Datasets.kfoldCV2(shuffledbagsFromFile, 10, parallel = true) { (trbags, tsbags, fold, minSize) =>
+      val tr = trbags.flatten.toVector
+      val ts = tsbags.flatten.toVector
+      lazy val (trf, binaf, zscof) = criaFiltro(tr, fold)
+      lazy val tsf = aplicaFiltro(ts, fold, binaf, zscof)
+      if (leas(tr).isEmpty) {
+        //        val learnerSeed = 0
+        //        val (fpool, binaf, zscof) = criaFiltro(tr, 1)
+        //        val ftestSet = aplicaFiltro(ts, 1, binaf, zscof)
+        //        val l = NinteraELM(learnerSeed)
+        //        var m = l.batchBuild(fpool).asInstanceOf[ELMModel]
+        //        m = l.modelSelectionFull(m)
+        //        val rankMedio = media(tr.toSeq map (p => p.nominalSplit))
+        //        val twoSpears = ftestSet map { p =>
+        //          try {
+        //            val spear = new SpearmansCorrelation().correlation(m.output(p), p.nominalSplit)
+        //            val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.nominalSplit)
+        //            //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio.zipWithIndex.map(_._2.toDouble), p.nominalSplit)
+        //            (spear, spearMaj)
+        //          } catch {
+        //            case x: Throwable => error("\n " + m.output(p).toList + "\n " + rankMedio.toList + "\n " + p.nominalSplit.toList + " \n" + x)
+        //          }
+        //        }
+        //        val (spearELM, spearMaj) = twoSpears.unzip
+        //        Vector(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
+
+        val rankMedio = media(tr.toSeq map (p => p.nominalSplit))
+        val twoSpears = ts map { p =>
+          val rank = Array(0d)
+          try {
+            val spear = new SpearmansCorrelation().correlation(rank, p.nominalSplit)
+            val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.nominalSplit)
+            //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio.zipWithIndex.map(_._2.toDouble), p.nominalSplit)
+            (spear, spearMaj)
+          } catch {
+            case x: Throwable => error("\n " + rank.toList + "\n " + rankMedio.toList + "\n " + p.nominalSplit.toList + " \n" + x)
+          }
+        }
+        val (spearELM, spearMaj) = twoSpears.unzip
+        Vector(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
+      } else leas(tr) flatMap { le =>
+        val (trtestbags, tstestbags, m) = if (le.querFiltro) (trf.groupBy(x => x.vector), tsf.groupBy(x => x.vector), le.build(trf))
+        else (tr.groupBy(x => x.vector), ts.groupBy(x => x.vector), le.build(tr))
+        Seq(trtestbags, tstestbags) map (bags => (bags.map(_._2) map { tsbag =>
+          //m.accuracy(tsbag)
+          tsbag.map(_.label).contains(m.predict(tsbag.head))
+          //}).sum / bags.size.toDouble)
+        }).count(_ == true) / bags.size.toDouble)
+      }
+    }
+  }
 
    def ranqueia(s: Seq[Double]) = s.zipWithIndex.sortBy(_._1).reverse.zipWithIndex.groupBy {
-      case ((v, idx), ra) => fff(1000)(v)
+      case ((v, idx), ra) => ff(1000)(v)
    }.toList.map { case (k, g) =>
       val gsize = g.size
       val avrRa = g.map { case ((v, idx), ra) => ra}.sum.toDouble / gsize + 1 // +1 pra corrigir o índice zero
@@ -47,12 +106,27 @@ trait Rank {
          case "mediana" => res0.map(_.flatten).transpose.map(x => x.sorted.toList(x.size / 2)).grouped(cols).toList.map(_.toList)
       }
    }
+
+  /**
+   * pega n melhores e todas as que empatarem com a n melhor
+   */
+  def pegaMelhores[T](s: Seq[T], n: Int)(f: T => Double) = {
+    var t = 0
+    val (bef, aft) = s.groupBy(f).toList.sortBy(_._1).reverse.span { case (k, vs) =>
+      t += vs.size
+      t < n
+    }
+    (bef :+ aft.head).map(_._2).flatten
+  }
+
+  /**
+   * dispensa n melhores e todas as que empatarem com a n melhor
+   */
+  def dispensaMelhores[T](s: Seq[T], n: Int)(f: T => Double) = {
+    var t = 0
+    s.groupBy(f).toList.sortBy(_._1).reverse.dropWhile { case (k, vs) =>
+      t += vs.size
+      t < n
+    }.tail.map(_._2).flatten
+  }
 }
-/*
-   def res0ToPlot0(res0: List[Seq[Seq[Double]]]) = tipoSumariz match {
-      case "media" => res0.foldLeft(Seq.fill(sl.size * 200)(0d)) { (l, m) =>
-         m.flatten.zip(l).map(x => x._1 + x._2)
-      }.grouped(sl.size).toList.map(_.toList)
-      case "mediana" => res0.map(_.flatten).transpose.map(x => x.sorted.toList(x.size / 2)).grouped(sl.size).toList.map(_.toList)
-   }
- */

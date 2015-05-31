@@ -25,24 +25,15 @@ import ml.classifiers.{Learner, NoLearner}
 
 trait StratsTrait {
   val fakePool = Seq()
-  def stratsForBRACIS15(dist: String) = Seq(
+
+  val stratsForBRACIS15 = Seq(
     Some((learner: Learner) => RandomSampling(fakePool)) //0
     , Some((learner: Learner) => ClusterBased(fakePool)) //1
-    , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
-    //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
-    //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
-    , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
-    //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
-    //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
-    //      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-    //      , Some((learner: Learner) => QBC(fakePool))
+    , Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl"))
+    , Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl"))
     , Some((learner: Learner) => MarginFixo(learner, fakePool))
-    , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
-    , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
-    //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
-    //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
-    //      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
-    //      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+    , Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl"))
+    , Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl"))
   ).flatten
 
   def stratsTexRedux(dist: String) = {
