@@ -42,7 +42,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //1 100 (!= 100, só para ALC)
   val dsminSize = 1
   val qs = "200"
-  val (rus, ks) = 1 -> 10
+  val (rus, ks) = 10 -> 10
   //melhores 1; ou piores -1
   val melhor = 1
   run()
@@ -69,7 +69,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val labels = pares.map { case (s, l) => s(l).limpa }
 
     //cada dataset produz um bag de metaexemplos (|bag| >= 25)
-    def bags = DsByMinSize(datasets, dsminSize).par map { d =>
+    def bagsNaN = DsByMinSize(datasets, dsminSize).par map { d =>
       val ds = Ds(d, readOnly = true)
       ds.open()
       val (ti, th, tf, tpass) = ranges(ds)
@@ -109,6 +109,19 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       ds.close()
       res.flatten
     }
+    def bags = bagsNaN //.par.map { ba =>
+    //      val medval = ba.map(_._1).transpose.tail.map { case l0 =>
+    //        val l = l0.toSeq.filter(_._2 != "NaN")
+    //        val nome = l0.head._1
+    //        val m = Stat.media_desvioPadrao(l.map(_._2.toDouble).toVector)._1
+    //        nome -> m
+    //      }.toMap
+    //      ba.map { case (l3, s) =>
+    //        l3.map { case (nome, "NaN", tipo) => (nome, medval(nome).toString, tipo)
+    //        case x => x
+    //        } -> s
+    //      }
+    //    }
 
     println(s"$arq")
     if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bags.toList.flatten, print = true, context, porRank))
@@ -131,10 +144,10 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       //      SVMLibRBF(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
-    val bagsFromFile = patterns.groupBy(_.vector).values.toVector
     val accs = if (featureSel) ??? else Stat.media_desvioPadraol(cv(patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
     (accs.zipWithIndex.filter(_._2 % 2 == 0) zip accs.zipWithIndex.filter(_._2 % 2 == 1)) foreach println
   }
+
 }
 
 /*
@@ -148,4 +161,24 @@ LOO
 
  LOO:       RF100 49% +-33; Maj 32% +-37
  10x10fold: RF100 46% +-8;  Maj 32% +-3
+
+
+
+ NaN->0
+ (((1.0,0.0),0),((0.4474666666666667,0.08459474603213503),1))
+(((0.3153366946778712,0.007607391259240319),2),((0.3167111111111111,0.06755009724537843),3))
+
+NaN->NaN
+(((1.0,0.0),0),((0.47782222222222226,0.08259533627729804),1))
+(((0.3153327731092437,0.005954146648643518),2),((0.31640000000000007,0.05379530374554498),3))
+10x
+(((0.9999667787114845,1.2170207128723907E-4),0),((0.46523555555555546,0.12070307532563727),1))
+(((0.31531708683473414,0.00575590212770763),2),((0.3151555555555555,0.05246637293841534),3))
+
+NaN->medioPorBase
+(((1.0,0.0),0),((0.4630666666666666,0.11083847044006181),1))
+(((0.31532773109243695,0.005566621279456722),2),((0.31600000000000006,0.05104300346783909),3))
+10x
+(((0.999995238095238,4.7619047619051896E-5),0),((0.4691333333333334,0.12307039037743532),1))
+(((0.315327731092437,0.005307565138460418),2),((0.31600000000000017,0.04866759424931761),3))
  */

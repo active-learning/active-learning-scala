@@ -72,7 +72,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   //  lazy val QbyUavg = Q / Uavg
   lazy val nomCount = patterns.head.enumerateAttributes().count(_.isNominal)
   lazy val numCount = patterns.head.enumerateAttributes().count(_.isNumeric)
-  lazy val nomByNum = if (numCount == 0) nomCount else nomCount / numCount.toDouble
+  lazy val nomByNum = if (numCount == 0) Double.NaN else nomCount / numCount.toDouble
   lazy val hist = patterns.groupBy(_.label).toList.sortBy(_._1).map(_._2.size / n.toDouble).toArray
   lazy val minority = 100 * hist.min
   lazy val majority = 100 * hist.max
@@ -86,33 +86,17 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   lazy val nominalDistinctValues = if (nominalAtts.isEmpty) List(Array("")) else readString(s"select ${nominalAtts.mkString(",")} from i").transpose.map(_.toArray)
   lazy val nominalDistinctCount = nominalDistinctValues.map(_.distinct.size)
   lazy val nominalDistinctCountAvg = nominalDistinctCount.sum / nominalDistinctCount.size
-  lazy val numericValues = if (numericAtts.isEmpty) List(Array(0d)) else read(s"select ${numericAtts.mkString(",")} from i").transpose.map(_.toArray)
+  lazy val numericValues = if (numericAtts.isEmpty) List(Array(Double.NaN)) else read(s"select ${numericAtts.mkString(",")} from i").transpose.map(_.toArray)
   lazy val (medias, desvios) = numericValues.map(x => Stat.media_desvioPadrao(x.toVector)).unzip
-  lazy val entropias = if (numericAtts.isEmpty) List(0d)
-  else numericValues map { x =>
-    val tmp = normalized_entropy(x.map(_ / n))
-    if (tmp.isNaN) 0d else tmp
-  }
-  lazy val skewnesses = if (numericValues.map(_.toList).sameElements(List(List(0d)))) List(0d)
-  else numericValues map { x =>
-    val tmp = new Skewness().evaluate(x)
-    if (tmp.isNaN) {
-      println(s"skew NaN: ${x.toList} \n${patterns.head.enumerateAttributes().toList} \n${numericValues.map(_.toList)}")
-      sys.exit(0)
-    }
-    tmp
-  }
-  lazy val kurtoses = if (numericValues.map(_.toList).sameElements(List(List(0d)))) List(0d)
-  else numericValues map { x =>
-    val tmp = new Kurtosis().evaluate(x)
-    if (tmp.isNaN) {
-      println(s"kurt NaN: ${x.toList} \n${patterns.head.enumerateAttributes().toList}")
-      sys.exit(0)
-    }
-    tmp
-  }
-
-  lazy val correls = if (numericValues.size < 2) List(0d) else for (a1 <- numericValues; a2 <- numericValues) yield new PearsonsCorrelation().correlation(a1, a2)
+  lazy val entropias = if (numericAtts.isEmpty) List(Double.NaN)
+  else numericValues map (x => normalized_entropy(x.map(_ / n)))
+  lazy val skewnesses = if (numericValues.map(_.toList).sameElements(List(List(Double.NaN)))) List(Double.NaN)
+  else numericValues map { x => new Skewness().evaluate(x) }
+  lazy val kurtoses = if (numericValues.map(_.toList).sameElements(List(List(Double.NaN)))) List(Double.NaN)
+  else numericValues map { x => new Kurtosis().evaluate(x) }
+  lazy val correls = if (numericValues.size < 2) List(Double.NaN)
+  else for (a1 <- numericValues; a2 <- numericValues) yield
+  new PearsonsCorrelation().correlation(a1, a2)
 
   lazy val correleucmah = {
     0d
@@ -171,7 +155,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, desviosrf(r, f).min / desviosrf(r, f).max,
       entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, entropiasrf(r, f).min / entropiasrf(r, f).max,
       correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah)
-    val res2 = res.map { case Double.NaN => 0; case x => x }
+    val res2 = res //.map { case Double.NaN => 0; case x => x }
     nonHumanNumAttsNames zip res2 map (x => (x._1, x._2, "numeric"))
   })
 
@@ -196,54 +180,43 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
    * @return
    */
 
-  def kurtosesrf(r: Int, f: Int) = if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(0d)))) List(0d)
+  def kurtosesrf(r: Int, f: Int) = if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(Double.NaN)))) List(Double.NaN)
   else numericValuesrf(r, f) map { x =>
-    if (x.forall(_ == x.head)) 0d
+    if (x.forall(_ == x.head)) Double.NaN
     else {
-      val tmp = new Kurtosis().evaluate(x)
-      if (tmp.isNaN) {
-        println(s"kurt NaN: ${x.toList} \n${patternsrf(r, f).head.enumerateAttributes().toList}")
-        sys.exit(0)
-      }
-      tmp
+      new Kurtosis().evaluate(x)
     }
   }
 
   lazy val correlsrfmap = mutable.Map[(Int, Int), List[Double]]()
 
-  def correlsrf(r: Int, f: Int) = correlsrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).size < 2) List(0d) else for (a1 <- numericValuesrf(r, f); a2 <- numericValuesrf(r, f)) yield new PearsonsCorrelation().correlation(a1, a2))
+  def correlsrf(r: Int, f: Int) = correlsrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).size < 2) List(Double.NaN)
+  else for (a1 <- numericValuesrf(r, f); a2 <- numericValuesrf(r, f)) yield
+  new PearsonsCorrelation().correlation(a1, a2))
 
   lazy val entropiasrfmap = mutable.Map[(Int, Int), List[Double]]()
 
-  def entropiasrf(r: Int, f: Int) = entropiasrfmap getOrElseUpdate((r, f), if (numericAtts.isEmpty) List(0d)
-  else numericValuesrf(r, f) map { x =>
-    val tmp = normalized_entropy(x.map(_ / n))
-    if (tmp.isNaN) 0d else tmp
-  })
+  def entropiasrf(r: Int, f: Int) = entropiasrfmap getOrElseUpdate((r, f), if (numericAtts.isEmpty) List(Double.NaN)
+  else numericValuesrf(r, f) map { x => normalized_entropy(x.map(_ / n)) })
 
   def mediasrf(r: Int, f: Int) = numericValuesrf(r, f).map(x => Stat.media_desvioPadrao(x.toVector)._1)
-
 
   lazy val skewnessesrfmap = mutable.Map[(Int, Int), List[Double]]()
 
   def desviosrf(r: Int, f: Int) = numericValuesrf(r, f).map(x => Stat.media_desvioPadrao(x.toVector)._2)
 
-  def skewnessesrf(r: Int, f: Int) = skewnessesrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(0d)))) List(0d)
+  def skewnessesrf(r: Int, f: Int) = skewnessesrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(Double.NaN)))) List(Double.NaN)
   else numericValuesrf(r, f) map { x =>
-    if (x.forall(_ == x.head)) 0d
+    if (x.forall(_ == x.head)) Double.NaN
     else {
-      val tmp = new Skewness().evaluate(x)
-      if (tmp.isNaN) {
-        println(s"skew NaN: ${x.toList} \n${patternsrf(r, f).head.enumerateAttributes().toList} \n${numericValuesrf(r, f).map(_.toList.mkString(" ")).mkString("\n")}")
-        sys.exit(0)
-      } else tmp
+      new Skewness().evaluate(x)
     }
   })
 
   lazy val numericValuesrfmap = mutable.Map[(Int, Int), List[Array[Double]]]()
   lazy val allAtts = patterns.head.enumerateAttributes().toList.dropRight(1)
 
-  def numericValuesrf(r: Int, f: Int) = numericValuesrfmap.getOrElseUpdate((r, f), if (numericAtts.isEmpty) List(Array(0d))
+  def numericValuesrf(r: Int, f: Int) = numericValuesrfmap.getOrElseUpdate((r, f), if (numericAtts.isEmpty) List(Array(Double.NaN))
   else (for (p <- patternsrf(r, f)) yield p.vector.zip(allAtts).filter(_._2.isNumeric).map(_._1).toArray).toList).transpose.map(_.toArray)
 
   def patternsrf(r: Int, f: Int) = getPool(r, f)
