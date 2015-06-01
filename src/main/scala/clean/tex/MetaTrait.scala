@@ -22,6 +22,7 @@ package clean.tex
 import java.io.{File, FileWriter}
 
 import clean.lib.{Log, Rank, FilterTrait}
+import clus.Clus
 import ml.Pattern
 import ml.classifiers.{NinteraELM, Learner}
 import ml.models.ELMModel
@@ -131,7 +132,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           //          Vector(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
 
 
-          //clus; seed situa run e fold durante paralelização
+          //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed"
           val arqts = s"/run/shm/ts$seed"
           instances2file(tr, arqtr)
@@ -140,13 +141,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
           f.close()
 
+          Clus.main(Array(s"/run/shm/clus$seed"))
+
           //          def
           val rankMedio = media(tr.toSeq map (p => p.targets))
           val twoSpears = ts map { p =>
             val rank = Array(0d)
             try {
               val spear = 0d //new SpearmansCorrelation().correlation(rank, p.targets)
-              val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.targets)
+              val spearMaj = 0d //new SpearmansCorrelation().correlation(rankMedio, p.targets)
               //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio.zipWithIndex.map(_._2.toDouble), p.nominalSplit)
               (spear, spearMaj)
             } catch {

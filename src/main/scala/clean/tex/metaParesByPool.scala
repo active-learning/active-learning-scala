@@ -31,7 +31,7 @@ import util.{Datasets, Stat}
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank")
   val context = this.getClass.getName.split('.').last.dropRight(1)
-  //n=3 ajuda levemente o classif
+  //n=3 ajuda levemente se for  classif
   val n = 1
   val dedup = false
   // 50 100 u2 - só tem 100 por enquanto pra não-ALC
@@ -42,7 +42,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //1 100 (!= 100, só para ALC)
   val dsminSize = 1
   val qs = "200"
-  val (rus, ks) = 2 -> 2
+  val (rus, ks) = 1 -> 10
   //melhores 1; ou piores -1
   val melhor = 1
   run()
@@ -51,11 +51,11 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     super.run()
     val ls = learners(learnersStr)
     //    val ss = stratsTexRedux("eucl")
-    //            val ss = stratsTex("all")
-    //    val ss = Seq(
-    //      (l: Learner) => MarginFixo(l, Seq()),
-    //      (l: Learner) => ExpErrorReductionMarginFixo(l, Seq(), "entropy")
-    //    )
+    //                val ss = stratsTex("all")
+    //        val ss = Seq(
+    //          (l: Learner) => MarginFixo(l, Seq()),
+    //          (l: Learner) => ExpErrorReductionMarginFixo(l, Seq(), "entropy")
+    //        )
     val ss = Seq((l: Learner) => HTUFixo(Seq(), l, Seq(), "maha"))
     //      //          HTUFixo(Seq(), RF(), Seq(), "eucl")
     //      //          DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl")
@@ -64,7 +64,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     //      //      RandomSampling(Seq())
     //    )
     val pares = for {l <- ls; s <- ss} yield s -> l
-    val arq = s"/home/davi/wcs/arff/$context-n${n}best${melhor}m$measure${qs}qs-$rus.$ks-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
+    //    $rus.$ks
+    val arq = s"/home/davi/wcs/arff/$context-n${n}best${melhor}m$measure${qs}qs-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
     val labels = pares.map { case (s, l) => s(l).limpa }
 
     //cada dataset produz um bag de metaexemplos (|bag| >= 25)

@@ -113,12 +113,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   }
 
   lazy val correls = if (numericValues.size < 2) List(0d) else for (a1 <- numericValues; a2 <- numericValues) yield new PearsonsCorrelation().correlation(a1, a2)
-  lazy val mediasavg = divideMinPorMax(medias.sum, medias.size)
-  lazy val desviosavg = divideMinPorMax(desvios.sum, desvios.size)
-  lazy val entropiasavg = divideMinPorMax(entropias.sum, entropias.size)
-  lazy val skewavg = divideMinPorMax(skewnesses.sum, skewnesses.size)
-  lazy val kurtavg = divideMinPorMax(kurtoses.sum, kurtoses.size)
-  lazy val correlsavg = divideMinPorMax(correls.sum, correls.size)
 
   lazy val correleucmah = {
     0d
@@ -129,8 +123,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   lazy val correlmanmah = {
     0d
   }
-
-  def divideMinPorMax(a: Double, b: Double) = if (b == 0) 0d else a / b
 
   //   val subnonHumanNumAttsNames = "\"#classes\",\"#exemplos/#atributos\",\"%nominais\""
   val humanNumAttsNames = "\"\\\\#classes\",\"\\\\#atributos\",\"\\\\#exemplos\",\"$\\\\frac{\\\\#exemplos}{\\\\#atrib.}$\",\"\\\\%nominais\",\"\\\\%major.\",\"\\\\%minor.\",\"$\\\\frac{\\\\%major.}{\\\\%minor.}$\",\"entropia da distr. de classes\""
@@ -152,15 +144,57 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     val r = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
-      skewnesses.min, skewavg, skewnesses.max, divideMinPorMax(skewnesses.min, skewnesses.max),
-      kurtoses.min, kurtavg, kurtoses.max, divideMinPorMax(kurtoses.min, kurtoses.max),
-      nominalDistinctCount.min, nominalDistinctCountAvg, nominalDistinctCount.max, divideMinPorMax(nominalDistinctCount.min, nominalDistinctCount.max),
-      medias.min, mediasavg, medias.max, divideMinPorMax(medias.min, medias.max),
-      desvios.min, desviosavg, desvios.max, divideMinPorMax(desvios.min, desvios.max),
-      entropias.min, entropiasavg, entropias.max, divideMinPorMax(entropias.min, entropias.max),
-      correls.min, correlsavg, correls.max, divideMinPorMax(correls.min, correls.max), correleucmah, correleucman, correlmanmah)
+      skewnesses.min, skewavg, skewnesses.max, skewnesses.min / skewnesses.max,
+      kurtoses.min, kurtavg, kurtoses.max, kurtoses.min / kurtoses.max,
+      nominalDistinctCount.min, nominalDistinctCountAvg, nominalDistinctCount.max, nominalDistinctCount.min / nominalDistinctCount.max,
+      medias.min, mediasavg, medias.max, medias.min / medias.max,
+      desvios.min, desviosavg, desvios.max, desvios.min / desvios.max,
+      entropias.min, entropiasavg, entropias.max, entropias.min / entropias.max,
+      correls.min, correlsavg, correls.max, correls.min / correls.max, correleucmah, correleucman, correlmanmah)
     nonHumanNumAttsNames zip r map (x => (x._1, x._2, "numeric"))
   }
+  lazy val mediasavg = medias.sum / medias.size
+  lazy val desviosavg = desvios.sum / desvios.size
+  lazy val entropiasavg = entropias.sum / entropias.size
+  lazy val skewavg = skewnesses.sum / skewnesses.size
+  lazy val kurtavg = kurtoses.sum / kurtoses.size
+  lazy val correlsavg = correls.sum / correls.size
+
+  def metaAttsrf(r: Int, f: Int) = metaAttsrfmap getOrElseUpdate((r, f), {
+    val res = List[Double](
+      nclasses, nattributes, poolSize,
+      poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
+      skewnessesrf(r, f).min, skewavgrf(r, f), skewnessesrf(r, f).max, skewnessesrf(r, f).min / skewnessesrf(r, f).max,
+      kurtosesrf(r, f).min, kurtavgrf(r, f), kurtosesrf(r, f).max, kurtosesrf(r, f).min / kurtosesrf(r, f).max,
+      nominalDistinctCount.min, nominalDistinctCountAvg, nominalDistinctCount.max, nominalDistinctCount.min / nominalDistinctCount.max,
+      mediasrf(r, f).min, mediasavgrf(r, f), mediasrf(r, f).max, mediasrf(r, f).min / mediasrf(r, f).max,
+      desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, desviosrf(r, f).min / desviosrf(r, f).max,
+      entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, entropiasrf(r, f).min / entropiasrf(r, f).max,
+      correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah)
+    val res2 = res.map { case Double.NaN => 0; case x => x }
+    nonHumanNumAttsNames zip res2 map (x => (x._1, x._2, "numeric"))
+  })
+
+  def mediasavgrf(r: Int, f: Int) = mediasrf(r, f).sum / mediasrf(r, f).size
+
+  def desviosavgrf(r: Int, f: Int) = desviosrf(r, f).sum / desviosrf(r, f).size
+
+  def entropiasavgrf(r: Int, f: Int) = entropiasrf(r, f).sum / entropiasrf(r, f).size
+
+  def skewavgrf(r: Int, f: Int) = skewnessesrf(r, f).sum / skewnessesrf(r, f).size
+
+  def kurtavgrf(r: Int, f: Int) = kurtosesrf(r, f).sum / kurtosesrf(r, f).size
+
+  def correlsavgrf(r: Int, f: Int) = correlsrf(r, f).sum / correlsrf(r, f).size
+
+
+  /**
+   * 3 ultimos metaatts não implementados, e nem lembro o que seria
+   * falta implementar algo que considere o balanceamento dentro de cada atributo nominal
+   * @param r
+   * @param f
+   * @return
+   */
 
   def kurtosesrf(r: Int, f: Int) = if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(0d)))) List(0d)
   else numericValuesrf(r, f) map { x =>
@@ -174,28 +208,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       tmp
     }
   }
-
-  /**
-   * 3 ultimos metaatts não implementados, e nem lembro o que seria
-   * falta implementar algo que considere o balanceamento dentro de cada atributo nominal
-   * @param r
-   * @param f
-   * @return
-   */
-  def metaAttsrf(r: Int, f: Int) = metaAttsrfmap getOrElseUpdate((r, f), {
-    val res = List[Double](
-      nclasses, nattributes, poolSize,
-      poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
-      skewnessesrf(r, f).min, skewavgrf(r, f), skewnessesrf(r, f).max, divideMinPorMax(skewnessesrf(r, f).min, skewnessesrf(r, f).max),
-      kurtosesrf(r, f).min, kurtavgrf(r, f), kurtosesrf(r, f).max, divideMinPorMax(kurtosesrf(r, f).min, kurtosesrf(r, f).max),
-      nominalDistinctCount.min, nominalDistinctCountAvg, nominalDistinctCount.max, divideMinPorMax(nominalDistinctCount.min, nominalDistinctCount.max),
-      mediasrf(r, f).min, mediasavgrf(r, f), mediasrf(r, f).max, divideMinPorMax(mediasrf(r, f).min, mediasrf(r, f).max),
-      desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, divideMinPorMax(desviosrf(r, f).min, desviosrf(r, f).max),
-      entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, divideMinPorMax(entropiasrf(r, f).min, entropiasrf(r, f).max),
-      correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, divideMinPorMax(correlsrf(r, f).min, correlsrf(r, f).max), correleucmah, correleucman, correlmanmah)
-    nonHumanNumAttsNames zip res map (x => (x._1, x._2, "numeric"))
-  })
-
 
   lazy val correlsrfmap = mutable.Map[(Int, Int), List[Double]]()
 
@@ -215,18 +227,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   lazy val skewnessesrfmap = mutable.Map[(Int, Int), List[Double]]()
 
   def desviosrf(r: Int, f: Int) = numericValuesrf(r, f).map(x => Stat.media_desvioPadrao(x.toVector)._2)
-
-  def mediasavgrf(r: Int, f: Int) = divideMinPorMax(mediasrf(r, f).sum, mediasrf(r, f).size)
-
-  def desviosavgrf(r: Int, f: Int) = divideMinPorMax(desviosrf(r, f).sum, desviosrf(r, f).size)
-
-  def entropiasavgrf(r: Int, f: Int) = divideMinPorMax(entropiasrf(r, f).sum, entropiasrf(r, f).size)
-
-  def skewavgrf(r: Int, f: Int) = divideMinPorMax(skewnessesrf(r, f).sum, skewnessesrf(r, f).size)
-
-  def kurtavgrf(r: Int, f: Int) = divideMinPorMax(kurtosesrf(r, f).sum, kurtosesrf(r, f).size)
-
-  def correlsavgrf(r: Int, f: Int) = divideMinPorMax(correlsrf(r, f).sum, correlsrf(r, f).size)
 
   def skewnessesrf(r: Int, f: Int) = skewnessesrfmap getOrElseUpdate((r, f), if (numericValuesrf(r, f).map(_.toList).sameElements(List(List(0d)))) List(0d)
   else numericValuesrf(r, f) map { x =>
