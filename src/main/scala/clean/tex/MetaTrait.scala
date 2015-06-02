@@ -30,12 +30,13 @@ import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Stat, Datasets}
 import weka.core.converters.ArffSaver
 import weka.filters.Filter
+import weka.filters.unsupervised.attribute.ReplaceMissingValues
 
 import scala.util.Random
 
 trait MetaTrait extends FilterTrait with Rank with Log {
   def clusSettings(natts: Int, targets: Int, seed: Int, arqtr: String, arqts: String) = {
-    val ultimoDesc = natts
+    val ultimoDesc = natts + 1
     val primeiroTarget = ultimoDesc + 1
     val ultimoTarget = primeiroTarget + targets - 1
     Seq(
@@ -94,8 +95,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
   def cv(patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
-
-    (1 to rs).par map { run =>
+    (1 to rs) map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags0 = shuffled.groupBy(_.value(0)).values.toVector
       val bags = if (rank) bags0
@@ -105,32 +105,18 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       }
       println(s"${bags.size} <- bags.size")
 
-      Datasets.kfoldCV2(bags, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+      Datasets.kfoldCV2(bags, ks, parallel = !true) { (trbags, tsbags, fold, minSize) =>
         val seed = run * 100 + fold
         val tr = trbags.flatten.toVector
         val ts = tsbags.flatten.toVector
-        lazy val (trf, binaf, zscof) = criaFiltro(tr, fold)
-        lazy val tsf = aplicaFiltro(ts, fold, binaf, zscof)
+        lazy val (trf, tsf) = criaFiltroReplaceMissing(tr, ts)
 
         if (leas(tr).isEmpty) {
-          //          //ELM
-          //          val l = NinteraELM(seed)
-          //          var m = l.batchBuild(trf).asInstanceOf[ELMModel]
-          //          m = l.modelSelectionFull(m)
-          //          val rankMedio = media(trf.toSeq map (p => p.targets))
-          //          val twoSpears = tsf map { p =>
-          //            try {
-          //              val spear = new SpearmansCorrelation().correlation(m.output(p), p.targets)
-          //              val spearMaj = new SpearmansCorrelation().correlation(rankMedio, p.targets)
-          //              //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio.zipWithIndex.map(_._2.toDouble), p.nominalSplit)
-          //              (spear, spearMaj)
-          //            } catch {
-          //              case x: Throwable => error("\n " + m.output(p).toList + "\n " + rankMedio.toList + "\n " + p.targets.toList + " \n" + x)
-          //            }
-          //          }
-          //          val (spearELM, spearMaj) = twoSpears.unzip
-          //          Vector(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
-
+          //ELM
+          val l = NinteraELM(seed)
+          var m = l.batchBuild(trf).asInstanceOf[ELMModel]
+          m = l.modelSelectionFull(m)
+          val ELMRanks = tsf.toVector map { p => m.output(p) }
 
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed"
@@ -140,24 +126,31 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val f = new FileWriter(s"/run/shm/clus$seed.s")
           f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
           f.close()
-
           Clus.main(Array(s"/run/shm/clus$seed"))
+          val clusPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed.test.pred.arff", dedup = false) match {
+            case Right(x) => x
+            case Left(m) => error(s"${m} <- m")
+          }
 
-          //          def
-          val rankMedio = media(tr.toSeq map (p => p.targets))
-          val twoSpears = ts map { p =>
-            val rank = Array(0d)
-            try {
-              val spear = 0d //new SpearmansCorrelation().correlation(rank, p.targets)
-              val spearMaj = 0d //new SpearmansCorrelation().correlation(rankMedio, p.targets)
-              //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio.zipWithIndex.map(_._2.toDouble), p.nominalSplit)
-              (spear, spearMaj)
-            } catch {
-              case x: Throwable => error("\n " + rank.toList + "\n " + rankMedio.toList + "\n " + p.nominalSplit.toList + " \n" + x)
+          val clusOrigRanks_clusPrunRanks = Vector("Original-p", "Pruned-p") map { str =>
+            clusPredictionsARFF.map { pa =>
+              pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith(str)) Some(v) else None }
             }
           }
-          val (spearELM, spearMaj) = twoSpears.unzip
-          Vector(Stat.media_desvioPadrao(spearELM)._1, Stat.media_desvioPadrao(spearMaj)._1)
+          val tstargets = ts.toSeq map (_.targets)
+          val rankMedio = media(tstargets)
+          val defaultRanks = ts map (_ => rankMedio)
+
+          clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks) flatMap { ranks =>
+            val spears = ranks.zip(tstargets) map { case (ranking, targets) =>
+              try {
+                new SpearmansCorrelation().correlation(ranking, targets)
+              } catch {
+                case x: Throwable => error("\n " + ranking.toList + "\n " + rankMedio.toList + "\n " + targets.toList + " \n" + x)
+              }
+            }
+            Seq(0d, Stat.media_desvioPadrao(spears)._1)
+          }
 
         } else {
           //weka

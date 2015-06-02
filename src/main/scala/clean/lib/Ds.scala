@@ -125,7 +125,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   lazy val metaAttsrfmap = mutable.Map[(Int, Int), Seq[(String, Double, String)]]()
 
   lazy val metaAtts = {
-    val r = List[Double](
+    val r0 = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
       skewnesses.min, skewavg, skewnesses.max, skewnesses.min / skewnesses.max,
@@ -135,6 +135,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       desvios.min, desviosavg, desvios.max, desvios.min / desvios.max,
       entropias.min, entropiasavg, entropias.max, entropias.min / entropias.max,
       correls.min, correlsavg, correls.max, correls.min / correls.max, correleucmah, correleucman, correlmanmah)
+    val r = r0 map { case Double.NegativeInfinity | Double.PositiveInfinity => Double.NaN; case x => x }
     nonHumanNumAttsNames zip r map (x => (x._1, x._2, "numeric"))
   }
   lazy val mediasavg = medias.sum / medias.size
@@ -145,7 +146,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   lazy val correlsavg = correls.sum / correls.size
 
   def metaAttsrf(r: Int, f: Int) = metaAttsrfmap getOrElseUpdate((r, f), {
-    val res = List[Double](
+    val r0 = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
       skewnessesrf(r, f).min, skewavgrf(r, f), skewnessesrf(r, f).max, skewnessesrf(r, f).min / skewnessesrf(r, f).max,
@@ -155,8 +156,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, desviosrf(r, f).min / desviosrf(r, f).max,
       entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, entropiasrf(r, f).min / entropiasrf(r, f).max,
       correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah)
-    val res2 = res //.map { case Double.NaN => 0; case x => x }
-    nonHumanNumAttsNames zip res2 map (x => (x._1, x._2, "numeric"))
+    val res = r0 map { case Double.NegativeInfinity | Double.PositiveInfinity => Double.NaN; case x => x }
+    nonHumanNumAttsNames zip res map (x => (x._1, x._2, "numeric"))
   })
 
   def mediasavgrf(r: Int, f: Int) = mediasrf(r, f).sum / mediasrf(r, f).size

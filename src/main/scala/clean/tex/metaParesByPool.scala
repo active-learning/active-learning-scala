@@ -51,7 +51,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     super.run()
     val ls = learners(learnersStr)
     //    val ss = stratsTexRedux("eucl")
-    //                val ss = stratsTex("all")
+    //    val ss = stratsTex("all")
     //        val ss = Seq(
     //          (l: Learner) => MarginFixo(l, Seq()),
     //          (l: Learner) => ExpErrorReductionMarginFixo(l, Seq(), "entropy")
@@ -109,20 +109,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       ds.close()
       res.flatten
     }
-    def bags = bagsNaN //.par.map { ba =>
-    //      val medval = ba.map(_._1).transpose.tail.map { case l0 =>
-    //        val l = l0.toSeq.filter(_._2 != "NaN")
-    //        val nome = l0.head._1
-    //        val m = Stat.media_desvioPadrao(l.map(_._2.toDouble).toVector)._1
-    //        nome -> m
-    //      }.toMap
-    //      ba.map { case (l3, s) =>
-    //        l3.map { case (nome, "NaN", tipo) => (nome, medval(nome).toString, tipo)
-    //        case x => x
-    //        } -> s
-    //      }
-    //    }
-
+    def bags = bagsNaN
     println(s"$arq")
     if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bags.toList.flatten, print = true, context, porRank))
     println(s"$arq")
@@ -137,17 +124,17 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     // refaz bags por base
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(
-      //      CIELMBatch(), C45(false, 5), C45(false, 25), C45(false, 50), C45(false, 100),
-      //      KNNBatcha(5, "eucl", patts),
+      CIELMBatch(),
+      C45(false, 5), C45(false, 25), C45(false, 50), C45(false, 100),
+      KNNBatcha(5, "eucl", patts),
       //      RF(42,5), RF(42,20),
       RF(42, 100),
-      //      SVMLibRBF(),
+      SVMLibRBF(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
     val accs = if (featureSel) ??? else Stat.media_desvioPadraol(cv(patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
     (accs.zipWithIndex.filter(_._2 % 2 == 0) zip accs.zipWithIndex.filter(_._2 % 2 == 1)) foreach println
   }
-
 }
 
 /*
@@ -164,21 +151,29 @@ LOO
 
 
 
- NaN->0
- (((1.0,0.0),0),((0.4474666666666667,0.08459474603213503),1))
-(((0.3153366946778712,0.007607391259240319),2),((0.3167111111111111,0.06755009724537843),3))
 
-NaN->NaN
-(((1.0,0.0),0),((0.47782222222222226,0.08259533627729804),1))
-(((0.3153327731092437,0.005954146648643518),2),((0.31640000000000007,0.05379530374554498),3))
-10x
-(((0.9999667787114845,1.2170207128723907E-4),0),((0.46523555555555546,0.12070307532563727),1))
-(((0.31531708683473414,0.00575590212770763),2),((0.3151555555555555,0.05246637293841534),3))
-
-NaN->medioPorBase
-(((1.0,0.0),0),((0.4630666666666666,0.11083847044006181),1))
-(((0.31532773109243695,0.005566621279456722),2),((0.31600000000000006,0.05104300346783909),3))
-10x
-(((0.999995238095238,4.7619047619051896E-5),0),((0.4691333333333334,0.12307039037743532),1))
-(((0.315327731092437,0.005307565138460418),2),((0.31600000000000017,0.04866759424931761),3))
+NaN-> medioPorBase
+(((0.9999622408963585,1.2869427681590982E-4),0),((0.4524488888888888,0.12499891698745197),1))
+(((0.3153383753501398,0.005838804392503414),2),((0.31684444444444454,0.05192008977899293),3))
+NaN-> 0
+(((0.9999526610644256,1.4273503749455974E-4),0),((0.4609511111111109,0.1153098660679997),1))
+(((0.3153355742296923,0.004817423903587671),2),((0.3166222222222224,0.0431683006651524),3))
+NaN-> 999999
+(((1.0,0.0),0),((0.464471111111111,0.11383322898192527),1))
+(((0.31533109243697477,0.005972637455343738),2),((0.3162666666666667,0.05164062797993324),3))
+NaN-> NaN
+(((0.9999291876750701,2.0550270930030264E-4),0),((0.4690577777777779,0.11276566142141829),1))
+(((0.3152997198879551,0.004724236407883567),2),((0.3137777777777778,0.04238411869904811),3))
+NaN-> -2
+(((0.9999809523809523,9.378399312711915E-5),0),((0.4752977777777779,0.09596489319421075),1))
+(((0.3153221288515409,0.004515021261424815),2),((0.3155555555555556,0.039674445222223756),3))
+NaN-> -9
+(((0.9999666666666666,1.2211066665536468E-4),0),((0.47896444444444436,0.10770538126417364),1))
+(((0.3153187675070027,0.0057933250780641925),2),((0.31528888888888884,0.05349925555958329),3))
+NaN-> -99999999
+(((0.9999667226890756,1.21906553160703E-4),0),((0.4830133333333334,0.10722453406671287),1))
+(((0.3153187675070027,0.0057933250780641925),2),((0.31528888888888884,0.05349925555958329),3))
+NaN-> -999999
+(((1.0,0.0),0),((0.485951111111111,0.11137238676947718),1))
+(((0.31533109243697477,0.005972637455343738),2),((0.3162666666666667,0.05164062797993324),3))
  */
