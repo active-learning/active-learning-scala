@@ -19,15 +19,16 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import java.io.{File, FileWriter}
+import java.io.{OutputStream, PrintStream, File, FileWriter}
 
 import clean.lib.{Log, Rank, FilterTrait}
 import clus.Clus
 import ml.Pattern
-import ml.classifiers.{NinteraELM, Learner}
+import ml.classifiers.{RF, NinteraELM, Learner}
 import ml.models.ELMModel
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Stat, Datasets}
+import weka.core.DenseInstance
 import weka.core.converters.ArffSaver
 import weka.filters.Filter
 import weka.filters.unsupervised.attribute.ReplaceMissingValues
@@ -94,29 +95,58 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     as.writeBatch()
   }
 
-  def cv(patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
-    (1 to rs) map { run =>
-      val shuffled = new Random(run).shuffle(patterns)
-      val bags0 = shuffled.groupBy(_.value(0)).values.toVector
-      val bags = if (rank) bags0
-      else bags0.map { bag =>
-        val f = Datasets.removeBagFilter(bag)
-        Datasets.applyFilter(f)(bag)
-      }
-      println(s"${bags.size} <- bags.size")
+  val originalStream = System.out
+  val dummyStream = new PrintStream(new OutputStream() {
+    def write(b: Int) {}
+  })
 
-      Datasets.kfoldCV2(bags, ks, parallel = !true) { (trbags, tsbags, fold, minSize) =>
+  def cv(patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+    (1 to rs).par map { run =>
+      val shuffled = new Random(run).shuffle(patterns)
+      val bags = shuffled.groupBy(_.base).values.toVector
+
+      Datasets.kfoldCV2(bags, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
         val seed = run * 100 + fold
-        val tr = trbags.flatten.toVector
-        val ts = tsbags.flatten.toVector
-        lazy val (trf, tsf) = criaFiltroReplaceMissing(tr, ts)
+        val tr0 = trbags.flatten.toVector
+        val ts0 = tsbags.flatten.toVector
+        val (tr, ts) = if (rank) tr0 -> ts0
+        else {
+          val f = Datasets.removeBagFilter(tr0)
+          Datasets.applyFilter(f)(tr0) -> Datasets.applyFilter(f)(ts0)
+        }
+
+        lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
+        //pega apenas um ex. por base (um que tiver label mais frequente)
+        lazy val trfSemParecidos = if (!rank) tr0.zip(trf).groupBy(_._1.base).map { case (k, lists) =>
+          val (_, list) = lists.unzip
+          val moda = list.groupBy(_.label).toList.sortBy(_._2.size).last._1
+          val attsMedio = media(list.map(_.array))
+          val pa = list.head
+          val id = pa.id
+          val inst = new DenseInstance(1d, attsMedio :+ moda)
+          inst.setDataset(pa.dataset)
+          Pattern(id, inst, missed = false, pa.parent)
+        }.toSeq
+        else tr0.zip(trf).groupBy(_._1.base).map { case (k, lists) =>
+          val (_, list) = lists.unzip
+          val rankMedio = media(list.map(_.targets))
+          val descMedio = media(list.map(_.array))
+          val pa = list.head
+          val id = pa.id
+          val inst = new DenseInstance(1d, pa.toDoubleArray.take(1) ++ descMedio ++ rankMedio)
+          inst.setDataset(pa.dataset)
+          Pattern(id, inst, missed = false, pa.parent)
+        }.toSeq
 
         if (leas(tr).isEmpty) {
           //ELM
           val l = NinteraELM(seed)
-          var m = l.batchBuild(trf).asInstanceOf[ELMModel]
-          m = l.modelSelectionFull(m)
-          val ELMRanks = tsf.toVector map { p => m.output(p) }
+          val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
+          val L = l.LForMeta(m0, LOO = false)
+          println(s"${L} <- L")
+          val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel]
+          val mfull = l.fullBuildForMeta(L, mfull0)
+          val ELMRanks = tsf.toVector map { p => mfull.output(p) }
 
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed"
@@ -126,8 +156,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val f = new FileWriter(s"/run/shm/clus$seed.s")
           f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
           f.close()
+
+          System.setOut(dummyStream)
           Clus.main(Array(s"/run/shm/clus$seed"))
-          val clusPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed.test.pred.arff", dedup = false) match {
+          System.setOut(originalStream)
+
+          val clusPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed.test.pred.arff", dedup = false, rmuseless = false) match {
             case Right(x) => x
             case Left(m) => error(s"${m} <- m")
           }
@@ -144,7 +178,10 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks) flatMap { ranks =>
             val spears = ranks.zip(tstargets) map { case (ranking, targets) =>
               try {
-                new SpearmansCorrelation().correlation(ranking, targets)
+                val res = new SpearmansCorrelation().correlation(ranking, targets)
+                if (res.isNaN) 0d
+                //justQuit("\n\n\nNaN no Spear:" + ranking.toList + " " + targets.toList + "\n\n\n")
+                else res
               } catch {
                 case x: Throwable => error("\n " + ranking.toList + "\n " + rankMedio.toList + "\n " + targets.toList + " \n" + x)
               }
@@ -155,9 +192,21 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         } else {
           //weka
           leas(tr) flatMap { le =>
-            println(s"${le.limpa} <- le.limpa")
-            val (trtestbags, tstestbags, m) = if (le.querFiltro) (trf.groupBy(x => x.vector), tsf.groupBy(x => x.vector), le.build(trf))
-            else (tr.groupBy(x => x.vector), ts.groupBy(x => x.vector), le.build(tr))
+            val (trtestbags, tstestbags, m) = if (le.querFiltro) {
+              val mo = le match {
+                case NinteraELM(_, _) =>
+                  val l = NinteraELM(seed)
+                  //pega apenas um ex. por base (um que tiver label mais frequente)
+                  val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
+                  val L = l.LForMeta(m0, LOO = true)
+                  println(s"${L} <- L")
+                  val m = l.batchBuild(trf).asInstanceOf[ELMModel]
+                  l.fullBuildForMeta(L, m)
+                case RF(_, n, _, _) => RF(seed, n).build(trf)
+                case _ => le.build(trf)
+              }
+              (trf.groupBy(x => x.vector), tsf.groupBy(x => x.vector), mo)
+            } else (tr.groupBy(x => x.vector), ts.groupBy(x => x.vector), le.build(tr))
             Seq(trtestbags, tstestbags) map (bags => (bags.map(_._2) map { tsbag =>
               tsbag.map(_.label).contains(m.predict(tsbag.head))
             }).count(_ == true) / bags.size.toDouble)

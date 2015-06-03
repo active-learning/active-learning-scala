@@ -18,6 +18,8 @@
 
 package clean.lib
 
+import java.io.{FileWriter, File}
+
 import al.strategies._
 import ml.classifiers._
 import ml.{Pattern, PatternParent}
@@ -146,7 +148,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   lazy val correlsavg = correls.sum / correls.size
 
   def metaAttsrf(r: Int, f: Int) = metaAttsrfmap getOrElseUpdate((r, f), {
-    val r0 = List[Double](
+    lazy val r00 = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
       skewnessesrf(r, f).min, skewavgrf(r, f), skewnessesrf(r, f).max, skewnessesrf(r, f).min / skewnessesrf(r, f).max,
@@ -156,6 +158,22 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, desviosrf(r, f).min / desviosrf(r, f).max,
       entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, entropiasrf(r, f).min / entropiasrf(r, f).max,
       correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah)
+
+    val arq = s"/home/davi/wcs/cache/$dataset$r.$f.cache"
+    val file = new File(arq)
+    val r0 = if (file.exists()) {
+      val maparq = Source.fromFile(file)
+      val valores = maparq.getLines().toList.map(_.toDouble)
+      maparq.close()
+      valores
+    } else {
+      val valores = r00
+      val fw = new FileWriter(file)
+      fw.write(valores.mkString("\n"))
+      fw.close()
+      valores
+    }
+
     val res = r0 map { case Double.NegativeInfinity | Double.PositiveInfinity => Double.NaN; case x => x }
     nonHumanNumAttsNames zip res map (x => (x._1, x._2, "numeric"))
   })

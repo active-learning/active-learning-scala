@@ -31,48 +31,58 @@ import util.{Datasets, Stat}
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank")
   val context = this.getClass.getName.split('.').last.dropRight(1)
-  //n=3 ajuda levemente se for  classif
-  val n = 1
   val dedup = false
-  // 50 100 u2 - só tem 100 por enquanto pra não-ALC
-  //1 ou -1
-  val featureSel = false
+
+  //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
   //  val measure = Kappa
   val measure = ALCKappa
-  //1 100 (!= 100, só para ALC)
+
+  //1 100 200 (Kappa exige 200)
   val dsminSize = 1
-  val qs = "200"
-  val (rus, ks) = 10 -> 10
-  //melhores 1; ou piores -1
+
+  //melhores 1; ou piores -1 (-1 é mais difícil pra acc e rank)
   val melhor = 1
+
+  //n=3 ajuda levemente se for  classif
+  val n = 1
+
+  val featureSel = false
+
+  val (ini, fim) = ("ti", "th")
+  val (rus, ks) = 1 -> 94
   run()
 
   override def run() = {
     super.run()
     val ls = learners(learnersStr)
-    //    val ss = stratsTexRedux("eucl")
-    //    val ss = stratsTex("all")
+    //        val ss = stratsTexRedux("eucl")
+    //        val ss = stratsTexRedux("all")
+    //        val ss = stratsTex("all")
+    //    val ss = Seq((l: Learner) => MarginFixo(l, Seq()), (l: Learner) => ExpErrorReductionMarginFixo(l, Seq(), "entropy"))//, (l: Learner) => HTUFixo(Seq(), l, Seq(), "maha"))
+    //    val ss = Seq((l: Learner) => MarginFixo(l, Seq()))
     //        val ss = Seq(
     //          (l: Learner) => MarginFixo(l, Seq()),
     //          (l: Learner) => ExpErrorReductionMarginFixo(l, Seq(), "entropy")
     //        )
+    //    val ss = Seq((l: Learner) => ExpErrorReductionMarginFixo(l, Seq(), "entropy"))
     val ss = Seq((l: Learner) => HTUFixo(Seq(), l, Seq(), "maha"))
-    //      //          HTUFixo(Seq(), RF(), Seq(), "eucl")
     //      //          DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl")
-    //      //      AgDensityWeightedTrainingUtility(Seq(), "eucl"),
+    //    val ss = Seq((l: Learner) => AgDensityWeightedTrainingUtility(Seq(), "eucl"), (l: Learner) => AgDensityWeightedTrainingUtility(Seq(), "manh"), (l: Learner) => AgDensityWeightedTrainingUtility(Seq(), "maha"))
     //      //      ClusterBased(Seq()),
     //      //      RandomSampling(Seq())
     //    )
     val pares = for {l <- ls; s <- ss} yield s -> l
     //    $rus.$ks
-    val arq = s"/home/davi/wcs/arff/$context-n${n}best${melhor}m$measure${qs}qs-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
+    val arq = s"/home/davi/wcs/arff/$context-n${n}best${melhor}m$measure-$ini.${fim}-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
     val labels = pares.map { case (s, l) => s(l).limpa }
 
     //cada dataset produz um bag de metaexemplos (|bag| >= 25)
     def bagsNaN = DsByMinSize(datasets, dsminSize).par map { d =>
       val ds = Ds(d, readOnly = true)
       ds.open()
-      val (ti, th, tf, tpass) = ranges(ds)
+      val (ti0, th0, tf0, tpass) = ranges(ds)
+      val ti = if (ini == "ti") ti0 else th0
+      val tf = if (fim == "th") th0 else tf0
       val res = for {
         r <- 0 until runs
         f <- 0 until folds
@@ -86,6 +96,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
             //            val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s(l))
             //            s(l) -> measure(ds, s(l), classif, r, f)(-2).read(ds).getOrElse(error("sem medida"))
+
           }
           //gera metaexemplos
           val metaatts0 = ds.metaAttsrf(r, f).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
@@ -124,56 +135,24 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     // refaz bags por base
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(
-      CIELMBatch(),
-      C45(false, 5), C45(false, 25), C45(false, 50), C45(false, 100),
-      KNNBatcha(5, "eucl", patts),
+      //      CIELMBatch(),
+      //      C45(false, 5), C45(false, 25),
+      //      C45(false, 50), C45(false, 100),
+      //      KNNBatcha(5, "eucl", patts),
       //      RF(42,5), RF(42,20),
       RF(42, 100),
-      SVMLibRBF(),
+      //      SVMLibRBF(),
+      NinteraELM(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
     val accs = if (featureSel) ??? else Stat.media_desvioPadraol(cv(patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
-    (accs.zipWithIndex.filter(_._2 % 2 == 0) zip accs.zipWithIndex.filter(_._2 % 2 == 1)) foreach println
+    val algs = if (porRank) {
+      println("Pearson correl.: higher is better.")
+      Seq("PCT\t\t\t", "PCTpruned\t", "ELM\t\t\t", "baseline\t")
+    } else {
+      println("Accuracy: higher is better.")
+      metaclassifs(Vector()).map(x => x.limpa + "\t")
+    }
+    (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(_._1) zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(_._1))) foreach println
   }
 }
-
-/*
-LOO
-(((1.0,0.0),0),                                 ((0.4859574468085105,0.33280598871826866),1))
-(((0.31531914893617036,0.003835531787380181),2),((0.3153191489361701,0.356704456226357),3))
-
-10x10fold
-(((0.9999810084033613,9.350942920921797E-5),0),((0.4641466666666666,0.07960157814577024),1))
-(((0.3153243697478991,0.0031217002361253045),2),((0.3157333333333332,0.02729393198190391),3))
-
- LOO:       RF100 49% +-33; Maj 32% +-37
- 10x10fold: RF100 46% +-8;  Maj 32% +-3
-
-
-
-
-NaN-> medioPorBase
-(((0.9999622408963585,1.2869427681590982E-4),0),((0.4524488888888888,0.12499891698745197),1))
-(((0.3153383753501398,0.005838804392503414),2),((0.31684444444444454,0.05192008977899293),3))
-NaN-> 0
-(((0.9999526610644256,1.4273503749455974E-4),0),((0.4609511111111109,0.1153098660679997),1))
-(((0.3153355742296923,0.004817423903587671),2),((0.3166222222222224,0.0431683006651524),3))
-NaN-> 999999
-(((1.0,0.0),0),((0.464471111111111,0.11383322898192527),1))
-(((0.31533109243697477,0.005972637455343738),2),((0.3162666666666667,0.05164062797993324),3))
-NaN-> NaN
-(((0.9999291876750701,2.0550270930030264E-4),0),((0.4690577777777779,0.11276566142141829),1))
-(((0.3152997198879551,0.004724236407883567),2),((0.3137777777777778,0.04238411869904811),3))
-NaN-> -2
-(((0.9999809523809523,9.378399312711915E-5),0),((0.4752977777777779,0.09596489319421075),1))
-(((0.3153221288515409,0.004515021261424815),2),((0.3155555555555556,0.039674445222223756),3))
-NaN-> -9
-(((0.9999666666666666,1.2211066665536468E-4),0),((0.47896444444444436,0.10770538126417364),1))
-(((0.3153187675070027,0.0057933250780641925),2),((0.31528888888888884,0.05349925555958329),3))
-NaN-> -99999999
-(((0.9999667226890756,1.21906553160703E-4),0),((0.4830133333333334,0.10722453406671287),1))
-(((0.3153187675070027,0.0057933250780641925),2),((0.31528888888888884,0.05349925555958329),3))
-NaN-> -999999
-(((1.0,0.0),0),((0.485951111111111,0.11137238676947718),1))
-(((0.31533109243697477,0.005972637455343738),2),((0.3162666666666667,0.05164062797993324),3))
- */

@@ -19,7 +19,8 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.lib
 
 import ml.Pattern
-import util.Datasets
+import util.{Stat, Datasets}
+import weka.core.DenseInstance
 import weka.filters.Filter
 import weka.filters.unsupervised.attribute.{RemoveUseless, Standardize, NominalToBinary, ReplaceMissingValues}
 
@@ -50,9 +51,12 @@ trait FilterTrait {
     testSet
   }
 
-  def criaFiltroReplaceMissing(tr0: Seq[Pattern], ts0: Seq[Pattern]) = {
-    val instances = Datasets.patterns2instances(tr0)
-    val instancess = Datasets.patterns2instances(ts0)
+  /*
+      esse método perde os ids, mas mantém ordem
+   */
+  def replacemissingNom2binRmuselessZscore(tr0: Seq[Pattern], ts0: Seq[Pattern]) = {
+    val instances = Datasets.patterns2instancesId(tr0)
+    val instancess = Datasets.patterns2instancesId(ts0)
 
     val rmvf = new ReplaceMissingValues
     rmvf.setInputFormat(instances)
@@ -69,20 +73,29 @@ trait FilterTrait {
     val instancesuse = Filter.useFilter(instancesbin, rmUseless_filter)
     val instancessuse = Filter.useFilter(instancessbin, rmUseless_filter)
 
-    //    val std = new Standardize
-    //    std.setInputFormat(instancesuse)
-    //    std.setIgnoreClass(false)//vai normalizar todos os targets; ok, pois mantém
-    //    val instancesstd = Filter.useFilter(instancesuse, std)
-    //    val instancessstd = Filter.useFilter(instancessuse, std)
+    //filtro Standardize curte desordenar exemplos
+    //    e normaliza todos os targets (menos o último); isso destrói o ranking.
+    //fiz ele na mão:
+    val tr = Datasets.instances2patternsId(instancesuse)
+    val ts = Datasets.instances2patternsId(instancessuse)
+    val (meds, devs) = Stat.media_desvioPadraol(tr.map(_.array.toVector).toVector).unzip
+    var c = 0
+    val instancesstd_instancessstd = Seq(tr, ts).map { tx =>
+      tx map { pa =>
+        val newar0 = pa.array.zip(meds).map(x => x._1 - x._2)
+        val newar = newar0.zip(devs).map(x => if (x._2 == 0) x._1 else x._1 / x._2)
+        c += 1
+        val arr = if (pa.attribute(0).isString) pa.toDoubleArray.take(1) ++ newar ++ pa.targets
+        else newar ++ Array(pa.label)
+        val inst = new DenseInstance(1d, arr)
+        inst.setDataset(pa.dataset())
+        new Pattern(pa.id, inst, false, pa.parent)
+      }
+    }
+    val instancesstd = instancesstd_instancessstd.head
+    val instancessstd = instancesstd_instancessstd(1)
 
-    println(s"${instances} <- instances")
-    println(s"${} <- ")
-    println(s"${} <- ")
-    println(s"${} <- ")
-    println(s"${instancessuse} <- instancessuse")
-
-    Datasets.instances2patterns(instancesuse) -> Datasets.instances2patterns(instancessuse)
-    //    Datasets.instances2patterns(instancesstd) -> Datasets.instances2patterns(instancessstd)
+    instancesstd -> instancessstd
   }
 
   def aplicaFiltroReplaceMissing(ts0: Seq[Pattern], fold: Int, rmvf: Filter, binaf: Filter, zscof: Filter) = {
