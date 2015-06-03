@@ -24,10 +24,11 @@ import java.io.{File, FileWriter, OutputStream, PrintStream}
 import clean.lib.{FilterTrait, Log, Rank}
 import clus.Clus
 import ml.Pattern
-import ml.classifiers.{Learner, NinteraELM, RF}
+import ml.classifiers.{SVMLibRBF, Learner, NinteraELM, RF}
 import ml.models.ELMModel
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat}
+import weka.attributeSelection.GreedyStepwise
 import weka.core.DenseInstance
 import weka.core.converters.ArffSaver
 
@@ -98,7 +99,26 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     def write(b: Int) {}
   })
 
-  def cv(patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  /*
+    val filter = new AttributeSelection()
+  val eval = new WrapperSubsetEval()
+  eval.setClassifier(cla)
+  eval.setFolds(foldsInterno)
+  eval.setSeed(fold * run)
+  val search = new GreedyStepwise()
+  search.setSearchBackwards(true)
+  //        search.setThreshold(0.01) acho que não precisa setar pelo que li num forum http://forums.pentaho.com/showthread.php?90966-WEKA-attribute-selection
+  search.setGenerateRanking(true)
+  search.setNumToSelect(nfeaturesW)
+  search.setNumExecutionSlots(8)
+  filter.setEvaluator(eval)
+  filter.setSearch(search)
+  filter.setInputFormat(tr0.head.dataset())
+  val tr = Datasets.applyFilter(filter)(tr0) //instances2patterns(Datasets.pcaWeka(Datasets.patterns2instances(tr1), 15)).toVector
+  val ts = Datasets.applyFilter(filter)(ts0)
+
+   */
+  def cv(attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     (1 to rs).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags = shuffled.groupBy(_.base).values.toVector
@@ -191,25 +211,37 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           }
 
         } else {
-          //weka
-          leas(tr) flatMap { le =>
+          //attsel
+          val trattsel = tr //trSemParecidos1 <- fiasco
+          val trfattsel = trf //trfSemParecidos1 <- fiasco
+          val tsattsel = ts
+          val tsfattsel = tsf
+          val trfSemParecidos1attsel = trfSemParecidos1
+
+          leas(trattsel) flatMap { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {
               val mo = le match {
                 case NinteraELM(_, _) =>
                   val l = NinteraELM(seed)
                   //pega apenas um ex. por base (um que tiver label mais frequente)
-                  val m0 = l.batchBuild(trfSemParecidos1).asInstanceOf[ELMModel]
+                  val m0 = l.batchBuild(trfSemParecidos1attsel).asInstanceOf[ELMModel]
                   val L = l.LForMeta(m0, LOO = true)
                   println(s"${L} <- L")
-                  val m = l.batchBuild(trf).asInstanceOf[ELMModel]
+                  val m = l.batchBuild(trfattsel).asInstanceOf[ELMModel]
                   l.fullBuildForMeta(L, m)
-                case RF(_, n, _, _) => RF(seed, n).build(tr)
-                case _ => le.build(trf)
+                case SVMLibRBF(_) => SVMLibRBF(seed).build(trfattsel)
+                case _ => le.build(trfattsel)
               }
-              (trf.groupBy(x => x.vector), tsf.groupBy(x => x.vector), mo)
-            } else (tr.groupBy(x => x.vector), ts.groupBy(x => x.vector), le.build(tr))
-            Seq(trtestbags, tstestbags) map (bags => (bags.map(_._2) map { tsbag =>
-              tsbag.map(_.label).contains(m.predict(tsbag.head))
+              (trfattsel.groupBy(x => x.vector), tsfattsel.groupBy(x => x.vector), mo)
+            } else {
+              val mo = le match {
+                case RF(_, n, _, _) => RF(seed, n).build(trattsel)
+                case _ => le.build(trattsel)
+              }
+              (trattsel.groupBy(x => x.vector), tsattsel.groupBy(x => x.vector), mo)
+            }
+            Seq(trtestbags, tstestbags) map (bags => (bags.map(_._2) map { xbag =>
+              xbag.map(_.label).contains(m.predict(xbag.head))
             }).count(_ == true) / bags.size.toDouble)
           }
         }

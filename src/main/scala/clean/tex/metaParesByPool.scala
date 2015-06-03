@@ -136,8 +136,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(
       //      CIELMBatch(),
-      C45(false, 5), C45(false, 25),
-      //      C45(false, 50), C45(false, 100),
+      C45(false, 5),
+      C45(false, 25),
       KNNBatcha(5, "eucl", patts),
       //      RF(42,5), RF(42,20),
       RF(42, 100),
@@ -145,12 +145,12 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       NinteraELM(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
-    val accs = if (featureSel) ??? else Stat.media_desvioPadraol(cv(patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
+    val accs = if (featureSel) ??? else Stat.media_desvioPadraol(cv(featureSel, patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
     val algs = if (porRank) {
-      println("Pearson correl.: higher is better.")
+      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure${if (featureSel) "FeatSel" else ""}")
       Seq("PCT\t\t\t", "PCTpruned\t", "ELM\t\t\t", "baseline\t")
     } else {
-      println("Accuracy: higher is better.")
+      println(s"Accuracy: higher is better. $rus*$ks-fold CV. $measure${if (featureSel) "FeatSel" else ""}")
       metaclassifs(Vector()).map(x => x.limpa + "\t")
     }
     (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(x => "\t" + x._1._1 + "\t" + x._1._2 + "\t") zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(x => "\t" + x._1._1 + "\t" + x._1._2 + "\t"))) foreach println
