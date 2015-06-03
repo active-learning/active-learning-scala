@@ -48,8 +48,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
   val featureSel = false
 
-  val (ini, fim) = ("ti", "th")
-  val (rus, ks) = 1 -> 94
+  val (ini, fim) = ("ti", "tf")
+  val (rus, ks) = 10 -> 10
   run()
 
   override def run() = {
@@ -136,12 +136,12 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(
       //      CIELMBatch(),
-      //      C45(false, 5), C45(false, 25),
+      C45(false, 5), C45(false, 25),
       //      C45(false, 50), C45(false, 100),
-      //      KNNBatcha(5, "eucl", patts),
+      KNNBatcha(5, "eucl", patts),
       //      RF(42,5), RF(42,20),
       RF(42, 100),
-      //      SVMLibRBF(),
+      SVMLibRBF(),
       NinteraELM(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
@@ -153,6 +153,6 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       println("Accuracy: higher is better.")
       metaclassifs(Vector()).map(x => x.limpa + "\t")
     }
-    (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(_._1) zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(_._1))) foreach println
+    (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(x => "\t" + x._1._1 + "\t" + x._1._2 + "\t") zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(x => "\t" + x._1._1 + "\t" + x._1._2 + "\t"))) foreach println
   }
 }

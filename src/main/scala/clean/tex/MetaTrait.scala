@@ -19,19 +19,17 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import java.io.{OutputStream, PrintStream, File, FileWriter}
+import java.io.{File, FileWriter, OutputStream, PrintStream}
 
-import clean.lib.{Log, Rank, FilterTrait}
+import clean.lib.{FilterTrait, Log, Rank}
 import clus.Clus
 import ml.Pattern
-import ml.classifiers.{RF, NinteraELM, Learner}
+import ml.classifiers.{Learner, NinteraELM, RF}
 import ml.models.ELMModel
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
-import util.{Stat, Datasets}
+import util.{Datasets, Stat}
 import weka.core.DenseInstance
 import weka.core.converters.ArffSaver
-import weka.filters.Filter
-import weka.filters.unsupervised.attribute.ReplaceMissingValues
 
 import scala.util.Random
 
@@ -117,31 +115,34 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
         lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
         //pega apenas um ex. por base (um que tiver label mais frequente)
-        lazy val trfSemParecidos = if (!rank) tr0.zip(trf).groupBy(_._1.base).map { case (k, lists) =>
-          val (_, list) = lists.unzip
-          val moda = list.groupBy(_.label).toList.sortBy(_._2.size).last._1
-          val attsMedio = media(list.map(_.array))
-          val pa = list.head
-          val id = pa.id
-          val inst = new DenseInstance(1d, attsMedio :+ moda)
-          inst.setDataset(pa.dataset)
-          Pattern(id, inst, missed = false, pa.parent)
-        }.toSeq
-        else tr0.zip(trf).groupBy(_._1.base).map { case (k, lists) =>
-          val (_, list) = lists.unzip
-          val rankMedio = media(list.map(_.targets))
-          val descMedio = media(list.map(_.array))
-          val pa = list.head
-          val id = pa.id
-          val inst = new DenseInstance(1d, pa.toDoubleArray.take(1) ++ descMedio ++ rankMedio)
-          inst.setDataset(pa.dataset)
-          Pattern(id, inst, missed = false, pa.parent)
-        }.toSeq
+        lazy val tr_trfSemParecidos = Seq(tr, trf) map { trx =>
+          if (!rank) tr0.zip(trx).groupBy(_._1.base).map { case (k, lists) =>
+            val (_, list) = lists.unzip
+            val moda = list.groupBy(_.label).toList.sortBy(_._2.size).last._1
+            val attsMedio = media(list.map(_.array))
+            val pa = list.head
+            val id = pa.id
+            val inst = new DenseInstance(1d, attsMedio :+ moda)
+            inst.setDataset(pa.dataset)
+            Pattern(id, inst, missed = false, pa.parent)
+          }.toSeq
+          else tr0.zip(trx).groupBy(_._1.base).map { case (k, lists) =>
+            val (_, list) = lists.unzip
+            val rankMedio = media(list.map(_.targets))
+            val descMedio = media(list.map(_.array))
+            val pa = list.head
+            val id = pa.id
+            val inst = new DenseInstance(1d, pa.toDoubleArray.take(1) ++ descMedio ++ rankMedio)
+            inst.setDataset(pa.dataset)
+            Pattern(id, inst, missed = false, pa.parent)
+          }.toSeq
+        }
+        lazy val (trSemParecidos1, trfSemParecidos1) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
 
         if (leas(tr).isEmpty) {
           //ELM
           val l = NinteraELM(seed)
-          val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
+          val m0 = l.batchBuild(trfSemParecidos1).asInstanceOf[ELMModel]
           val L = l.LForMeta(m0, LOO = false)
           println(s"${L} <- L")
           val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel]
@@ -151,7 +152,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed"
           val arqts = s"/run/shm/ts$seed"
-          instances2file(tr, arqtr)
+          instances2file(trSemParecidos1, arqtr)
           instances2file(ts, arqts)
           val f = new FileWriter(s"/run/shm/clus$seed.s")
           f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
@@ -197,12 +198,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 case NinteraELM(_, _) =>
                   val l = NinteraELM(seed)
                   //pega apenas um ex. por base (um que tiver label mais frequente)
-                  val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
+                  val m0 = l.batchBuild(trfSemParecidos1).asInstanceOf[ELMModel]
                   val L = l.LForMeta(m0, LOO = true)
                   println(s"${L} <- L")
                   val m = l.batchBuild(trf).asInstanceOf[ELMModel]
                   l.fullBuildForMeta(L, m)
-                case RF(_, n, _, _) => RF(seed, n).build(trf)
+                case RF(_, n, _, _) => RF(seed, n).build(tr)
                 case _ => le.build(trf)
               }
               (trf.groupBy(x => x.vector), tsf.groupBy(x => x.vector), mo)
