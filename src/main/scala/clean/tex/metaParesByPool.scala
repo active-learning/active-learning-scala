@@ -43,7 +43,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //melhores 1; ou piores -1 (-1 é mais difícil pra acc e rank)
   val melhor = 1
 
-  val n = 2
+  val n = 1
   val featureSel = false
 
   val (ini, fim) = ("ti", "tf")
@@ -133,7 +133,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
     // refaz bags por base
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
-    else Vector(
+    else Vector(//NB não funciona porque quebra na discretização
       CIELMBatch(),
       C45(false, 5),
       C45(false, 25),
@@ -142,12 +142,11 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       RF(42, 500),
       SVMLibRBF(),
       NinteraELM(),
-      NBBatch(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
     val accs = Stat.media_desvioPadraol(cv(featureSel, patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
     val algs = if (porRank) {
-      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (false && featureSel) "FeatSel" else ""}")
+      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
       Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
     } else {
       println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")

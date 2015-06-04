@@ -119,6 +119,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
    */
   def cv(attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+    if (attsel) ???
     (1 to rs).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags = shuffled.groupBy(_.base).values.toVector
@@ -130,10 +131,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         val (tr, ts) = if (rank) tr0 -> ts0
         else {
           val f = Datasets.removeBagFilter(tr0)
-          val tr0bagged = Datasets.applyFilter(f)(tr0)
-          val ts0bagged = Datasets.applyFilter(f)(ts0)
-          val f2 = Datasets.removeUselessFilter(tr0bagged)
-          Datasets.applyFilter(f2)(tr0bagged) -> Datasets.applyFilter(f2)(ts0bagged)
+          Datasets.applyFilter(f)(tr0) -> Datasets.applyFilter(f)(ts0)
         }
 
         lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
