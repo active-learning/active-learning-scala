@@ -43,9 +43,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //melhores 1; ou piores -1 (-1 é mais difícil pra acc e rank)
   val melhor = 1
 
-  //n=3 ajuda levemente se for  classif
-  val n = 1
-
+  val n = 2
   val featureSel = false
 
   val (ini, fim) = ("ti", "tf")
@@ -66,6 +64,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     //        )
     //    val ss = Seq((l: Learner) => ExpErrorReductionMarginFixo(l, Seq(), "entropy"))
     val ss = Seq((l: Learner) => HTUFixo(Seq(), l, Seq(), "maha"))
+    //    val ss = Seq((l: Learner) => HTUFixo(Seq(), l, Seq(), "eucl"), (l: Learner) => HTUFixo(Seq(), l, Seq(), "manh"), (l: Learner) => HTUFixo(Seq(), l, Seq(), "maha"))
     //      //          DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl")
     //    val ss = Seq((l: Learner) => AgDensityWeightedTrainingUtility(Seq(), "eucl"), (l: Learner) => AgDensityWeightedTrainingUtility(Seq(), "manh"), (l: Learner) => AgDensityWeightedTrainingUtility(Seq(), "maha"))
     //      //      ClusterBased(Seq()),
@@ -135,24 +134,27 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     // refaz bags por base
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(
-      //      CIELMBatch(),
+      CIELMBatch(),
       C45(false, 5),
       C45(false, 25),
       KNNBatcha(5, "eucl", patts),
-      //      RF(42,5), RF(42,20),
-      RF(42, 100),
+      KNNBatcha(25, "eucl", patts),
+      RF(42, 500),
       SVMLibRBF(),
       NinteraELM(),
+      NBBatch(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
-    val accs = if (featureSel) ??? else Stat.media_desvioPadraol(cv(featureSel, patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
+    val accs = Stat.media_desvioPadraol(cv(featureSel, patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
     val algs = if (porRank) {
-      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure${if (featureSel) "FeatSel" else ""}")
-      Seq("PCT\t\t\t", "PCTpruned\t", "ELM\t\t\t", "baseline\t")
+      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (false && featureSel) "FeatSel" else ""}")
+      Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
     } else {
-      println(s"Accuracy: higher is better. $rus*$ks-fold CV. $measure${if (featureSel) "FeatSel" else ""}")
-      metaclassifs(Vector()).map(x => x.limpa + "\t")
+      println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+      metaclassifs(Vector()).map(x => x.limpa.padTo(10, " ").mkString + "\t")
     }
-    (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(x => "\t" + x._1._1 + "\t" + x._1._2 + "\t") zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(x => "\t" + x._1._1 + "\t" + x._1._2 + "\t"))) foreach println
+    val fo = "%2.3f"
+    val out = (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t") zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t"))).sortBy(_._2._2).reverseMap(x => x._1 + x._2)
+    out foreach println
   }
 }

@@ -130,7 +130,10 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         val (tr, ts) = if (rank) tr0 -> ts0
         else {
           val f = Datasets.removeBagFilter(tr0)
-          Datasets.applyFilter(f)(tr0) -> Datasets.applyFilter(f)(ts0)
+          val tr0bagged = Datasets.applyFilter(f)(tr0)
+          val ts0bagged = Datasets.applyFilter(f)(ts0)
+          val f2 = Datasets.removeUselessFilter(tr0bagged)
+          Datasets.applyFilter(f2)(tr0bagged) -> Datasets.applyFilter(f2)(ts0bagged)
         }
 
         lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
@@ -162,17 +165,17 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         if (leas(tr).isEmpty) {
           //ELM
           val l = NinteraELM(seed)
-          val m0 = l.batchBuild(trfSemParecidos1).asInstanceOf[ELMModel]
+          val m0 = l.batchBuild(trfSemParecidos1).asInstanceOf[ELMModel] //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
           val L = l.LForMeta(m0, LOO = false)
           println(s"${L} <- L")
-          val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel]
+          val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel] //treinar com todos foi melhor que tirando similares 44.0 > 42.5
           val mfull = l.fullBuildForMeta(L, mfull0)
           val ELMRanks = tsf.toVector map { p => mfull.output(p) }
 
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed"
           val arqts = s"/run/shm/ts$seed"
-          instances2file(trSemParecidos1, arqtr)
+          instances2file(trSemParecidos1, arqtr) //sem redundantes: 48/54; com todos 43/44
           instances2file(ts, arqts)
           val f = new FileWriter(s"/run/shm/clus$seed.s")
           f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
@@ -192,22 +195,28 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith(str)) Some(v) else None }
             }
           }
+
+          val trtargets = tr.toSeq map (_.targets)
           val tstargets = ts.toSeq map (_.targets)
-          val rankMedio = media(tstargets)
+
+          //Default
+          val rankMedio = media(trtargets)
           val defaultRanks = ts map (_ => rankMedio)
 
           clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks) flatMap { ranks =>
-            val spears = ranks.zip(tstargets) map { case (ranking, targets) =>
-              try {
-                val res = new SpearmansCorrelation().correlation(ranking, targets)
-                if (res.isNaN) 0d
-                //justQuit("\n\n\nNaN no Spear:" + ranking.toList + " " + targets.toList + "\n\n\n")
-                else res
-              } catch {
-                case x: Throwable => error("\n " + ranking.toList + "\n " + rankMedio.toList + "\n " + targets.toList + " \n" + x)
+            val spearsTrTs = Seq(trtargets, tstargets).map { txtargets =>
+              ranks.zip(txtargets) map { case (ranking, targets) =>
+                try {
+                  val res = new SpearmansCorrelation().correlation(ranking, targets)
+                  if (res.isNaN) 0d
+                  //justQuit("\n\n\nNaN no Spear:" + ranking.toList + " " + targets.toList + "\n\n\n")
+                  else res
+                } catch {
+                  case x: Throwable => error("\n " + ranking.toList + "\n " + rankMedio.toList + "\n " + targets.toList + " \n" + x)
+                }
               }
             }
-            Seq(0d, Stat.media_desvioPadrao(spears)._1)
+            Seq(Stat.media_desvioPadrao(spearsTrTs.head)._1, Stat.media_desvioPadrao(spearsTrTs(1))._1)
           }
 
         } else {
@@ -223,13 +232,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               val mo = le match {
                 case NinteraELM(_, _) =>
                   val l = NinteraELM(seed)
-                  //pega apenas um ex. por base (um que tiver label mais frequente)
-                  val m0 = l.batchBuild(trfSemParecidos1attsel).asInstanceOf[ELMModel]
-                  val L = l.LForMeta(m0, LOO = true)
+                  //pega apenas a média dos exs. de cada base
+                  val m0 = l.batchBuild(trfSemParecidos1attsel).asInstanceOf[ELMModel] //foi melhor filtrar: 41,7 > 36,9
+                val L = l.LForMeta(m0, LOO = true)
                   println(s"${L} <- L")
-                  val m = l.batchBuild(trfattsel).asInstanceOf[ELMModel]
+                  val m = l.batchBuild(trfattsel).asInstanceOf[ELMModel] //41,7 > 39,3
                   l.fullBuildForMeta(L, m)
-                case SVMLibRBF(_) => SVMLibRBF(seed).build(trfattsel)
+                case SVMLibRBF(_) => SVMLibRBF(seed).build(trfattsel) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
                 case _ => le.build(trfattsel)
               }
               (trfattsel.groupBy(x => x.vector), tsfattsel.groupBy(x => x.vector), mo)

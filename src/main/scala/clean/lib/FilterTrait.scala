@@ -52,7 +52,7 @@ trait FilterTrait {
   }
 
   /*
-      esse método perde os ids, mas mantém ordem
+      esse método mantém ordem e ids
    */
   def replacemissingNom2binRmuselessZscore(tr0: Seq[Pattern], ts0: Seq[Pattern]) = {
     val instances = Datasets.patterns2instancesId(tr0)
@@ -79,12 +79,10 @@ trait FilterTrait {
     val tr = Datasets.instances2patternsId(instancesuse)
     val ts = Datasets.instances2patternsId(instancessuse)
     val (meds, devs) = Stat.media_desvioPadraol(tr.map(_.array.toVector).toVector).unzip
-    var c = 0
     val instancesstd_instancessstd = Seq(tr, ts).map { tx =>
       tx map { pa =>
         val newar0 = pa.array.zip(meds).map(x => x._1 - x._2)
         val newar = newar0.zip(devs).map(x => if (x._2 == 0) x._1 else x._1 / x._2)
-        c += 1
         val arr = if (pa.attribute(0).isString) pa.toDoubleArray.take(1) ++ newar ++ pa.targets
         else newar ++ Array(pa.label)
         val inst = new DenseInstance(1d, arr)
