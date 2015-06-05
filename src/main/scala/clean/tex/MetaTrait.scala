@@ -32,6 +32,7 @@ import weka.attributeSelection.GreedyStepwise
 import weka.core.DenseInstance
 import weka.core.converters.ArffSaver
 
+import scala.collection.mutable
 import scala.util.Random
 
 trait MetaTrait extends FilterTrait with Rank with Log {
@@ -56,8 +57,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       "[Tree]",
       "Heuristic = VarianceReduction",
       "FTest = 1",
-      "PruningMethod = M5Multi",
-      "M5PruningMult = 1",
+      //      "PruningMethod = C4.5",//quebra
+      //            "PruningMethod = M5Multi",//ajuda
+      //      "M5PruningMult = 1", //ajuda mais
+      "",
+      "[Ensemble]",
+      "Iterations = 500",
+      "EnsembleMethod = Bagging", //Bagging, RForest, RSubspaces, BagSubspaces só funfou bagging
       "",
       "[Output]",
       "WritePredictions = {Test}"
@@ -180,7 +186,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           f.close()
 
           System.setOut(dummyStream)
-          Clus.main(Array(s"/run/shm/clus$seed"))
+          Clus.main(Array("-forest", "-silent", s"/run/shm/clus$seed"))
           System.setOut(originalStream)
 
           val clusPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed.test.pred.arff", dedup = false, rmuseless = false) match {
@@ -188,7 +194,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             case Left(m) => error(s"${m} <- m")
           }
 
-          val clusOrigRanks_clusPrunRanks = Vector("Original-p", "Pruned-p") map { str =>
+          val clusOrigRanks_clusPrunRanks = Vector("Original-p") map { str =>
+            //          val clusOrigRanks_clusPrunRanks = Vector("Original-p", "Pruned-p") map { str =>
             clusPredictionsARFF.map { pa =>
               pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith(str)) Some(v) else None }
             }
@@ -247,9 +254,22 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               }
               (trattsel.groupBy(x => x.vector), tsattsel.groupBy(x => x.vector), mo)
             }
-            Seq(trtestbags, tstestbags) map (bags => (bags.map(_._2) map { xbag =>
-              xbag.map(_.label).contains(m.predict(xbag.head))
-            }).count(_ == true) / bags.size.toDouble)
+            var acertosPorClasse: mutable.Map[String, Int] = null
+            val fim = Seq(trtestbags, tstestbags) map { bags =>
+              val resbags = (bags.map(_._2) map { xbag =>
+                val lab = m.predict(xbag.head)
+                val re = xbag.map(_.label).contains(lab)
+                if (re && acertosPorClasse != null) acertosPorClasse(xbag.head.classAttribute.stringValue(lab.toInt)) += 1
+                re
+              }).count(_ == true) / bags.size.toDouble
+              //somente cjt de teste vai pro histograma
+              if (acertosPorClasse == null) acertosPorClasse = mutable.Map[String, Int]()
+              resbags
+            }
+            println(s"${le.limpa} <- le.limpa histograma:")
+            acertosPorClasse foreach println
+            println(s" ")
+            fim
           }
         }
       }

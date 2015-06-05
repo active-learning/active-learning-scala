@@ -72,7 +72,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     //    )
     val pares = for {l <- ls; s <- ss} yield s -> l
     //    $rus.$ks
-    val arq = s"/home/davi/wcs/arff/$context-n${n}best${melhor}m$measure-$ini.${fim}-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
+    val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
     val labels = pares.map { case (s, l) => s(l).limpa }
 
     //cada dataset produz um bag de metaexemplos (|bag| >= 25)
@@ -147,7 +147,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val accs = Stat.media_desvioPadraol(cv(featureSel, patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
     val algs = if (porRank) {
       println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-      Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
+      //      Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
+      Seq("PCT       \t", "ELM       \t", "baseline  \t")
     } else {
       println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
       metaclassifs(Vector()).map(x => x.limpa.padTo(10, " ").mkString + "\t")
