@@ -47,7 +47,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val featureSel = false
 
   val (ini, fim) = ("ti", "tf")
-  val (rus, ks) = 10 -> 10
+  val (rus, ks) = 2 -> 5
   run()
 
   override def run() = {
@@ -134,17 +134,18 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     // refaz bags por base
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
-      CIELMBatch(),
-      C45(false, 5),
-      C45(false, 25),
-      KNNBatcha(5, "eucl", patts),
-      KNNBatcha(25, "eucl", patts),
+      //      CIELMBatch(),
+      //      C45(false, 5),
+      //      C45(false, 25),
+      //      KNNBatcha(5, "eucl", patts),
+      //      KNNBatcha(25, "eucl", patts),
       RF(42, 500),
-      SVMLibRBF(),
-      NinteraELM(),
+      //      SVMLibRBF(),
+      //      NinteraELM(),
       Maj())
     //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
-    val accs = Stat.media_desvioPadraol(cv(featureSel, patterns, metaclassifs, porRank, rus, ks).flatten.toVector)
+    val (results, nomes, hists) = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toList.flatten.flatten.unzip3
+    val accs = Stat.media_desvioPadraol(results.toVector)
     val algs = if (porRank) {
       println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
       //      Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
@@ -156,5 +157,9 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val fo = "%2.3f"
     val out = (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t") zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t"))).sortBy(_._2._2).reverseMap(x => x._1 + x._2)
     out foreach println
+    println
+
+    println("          \t" + nomes.flatten.take(ls.size).map(_.reverse.padTo(12, " ").mkString.reverse).mkString("\t"))
+    Seq("#treino", "tr hits", "#teste", "ts hits").padTo(12, " ").zip(hists.transpose.map(_.transpose.map(_.sum))) foreach { case (tipo, v) => println(tipo + ":\t " + v.map(_.toString.reverse.padTo(12, " ").mkString.reverse).mkString("\t")) }
   }
 }

@@ -208,7 +208,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val rankMedio = media(trtargets)
           val defaultRanks = ts map (_ => rankMedio)
 
-          clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks) flatMap { ranks =>
+          clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks) map { ranks =>
             val spearsTrTs = Seq(trtargets, tstargets).map { txtargets =>
               ranks.zip(txtargets) map { case (ranking, targets) =>
                 try {
@@ -221,18 +221,19 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 }
               }
             }
-            Seq(Stat.media_desvioPadrao(spearsTrTs.head)._1, Stat.media_desvioPadrao(spearsTrTs(1))._1)
+            (Vector(Stat.media_desvioPadrao(spearsTrTs.head)._1, Stat.media_desvioPadrao(spearsTrTs(1))._1), List[String](), Vector(List[Double](), List[Double](), List[Double](), List[Double]()))
           }
 
         } else {
           //attsel
+          val labels = tr.map(_.nominalLabel).distinct
           val trattsel = tr //trSemParecidos1 <- fiasco
           val trfattsel = trf //trfSemParecidos1 <- fiasco
           val tsattsel = ts
           val tsfattsel = tsf
           val trfSemParecidos1attsel = trfSemParecidos1
 
-          leas(trattsel) flatMap { le =>
+          leas(trattsel) map { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {
               val mo = le match {
                 case NinteraELM(_, _) =>
@@ -254,25 +255,37 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               }
               (trattsel.groupBy(x => x.vector), tsattsel.groupBy(x => x.vector), mo)
             }
+            var exsPorClasse: mutable.Map[String, Int] = null
             var acertosPorClasse: mutable.Map[String, Int] = null
-            val fim = Seq(trtestbags, tstestbags) map { bags =>
+            val exsPorClasseTr = mutable.Map[String, Int](labels.map(_ -> 0): _*)
+            val acertosPorClasseTr = mutable.Map[String, Int](labels.map(_ -> 0): _*)
+            val fim = Vector(trtestbags, tstestbags) map { bags =>
               val resbags = (bags.map(_._2) map { xbag =>
-                val lab = m.predict(xbag.head)
+                val metaclass = xbag.head.nominalLabel
+                val lab = m.predict(xbag.head).toInt
                 val re = xbag.map(_.label).contains(lab)
-                if (re && acertosPorClasse != null) acertosPorClasse(xbag.head.classAttribute.stringValue(lab.toInt)) += 1
+                if (re && acertosPorClasse != null) acertosPorClasse(metaclass) += 1
+                if (re && acertosPorClasse == null) acertosPorClasseTr(metaclass) += 1
+                if (exsPorClasse != null) exsPorClasse(metaclass) += 1
+                if (exsPorClasse == null) exsPorClasseTr(metaclass) += 1
                 re
               }).count(_ == true) / bags.size.toDouble
               //somente cjt de teste vai pro histograma
-              if (acertosPorClasse == null) acertosPorClasse = mutable.Map[String, Int]()
+              if (acertosPorClasse == null) {
+                acertosPorClasse = mutable.Map[String, Int](labels.map(_ -> 0): _*)
+                exsPorClasse = mutable.Map[String, Int](labels.map(_ -> 0): _*)
+              }
               resbags
             }
-            println(s"${le.limpa} <- le.limpa histograma:")
-            acertosPorClasse foreach println
-            println(s" ")
-            fim
+            (fim, acertosPorClasseTr.toList.map(_._1).sorted, Vector(acertosPorClasseTr.toList.sortBy(_._1).map(_._2.toDouble), exsPorClasseTr.toList.sortBy(_._1).map(_._2.toDouble), acertosPorClasse.toList.sortBy(_._1).map(_._2.toDouble), exsPorClasse.toList.sortBy(_._1).map(_._2.toDouble)))
           }
         }
       }
     }
+  }
+
+  def zipper(map1: Map[String, Int], map2: Map[String, Int]) = {
+    for (key <- map1.keys ++ map2.keys)
+      yield (key, map1.getOrElse(key, 0), map2.getOrElse(key, 0))
   }
 }
