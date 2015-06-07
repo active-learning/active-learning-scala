@@ -47,7 +47,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val featureSel = false
 
   val (ini, fim) = ("ti", "tf")
-  val (rus, ks) = 2 -> 5
+  val (rus, ks) = 5 -> 2
   run()
 
   override def run() = {
@@ -139,27 +139,31 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       //      C45(false, 25),
       //      KNNBatcha(5, "eucl", patts),
       //      KNNBatcha(25, "eucl", patts),
-      RF(42, 500),
+      RF(42, 5),
       //      SVMLibRBF(),
       //      NinteraELM(),
       Maj())
-    //    val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector() else Vector(CIELMBatch(), C45(false, 50), KNNBatcha(5, "eucl", patts), RF(), Maj())
-    val (results, nomes, hists) = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toList.flatten.flatten.unzip3
-    val accs = Stat.media_desvioPadraol(results.toVector)
-    val algs = if (porRank) {
-      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-      //      Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
-      Seq("PCT       \t", "ELM       \t", "baseline  \t")
-    } else {
-      println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-      metaclassifs(Vector()).map(x => x.limpa.padTo(10, " ").mkString + "\t")
+    val porMetaLea = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+    def fo(x: Double) = "%2.3f".format(x)
+    porMetaLea foreach { case (nome, resultados) =>
+      val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+      val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
+      println(s"$nome:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
     }
-    val fo = "%2.3f"
-    val out = (algs zip (accs.zipWithIndex.filter(_._2 % 2 == 0).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t") zip accs.zipWithIndex.filter(_._2 % 2 == 1).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t"))).sortBy(_._2._2).reverseMap(x => x._1 + x._2)
-    out foreach println
-    println
 
-    println("          \t" + nomes.flatten.take(ls.size).map(_.reverse.padTo(12, " ").mkString.reverse).mkString("\t"))
-    Seq("#treino", "tr hits", "#teste", "ts hits").padTo(12, " ").zip(hists.transpose.map(_.transpose.map(_.sum))) foreach { case (tipo, v) => println(tipo + ":\t " + v.map(_.toString.reverse.padTo(12, " ").mkString.reverse).mkString("\t")) }
+    //    val accs = Stat.media_desvioPadraol()
+    //    val algs = if (porRank) {
+    //      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+    //      //      Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
+    //      Seq("PCT       \t", "ELM       \t", "baseline  \t")
+    //    } else {
+    //      println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+    //      metaclassifs(Vector()).map(x => x.limpa.padTo(10, " ").mkString + "\t")
+    //    }
+    //    val fo = "%2.3f"
+    //    val frmtd = (0 until algs.size) map (y => accs.zipWithIndex.filter(_._2 % algs.size == y).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t"))
+    //    val hea = (Seq("   ", "trm", "trd") ++ labels.zip(labels).map(x => Seq(x._1, x._2)).flatten).mkString("\t")
+    //    println(s"${hea}")
+    ////    println(.mkString("\t"))
   }
 }
