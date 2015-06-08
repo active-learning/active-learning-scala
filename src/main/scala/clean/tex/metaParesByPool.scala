@@ -48,7 +48,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val featureSel = false
 
   val (ini, fim) = ("ti", "tf")
-  val (rus, ks) = 1 -> 2
+  val (rus, ks) = 1 -> 94
   run()
 
   override def run() = {
@@ -150,15 +150,26 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
       val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
       println(s"$nome:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
+    }
+
+    println()
+    println("histogramas ===========================")
+    porMetaLea foreach { case (nome, resultados) =>
+      val r = resultados reduce (_ ++ _)
+      println(s"$nome: ------------")
+      println(s"treino")
+      r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
+      println(s"teste")
+      r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
       println()
     }
 
+    println()
+    println("resultados ===========================")
     porMetaLea foreach { case (nome, resultados) =>
-      val r = resultados reduce (_ ++ _)
-      println(s"$nome:")
-      r.histTr.zip(r.histTrPred).map(x => x._1 + "\t" + x._2).take(3) foreach println
-      r.histTs.zip(r.histTsPred).map(x => x._1 + "\t" + x._2).take(3) foreach println
-      println()
+      val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+      val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
+      println(s"$nome\t:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
     }
     Tempo.print_stop
   }

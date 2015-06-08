@@ -334,5 +334,5 @@ case class Resultado(metalearner: String, valsTr: mutable.Queue[(String, String,
   def ++(that: Resultado) = if (that.metalearner != metalearner) ???
   else Resultado(metalearner, that.valsTr ++ valsTr, that.valsTs ++ valsTs)
 
-  def pretty(s: Map[String, mutable.Queue[(String, String, Double)]]) = s.toList.sortBy(_._2.size).reverseMap(x => x._2.size + "\t<-\t" + x._1)
+  def pretty(s: Map[String, mutable.Queue[(String, String, Double)]]) = s.toList.sortBy(_._2.size).reverseMap(x => x._2.size + s" <- " + x._1)
 }
