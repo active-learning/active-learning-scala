@@ -26,7 +26,7 @@ import scala.util.Random
 import al.strategies._
 import clean.lib._
 import ml.classifiers._
-import util.{Datasets, Stat}
+import util.{Tempo, Datasets, Stat}
 
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank")
@@ -44,10 +44,11 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val melhor = 1
 
   val n = 1
+  //n=2 estraga stats
   val featureSel = false
 
   val (ini, fim) = ("ti", "tf")
-  val (rus, ks) = 5 -> 2
+  val (rus, ks) = 1 -> 2
   run()
 
   override def run() = {
@@ -103,15 +104,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
           if (porRank) {
             //rank legivel por clus e ELM
             List(metaatts ++ ranqueia(accs.map(_._2)).zipWithIndex.map { case (x, i) => (s"class$i", x.toString, "numeric") } -> "")
-
-            //inutil
-            //            List(metaatts ++ ranqueia(accs.map(_._2)).zipWithIndex.map { case (x, i) => (s"class$i", x, "{" + labels.mkString(",") + "}") } -> "")
-
-            //rank legivel só por ELM
-            //            lazy val rank = "multilabel" + ranqueia(accs.map(_._2)).mkString(",")
-            //            List(metaatts -> rank)
-
           } else {
+            //Acc
             val melhores = pegaMelhores(accs, n)(_._2 * melhor).map(_._1)
             melhores map (m => metaatts -> m.limpa)
           }
@@ -134,36 +128,38 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     // refaz bags por base
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
-      //      CIELMBatch(),
-      //      C45(false, 5),
-      //      C45(false, 25),
-      //      KNNBatcha(5, "eucl", patts),
-      //      KNNBatcha(25, "eucl", patts),
-      RF(42, 5),
-      //      SVMLibRBF(),
-      //      NinteraELM(),
+      CIELMBatch(),
+      C45(false, 5),
+      C45(false, 25),
+      KNNBatcha(5, "eucl", patts),
+      KNNBatcha(25, "eucl", patts),
+      RF(42, 500),
+      SVMLibRBF(),
+      NinteraELM(),
       Maj())
+
+    Tempo.start
+    println()
     val porMetaLea = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
     def fo(x: Double) = "%2.3f".format(x)
+
+    if (porRank) println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+    else println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+
     porMetaLea foreach { case (nome, resultados) =>
       val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
       val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
       println(s"$nome:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
+      println()
     }
 
-    //    val accs = Stat.media_desvioPadraol()
-    //    val algs = if (porRank) {
-    //      println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-    //      //      Seq("PCT       \t", "PCTpruned \t", "ELM       \t", "baseline  \t")
-    //      Seq("PCT       \t", "ELM       \t", "baseline  \t")
-    //    } else {
-    //      println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-    //      metaclassifs(Vector()).map(x => x.limpa.padTo(10, " ").mkString + "\t")
-    //    }
-    //    val fo = "%2.3f"
-    //    val frmtd = (0 until algs.size) map (y => accs.zipWithIndex.filter(_._2 % algs.size == y).map(x => "\t" + fo.format(x._1._1) + "\t" + fo.format(x._1._2) + "\t"))
-    //    val hea = (Seq("   ", "trm", "trd") ++ labels.zip(labels).map(x => Seq(x._1, x._2)).flatten).mkString("\t")
-    //    println(s"${hea}")
-    ////    println(.mkString("\t"))
+    porMetaLea foreach { case (nome, resultados) =>
+      val r = resultados reduce (_ ++ _)
+      println(s"$nome:")
+      r.histTr.zip(r.histTrPred).map(x => x._1 + "\t" + x._2).take(3) foreach println
+      r.histTs.zip(r.histTsPred).map(x => x._1 + "\t" + x._2).take(3) foreach println
+      println()
+    }
+    Tempo.print_stop
   }
 }

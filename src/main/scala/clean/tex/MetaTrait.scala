@@ -28,7 +28,9 @@ import ml.classifiers.{SVMLibRBF, Learner, NinteraELM, RF}
 import ml.models.ELMModel
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat}
-import weka.attributeSelection.GreedyStepwise
+import weka.attributeSelection.{BestFirst, AttributeSelection, WrapperSubsetEval, GreedyStepwise}
+import weka.classifiers.`lazy`.IBk
+import weka.classifiers.trees.RandomForest
 import weka.core.DenseInstance
 import weka.core.converters.ArffSaver
 
@@ -105,39 +107,22 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     def write(b: Int) {}
   })
 
-  /*
-    val filter = new AttributeSelection()
-  val eval = new WrapperSubsetEval()
-  eval.setClassifier(cla)
-  eval.setFolds(foldsInterno)
-  eval.setSeed(fold * run)
-  val search = new GreedyStepwise()
-  search.setSearchBackwards(true)
-  //        search.setThreshold(0.01) acho que não precisa setar pelo que li num forum http://forums.pentaho.com/showthread.php?90966-WEKA-attribute-selection
-  search.setGenerateRanking(true)
-  search.setNumToSelect(nfeaturesW)
-  search.setNumExecutionSlots(8)
-  filter.setEvaluator(eval)
-  filter.setSearch(search)
-  filter.setInputFormat(tr0.head.dataset())
-  val tr = Datasets.applyFilter(filter)(tr0) //instances2patterns(Datasets.pcaWeka(Datasets.patterns2instances(tr1), 15)).toVector
-  val ts = Datasets.applyFilter(filter)(ts0)
-
-   */
   def cv(attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
-    if (attsel) ???
     (1 to rs).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags = shuffled.groupBy(_.base).values.toVector
 
       Datasets.kfoldCV2(bags, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
         val seed = run * 100 + fold
-        val tr0 = trbags.flatten.toVector
-        val ts0 = tsbags.flatten.toVector
+
+        //attsel
+        val (tr0, ts0) = trbags.flatten.toVector -> tsbags.flatten.toVector
+
         val (tr, ts) = if (rank) tr0 -> ts0
         else {
           val f = Datasets.removeBagFilter(tr0)
-          Datasets.applyFilter(f)(tr0) -> Datasets.applyFilter(f)(ts0)
+          val (tr00, ts00) = Datasets.applyFilter(f)(tr0) -> Datasets.applyFilter(f)(ts0)
+          tr00 -> ts00
         }
 
         lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
@@ -207,10 +192,11 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           //Default
           val rankMedio = media(trtargets)
           val defaultRanks = ts map (_ => rankMedio)
+          def fo(x: Double) = "%2.1f".format(x)
 
-          (clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks)).zip(Vector("PCT", "ELM", "default")) map { case (ranks, alg) =>
+          (clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks)).zip(Vector("PCT", "ELM", "def")) map { case (ranks, alg) =>
             val spearsTrTs = Seq(trtargets, tstargets).map { txtargets =>
-              val speaPorComb = mutable.Queue[(String, Double)]()
+              val speaPorComb = mutable.Queue[(String, String, Double)]()
               ranks.zip(txtargets) foreach { case (ranking, targets) =>
                 val r = try {
                   val res = new SpearmansCorrelation().correlation(ranking, targets)
@@ -220,57 +206,106 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 } catch {
                   case x: Throwable => error("\n " + ranking.toList + "\n " + rankMedio.toList + "\n " + targets.toList + " \n" + x)
                 }
-                speaPorComb += txtargets.mkString("_") -> r
+                val (min, max) = ranking.min -> ranking.max
+                speaPorComb += ((targets.map(_.toInt).mkString(" "), (ranking.map(x => patterns.head.nclasses * (x - min) / (max - min)) map fo).mkString(" "), r))
               }
-              speaPorComb.toList.sortBy(_._1).map(_._2.toDouble)
+              speaPorComb
             }
-            ResultadoRank(alg, spearsTrTs.head, spearsTrTs(1))
+            Resultado(alg, spearsTrTs.head, spearsTrTs(1))
           }
 
         } else {
-          //attsel
-          val labels = tr.map(_.nominalLabel).distinct.sorted
-          val trattsel = tr //trSemParecidos1 <- fiasco
-          val trfattsel = trf //trfSemParecidos1 <- fiasco
-          val tsattsel = ts
-          val tsfattsel = tsf
-          val trfSemParecidos1attsel = trfSemParecidos1
+          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) = if (attsel) {
+            val att = new AttributeSelection
+            val attf = new AttributeSelection
+            val eval = new WrapperSubsetEval
+            val evalf = new WrapperSubsetEval
+            val data = Seq(tr, ts) map Datasets.patterns2instancesId
+            val dataf = Seq(trf, tsf, trfSemParecidos1) map Datasets.patterns2instancesId
+            val sample = Datasets.patterns2instancesId(tr)
+            val samplef = Datasets.patterns2instancesId(trf)
+            eval.buildEvaluator(sample)
+            evalf.buildEvaluator(samplef)
+            //            val cla = new RandomForest
+            //            val claf = new RandomForest
+            val cla = new IBk
+            val claf = new IBk
+            //            cla.setDoNotCheckCapabilities(true)
+            //            claf.setDoNotCheckCapabilities(true)
+            //            cla.setNumTrees(20)
+            //            claf.setNumTrees(20)
+            cla.setKNN(5)
+            claf.setKNN(5)
+            eval.setFolds(10)
+            eval.setClassifier(cla)
+            eval.setThreshold(0.01)
+            eval.setSeed(fold * run)
+            evalf.setFolds(10)
+            evalf.setClassifier(claf)
+            evalf.setThreshold(0.01)
+            evalf.setSeed(fold * run)
+            att.setEvaluator(eval)
+            attf.setEvaluator(evalf)
+            val sea = new BestFirst()
+            sea.setLookupCacheSize(10)
+            //            sea.setSearchTermination(3)
+            val seaf = new BestFirst()
+            seaf.setLookupCacheSize(10)
+            //            seaf.setSearchTermination(3)
+            /*
+            Searches the space of attribute subsets by greedy hillclimbing augmented with a backtracking facility.
+            Setting the number of consecutive non-improving nodes allowed controls the level of backtracking done.
+            Best first may start with the empty set of attributes and search forward, or start with the full set of
+            attributes and search backward, or start at any point and search in both directions (by considering all
+            possible single attribute additions and deletions at a given point).
+             */
+            sea.setStartSet("1")
+            seaf.setStartSet("1")
+            att.setSearch(sea)
+            attf.setSearch(seaf)
+            att.SelectAttributes(sample)
+            attf.SelectAttributes(samplef)
+            println(s"${att.selectedAttributes().toList} <- att.selectedAttributes()")
+            println(s"${attf.selectedAttributes().toList} <- attf.selectedAttributes()")
+            val seq = data map (x => Datasets.instances2patternsId(att.reduceDimensionality(x)).toVector)
+            val seqf = dataf map (x => Datasets.instances2patternsId(attf.reduceDimensionality(x)).toVector)
+            (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
+          } else (tr, trf, ts, tsf, trfSemParecidos1)
 
-          leas(trattsel) map { le =>
+          val labels = patterns.map(_.nominalLabel).distinct.sorted
+          leas(trfs) map { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {
               val mo = le match {
                 case NinteraELM(_, _) =>
                   val l = NinteraELM(seed)
                   //pega apenas a média dos exs. de cada base
-                  val m0 = l.batchBuild(trfSemParecidos1attsel).asInstanceOf[ELMModel] //foi melhor filtrar: 41,7 > 36,9
+                  val m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel] //foi melhor filtrar: 41,7 > 36,9
                 val L = l.LForMeta(m0, LOO = true)
                   println(s"${L} <- L")
-                  val m = l.batchBuild(trfattsel).asInstanceOf[ELMModel] //41,7 > 39,3
+                  val m = l.batchBuild(trffs).asInstanceOf[ELMModel] //41,7 > 39,3
                   l.fullBuildForMeta(L, m)
-                case SVMLibRBF(_) => SVMLibRBF(seed).build(trfattsel) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
-                case _ => le.build(trfattsel)
+                case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
+                case _ => le.build(trffs)
               }
-              (trfattsel.groupBy(x => x.vector), tsfattsel.groupBy(x => x.vector), mo)
+              (trffs.groupBy(x => x.id), tsffs.groupBy(x => x.id), mo)
             } else {
               val mo = le match {
-                case RF(_, n, _, _) => RF(seed, n).build(trattsel)
-                case _ => le.build(trattsel)
+                case RF(_, n, _, _) => RF(seed, n).build(trfs)
+                case _ => le.build(trfs)
               }
-              (trattsel.groupBy(x => x.vector), tsattsel.groupBy(x => x.vector), mo)
+              (trfs.groupBy(x => x.id), tsfs.groupBy(x => x.id), mo)
             }
             val tr_ts = Vector(trtestbags, tstestbags) map { bags =>
-              val exsPorClasse = mutable.Map[String, Double](labels.map(_ -> 0d): _*)
-              val acertosPorClasse = mutable.Map[String, Double](labels.map(_ -> 0d): _*)
+              val resPorClasse = mutable.Queue[(String, String, Double)]()
               bags.map(_._2) foreach { xbag =>
-                val metaclass = xbag.head.nominalLabel
-                val lab = m.predict(xbag.head).toInt
-                val re = xbag.map(_.label).contains(lab)
-                if (re) acertosPorClasse(metaclass) += 1
-                exsPorClasse(metaclass) += 1
+                val metaclass = xbag.head.nominalLabel // stats p/ n>1 vão sair erradas
+              val lab = m.predict(xbag.head).toInt
+                val re = if (xbag.map(_.label).contains(lab)) 1d else 0d
+                resPorClasse += ((metaclass, xbag.head.classAttribute.value(lab), re))
               }
-              acertosPorClasse.toList.sortBy(_._1).map(_._2.toDouble) -> exsPorClasse.toList.sortBy(_._1).map(_._2.toDouble)
+              resPorClasse
             }
-            ResultadoAcc(le.limpa, tr_ts.head._1, tr_ts.head._2, tr_ts(1)._1, tr_ts(1)._2)
+            Resultado(le.limpa, tr_ts.head, tr_ts(1))
           }
         }
       }
@@ -283,31 +318,21 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 }
 
-trait Resultado {
-  val metalearner: String
-  val tottr: Int
-  val totts: Int
-  val valsTr: List[Double]
-  val valsTs: List[Double]
-  lazy val (accTr, accTs) = valsTr.sum / tottr -> valsTs.sum / totts
-  //  val (accTs, desTs) = hitsTs.sum / totTs.sum
-  //    Stat.media_desvioPadraol()
-}
-
 /**
- * Cada entrada nas listas corresponde a uma combinação ocorrida de ranking.
- * Devem vir ordenadas alfabeticamente (concatenando as posições).
+ * Cada entrada nas listas corresponde a um resultado(acc) ou uma combinação ocorrida de ranking(spearman).
+ * Pode haver duplicados.
  */
-case class ResultadoRank(metalearner: String, valsTr: List[Double], valsTs: List[Double]) extends Resultado {
+case class Resultado(metalearner: String, valsTr: mutable.Queue[(String, String, Double)], valsTs: mutable.Queue[(String, String, Double)]) {
   val tottr = valsTr.size
   val totts = valsTs.size
-}
+  lazy val histTr = pretty(valsTr.groupBy(_._1))
+  lazy val histTs = pretty(valsTs.groupBy(_._1))
+  lazy val histTrPred = pretty(valsTr.groupBy(_._2))
+  lazy val histTsPred = pretty(valsTs.groupBy(_._2))
+  lazy val (accTr, accTs) = valsTr.map(_._3).sum / tottr -> valsTs.map(_._3).sum / totts
 
-/**
- * Cada entrada nas listas corresponde a uma metaclasse.
- * Devem vir ordenadas alfabeticamente.
- */
-case class ResultadoAcc(metalearner: String, valsTr: List[Double], totTr: List[Double], valsTs: List[Double], totTs: List[Double]) extends Resultado {
-  val tottr = totTr.sum.toInt
-  val totts = totTs.sum.toInt
+  def ++(that: Resultado) = if (that.metalearner != metalearner) ???
+  else Resultado(metalearner, that.valsTr ++ valsTr, that.valsTs ++ valsTs)
+
+  def pretty(s: Map[String, mutable.Queue[(String, String, Double)]]) = s.toList.sortBy(_._2.size).reverseMap(x => x._2.size + "\t<-\t" + x._1)
 }
