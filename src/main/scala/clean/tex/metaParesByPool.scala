@@ -53,6 +53,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
   override def run() = {
     super.run()
+    Tempo.start
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
@@ -65,10 +66,16 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       //      SVMLibRBF(),
       NinteraELM(),
       Maj())
+    //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
+    if (porRank) println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+    else println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
     stratsTex("all") foreach { strat =>
+      val stratName = strat(NoLearner()).limp
+      println(s"resultados $stratName ===========================")
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
-      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
+      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
+      //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
@@ -87,7 +94,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
               //            p -> measure(ds, Passive(Seq()), ds.bestPassiveLearner, r, f)(ti,tf).read(ds).getOrElse(error("sem medida"))
 
-              s(l) -> measure(ds, s(l), l, r, f)(ti, tf).read(ds).getOrElse(error("sem medida"))
+              (s(NoLearner()).limpa, l.limpa) -> measure(ds, s(l), l, r, f)(ti, tf).read(ds).getOrElse(error("sem medida"))
 
               //            val classif = BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s(l))
               //            s(l) -> measure(ds, s(l), classif, r, f)(-2).read(ds).getOrElse(error("sem medida"))
@@ -102,58 +109,51 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
             } else {
               //Acc
               val melhores = pegaMelhores(accs, n)(_._2 * melhor).map(_._1)
-              melhores map (m => metaatts -> m.limpa)
+              melhores map (m => metaatts -> (m._1 + "-" + m._2))
             }
           }
         ds.close()
         res.flatten
       }
       def bags = bagsNaN
-      println(s"$arq")
       if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bags.toList.flatten, print = true, context, porRank))
-      println(s"$arq")
+      //      println(s"$arq")
 
       val patterns = Datasets.arff(arq, dedup) match {
         case Right(x) => x
         case Left(m) => error(s"${m} <- m")
       }
 
-
-      Tempo.start
-      println(s"${patterns.size} <- patterns.size")
-      println()
       val porMetaLea = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
       def fo(x: Double) = "%2.3f".format(x)
 
-      if (porRank) println(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-      else println(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-
-      porMetaLea foreach { case (nome, resultados) =>
-        val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+      val out = porMetaLea map { case (nome, resultados) =>
         val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
-        println(s"$nome:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
-      }
-
-      println()
-      println("histogramas ===========================")
-      porMetaLea foreach { case (nome, resultados) =>
-        val r = resultados reduce (_ ++ _)
-        println(s"$nome: ------------")
-        println(s"treino")
-        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
-        println(s"teste")
-        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
-        println()
-      }
-
-      println()
-      println("resultados ===========================")
-      porMetaLea foreach { case (nome, resultados) =>
         val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
-        val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
-        println(s"$nome\t:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
+        (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
       }
-      Tempo.print_stop
+      out.toList.sortBy(_._1._2).reverseMap(_._2) foreach println
+
+      //      println()
+      //      println("histogramas ===========================")
+      //      porMetaLea foreach { case (nome, resultados) =>
+      //        val r = resultados reduce (_ ++ _)
+      //        println(s"$nome: ------------")
+      //        println(s"treino")
+      //        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
+      //        println(s"teste")
+      //        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
+      //        println()
+      //      }
+      //
+      //      println()
+      //      println("resultados ===========================")
+      //      porMetaLea foreach { case (nome, resultados) =>
+      //        val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+      //        val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
+      //        println(s"$nome\t:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
+      //      }
     }
+    Tempo.print_stop
   }
 }

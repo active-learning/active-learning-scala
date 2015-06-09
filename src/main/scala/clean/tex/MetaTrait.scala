@@ -156,7 +156,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val l = NinteraELM(seed)
           val m0 = l.batchBuild(trfSemParecidos1).asInstanceOf[ELMModel] //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
           val L = l.LForMeta(m0, LOO = false)
-          println(s"${L} <- L")
           val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel] //treinar com todos foi melhor que tirando similares 44.0 > 42.5
           val mfull = l.fullBuildForMeta(L, mfull0)
           val ELMRanks = tsf.toVector map { p => mfull.output(p) }
@@ -272,7 +271,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
           } else (tr, trf, ts, tsf, trfSemParecidos1)
 
-          val labels = patterns.map(_.nominalLabel).distinct.sorted
           leas(trfs) map { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {
               val mo = le match {
@@ -281,7 +279,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                   //pega apenas a média dos exs. de cada base
                   val m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel] //foi melhor filtrar: 41,7 > 36,9
                 val L = l.LForMeta(m0, LOO = true)
-                  println(s"${L} <- L")
                   val m = l.batchBuild(trffs).asInstanceOf[ELMModel] //41,7 > 39,3
                   l.fullBuildForMeta(L, m)
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
@@ -298,8 +295,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             val tr_ts = Vector(trtestbags, tstestbags) map { bags =>
               val resPorClasse = mutable.Queue[(String, String, Double)]()
               bags.map(_._2) foreach { xbag =>
-                val metaclass = xbag.head.nominalLabel // stats p/ n>1 vão sair erradas
-              val lab = m.predict(xbag.head).toInt
+                // statisticas p/ n>1 vão sair erradas com esse criterio abaixo
+                val metaclass = xbag.head.nominalLabel
+                val lab = m.predict(xbag.head).toInt
                 val re = if (xbag.map(_.label).contains(lab)) 1d else 0d
                 resPorClasse += ((metaclass, xbag.head.classAttribute.value(lab), re))
               }

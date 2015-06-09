@@ -65,11 +65,13 @@ trait StratsTrait {
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
       , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
+      , Some((learner: Learner) => QBC(fakePool))
+      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+      , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
       , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
       , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-      , Some((learner: Learner) => QBC(fakePool))
       , Some((learner: Learner) => EntropyFixo(learner, fakePool))
       , Some((learner: Learner) => MarginFixo(learner, fakePool))
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
@@ -80,8 +82,6 @@ trait StratsTrait {
       , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
       , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "balacc"))
       , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
-      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
-      , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
     ).flatten
   }
 
