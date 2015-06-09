@@ -95,7 +95,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     if (print) linhas foreach println
   }
 
-  def instances2file(patterns: Vector[Pattern], arq: String) {
+  def patts2file(patterns: Vector[Pattern], arq: String) {
     val as = new ArffSaver()
     as.setInstances(Datasets.patterns2instances(patterns))
     as.setFile(new File(arq + ".arff"))
@@ -106,6 +106,32 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   val dummyStream = new PrintStream(new OutputStream() {
     def write(b: Int) {}
   })
+
+  /**
+   * Para fazer undersample.
+   * @param rank
+   * @param bag
+   * @return
+   */
+  def meanPattern(rank: Boolean)(bag: Vector[Pattern]) = if (!rank) {
+    val moda = bag.groupBy(_.label).toList.sortBy(_._2.size).last._1
+    //não tem problema tirar média de atributo nominal, desde que ele seja constante, senão vai ser um nr quebrado (ou arredondamento sem sentido?)
+    val attsMedio = media(bag.map(_.array))
+    val pa = bag.head
+    val id = pa.id
+    val inst = new DenseInstance(1d, attsMedio :+ moda)
+    inst.setDataset(pa.dataset)
+    Pattern(id, inst, missed = false, pa.parent)
+  } else {
+    val rankMedio = media(bag.map(_.targets))
+    val descMedio = media(bag.map(_.array))
+    val pa = bag.head
+    val id = pa.id
+    val inst = new DenseInstance(1d, pa.toDoubleArray.take(1) ++ descMedio ++ rankMedio)
+    inst.setDataset(pa.dataset)
+    Pattern(id, inst, missed = false, pa.parent)
+  }
+
 
   def cv(attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     (1 to rs).par map { run =>
@@ -127,34 +153,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
         lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
         //pega apenas um ex. por base (um que tiver label mais frequente)
-        lazy val tr_trfSemParecidos = Seq(tr, trf) map { trx =>
-          if (!rank) tr0.zip(trx).groupBy(_._1.base).map { case (k, lists) =>
-            val (_, list) = lists.unzip
-            val moda = list.groupBy(_.label).toList.sortBy(_._2.size).last._1
-            val attsMedio = media(list.map(_.array))
-            val pa = list.head
-            val id = pa.id
-            val inst = new DenseInstance(1d, attsMedio :+ moda)
-            inst.setDataset(pa.dataset)
-            Pattern(id, inst, missed = false, pa.parent)
-          }.toSeq
-          else tr0.zip(trx).groupBy(_._1.base).map { case (k, lists) =>
-            val (_, list) = lists.unzip
-            val rankMedio = media(list.map(_.targets))
-            val descMedio = media(list.map(_.array))
-            val pa = list.head
-            val id = pa.id
-            val inst = new DenseInstance(1d, pa.toDoubleArray.take(1) ++ descMedio ++ rankMedio)
-            inst.setDataset(pa.dataset)
-            Pattern(id, inst, missed = false, pa.parent)
-          }.toSeq
+        lazy val tr_trfSemParecidos = Seq(tr0.zip(tr).groupBy(_._1.base).map(_._2.map(_._2)), tr0.zip(trf).groupBy(_._1.base).map(_._2.map(_._2))) map { bags =>
+          bags map meanPattern(rank)
         }
-        lazy val (trSemParecidos1, trfSemParecidos1) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
+        lazy val (trSemParecidos, trfSemParecidos) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
 
         if (leas(tr).isEmpty) {
           //ELM
           val l = NinteraELM(seed)
-          val m0 = l.batchBuild(trfSemParecidos1).asInstanceOf[ELMModel] //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
+          val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel] //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
           val L = l.LForMeta(m0, LOO = false)
           val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel] //treinar com todos foi melhor que tirando similares 44.0 > 42.5
           val mfull = l.fullBuildForMeta(L, mfull0)
@@ -163,8 +170,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed"
           val arqts = s"/run/shm/ts$seed"
-          instances2file(trSemParecidos1, arqtr) //sem redundantes: 48/54; com todos 43/44
-          instances2file(ts, arqts)
+          patts2file(trSemParecidos, arqtr) //sem redundantes: 48/54; com todos 43/44
+          patts2file(ts, arqts)
           val f = new FileWriter(s"/run/shm/clus$seed.s")
           f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
           f.close()
@@ -220,7 +227,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             val eval = new WrapperSubsetEval
             val evalf = new WrapperSubsetEval
             val data = Seq(tr, ts) map Datasets.patterns2instancesId
-            val dataf = Seq(trf, tsf, trfSemParecidos1) map Datasets.patterns2instancesId
+            val dataf = Seq(trf, tsf, trfSemParecidos) map Datasets.patterns2instancesId
             val sample = Datasets.patterns2instancesId(tr)
             val samplef = Datasets.patterns2instancesId(trf)
             eval.buildEvaluator(sample)
@@ -269,7 +276,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             val seq = data map (x => Datasets.instances2patternsId(att.reduceDimensionality(x)).toVector)
             val seqf = dataf map (x => Datasets.instances2patternsId(attf.reduceDimensionality(x)).toVector)
             (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
-          } else (tr, trf, ts, tsf, trfSemParecidos1)
+          } else (tr, trf, ts, tsf, trfSemParecidos)
 
           leas(trfs) map { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {

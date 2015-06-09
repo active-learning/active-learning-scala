@@ -19,11 +19,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.tex
 
-import java.io.{File, FileWriter}
+import java.io.{File}
 import ml.Pattern
 
-import scala.util.Random
-import al.strategies._
 import clean.lib._
 import ml.classifiers._
 import util.{Tempo, Datasets, Stat}
@@ -48,7 +46,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val featureSel = false
 
   val (ini, fim) = ("ti", "tf")
-  val (rus, ks) = 1 -> 2
+  val (rus, ks) = 10 -> 10
+  val apenasUmPorBase = true
   run()
 
   override def run() = {
@@ -119,8 +118,13 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bags.toList.flatten, print = true, context, porRank))
       //      println(s"$arq")
 
-      val patterns = Datasets.arff(arq, dedup) match {
-        case Right(x) => x
+      val patterns = Datasets.arff(arq, dedup, rmuseless = false) match {
+        case Right(x) => if (apenasUmPorBase) {
+          val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
+          patts2file(ps, "umPorBase" + arq)
+          println(s"Apenas um por base = ${ps.size}! Apenas um por base!")
+          ps
+        } else x
         case Left(m) => error(s"${m} <- m")
       }
 
@@ -134,25 +138,17 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       }
       out.toList.sortBy(_._1._2).reverseMap(_._2) foreach println
 
-      //      println()
-      //      println("histogramas ===========================")
-      //      porMetaLea foreach { case (nome, resultados) =>
-      //        val r = resultados reduce (_ ++ _)
-      //        println(s"$nome: ------------")
-      //        println(s"treino")
-      //        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
-      //        println(s"teste")
-      //        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
-      //        println()
-      //      }
-      //
-      //      println()
-      //      println("resultados ===========================")
-      //      porMetaLea foreach { case (nome, resultados) =>
-      //        val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
-      //        val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
-      //        println(s"$nome\t:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}")
-      //      }
+      println("histogramas ===========================")
+      porMetaLea foreach { case (nome, resultados) =>
+        val r = resultados reduce (_ ++ _)
+        println(s"$nome: ------------")
+        println(s"treino")
+        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
+        println(s"teste")
+        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach println
+        println()
+      }
+
     }
     Tempo.print_stop
   }
