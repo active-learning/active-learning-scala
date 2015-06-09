@@ -123,6 +123,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
           val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
           patts2file(ps, "umPorBase" + arq)
           println(s"Apenas um por base = ${ps.size}! Apenas um por base!")
+          println("umPorBase" + s"$arq")
           ps
         } else x
         case Left(m) => error(s"${m} <- m")
