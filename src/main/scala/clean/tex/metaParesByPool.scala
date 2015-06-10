@@ -44,7 +44,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
     if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
     else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-    stratsTex("all").takeRight(1) foreach { strat =>
+    stratsTex("all") foreach { strat =>
       Tempo.start
       val stratName = strat(NoLearner()).limp
       out(s"resultados $stratName ===========================")
