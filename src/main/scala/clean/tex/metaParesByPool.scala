@@ -47,7 +47,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
   val (ini, fim) = ("ti", "tf")
   val (rus, ks) = 10 -> 10
-  val apenasUmPorBase = true
+  val apenasUmPorBase = false
   run()
 
   override def run() = {
