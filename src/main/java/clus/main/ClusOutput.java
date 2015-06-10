@@ -314,16 +314,12 @@ public class ClusOutput {
 	}
 
 	public static void printHeader() {
-		System.out.println("Clus v"+Clus.VERSION+" - Software for Predictive Clustering");
-		System.out.println();
-		System.out.println("Copyright (C) 2007, 2008, 2009, 2010");
-		System.out.println("   Katholieke Universiteit Leuven, Leuven, Belgium");
-		System.out.println("   Jozef Stefan Institute, Ljubljana, Slovenia");
-		System.out.println();
-		System.out.println("This program is free software and comes with ABSOLUTELY NO");
-		System.out.println("WARRANTY. You are welcome to redistribute it under certain");
-		System.out.println("conditions. Type 'clus -copying' for distribution details.");
-		System.out.println();
+		System.out.println("Clus v"+Clus.VERSION+" - Software for Predictive Clustering Copyright (C) 2007, 2008, 2009, 2010 Katholieke Universiteit Leuven, Leuven, Belgium Jozef Stefan Institute, Ljubljana, Slovenia");
+//		System.out.println();
+//		System.out.println("This program is free software and comes with ABSOLUTELY NO");
+//		System.out.println("WARRANTY. You are welcome to redistribute it under certain");
+//		System.out.println("conditions. Type 'clus -copying' for distribution details.");
+//		System.out.println();
 	}
 
 	public static void showHelp() {

@@ -58,11 +58,11 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     else Vector(//NB não funciona porque quebra na discretização
       CIELMBatch(),
       C45(false, 5),
-      //      C45(false, 25),
+      C45(false, 25),
       KNNBatcha(5, "eucl", patts),
-      //      KNNBatcha(25, "eucl", patts),
-      RF(42, 5),
-      //      SVMLibRBF(),
+      KNNBatcha(25, "eucl", patts),
+      RF(42, 500),
+      SVMLibRBF(),
       NinteraELM(),
       Maj())
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
@@ -140,6 +140,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       out.toList.sortBy(_._1._2).reverseMap(_._2) foreach println
 
       println("histogramas ===========================")
+      println(s"${labels.mkString(" ")}")
       porMetaLea foreach { case (nome, resultados) =>
         val r = resultados reduce (_ ++ _)
         println(s"$nome: ------------")

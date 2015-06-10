@@ -134,11 +134,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
 
   def cv(attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+    //id serve pra evitar conflito com programas paralelos
+    val id = "_id" + patterns.map(_.id).mkString.hashCode + leas(Vector()).map(_.id).mkString.hashCode
     (1 to rs).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags = shuffled.groupBy(_.base).values.toVector
 
       Datasets.kfoldCV2(bags, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+        //seed tem sobreposição acima de 100 folds
+        if (ks >= 100) ???
         val seed = run * 100 + fold
 
         //attsel
@@ -168,22 +172,28 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val ELMRanks = tsf.toVector map { p => mfull.output(p) }
 
           //clus; seed tb serve pra situar run e fold durante paralelização
-          val arqtr = s"/run/shm/tr$seed"
-          val arqts = s"/run/shm/ts$seed"
+          val arqtr = s"/run/shm/tr$seed$id"
+          val arqts = s"/run/shm/ts$seed$id"
           patts2file(trSemParecidos, arqtr) //sem redundantes: 48/54; com todos 43/44
           patts2file(ts, arqts)
-          val f = new FileWriter(s"/run/shm/clus$seed.s")
+          val f = new FileWriter(s"/run/shm/clus$seed$id.s")
           f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
           f.close()
 
           System.setOut(dummyStream)
-          Clus.main(Array("-forest", "-silent", s"/run/shm/clus$seed"))
+          Clus.main(Array("-forest", "-silent", s"/run/shm/clus$seed$id"))
           System.setOut(originalStream)
 
-          val clusPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed.test.pred.arff", dedup = false, rmuseless = false) match {
+          val clusPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed$id.test.pred.arff", dedup = false, rmuseless = false) match {
             case Right(x) => x
             case Left(m) => error(s"${m} <- m")
           }
+
+          new File(arqtr + ".arff").delete
+          new File(arqts + ".arff").delete
+          new File(s"/run/shm/clus$seed$id.s").delete()
+          new File(s"/run/shm/clus$seed$id.test.pred.arff").delete
+          new File(s"/run/shm/clus$seed$id.out").delete
 
           val clusOrigRanks_clusPrunRanks = Vector("Original-p") map { str =>
             //          val clusOrigRanks_clusPrunRanks = Vector("Original-p", "Pruned-p") map { str =>

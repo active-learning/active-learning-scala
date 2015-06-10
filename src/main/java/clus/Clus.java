@@ -119,7 +119,8 @@ public class Clus implements CMDLineArgsProvider {
         if (cargs.hasOption("c45")) {
             if (m_Sett.getVerbose() > 0) System.out.println("Reading C45 .names/.data");
         } else {
-            if (m_Sett.getVerbose() > 0) System.out.println("Reading ARFF Header");
+//            if (m_Sett.getVerbose() > 0)
+//                System.out.println("Reading ARFF Header");
             arff = new ARFFFile(reader);
             m_Schema = arff.read(m_Sett);
         }
