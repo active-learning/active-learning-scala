@@ -6,6 +6,8 @@ import clean.lib._
 import ml.classifiers._
 import util.{Tempo, Datasets, Stat}
 
+import scala.io.Source
+
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank")
   val context = this.getClass.getName.split('.').last.dropRight(1)
@@ -37,17 +39,14 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       KNNBatcha(5, "eucl", patts),
       KNNBatcha(5, "manh", patts),
       KNNBatcha(25, "eucl", patts),
-      RF(42, 300),
+      RF(42, 1000),
       SVMLibRBF(),
       NinteraELM(),
       Maj())
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
-    if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-    else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
     stratsTex("all") foreach { strat =>
       Tempo.start
       val stratName = strat(NoLearner()).limp
-      out(s"resultados $stratName ===========================")
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
@@ -107,40 +106,49 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         case Left(m) => error(s"${m} <- m")
       }
 
-      val porMetaLea = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
-      def fo(x: Double) = "%2.3f".format(x)
+      if (!new File(txt).exists) {
+        var tx1 = ""
+        var tx2 = ""
+        def out(t: String): Unit = {
+          println(t)
+          tx1 += t + "\n" //else tx2 += t + "\n"
+        }
 
-      val outp = porMetaLea map { case (nome, resultados) =>
-        val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
-        val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
-        (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
+        out(s"resultados $stratName ===========================")
+        if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+        else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+        val porMetaLea = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+        def fo(x: Double) = "%2.3f".format(x)
+
+        val outp = porMetaLea map { case (nome, resultados) =>
+          val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
+          val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+          (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
+        }
+        outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
+
+        out("histogramas ===========================")
+        out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
+        porMetaLea foreach { case (nome, resultados) =>
+          val r = resultados reduce (_ ++ _)
+          out(s"$nome: ------------")
+          r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome tr " + x) foreach out
+          r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome ts " + x) foreach out
+          out("")
+        }
+
+        out(Tempo.stop + "s")
+        val fw = new FileWriter(txt)
+        fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
+        //      fw.write(tx2)
+        fw.close()
+      } else {
+        val arq = Source.fromFile(txt)
+        val str = arq.getLines().toList.mkString("\n")
+        arq.close()
+        println(str)
       }
-      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
-
-      out("histogramas ===========================")
-      out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
-      porMetaLea foreach { case (nome, resultados) =>
-        val r = resultados reduce (_ ++ _)
-        out(s"$nome: ------------")
-        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome tr " + x) foreach out
-        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome ts " + x) foreach out
-        out("")
-      }
-
-      out(Tempo.stop + "s")
-      val fw = new FileWriter(txt)
-      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
-      //      fw.write(tx2)
-      fw.close()
     }
-  }
-
-  var tx1 = ""
-  var tx2 = ""
-
-  def out(t: String): Unit = {
-    println(t)
-    tx1 += t + "\n" //else tx2 += t + "\n"
   }
 }
 
