@@ -23,7 +23,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //melhores 1; ou piores -1 (-1 é mais difícil pra acc e rank)
   val melhor = 1
 
-  val (rus, ks) = 1 -> 2
+  val (rus, ks) = 1 -> 94
   run()
 
   override def run() = {
@@ -31,14 +31,14 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
-      //      CIELMBatch(),
-      //      C45(false, 5),
-      //      C45(false, 25),
-      //      KNNBatcha(5, "eucl", patts),
-      //      KNNBatcha(5, "manh", patts),
-      //      KNNBatcha(25, "eucl", patts),
-      //      RF(42, 100),
-      //      SVMLibRBF(),
+      CIELMBatch(),
+      C45(false, 5),
+      C45(false, 25),
+      KNNBatcha(5, "eucl", patts),
+      KNNBatcha(5, "manh", patts),
+      KNNBatcha(25, "eucl", patts),
+      RF(42, 100),
+      SVMLibRBF(),
       NinteraELM(),
       Maj())
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
