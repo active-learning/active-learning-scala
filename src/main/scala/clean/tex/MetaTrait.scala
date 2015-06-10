@@ -38,7 +38,7 @@ import scala.collection.mutable
 import scala.util.Random
 
 trait MetaTrait extends FilterTrait with Rank with Log {
-  def clusSettings(natts: Int, targets: Int, seed: Int, arqtr: String, arqts: String) = {
+  def clusSettings(ntrees: Int, natts: Int, targets: Int, seed: Int, arqtr: String, arqts: String) = {
     val ultimoDesc = natts + 1
     val primeiroTarget = ultimoDesc + 1
     val ultimoTarget = primeiroTarget + targets - 1
@@ -64,7 +64,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       //      "M5PruningMult = 1", //ajuda mais
       "",
       "[Ensemble]",
-      "Iterations = 1000",
+      s"Iterations = $ntrees",
       "EnsembleMethod = Bagging", //Bagging, RForest, RSubspaces, BagSubspaces só funfou bagging
       "",
       "[Output]",
@@ -139,7 +139,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
 
-  def cv(attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(ntrees: Int, attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + patterns.map(_.id).mkString.hashCode + leas(Vector()).map(_.id).mkString.hashCode
     (1 to rs) map { run =>
@@ -170,7 +170,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
         if (leas(tr).isEmpty) {
           //ELMBag
-          val elms = (1 to 1000).par map { seedinc =>
+          val elms = (1 to ntrees) map { seedinc =>
             val l = NinteraELM(seed + seedinc * 10000)
             //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
             val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
@@ -187,7 +187,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           patts2file(trSemParecidos, arqtr) //sem redundantes: 48/54; com todos 43/44
           patts2file(ts, arqts)
           val f = new FileWriter(s"/run/shm/clus$seed$id.s")
-          f.write(clusSettings(patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
+          f.write(clusSettings(ntrees, patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
           f.close()
 
           System.setOut(dummyStream)
@@ -297,12 +297,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
           } else (tr, trf, ts, tsf, trfSemParecidos)
 
-          leas(trfs).par map { le =>
+          leas(trfs) map { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {
               val mo = le match {
                 case NinteraELM(_, _) =>
                   //ELMBag
-                  val elms = (1 to 1000).par map { seedinc =>
+                  val elms = (1 to ntrees) map { seedinc =>
                     val l = NinteraELM(seed + seedinc * 10000)
                     //pega apenas a média dos exs. de cada base
                     //foi melhor filtrar: 41,7 > 36,9

@@ -26,6 +26,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val melhor = 1
 
   val (rus, ks) = 1 -> 94
+  val ntrees = 1000
   run()
 
   override def run() = {
@@ -39,7 +40,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       KNNBatcha(5, "eucl", patts),
       KNNBatcha(5, "manh", patts),
       KNNBatcha(25, "eucl", patts),
-      RF(42, 1000),
+      RF(42, ntrees),
       SVMLibRBF(),
       NinteraELM(),
       Maj())
@@ -117,7 +118,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         out(s"resultados $stratName ===========================")
         if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
         else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-        val porMetaLea = cv(featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+        val porMetaLea = cv(ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
         def fo(x: Double) = "%2.3f".format(x)
 
         val outp = porMetaLea map { case (nome, resultados) =>
