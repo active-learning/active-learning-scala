@@ -122,16 +122,14 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       porMetaLea foreach { case (nome, resultados) =>
         val r = resultados reduce (_ ++ _)
         out(s"$nome: ------------")
-        out(s"treino")
-        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach out
-        out(s"teste")
-        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6) foreach out
+        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome tr " + x) foreach out
+        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome ts " + x) foreach out
         out("")
       }
 
       out(Tempo.stop + "s")
       val fw = new FileWriter(txt)
-      fw.write(tx1)
+      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
       //      fw.write(tx2)
       fw.close()
     }
