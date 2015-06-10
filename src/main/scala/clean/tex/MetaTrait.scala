@@ -170,14 +170,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
         if (leas(tr).isEmpty) {
           //ELMBag
-          val elms = (1 to ntrees) map { seedinc =>
+          val elms = (1 to ntrees).par map { seedinc =>
             val l = NinteraELM(seed + seedinc * 10000)
             //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
-            val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
+            var m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
             val L = l.LForMeta(m0, LOO = false)
             //treinar com todos foi melhor que tirando similares 44.0 > 42.5 (subamostras não melhorou muito, então nem deixei)
-            val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel]
-            l.fullBuildForMeta(L, mfull0)
+            m0 = l.batchBuild(trf).asInstanceOf[ELMModel]
+            l.fullBuildForMeta(L, m0)
           }
           val ELMBagRanks = tsf.toVector map { p => normRank(EnsembleModel(elms.toList).output(p)) }
 
@@ -302,16 +302,16 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               val mo = le match {
                 case NinteraELM(_, _) =>
                   //ELMBag
-                  val elms = (1 to ntrees) map { seedinc =>
+                  val elms = (1 to ntrees).par map { seedinc =>
                     val l = NinteraELM(seed + seedinc * 10000)
                     //pega apenas a média dos exs. de cada base
                     //foi melhor filtrar: 41,7 > 36,9
-                    val m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel]
+                    var m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel]
                     val L = l.LForMeta(m0, LOO = false)
                     //41,7 > 39,3 (subamostragem não ajudou muito)
                     //new Random(seed + seedinc * 10001).shuffle(trffs).take((trffs.size ).round.toInt)
-                    val mfull0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
-                    l.fullBuildForMeta(L, mfull0)
+                    m0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
+                    l.fullBuildForMeta(L, m0)
                   }
                   EnsembleModel(elms.toList)
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
