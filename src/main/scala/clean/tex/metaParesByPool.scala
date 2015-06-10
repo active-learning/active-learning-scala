@@ -26,7 +26,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val melhor = 1
 
   val (rus, ks) = 1 -> 94
-  val ntrees = 1000
+  val ntrees = 500
   run()
 
   override def run() = {
