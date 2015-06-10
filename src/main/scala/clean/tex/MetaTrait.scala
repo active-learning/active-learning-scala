@@ -25,7 +25,7 @@ import clean.lib.{FilterTrait, Log, Rank}
 import clus.Clus
 import ml.Pattern
 import ml.classifiers.{SVMLibRBF, Learner, NinteraELM, RF}
-import ml.models.ELMModel
+import ml.models.{EnsembleModel, ELMModel}
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat}
 import weka.attributeSelection.{BestFirst, AttributeSelection, WrapperSubsetEval, GreedyStepwise}
@@ -132,6 +132,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     Pattern(id, inst, missed = false, pa.parent)
   }
 
+  def normRank(ranking: Array[Double]) = {
+    val nclasses = ranking.size
+    val (min, max) = ranking.min -> ranking.max
+    ranking.map(x => nclasses * (x - min) / (max - min))
+  }
+
 
   def cv(attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
@@ -163,13 +169,17 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         lazy val (trSemParecidos, trfSemParecidos) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
 
         if (leas(tr).isEmpty) {
-          //ELM
-          val l = NinteraELM(seed)
-          val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel] //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
-          val L = l.LForMeta(m0, LOO = false)
-          val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel] //treinar com todos foi melhor que tirando similares 44.0 > 42.5
-          val mfull = l.fullBuildForMeta(L, mfull0)
-          val ELMRanks = tsf.toVector map { p => mfull.output(p) }
+          //ELMBag
+          val elms = (1 to 500) map { seedinc =>
+            val l = NinteraELM(seed + seedinc * 10000)
+            //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
+            val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
+            val L = l.LForMeta(m0, LOO = false)
+            //treinar com todos foi melhor que tirando similares 44.0 > 42.5 (subamostras não melhorou muito, então nem deixei)
+            val mfull0 = l.batchBuild(trf).asInstanceOf[ELMModel]
+            l.fullBuildForMeta(L, mfull0)
+          }
+          val ELMBagRanks = tsf.toVector map { p => normRank(EnsembleModel(elms).output(p)) }
 
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed$id"
@@ -210,7 +220,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val defaultRanks = ts map (_ => rankMedio)
           def fo(x: Double) = "%2.1f".format(x)
 
-          (clusOrigRanks_clusPrunRanks ++ Vector(ELMRanks, defaultRanks)).zip(Vector("PCT", "ELM", "def")) map { case (ranks, alg) =>
+          (clusOrigRanks_clusPrunRanks ++ Vector(ELMBagRanks, defaultRanks)).zip(Vector("PCT", "ELMBag", "def")) map { case (ranks, alg) =>
             val spearsTrTs = Seq(trtargets, tstargets).map { txtargets =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               ranks.zip(txtargets) foreach { case (ranking, targets) =>
@@ -222,8 +232,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 } catch {
                   case x: Throwable => error("\n " + ranking.toList + "\n " + rankMedio.toList + "\n " + targets.toList + " \n" + x)
                 }
-                val (min, max) = ranking.min -> ranking.max
-                speaPorComb += ((targets.map(_.toInt).mkString(" "), (ranking.map(x => patterns.head.nclasses * (x - min) / (max - min)) map fo).mkString(" "), r))
+                speaPorComb += ((targets.map(_.toInt).mkString(" "), (normRank(ranking) map fo).mkString(" "), r))
               }
               speaPorComb
             }
@@ -292,12 +301,19 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {
               val mo = le match {
                 case NinteraELM(_, _) =>
-                  val l = NinteraELM(seed)
-                  //pega apenas a média dos exs. de cada base
-                  val m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel] //foi melhor filtrar: 41,7 > 36,9
-                val L = l.LForMeta(m0, LOO = true)
-                  val m = l.batchBuild(trffs).asInstanceOf[ELMModel] //41,7 > 39,3
-                  l.fullBuildForMeta(L, m)
+                  //ELMBag
+                  val elms = (1 to 500) map { seedinc =>
+                    val l = NinteraELM(seed + seedinc * 10000)
+                    //pega apenas a média dos exs. de cada base
+                    //foi melhor filtrar: 41,7 > 36,9
+                    val m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel]
+                    val L = l.LForMeta(m0, LOO = false)
+                    //41,7 > 39,3 (subamostragem não ajudou muito)
+                    //new Random(seed + seedinc * 10001).shuffle(trffs).take((trffs.size ).round.toInt)
+                    val mfull0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
+                    l.fullBuildForMeta(L, mfull0)
+                  }
+                  EnsembleModel(elms)
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
                 case _ => le.build(trffs)
               }
