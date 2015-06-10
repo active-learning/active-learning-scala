@@ -64,7 +64,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       //      "M5PruningMult = 1", //ajuda mais
       "",
       "[Ensemble]",
-      "Iterations = 100",
+      "Iterations = 500",
       "EnsembleMethod = Bagging", //Bagging, RForest, RSubspaces, BagSubspaces só funfou bagging
       "",
       "[Output]",
@@ -170,7 +170,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
         if (leas(tr).isEmpty) {
           //ELMBag
-          val elms = (1 to 100) map { seedinc =>
+          val elms = (1 to 500) map { seedinc =>
             val l = NinteraELM(seed + seedinc * 10000)
             //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
             val m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
@@ -302,7 +302,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               val mo = le match {
                 case NinteraELM(_, _) =>
                   //ELMBag
-                  val elms = (1 to 100) map { seedinc =>
+                  val elms = (1 to 500) map { seedinc =>
                     val l = NinteraELM(seed + seedinc * 10000)
                     //pega apenas a média dos exs. de cada base
                     //foi melhor filtrar: 41,7 > 36,9

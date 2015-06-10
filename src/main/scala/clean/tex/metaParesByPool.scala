@@ -37,7 +37,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       KNNBatcha(5, "eucl", patts),
       KNNBatcha(5, "manh", patts),
       KNNBatcha(25, "eucl", patts),
-      RF(42, 100),
+      RF(42, 500),
       SVMLibRBF(),
       NinteraELM(),
       Maj())
