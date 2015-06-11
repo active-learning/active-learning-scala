@@ -178,7 +178,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             //treinar com todos foi melhor que tirando similares 44.0 > 42.5 (subamostras não melhorou muito, então nem deixei)
             m0 = l.batchBuild(trf).asInstanceOf[ELMModel]
             m0 = l.fullBuildForMeta(L, m0)
-            ((trf ++ tsf) map (x => x.id -> m0.output(x))).toList.toMap
+            ((trf ++ tsf) map (x => x.id -> m0.output(x).clone())).toList.toMap
           }
           val elmFM = FakeModel(elmsMaps.toList)
 
@@ -315,7 +315,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                     //new Random(seed + seedinc * 10001).shuffle(trffs).take((trffs.size ).round.toInt)
                     m0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
                     l.fullBuildForMeta(L, m0)
-                    ((trffs ++ tsffs) map (x => x.id -> m0.output(x))).toList.toMap
+                    ((trffs ++ tsffs) map (x => x.id -> m0.output(x).clone())).toList.toMap //clone is needed to free object model
                   }
                   FakeModel(elms.toList)
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
