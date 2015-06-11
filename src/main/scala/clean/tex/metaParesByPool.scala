@@ -1,10 +1,11 @@
 package clean.tex
 
 import java.io.{FileWriter, File}
-import ml.Pattern
+import ml.{PatternParent, Pattern}
 import clean.lib._
 import ml.classifiers._
 import util.{Tempo, Datasets, Stat}
+import weka.core.{Instances, Attribute}
 
 import scala.io.Source
 
@@ -91,7 +92,18 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
       val patterns = Datasets.arff(arq, dedup, rmuseless = false) match {
         case Right(x) => if (apenasUmPorBase) {
+
+          //não consegui descobrir como aumentar qtd de atributos no weka (vai ficar sem atts desvio.
+          //          val dat = new Instances(x.head.dataset())
+          //          println(s"${dat.numAttributes()} <- dat.numAttributes()")
+          //          def at(nr: Int) = new Attribute("desviopad" + nr.toString)
+          //          ((if (porRank) x.head.ndescs else x.head.numAttributes() - 1) to 1) foreach (nr => dat.insertAttributeAt(at(nr), 1))
+          //          println(s"${dat.numAttributes()} <- dat.numAttributes()")
+          //          val parent=PatternParent(dat)
+          //          val ps = (x.groupBy(_.base).map(_._2) map meanPatternComDesvios(porRank, parent)).toVector
+
           val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
+
           patts2file(ps, "umPorBase" + arq)
           //          out(s"Apenas um por base = ${ps.size}! Apenas um por base!")
           //          out("umPorBase" + s"$arq")

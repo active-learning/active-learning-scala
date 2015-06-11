@@ -23,7 +23,7 @@ import java.io.{File, FileWriter, OutputStream, PrintStream}
 
 import clean.lib.{FilterTrait, Log, Rank}
 import clus.Clus
-import ml.Pattern
+import ml.{PatternParent, Pattern}
 import ml.classifiers.{SVMLibRBF, Learner, NinteraELM, RF}
 import ml.models.{FakeModel, EnsembleModel, ELMModel}
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
@@ -31,7 +31,7 @@ import util.{Datasets, Stat}
 import weka.attributeSelection.{BestFirst, AttributeSelection, WrapperSubsetEval, GreedyStepwise}
 import weka.classifiers.`lazy`.IBk
 import weka.classifiers.trees.RandomForest
-import weka.core.DenseInstance
+import weka.core.{Attribute, Instances, DenseInstance}
 import weka.core.converters.ArffSaver
 
 import scala.collection.mutable
@@ -132,6 +132,32 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     val inst = new DenseInstance(1d, pa.toDoubleArray.take(1) ++ descMedio ++ rankMedio)
     inst.setDataset(pa.dataset)
     Pattern(id, inst, missed = false, pa.parent)
+  }
+
+
+  /**
+   * Para fazer umPorBase.
+   * @param rank
+   * @param bag
+   * @return
+   */
+  //não tem problema tirar média de atributo nominal, desde que ele seja constante, senão vai ser um nr quebrado (ou arredondamento sem sentido?)
+  def meanPatternComDesvios(rank: Boolean, dat: PatternParent)(bag: Vector[Pattern]) = if (!rank) {
+    val moda = bag.groupBy(_.label).toList.sortBy(_._2.size).last._1
+    if (bag.map(_.base).distinct.size > 1) ???
+    val (attsm, attsd) = Stat.media_desvioPadraol(bag.map(_.toDoubleArray.dropRight(1).toVector)).toArray.unzip
+    val id = bag.minBy(_.id).id
+    val inst = new DenseInstance(1d, attsm ++ attsd :+ moda)
+    inst.setDataset(dat.dataset)
+    Pattern(id, inst, missed = false, dat)
+  } else {
+    val rankMedio = media(bag.map(_.targets))
+    val (attsm, attsd) = Stat.media_desvioPadraol(bag.map(_.array.toVector)).toArray.unzip
+    val id = bag.minBy(_.id).id
+    val pa = bag.head
+    val inst = new DenseInstance(1d, pa.toDoubleArray.take(1) ++ attsm ++ attsd ++ rankMedio)
+    inst.setDataset(dat.dataset)
+    Pattern(id, inst, missed = false, dat)
   }
 
   def normRank(ranking: Array[Double]) = {
