@@ -131,9 +131,9 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
         porMetaLea foreach { case (nome, resultados) =>
           val r = resultados reduce (_ ++ _)
-          out(s"$nome: ------------")
-          r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome tr " + x) foreach out
-          r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(6).map(x => s"lab:$nome ts " + x) foreach out
+          //          out(s"$nome: ------------")
+          r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome tr " + x) foreach out
+          r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome ts " + x) foreach out
           out("")
         }
 
