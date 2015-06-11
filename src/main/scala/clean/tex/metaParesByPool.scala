@@ -9,7 +9,7 @@ import util.{Tempo, Datasets, Stat}
 import scala.io.Source
 
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees")
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -26,7 +26,6 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val melhor = 1
 
   val (rus, ks) = 1 -> 94
-  val ntrees = 500
   run()
 
   override def run() = {
