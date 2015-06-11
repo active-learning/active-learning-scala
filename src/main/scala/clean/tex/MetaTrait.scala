@@ -135,7 +135,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   def normRank(ranking: Array[Double]) = {
     val nclasses = ranking.size
     val (min, max) = ranking.min -> ranking.max
-    ranking.map(x => nclasses * (x - min) / (max - min))
+    ranking.map(x => 1 + (nclasses - 1) * (x - min) / (max - min))
   }
 
 
@@ -195,7 +195,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           Clus.main(Array("-forest", "-silent", s"/run/shm/clus$seed$id"))
           System.setOut(originalStream)
 
-          val clusTRPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed$id.train.pred.arff", dedup = false, rmuseless = false) match {
+          val clusTRPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed$id.train.1.pred.arff", dedup = false, rmuseless = false) match {
             case Right(x) => x
             case Left(m) => error(s"${m} <- m")
           }
