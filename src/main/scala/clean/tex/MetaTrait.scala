@@ -305,7 +305,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               val mo = le match {
                 case NinteraELM(_, _) =>
                   //ELMBag
-                  val elms = (1 to ntrees).par map { seedinc =>
+                  val elms = (1 to ntrees) map { seedinc =>
                     val l = NinteraELM(seed + seedinc * 10000)
                     //pega apenas a média dos exs. de cada base
                     //foi melhor filtrar: 41,7 > 36,9
