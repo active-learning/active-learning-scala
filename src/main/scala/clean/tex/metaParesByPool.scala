@@ -35,7 +35,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     else Vector(//NB não funciona porque quebra na discretização
       NinteraELM(),
       CIELMBatch(),
-      //SVMLibRBF(),
+      SVMLibRBF(),
       C45(false, 5),
       C45(false, 25),
       KNNBatcha(5, "eucl", patts),
