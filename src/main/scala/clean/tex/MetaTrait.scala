@@ -206,9 +206,10 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           new File(arqtr + ".arff").delete
           new File(arqts + ".arff").delete
           new File(s"/run/shm/clus$seed$id.s").delete()
-          new File(s"/run/shm/clus$seed$id.train.pred.arff").delete
+          new File(s"/run/shm/clus$seed$id.train.1.pred.arff").delete
           new File(s"/run/shm/clus$seed$id.test.pred.arff").delete
           new File(s"/run/shm/clus$seed$id.out").delete
+          new File(s"/run/shm/clus$seed$id.model").delete
 
           val clusTRPreds = clusTRPredictionsARFF.zip(trSemParecidos).map { case (pa, patr) => patr.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
           val clusTSRanks = clusTSPredictionsARFF.zip(ts).map { case (pa, pats) => pats.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
