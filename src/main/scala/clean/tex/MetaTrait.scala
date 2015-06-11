@@ -211,8 +211,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           new File(s"/run/shm/clus$seed$id.test.pred.arff").delete
           new File(s"/run/shm/clus$seed$id.out").delete
 
-          val clusTRPreds = clusTRPredictionsARFF.map { pa => pa.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
-          val clusTSRanks = clusTSPredictionsARFF.map { pa => pa.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
+          val clusTRPreds = clusTRPredictionsARFF.zip(trSemParecidos).map { case (pa, patr) => patr.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
+          val clusTSRanks = clusTSPredictionsARFF.zip(ts).map { case (pa, pats) => pats.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
           val clusFM = FakeModel(List((clusTRPreds ++ clusTSRanks).toMap))
 
 
@@ -222,8 +222,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
           def fo(x: Double) = "%2.1f".format(x)
 
-          Vector(clusFM, elmFM, defaultFM).zip(Vector("PCT", "ELMBag", "def")) map { case (fm, alg) =>
-            val spearsTrTs = Seq(tr, ts).map { tx =>
+          Vector(clusFM, elmFM, defaultFM, clusFM ++ elmFM).zip(Vector("PCT", "ELM", "def", "PCTELM")) map { case (fm, alg) =>
+            val spearsTrTs = Seq(trSemParecidos, ts).map { tx =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
                 val (ranking, targets) = fm.output(pat) -> pat.targets
