@@ -68,7 +68,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       "EnsembleMethod = Bagging", //Bagging, RForest, RSubspaces, BagSubspaces só funfou bagging
       "",
       "[Output]",
-      "WritePredictions = {Train,Test}"
+      //      "WritePredictions = {Train,Test}",
+      "WritePredictions = {Test}"
     ).mkString("\n")
   }
 
@@ -116,7 +117,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   def meanPattern(rank: Boolean)(bag: Vector[Pattern]) = if (!rank) {
     val moda = bag.groupBy(_.label).toList.sortBy(_._2.size).last._1
     //não tem problema tirar média de atributo nominal, desde que ele seja constante, senão vai ser um nr quebrado (ou arredondamento sem sentido?)
-    val attsMedio = media(bag.map(_.array))
+    if (bag.map(_.base).distinct.size > 1) ???
+    val attsMedio = media(bag.map(_.toDoubleArray.dropRight(1)))
     val pa = bag.head
     val id = bag.minBy(_.id).id
     val inst = new DenseInstance(1d, attsMedio :+ moda)
@@ -178,52 +180,49 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             //treinar com todos foi melhor que tirando similares 44.0 > 42.5 (subamostras não melhorou muito, então nem deixei)
             m0 = l.batchBuild(trf).asInstanceOf[ELMModel]
             m0 = l.fullBuildForMeta(L, m0)
-            fm + FakeModel(((trfSemParecidos ++ tsf) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed to free FM object
+            fm + FakeModel(((trf ++ tsf) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed to free FM object
           }
 
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed$id"
-          val arqts = s"/run/shm/ts$seed$id"
+          val arqtrts = s"/run/shm/trts$seed$id"
           patts2file(trSemParecidos, arqtr) //sem redundantes: 48/54; com todos 43/44
-          patts2file(ts, arqts)
+          patts2file(tr ++ ts, arqtrts) //coleta predições de tr e ts num só arquivo
           val f = new FileWriter(s"/run/shm/clus$seed$id.s")
-          f.write(clusSettings(ntrees, patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqts))
+          f.write(clusSettings(ntrees, patterns.head.nattributes, patterns.head.nclasses, seed, arqtr, arqtrts))
           f.close()
 
           System.setOut(dummyStream)
           Clus.main(Array("-forest", "-silent", s"/run/shm/clus$seed$id"))
           System.setOut(originalStream)
 
-          val clusTRPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed$id.train.1.pred.arff", dedup = false, rmuseless = false) match {
-            case Right(x) => x
-            case Left(m) => error(s"${m} <- m")
-          }
+          //coleta predições de tr e ts num só arquivo
           val clusTSPredictionsARFF = Datasets.arff(s"/run/shm/clus$seed$id.test.pred.arff", dedup = false, rmuseless = false) match {
             case Right(x) => x
             case Left(m) => error(s"${m} <- m")
           }
 
           new File(arqtr + ".arff").delete
-          new File(arqts + ".arff").delete
+          new File(arqtrts + ".arff").delete
           new File(s"/run/shm/clus$seed$id.s").delete()
           new File(s"/run/shm/clus$seed$id.train.1.pred.arff").delete
           new File(s"/run/shm/clus$seed$id.test.pred.arff").delete
           new File(s"/run/shm/clus$seed$id.out").delete
           new File(s"/run/shm/clus$seed$id.model").delete
 
-          val clusTRPreds = clusTRPredictionsARFF.zip(trSemParecidos).map { case (pa, patr) => patr.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
-          val clusTSRanks = clusTSPredictionsARFF.zip(ts).map { case (pa, pats) => pats.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None } }
-          val clusFM = FakeModel(clusTRPreds.toMap ++ clusTSRanks.toMap)
-
+          val clusTRTSRanks = clusTSPredictionsARFF.zip(tr ++ ts).map { case (pa, pats) =>
+            pats.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None }
+          }
+          val clusFM = FakeModel(clusTRTSRanks.toMap)
 
           //Default
           val rankMedio = media(tr.toSeq map (_.targets))
-          val defaultFM = FakeModel((trSemParecidos ++ ts).map(x => x.id -> rankMedio).toMap)
+          val defaultFM = FakeModel((tr ++ ts).map(x => x.id -> rankMedio).toMap)
 
           def fo(x: Double) = "%2.1f".format(x)
 
           Vector(clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("PCT", "ELM", "def", "PCTELM")) map { case (fm, alg) =>
-            val spearsTrTs = Seq(trSemParecidos, ts).map { tx =>
+            val spearsTrTs = Seq(tr, ts).map { tx =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
                 val (ranking, targets) = fm.output(pat) -> pat.targets
@@ -315,7 +314,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                     //new Random(seed + seedinc * 10001).shuffle(trffs).take((trffs.size ).round.toInt)
                     m0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
                     l.fullBuildForMeta(L, m0)
-                    fm + FakeModel(((trffs ++ tsffs) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed to free FM object
+                    fm + FakeModel(((trffs ++ tsffs) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed(?) to free FM object
                   }
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
                 case _ => le.build(trffs)

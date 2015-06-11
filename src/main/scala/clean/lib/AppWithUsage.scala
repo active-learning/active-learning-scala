@@ -54,6 +54,11 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   lazy val passivas = args(4).contains("p")
   lazy val porRank = args(5).contains("r")
   lazy val ntrees = args(6).toInt
+  lazy val apenasUmPorBase = args(7).contains("um")
+  lazy val melhor = args(8).toInt
+  lazy val (rus, ks) = args(9).toInt -> args(10).toInt
+  lazy val (ini, fim) = args(11) -> args(12)
+
   lazy val reduz = args(5).contains("r")
   lazy val comprimento = args(5)
   lazy val porRisco = args(6).contains("r")

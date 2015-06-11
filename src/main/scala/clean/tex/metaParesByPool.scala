@@ -9,7 +9,7 @@ import util.{Tempo, Datasets, Stat}
 import scala.io.Source
 
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim")
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -19,13 +19,6 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //n=2 estraga stats
   val n = 1
   val featureSel = false
-  val (ini, fim) = ("ti", "tf")
-  val apenasUmPorBase = false
-
-  //melhores 1; ou piores -1 (-1 é mais difícil pra acc e rank)
-  val melhor = 1
-
-  val (rus, ks) = 1 -> 94
   run()
 
   override def run() = {
@@ -50,7 +43,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
-      val txt = s"/home/davi/results/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "umPBase" else ""}${if (featureSel) "FS" else ""}-${ntrees}trees.txt"
+      val txt = s"/home/davi/results/trAccCorrigida-$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}-${ntrees}trees.txt"
       println(txt)
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
@@ -134,7 +127,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
           val r = resultados reduce (_ ++ _)
           //          out(s"$nome: ------------")
           r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome tr " + x) foreach out
-          r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"          $nome ts " + x) foreach out
+          r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"  metale:$nome ts " + x) foreach out
           out("")
         }
 
