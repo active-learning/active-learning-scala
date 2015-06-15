@@ -44,7 +44,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
-      val txt = s"/home/davi/results/trAccCorrigida-$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}-${ntrees}trees.txt"
+      val txt = s"/home/davi/results/trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}-${ntrees}trees.txt"
       println(txt)
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
