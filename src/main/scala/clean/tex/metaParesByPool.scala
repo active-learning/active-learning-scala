@@ -38,13 +38,14 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       RF(42, ntrees),
       Maj())
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
+    val leas = learnerStr.replace(" ", ".")
     stratsTex("all") foreach { strat =>
       Tempo.start
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
-      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
-      val txt = s"/home/davi/results/trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}-${ntrees}trees.txt"
+      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize.arff"
+      val txt = s"/home/davi/results/trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}-${ntrees}trees.txt"
       println(txt)
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
@@ -79,7 +80,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
               List(metaatts ++ ranqueia(accs.map(_._2)).zipWithIndex.map { case (x, i) => (s"class$i", x.toString, "numeric") } -> "")
             } else {
               //Acc
-              val melhores = pegaMelhores(accs, n)(_._2 * melhor).map(_._1)
+              val melhores = pegaMelhores(accs, n)(_._2 * criterio).map(_._1)
               melhores map (m => metaatts -> (m._1 + "-" + m._2))
             }
           }
@@ -126,9 +127,13 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         val porMetaLea = cv(ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
         def fo(x: Double) = "%2.3f".format(x)
 
+        val metads = Ds("meta", readOnly = false)
+        metads.open()
+
         val outp = porMetaLea map { case (nome, resultados) =>
           val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
           val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+          metads.write(s"insert into resultadosmeta values ('${if (porRank) "rank" else "acc"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2})")
           (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
         }
         outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
@@ -148,6 +153,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
         //      fw.write(tx2)
         fw.close()
+        metads.close()
       } else {
         val arq = Source.fromFile(txt)
         val str = arq.getLines().toList.mkString("\n")
