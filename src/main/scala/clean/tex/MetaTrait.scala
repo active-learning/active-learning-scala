@@ -247,7 +247,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
           def fo(x: Double) = "%2.1f".format(x)
 
-          Vector(clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("PCT", "ELM", "def", "PCTELM")) map { case (fm, alg) =>
+          Vector(clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("PCT", "ELM", "def", "PCTELM")) flatMap { case (fm, alg) =>
             val spearsTrTs = Seq(tr, ts).map { tx =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
@@ -264,7 +264,17 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               }
               speaPorComb
             }
-            Resultado(alg, spearsTrTs.head, spearsTrTs(1))
+            val spearsTrTsAcc = Seq(tr, ts).map { tx =>
+              val speaPorComb = mutable.Queue[(String, String, Double)]()
+              tx foreach { pat =>
+                val esperado = pat.targets.zipWithIndex.minBy(_._1)._2
+                val predito = fm.output(pat).zipWithIndex.minBy(_._1)._2
+                val hit = if (predito == esperado) 1d else 0d
+                speaPorComb += ((esperado.toString, predito.toString, hit))
+              }
+              speaPorComb
+            }
+            Vector(Resultado(alg + "-a", spearsTrTsAcc.head, spearsTrTsAcc(1)), Resultado(alg, spearsTrTs.head, spearsTrTs(1)))
           }
 
         } else {
@@ -380,6 +390,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 /**
  * Cada entrada nas listas corresponde a um resultado(acc) ou uma combinação ocorrida de ranking(spearman).
  * Pode haver duplicados.
+ * (nomeEsperado, nomePredito, valor)
  */
 case class Resultado(metalearner: String, valsTr: mutable.Queue[(String, String, Double)], valsTs: mutable.Queue[(String, String, Double)]) {
   val tottr = valsTr.size
