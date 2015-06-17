@@ -131,7 +131,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         val outp = porMetaLea map { case (nome, resultados) =>
           val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
           val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
-          metads.write(s"insert into resultadosmeta values ('${if (porRank) "rank" else "acc"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2})")
+          metads.write(s"insert ignore into resultadosmeta values ('${if (porRank) "rank" else "acc"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2})")
           (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
         }
         outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out

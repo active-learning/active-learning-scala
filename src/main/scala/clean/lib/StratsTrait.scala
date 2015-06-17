@@ -68,9 +68,6 @@ trait StratsTrait {
       , Some((learner: Learner) => QBC(fakePool))
       , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
       , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
-      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
-      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
       , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
       , Some((learner: Learner) => EntropyFixo(learner, fakePool))
       , Some((learner: Learner) => MarginFixo(learner, fakePool))
@@ -82,6 +79,9 @@ trait StratsTrait {
       , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
       , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "balacc"))
       , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
+      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
+      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
+      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
     ).flatten
   }
 

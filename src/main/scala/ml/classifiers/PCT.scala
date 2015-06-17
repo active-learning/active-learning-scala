@@ -50,8 +50,9 @@ case class PCT(ntrees: Int = 1000, seed: Int = 42, trts: Vector[Pattern] = Vecto
     val id = 42
     val arqtr = s"/run/shm/cla-tr$seed$id"
     val arqtrts = s"/run/shm/cla-trts$seed$id"
-    patts2file(trSemParecidos, arqtr) //sem redundantes: 48/54; com todos 43/44
-    patts2file(trts, arqtrts) //coleta predições de tr e ts num só arquivo
+    patts2file(trSemParecidos, arqtr)
+    patts2file(trts, arqtrts)
+    //acurácia reportada pelo arquivo.out vai ser superotimista, pois é sobre tr+ts!
     val f = new FileWriter(s"/run/shm/cla-clus$seed$id.s")
     f.write(clusSettings(ntrees, tr.head.nattributes, 1, seed, arqtr, arqtrts, 1))
     f.close()
