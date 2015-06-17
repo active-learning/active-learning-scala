@@ -247,7 +247,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
           def fo(x: Double) = "%2.1f".format(x)
 
-          Vector(clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("PCT", "ELM", "def", "PCTELM")) flatMap { case (fm, alg) =>
+          Vector(clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("PCTr", "ELMr", "defr", "PEr")) flatMap { case (fm, alg) =>
             val spearsTrTs = Seq(tr, ts).map { tx =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
