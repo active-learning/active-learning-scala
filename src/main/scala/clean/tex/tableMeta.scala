@@ -12,9 +12,7 @@ import scala.io.Source
 object tableMeta extends App {
   val db = new Db("meta", false)
   db.open()
-  val dbrows = db.readString("select st,metacla,accts,devts from resultadosmeta where rank='acc' and rs=10 and fs=10 and leas='5nna,rbf,rf,c45,nbb' " +
-    "and metacla != 'C4.525' and metacla != '25NN'" +
-    " order by metacla")
+  val dbrows = db.readString("select st,metacla,accts,devts from resultadosmeta where rank='acc' and rs=10 and fs=10 and leas='5nna,rbf,rf,c45,nbb' order by metacla")
   val tableheader = "\t& " + dbrows.groupBy(_.head).values.flatten.map(_(1)).toList.distinct.sorted.mkString(" & ") + " \\\\ \\hline"
   val tablerows = dbrows.groupBy(_.head).values.toList.sortBy(_.head.head).map { case veclst =>
     val strat = veclst.head.head
