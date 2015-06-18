@@ -180,7 +180,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         if (ks >= 100) ???
         val seed = run * 100 + fold
 
-        //attsel
         val (tr0, ts0) = trbags.flatten.toVector -> tsbags.flatten.toVector
 
         val (tr, ts) = if (rank) tr0 -> ts0
@@ -279,62 +278,64 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           }
 
         } else {
-          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) = if (attsel) {
-            val att = new AttributeSelection
-            val attf = new AttributeSelection
-            val eval = new WrapperSubsetEval
-            val evalf = new WrapperSubsetEval
-            val data = Seq(tr, ts) map Datasets.patterns2instancesId
-            val dataf = Seq(trf, tsf, trfSemParecidos) map Datasets.patterns2instancesId
-            val sample = Datasets.patterns2instancesId(tr)
-            val samplef = Datasets.patterns2instancesId(trf)
-            eval.buildEvaluator(sample)
-            evalf.buildEvaluator(samplef)
-            //            val cla = new RandomForest
-            //            val claf = new RandomForest
-            val cla = new IBk
-            val claf = new IBk
-            //            cla.setDoNotCheckCapabilities(true)
-            //            claf.setDoNotCheckCapabilities(true)
-            //            cla.setNumTrees(20)
-            //            claf.setNumTrees(20)
-            cla.setKNN(5)
-            claf.setKNN(5)
-            eval.setFolds(10)
-            eval.setClassifier(cla)
-            eval.setThreshold(0.01)
-            eval.setSeed(fold * run)
-            evalf.setFolds(10)
-            evalf.setClassifier(claf)
-            evalf.setThreshold(0.01)
-            evalf.setSeed(fold * run)
-            att.setEvaluator(eval)
-            attf.setEvaluator(evalf)
-            val sea = new BestFirst()
-            sea.setLookupCacheSize(10)
-            //            sea.setSearchTermination(3)
-            val seaf = new BestFirst()
-            seaf.setLookupCacheSize(10)
-            //            seaf.setSearchTermination(3)
-            /*
-            Searches the space of attribute subsets by greedy hillclimbing augmented with a backtracking facility.
-            Setting the number of consecutive non-improving nodes allowed controls the level of backtracking done.
-            Best first may start with the empty set of attributes and search forward, or start with the full set of
-            attributes and search backward, or start at any point and search in both directions (by considering all
-            possible single attribute additions and deletions at a given point).
-             */
-            sea.setStartSet("1")
-            seaf.setStartSet("1")
-            att.setSearch(sea)
-            attf.setSearch(seaf)
-            att.SelectAttributes(sample)
-            attf.SelectAttributes(samplef)
-            println(s"${att.selectedAttributes().toList} <- att.selectedAttributes()")
-            println(s"${attf.selectedAttributes().toList} <- attf.selectedAttributes()")
-            val seq = data map (x => Datasets.instances2patternsId(att.reduceDimensionality(x)).toVector)
-            val seqf = dataf map (x => Datasets.instances2patternsId(attf.reduceDimensionality(x)).toVector)
-            (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
-          } else (tr, trf, ts, tsf, trfSemParecidos)
+          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) =
+          //            if (attsel) {
+          //            val att = new AttributeSelection
+          //            val attf = new AttributeSelection
+          //            val eval = new WrapperSubsetEval
+          //            val evalf = new WrapperSubsetEval
+          //            val data = Seq(tr, ts) map Datasets.patterns2instancesId
+          //            val dataf = Seq(trf, tsf, trfSemParecidos) map Datasets.patterns2instancesId
+          //            val sample = Datasets.patterns2instancesId(tr)
+          //            val samplef = Datasets.patterns2instancesId(trf)
+          //            eval.buildEvaluator(sample)
+          //            evalf.buildEvaluator(samplef)
+          //            //            val cla = new RandomForest
+          //            //            val claf = new RandomForest
+          //            val cla = new IBk
+          //            val claf = new IBk
+          //            //            cla.setDoNotCheckCapabilities(true)
+          //            //            claf.setDoNotCheckCapabilities(true)
+          //            //            cla.setNumTrees(20)
+          //            //            claf.setNumTrees(20)
+          //            cla.setKNN(5)
+          //            claf.setKNN(5)
+          //            eval.setFolds(10)
+          //            eval.setClassifier(cla)
+          //            eval.setThreshold(0.01)
+          //            eval.setSeed(fold * run)
+          //            evalf.setFolds(10)
+          //            evalf.setClassifier(claf)
+          //            evalf.setThreshold(0.01)
+          //            evalf.setSeed(fold * run)
+          //            att.setEvaluator(eval)
+          //            attf.setEvaluator(evalf)
+          //            val sea = new BestFirst()
+          //            sea.setLookupCacheSize(10)
+          //            //            sea.setSearchTermination(3)
+          //            val seaf = new BestFirst()
+          //            seaf.setLookupCacheSize(10)
+          //            //            seaf.setSearchTermination(3)
+          //            /*
+          //            Searches the space of attribute subsets by greedy hillclimbing augmented with a backtracking facility.
+          //            Setting the number of consecutive non-improving nodes allowed controls the level of backtracking done.
+          //            Best first may start with the empty set of attributes and search forward, or start with the full set of
+          //            attributes and search backward, or start at any point and search in both directions (by considering all
+          //            possible single attribute additions and deletions at a given point).
+          //             */
+          //            sea.setStartSet("1")
+          //            seaf.setStartSet("1")
+          //            att.setSearch(sea)
+          //            attf.setSearch(seaf)
+          //            att.SelectAttributes(sample)
+          //            attf.SelectAttributes(samplef)
+          //            println(s"${att.selectedAttributes().toList} <- att.selectedAttributes()")
+          //            println(s"${attf.selectedAttributes().toList} <- attf.selectedAttributes()")
+          //            val seq = data map (x => Datasets.instances2patternsId(att.reduceDimensionality(x)).toVector)
+          //            val seqf = dataf map (x => Datasets.instances2patternsId(attf.reduceDimensionality(x)).toVector)
+          //            (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
+          //          } else
+            (tr, trf, ts, tsf, trfSemParecidos)
 
           leas(trfs) map { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {

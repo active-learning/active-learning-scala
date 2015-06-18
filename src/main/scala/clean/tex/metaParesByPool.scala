@@ -103,7 +103,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
           val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
 
-          patts2file(ps, "umPorBase" + arq)
+          patts2file(ps, arq + "umPorBase.arff")
           //          out(s"Apenas um por base = ${ps.size}! Apenas um por base!")
           //          out("umPorBase" + s"$arq")
           ps
@@ -157,6 +157,15 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         val str = arq.getLines().toList.mkString("\n")
         arq.close()
         println(str)
+      }
+
+      Datasets.arff(arq, dedup, rmuseless = false) match {
+        case Right(x) => if (apenasUmPorBase) {
+          val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
+          patts2file(ps, arq + "umPorBase")
+          C45(laplace = false, 5, 1).tree(arq + "umPorBase.arff", arq + "umPorBase" + ".tex")
+          println(s"${arq} <- arq")
+        }
       }
     }
   }
