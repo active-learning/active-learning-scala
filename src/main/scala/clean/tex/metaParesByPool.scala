@@ -10,7 +10,7 @@ import weka.core.{Instances, Attribute}
 import scala.io.Source
 
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "FS")
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -19,7 +19,6 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   val dsminSize = 1
   //n=2 estraga stats
   val n = 1
-  val featureSel = false
   run()
 
   override def run() = {
@@ -42,7 +41,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
-      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize.arff"
+      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${if (featureSel) "-FS" else ""}.arff"
       val txt = s"/home/davi/results/trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}-${ntrees}trees.txt"
       println(txt)
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
@@ -71,7 +70,20 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
 
             }
             //gera metaexemplos
-            val metaatts0 = ds.metaAttsrf(r, f).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
+            //            "\"#classes\",\"#atributos\",\"#exemplos\"," +
+            //              "\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," +
+            //              "skewnessesmin,skewavg,skewnessesmax,skewnessesminByskewnessesmax," +
+            //              "kurtosesmin,kurtavg,kurtosesmax,kurtosesminBykurtosesmax," +
+            //              "nominalValuesCountmin,nominalValuesCountAvg,nominalValuesCountmax,nominalValuesCountminBynominalValuesCountmax," +
+            //              "mediasmin,mediasavg,mediasmax,mediasminBymediasmax," +
+            //              "desviosmin,desviosavg,desviosmax,desviosminBydesviosmax," +
+            //              "entropiasmin,entropiasavg,entropiasmax,entropiasminByentropiasmax," +
+            //              "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah","AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
+            //            "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
+            //            "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y"
+            val selecionados = Seq("nominalValuesCountmin", "AH-conect.-1.5Y", "AH-silhueta-1.5Y", "\"#atributos\"", "kurtosesmin", "skewnessesmin", "\"#classes\"", "correlsavg", "mediasavg", "AH-silhueta-Y")
+            val metaatts00 = ds.metaAttsrf(r, f).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
+            val metaatts0 = if (featureSel) metaatts00.filter(x => selecionados.contains(x)) else metaatts00
             val metaatts = ("\"bag_" + pares.size + "\"", ds.dataset, "string") +: metaatts0
             if (porRank) {
               //rank legivel por clus e ELM
