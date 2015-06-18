@@ -62,15 +62,16 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       (if (ntrees == 1) Seq("PruningMethod = M5Multi", //ajuda C45 quebra
         "M5PruningMult = 1", "")
       else Seq("")) ++ //ajuda mais
-      Seq("[Output]", "") ++
+      Seq("[Output]",
+        //      "WritePredictions = {Train,Test}",
+        "WritePredictions = {Test}",
+        "") ++
       (if (ntrees == 1) Seq("ShowModels = {Default, Pruned, Others}", "PrintModelAndExamples = Yes")
       else Seq("[Ensemble]",
         s"Iterations = $ntrees",
         "EnsembleMethod = Bagging", //Bagging, RForest, RSubspaces, BagSubspaces só funfou bagging
-        "")) ++
-      Seq(//      "WritePredictions = {Train,Test}",
-        "WritePredictions = {Test}"
-      )).mkString("\n")
+        ""))
+      ).mkString("\n")
   }
 
 
