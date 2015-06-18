@@ -42,7 +42,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     val ultimoDesc = natts + first - 1
     val primeiroTarget = ultimoDesc + 1
     val ultimoTarget = primeiroTarget + targets - 1
-    Seq(
+    (Seq(
       "[Data]",
       s"File = $arqtr.arff",
       s"TestSet = $arqts.arff",
@@ -58,19 +58,19 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       "",
       "[Tree]",
       "Heuristic = VarianceReduction",
-      "FTest = 1",
-      //      "PruningMethod = C4.5",//quebra
-      //            "PruningMethod = M5Multi",//ajuda
-      //      "M5PruningMult = 1", //ajuda mais
-      "",
-      "[Ensemble]",
-      s"Iterations = $ntrees",
-      "EnsembleMethod = Bagging", //Bagging, RForest, RSubspaces, BagSubspaces só funfou bagging
-      "",
-      "[Output]",
-      //      "WritePredictions = {Train,Test}",
-      "WritePredictions = {Test}"
-    ).mkString("\n")
+      "FTest = 1") ++
+      (if (ntrees == 1) Seq("PruningMethod = M5Multi", //ajuda C45 quebra
+        "M5PruningMult = 1", "")
+      else Seq("")) ++ //ajuda mais
+      Seq("[Output]", "") ++
+      (if (ntrees == 1) Seq("ShowModels = {Default, Pruned, Others}", "PrintModelAndExamples = Yes")
+      else Seq("[Ensemble]",
+        s"Iterations = $ntrees",
+        "EnsembleMethod = Bagging", //Bagging, RForest, RSubspaces, BagSubspaces só funfou bagging
+        "")) ++
+      Seq(//      "WritePredictions = {Train,Test}",
+        "WritePredictions = {Test}"
+      )).mkString("\n")
   }
 
 

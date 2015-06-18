@@ -47,7 +47,7 @@ case class PCT(ntrees: Int = 1000, seed: Int = 42, trts: Vector[Pattern] = Vecto
     val tr = patterns0.toVector
     val trSemParecidos = tr
     //clus; seed tb serve pra situar run e fold durante paralelização
-    val id = 42
+    val id = System.currentTimeMillis() % 1000000
     val arqtr = s"/run/shm/cla-tr$seed$id"
     val arqtrts = s"/run/shm/cla-trts$seed$id"
     patts2file(trSemParecidos, arqtr)
@@ -67,13 +67,13 @@ case class PCT(ntrees: Int = 1000, seed: Int = 42, trts: Vector[Pattern] = Vecto
       case Left(m) => error(s"${m} <- m")
     }
 
-    //    new File(arqtr + ".arff").delete
-    //    new File(arqtrts + ".arff").delete
-    //    new File(s"/run/shm/cla-clus$seed$id.s").delete()
-    //    new File(s"/run/shm/cla-clus$seed$id.train.1.pred.arff").delete
-    //    new File(s"/run/shm/cla-clus$seed$id.test.pred.arff").delete
-    //    new File(s"/run/shm/cla-clus$seed$id.out").delete
-    //    new File(s"/run/shm/cla-clus$seed$id.model").delete
+    new File(arqtr + ".arff").delete
+    new File(arqtrts + ".arff").delete
+    new File(s"/run/shm/cla-clus$seed$id.s").delete()
+    new File(s"/run/shm/cla-clus$seed$id.train.1.pred.arff").delete
+    new File(s"/run/shm/cla-clus$seed$id.test.pred.arff").delete
+    new File(s"/run/shm/cla-clus$seed$id.out").delete
+    new File(s"/run/shm/cla-clus$seed$id.model").delete
 
     val clusTRTSRanks = clusTSPredictionsARFF.zip(trts).map { case (pa, pats) =>
       pats.id -> pa.array.drop(2).take(pats.nclasses)
