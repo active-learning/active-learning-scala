@@ -83,7 +83,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
             //            "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y"
             val selecionados = Seq("nominalValuesCountmin", "AH-conect.-1.5Y", "AH-silhueta-1.5Y", "\"#atributos\"", "kurtosesmin", "skewnessesmin", "\"#classes\"", "correlsavg", "mediasavg", "AH-silhueta-Y")
             val metaatts00 = ds.metaAttsrf(r, f).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
-            val metaatts0 = if (featureSel) metaatts00.filter(x => selecionados.contains(x)) else metaatts00
+            val metaatts0 = if (featureSel) metaatts00.filter(x => selecionados.contains(x._1)) else metaatts00
             val metaatts = ("\"bag_" + pares.size + "\"", ds.dataset, "string") +: metaatts0
             if (porRank) {
               //rank legivel por clus e ELM
