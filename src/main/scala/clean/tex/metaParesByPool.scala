@@ -171,7 +171,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         println(str)
       }
 
-      Datasets.arff(arq, dedup, rmuseless = false) match {
+      if (!porRank) Datasets.arff(arq, dedup, rmuseless = false) match {
         case Right(x) => if (apenasUmPorBase) {
           val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
           patts2file(ps, arq + "umPorBase")
