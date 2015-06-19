@@ -61,7 +61,7 @@ public class ClusRandom {
 
     public static int nextInt(int which, int max) {
         if (m_Random[which] == null) m_Random[which] = new Random(System.currentTimeMillis());
-        return m_Random[which].nextInt(max);
+        return m_Random[which].nextInt(max); //mistério deu NPE mesmo com new
     }
 
     public static void initialize(Settings sett) {

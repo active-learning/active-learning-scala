@@ -369,7 +369,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             val tr_ts = Vector(trtestbags, tstestbags) map { bags =>
               val resPorClasse = mutable.Queue[(String, String, Double)]()
               bags.map(_._2) foreach { xbag =>
-                // statisticas p/ n>1 vão sair erradas com esse criterio abaixo
+                // com n>1 statisticas p/ maj vão sair maiores que o verdadeiro valor maj, com esse criterio abaixo (n: número de vencedores)
                 val metaclass = xbag.head.nominalLabel
                 val lab = m.predict(xbag.head).toInt
                 val re = if (xbag.map(_.label).contains(lab)) 1d else 0d

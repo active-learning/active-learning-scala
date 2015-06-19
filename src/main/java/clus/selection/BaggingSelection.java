@@ -53,7 +53,7 @@ public class BaggingSelection extends ClusSelection {
         m_Counts = new int[nbrows];
         if (nbselected == 0) nbselected = nbrows;
         for (int i = 0; i < nbselected; i++) {
-            m_Counts[ClusRandom.nextInt(ClusRandom.RANDOM_SELECTION, nbrows)]++;
+            m_Counts[ClusRandom.nextInt(ClusRandom.RANDOM_SELECTION, nbrows)]++; //mistério deu NPE mesmo com new
         }
         for (int i = 0; i < nbrows; i++) {
             if (m_Counts[i] != 0) m_NbSel++;
