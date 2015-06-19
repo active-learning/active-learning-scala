@@ -10,7 +10,7 @@ import weka.core.{Instances, Attribute}
 import scala.io.Source
 
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "FS")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "FS", "smote")
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -42,7 +42,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${if (featureSel) "-FS" else ""}.arff"
-      val txt = s"/home/davi/results/trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}-${ntrees}trees.txt"
+      val txt = s"/home/davi/results/trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
       println(txt)
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
@@ -81,6 +81,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
             //              "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah","AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
             //            "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
             //            "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y"
+            //FS não ajudou, mesmo robando assim:
             val selecionados = Seq("nominalValuesCountmin", "AH-conect.-1.5Y", "AH-silhueta-1.5Y", "\"#atributos\"", "kurtosesmin", "skewnessesmin", "\"#classes\"", "correlsavg", "mediasavg", "AH-silhueta-Y")
             val metaatts00 = ds.metaAttsrf(r, f).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
             val metaatts0 = if (featureSel) metaatts00.filter(x => selecionados.contains(x._1)) else metaatts00
@@ -99,7 +100,6 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       }
       def bags = bagsNaN
       if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bags.toList.flatten, print = true, context, porRank))
-      //      out(s"$arq")
 
       val patterns = Datasets.arff(arq, dedup, rmuseless = false) match {
         case Right(x) => if (apenasUmPorBase) {
@@ -132,9 +132,9 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       }
 
       out(s"resultados $stratName ============== maj=0 significa que há duas majoritárias empatadas e for LOO =============")
-      if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-      else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-      val porMetaLea = cv(ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+      if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
+      else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
+      val porMetaLea = cv(smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
       def fo(x: Double) = "%2.3f".format(x)
 
       val metads = new Db("meta", readOnly = false)

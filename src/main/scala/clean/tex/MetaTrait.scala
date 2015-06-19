@@ -168,7 +168,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
 
-  def cv(ntrees: Int, attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(smote: Boolean, ntrees: Int, attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
     (1 to rs).par map { run =>
@@ -278,7 +278,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           }
 
         } else {
+          //usando terminação fs pra indicar SMOTE
           val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) =
+          //          {
+          //
+          //          }
+
           //            if (attsel) {
           //            val att = new AttributeSelection
           //            val attf = new AttributeSelection
