@@ -25,7 +25,7 @@ import clean.lib.{FilterTrait, Log, Rank}
 import clus.Clus
 import ml.{PatternParent, Pattern}
 import ml.classifiers._
-import ml.models.{FakeModelRank, EnsembleModel, ELMModel}
+import ml.models.{RandomRank, FakeModelRank, EnsembleModel, ELMModel}
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat}
 import weka.attributeSelection.{BestFirst, AttributeSelection, WrapperSubsetEval, GreedyStepwise}
@@ -248,7 +248,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
           def fo(x: Double) = "%2.1f".format(x)
 
-          Vector(clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("PCTr", "ELMr", "defr", "PEr")) flatMap { case (fm, alg) =>
+          Vector(RandomRank(seed), clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("rndr", "PCTr", "ELMr", "defr", "PEr")) flatMap { case (fm, alg) =>
             val spearsTrTs = Seq(tr, ts).map { tx =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
