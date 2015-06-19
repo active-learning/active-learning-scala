@@ -408,6 +408,13 @@ case class Resultado(metalearner: String, valsTr: mutable.Queue[(String, String,
   lazy val histTrPred = pretty(valsTr.groupBy(_._2))
   lazy val histTsPred = pretty(valsTs.groupBy(_._2))
   lazy val (accTr, accTs) = valsTr.map(_._3).sum / tottr -> valsTs.map(_._3).sum / totts
+  lazy val (histEsperadoTr, histEsperadoTs) = valsTr.groupBy(_._1).toList.sortBy(_._1).map(_._2.size) -> valsTs.groupBy(_._1).toList.sortBy(_._1).map(_._2.size)
+  lazy val (histPreditoTr, histPreditoTs) = valsTr.groupBy(_._2).toList.sortBy(_._1).map(_._2.size) -> valsTs.groupBy(_._2).toList.sortBy(_._1).map(_._2.size)
+  lazy val (histAcertosTr, histAcertosTs) = valsTr.filter(x => x._1 == x._2).groupBy(_._1).toList.sortBy(_._1).map(_._2.size) -> valsTs.filter(x => x._1 == x._2).groupBy(_._1).toList.sortBy(_._1).map(_._2.size)
+  lazy val (histAccsTr, histAccsTs) = histAcertosTr.zip(histEsperadoTr).map(x => x._1 / x._2.toDouble) -> histAcertosTs.zip(histEsperadoTs).map(x => x._1 / x._2.toDouble)
+  lazy val resumoTr = histEsperadoTr.mkString(" ") + "; " + histPreditoTr.mkString(" ") + "; " + histAcertosTr.mkString(" ")
+  lazy val resumoTs = histEsperadoTs.mkString(" ") + "; " + histPreditoTs.mkString(" ") + "; " + histAcertosTs.mkString(" ")
+  lazy val (accBalTr, accBalTs) = histAccsTr.sum / histAccsTr.size -> histAccsTs.sum / histAccsTs.size
 
   def ++(that: Resultado) = if (that.metalearner != metalearner) ???
   else Resultado(metalearner, that.valsTr ++ valsTr, that.valsTs ++ valsTs)
