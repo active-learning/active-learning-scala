@@ -132,7 +132,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         tx1 += t + "\n" //else tx2 += t + "\n"
       }
 
-      out(s"resultados $stratName ============== maj=0 significa que há duas majoritárias empatadas e for LOO =============")
+      out(s"resultados $stratName ============== maj=0 significa que há duas majoritárias empatadas se for LOO =============")
       if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
       else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
       val porMetaLea = cv(smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
@@ -151,7 +151,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         metads.write(s"insert  into r values ('${if (porRank) "ra" else "ac"}', '${if (smote) "sm" else "nosm"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
         (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
       }
-      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
+      //      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
 
       //      out("histogramas ===========================")
       //      out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
@@ -163,11 +163,11 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       //        out("")
       //      }
 
-      out(Tempo.stop + "s")
-      val fw = new FileWriter(txt)
-      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
-      //      fw.write(tx2)
-      fw.close()
+      //      out(Tempo.stop + "s")
+      //      val fw = new FileWriter(txt)
+      //      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
+      //      //      fw.write(tx2)
+      //      fw.close()
       metads.close()
       //      } else {
       //        val arq = Source.fromFile(txt)
