@@ -285,15 +285,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             sm.setDebug(false)
             sm.setDoNotCheckCapabilities(true)
             sm.setInputFormat(Datasets.patterns2instances(tr))
-            val r = Seq(tr, ts) map Datasets.applyFilterIdWeigth(sm)
+            val r = Seq(tr) map Datasets.applyFilterIdWeigth(sm)
 
             val smf = new ClassBalancer()
             smf.setDebug(false)
             smf.setDoNotCheckCapabilities(true)
             smf.setInputFormat(Datasets.patterns2instances(trf))
-            val rf = Seq(trf, tsf, trfSemParecidos) map Datasets.applyFilterIdWeigth(smf)
+            val rf = Seq(trf, trfSemParecidos) map Datasets.applyFilterIdWeigth(smf)
 
-            (r(0), rf(0), r(1), rf(1), rf(2))
+            (r(0), rf(0), ts, tsf, rf(1))
           } else
           //            if (attsel) {
           //            val att = new AttributeSelection
@@ -377,6 +377,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             } else {
               val mo = le match {
                 case RF(_, n, _, _) => RF(seed, n).build(trfs)
+                case Chute(_) => Chute(seed).build(trfs)
                 case PCT(_, _, _) => PCT(ntrees, seed, trfs ++ tsfs).build(trfs)
                 case _ => le.build(trfs)
               }
@@ -419,10 +420,14 @@ case class Resultado(metalearner: String, valsTr: mutable.Queue[(String, String,
   lazy val histTrPred = pretty(valsTr.groupBy(_._2))
   lazy val histTsPred = pretty(valsTs.groupBy(_._2))
   lazy val (accTr, accTs) = valsTr.map(_._3).sum / tottr -> valsTs.map(_._3).sum / totts
+  //com LOO, algumas das classes de teste não terão nenhuma ocorrência esperada: NaN; então é melhor sumarizar resultados com ++ ou vai estragar as medidas?; ou usar 10-fold e considerar zero
   lazy val (histEsperadoTr, histEsperadoTs) = valsTr.groupBy(_._1).toList.sortBy(_._1).map(_._2.size) -> valsTs.groupBy(_._1).toList.sortBy(_._1).map(_._2.size)
   lazy val (histPreditoTr, histPreditoTs) = valsTr.groupBy(_._2).toList.sortBy(_._1).map(_._2.size) -> valsTs.groupBy(_._2).toList.sortBy(_._1).map(_._2.size)
-  lazy val (histAcertosTr, histAcertosTs) = valsTr.filter(x => x._1 == x._2).groupBy(_._1).toList.sortBy(_._1).map(_._2.size) -> valsTs.filter(x => x._1 == x._2).groupBy(_._1).toList.sortBy(_._1).map(_._2.size)
-  lazy val (histAccsTr, histAccsTs) = histAcertosTr.zip(histEsperadoTr).map(x => x._1 / x._2.toDouble) -> histAcertosTs.zip(histEsperadoTs).map(x => x._1 / x._2.toDouble)
+  lazy val (histAcertosTr, histAcertosTs) = valsTr.groupBy(_._1).toList.sortBy(_._1).map(x => x._2.count(x => x._1 == x._2)) -> valsTs.groupBy(_._1).toList.sortBy(_._1).map(x => x._2.count(x => x._1 == x._2))
+  lazy val (histAccsTr, histAccsTs) = histAcertosTr.zip(histEsperadoTr).map(x => x._1 / x._2.toDouble) -> histAcertosTs.zip(histEsperadoTs).flatMap { x =>
+    val den = x._2.toDouble
+    if (den == 0) None else Some(x._1 / den)
+  }
   lazy val resumoTr = histEsperadoTr.mkString(" ") + "; " + histPreditoTr.mkString(" ") + "; " + histAcertosTr.mkString(" ")
   lazy val resumoTs = histEsperadoTs.mkString(" ") + "; " + histPreditoTs.mkString(" ") + "; " + histAcertosTs.mkString(" ")
   lazy val (accBalTr, accBalTs) = histAccsTr.sum / histAccsTr.size -> histAccsTs.sum / histAccsTs.size

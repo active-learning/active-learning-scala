@@ -33,6 +33,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       C45(false, 5),
       KNNBatcha(5, "eucl", patts),
       RF(42, ntrees),
+      Chute(),
       Maj())
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
     val leas = learnerStr.replace(" ", ".")
