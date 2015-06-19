@@ -19,6 +19,7 @@
 package ml.classifiers
 
 import java.io.{FileWriter, File}
+import java.util.UUID
 
 import clean.tex.MetaTrait
 import clus.Clus
@@ -47,7 +48,7 @@ case class PCT(ntrees: Int = 1000, seed: Int = 42, trts: Vector[Pattern] = Vecto
     val tr = patterns0.toVector
     val trSemParecidos = tr
     //clus; seed tb serve pra situar run e fold durante paralelização
-    val id = System.currentTimeMillis() % 1000000
+    val id = UUID.randomUUID() + patterns0.map(_.id).mkString.hashCode.toString + (System.currentTimeMillis() % 1000000).toString
     val arqtr = s"/run/shm/cla-tr$seed$id"
     val arqtrts = s"/run/shm/cla-trts$seed$id"
     patts2file(trSemParecidos, arqtr)

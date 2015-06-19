@@ -20,6 +20,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 package clean.tex
 
 import java.io.{File, FileWriter, OutputStream, PrintStream}
+import java.util.UUID
 
 import clean.lib.{FilterTrait, Log, Rank}
 import clus.Clus
@@ -171,7 +172,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
   def cv(pct: Double, smote: Boolean, ntrees: Int, attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
-    val id = "_id" + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
+    val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
     (1 to rs).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags = shuffled.groupBy(_.base).values.toVector
