@@ -123,53 +123,54 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         case Left(m) => error(s"${m} <- m")
       }
 
-      if (!new File(txt).exists) {
-        var tx1 = ""
-        var tx2 = ""
-        def out(t: String): Unit = {
-          println(t)
-          tx1 += t + "\n" //else tx2 += t + "\n"
-        }
-
-        out(s"resultados $stratName ===========================")
-        if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-        else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
-        val porMetaLea = cv(ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
-        def fo(x: Double) = "%2.3f".format(x)
-
-        val metads = new Db("meta", readOnly = false)
-        metads.open()
-
-        val outp = porMetaLea map { case (nome, resultados) =>
-          val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
-          val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
-          metads.write(s"insert ignore into resultadosmeta values ('${if (porRank) "rank" else "acc"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2})")
-          (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
-        }
-        outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
-
-        out("histogramas ===========================")
-        out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
-        porMetaLea foreach { case (nome, resultados) =>
-          val r = resultados reduce (_ ++ _)
-          //          out(s"$nome: ------------")
-          r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome tr " + x) foreach out
-          r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"  metale:$nome ts " + x) foreach out
-          out("")
-        }
-
-        out(Tempo.stop + "s")
-        val fw = new FileWriter(txt)
-        fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
-        //      fw.write(tx2)
-        fw.close()
-        metads.close()
-      } else {
-        val arq = Source.fromFile(txt)
-        val str = arq.getLines().toList.mkString("\n")
-        arq.close()
-        println(str)
+      //      if (!new File(txt).exists) {
+      var tx1 = ""
+      var tx2 = ""
+      def out(t: String): Unit = {
+        println(t)
+        tx1 += t + "\n" //else tx2 += t + "\n"
       }
+
+      out(s"resultados $stratName ============== maj=0 significa que há duas majoritárias empatadas e for LOO =============")
+      if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+      else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}")
+      val porMetaLea = cv(ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+      def fo(x: Double) = "%2.3f".format(x)
+
+      val metads = new Db("meta", readOnly = false)
+      metads.open()
+
+      val outp = porMetaLea map { case (nome, resultados) =>
+        val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+        val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
+        //        metads.write(s"insert ignore into resultadosmeta values ('${if (porRank) "rank" else "acc"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2})")
+        metads.write(s"insert  into resultadosmeta values ('${if (porRank) "rank" else "acc"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2})")
+        (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
+      }
+      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
+
+      out("histogramas ===========================")
+      out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
+      porMetaLea foreach { case (nome, resultados) =>
+        val r = resultados reduce (_ ++ _)
+        //          out(s"$nome: ------------")
+        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome tr " + x) foreach out
+        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"  metale:$nome ts " + x) foreach out
+        out("")
+      }
+
+      out(Tempo.stop + "s")
+      val fw = new FileWriter(txt)
+      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
+      //      fw.write(tx2)
+      fw.close()
+      metads.close()
+      //      } else {
+      //        val arq = Source.fromFile(txt)
+      //        val str = arq.getLines().toList.mkString("\n")
+      //        arq.close()
+      //        println(str)
+      //      }
 
       if (!porRank) Datasets.arff(arq, dedup, rmuseless = false) match {
         case Right(x) => if (apenasUmPorBase) {
