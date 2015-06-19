@@ -430,8 +430,8 @@ case class Resultado(metalearner: String, valsTr: mutable.Queue[(String, String,
     val den = x._2.toDouble
     if (den == 0) None else Some(x._1 / den)
   }
-  lazy val resumoTr = histEsperadoTr.mkString(" ") + "; " + histPreditoTr.mkString(" ") + "; " + histAcertosTr.mkString(" ")
-  lazy val resumoTs = histEsperadoTs.mkString(" ") + "; " + histPreditoTs.mkString(" ") + "; " + histAcertosTs.mkString(" ")
+  lazy val resumoTr = histEsperadoTr.take(6).mkString(" ") + "; " + histPreditoTr.take(6).mkString(" ") + "; " + histAcertosTr.take(6).mkString(" ")
+  lazy val resumoTs = histEsperadoTs.take(6).mkString(" ") + "; " + histPreditoTs.take(6).mkString(" ") + "; " + histAcertosTs.take(6).mkString(" ")
   lazy val (accBalTr, accBalTs) = histAccsTr.sum / histAccsTr.size -> histAccsTs.sum / histAccsTs.size
 
   def ++(that: Resultado) = if (that.metalearner != metalearner) ???
