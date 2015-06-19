@@ -147,7 +147,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
         val r = resultados reduce (_ ++ _)
         val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
-        metads.write(s"insert  into res values ('${if (porRank) "ra" else "ac"}', '${if (smote) "sm" else "nosm"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
+        metads.write(s"insert  into r values ('${if (porRank) "ra" else "ac"}', '${if (smote) "sm" else "nosm"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
         (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
       }
       outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out

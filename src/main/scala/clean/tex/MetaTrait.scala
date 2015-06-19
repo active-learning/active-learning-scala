@@ -33,6 +33,7 @@ import weka.classifiers.`lazy`.IBk
 import weka.classifiers.trees.RandomForest
 import weka.core.{Attribute, Instances, DenseInstance}
 import weka.core.converters.ArffSaver
+import weka.filters.supervised.instance.ClassBalancer
 
 import scala.collection.mutable
 import scala.util.Random
@@ -278,12 +279,22 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           }
 
         } else {
-          //usando terminação fs pra indicar SMOTE
-          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) =
-          //          {
-          //
-          //          }
+          //usando terminação fs pra indicar filtro
+          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) = if (smote) {
+            val sm = new ClassBalancer()
+            sm.setDebug(false)
+            sm.setDoNotCheckCapabilities(true)
+            sm.setInputFormat(Datasets.patterns2instances(tr))
+            val r = Seq(tr, ts) map Datasets.applyFilterIdWeigth(sm)
 
+            val smf = new ClassBalancer()
+            smf.setDebug(false)
+            smf.setDoNotCheckCapabilities(true)
+            smf.setInputFormat(Datasets.patterns2instances(trf))
+            val rf = Seq(trf, tsf, trfSemParecidos) map Datasets.applyFilterIdWeigth(smf)
+
+            (r(0), rf(0), r(1), rf(1), rf(2))
+          } else
           //            if (attsel) {
           //            val att = new AttributeSelection
           //            val attf = new AttributeSelection
