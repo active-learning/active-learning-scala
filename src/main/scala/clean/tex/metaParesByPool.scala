@@ -10,7 +10,7 @@ import weka.core.{Instances, Attribute}
 import scala.io.Source
 
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "FS", "smote")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "FS", "smote", "smotePropor")
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -135,7 +135,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       out(s"resultados $stratName ============== maj=0 significa que há duas majoritárias empatadas se for LOO =============")
       if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
       else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
-      val porMetaLea = cv(smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+      val porMetaLea = cv(smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
       def fo(x: Double) = "%2.3f".format(x)
 
       val metads = new Db("meta", readOnly = false)
@@ -148,7 +148,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
         val r = resultados reduce (_ ++ _)
         val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
-        metads.write(s"insert  into r values ('${if (porRank) "ra" else "ac"}', '${if (smote) "sm" else "nosm"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
+        metads.write(s"insert  into r values ('${if (porRank) "ra" else "ac"}', '${if (smote) s"sm$smotePropor" else "nosm"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
         (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
       }
       //      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
