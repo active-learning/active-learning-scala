@@ -131,9 +131,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         tx1 += t + "\n" //else tx2 += t + "\n"
       }
 
-      if (porRank) out(s"$stratName Pearson correl. $rus*$ks-fold CV. ${if (smote) "-SMOTE" else ""}")
-      else out(s"$stratName Accuracy. $rus*$ks-fold CV. ${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
-      println(arq)
+      if (porRank) print(s"$stratName Pearson correl. $rus*$ks-fold CV. ${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
+      else print(s"$stratName Accuracy. $rus*$ks-fold CV. ${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
 
       val sm = if (smote) s"sm$smotePropor" else "nosm"
       val fsel = if (featureSel) "fs" else "nofs"
@@ -176,6 +175,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         //      fw.close()
       }
       metads.close()
+      println()
       //      } else {
       //        val arq = Source.fromFile(txt)
       //        val str = arq.getLines().toList.mkString("\n")
