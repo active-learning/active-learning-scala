@@ -273,6 +273,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val predito = fm.output(pat).zipWithIndex.minBy(_._1)._2
                 val hit = if (predito == esperado) 1d else 0d
                 speaPorComb += ((esperado.toString, predito.toString, hit))
+                /*
+                val melhorRank = pat.targets.min
+                val esperados = pat.targets.zipWithIndex.filter(_ == melhorRank).map(_._2)
+                val predito = fm.output(pat).zipWithIndex.minBy(_._1)._2
+                // com n>1 (ou n==1 com empates) statisticas p/ maj vão sair maiores que o verdadeiro valor maj, com esse criterio abaixo (n: número de vencedores)
+                val hit = if (esperados.contains(predito)) 1d else 0d
+                speaPorComb += ((esperado.toString, predito.toString, hit))
+                 */
               }
               speaPorComb
             }
@@ -397,6 +405,19 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
               resPorClasse
+              /*
+                val resPorClasse = mutable.Queue[(Int, Int, Option[Double])]()
+                bags.map(_._2) foreach { xbag =>
+                  val esperados = xbag.map(_.label.toInt).sorted
+                  val pred = m.predict(xbag.head).toInt
+                  val re = if (esperados.contains(pred)) 1d else 0d
+                  resPorClasse += ((esperados.head, pred, Some(re)))
+                  esperados foreach { esperado =>
+                    resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), None))
+                  }
+                }
+                resPorClasse
+               */
             }
             Resultado(le.limpa, tr_ts.head, tr_ts(1))
           }
