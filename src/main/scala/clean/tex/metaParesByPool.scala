@@ -44,7 +44,6 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${if (featureSel) "-FS" else ""}.arff"
       val txt = s"/home/davi/results/trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
-      println(txt)
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
 
@@ -132,9 +131,9 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
         tx1 += t + "\n" //else tx2 += t + "\n"
       }
 
-      out(s"resultados $stratName ============== maj=0 significa que há duas majoritárias empatadas se for LOO =============")
-      if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
-      else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
+      if (porRank) out(s"$stratName Pearson correl. $rus*$ks-fold CV. ${if (smote) "-SMOTE" else ""}")
+      else out(s"$stratName Accuracy. $rus*$ks-fold CV. ${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
+      println(arq)
 
       val sm = if (smote) s"sm$smotePropor" else "nosm"
       val fsel = if (featureSel) "fs" else "nofs"
