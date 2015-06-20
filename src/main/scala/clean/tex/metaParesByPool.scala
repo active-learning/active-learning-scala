@@ -191,7 +191,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       //          C45(laplace = false, 5, 1).tree(arq + "umPorBase.arff", arq + "umPorBase" + ".tex")
       //          println(s"${arq} <- arq")
       //        }
-      }
+      //      }
     }
   }
 }
