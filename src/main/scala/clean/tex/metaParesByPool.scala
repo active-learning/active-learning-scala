@@ -135,40 +135,47 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       out(s"resultados $stratName ============== maj=0 significa que há duas majoritárias empatadas se for LOO =============")
       if (porRank) out(s"Pearson correl.: higher is better. $rus*$ks-fold CV. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
       else out(s"Accuracy: higher is better. $rus*$ks-fold CV. $n best. $measure$ini-$fim${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}")
-      val porMetaLea = cv(smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
-      def fo(x: Double) = "%2.3f".format(x)
 
+      val sm = if (smote) s"sm$smotePropor" else "nosm"
+      val fsel = if (featureSel) "fs" else "nofs"
+      val ra = if (porRank) "ra" else "ac"
       val metads = new Db("meta", readOnly = false)
       metads.open()
+      metads.read(s"select count(0) from r where sm=$sm and ntrees=$ntrees and fsel=$fsel and ra=$ra and rs=$rus and fs=$ks") match {
+        case List(Vector(0d)) =>
+          val porMetaLea = cv(smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          def fo(x: Double) = "%2.3f".format(x)
 
-      val outp = porMetaLea map { case (nome, resultados) =>
-        val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
-        val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
-        val accBalTr = Stat.media_desvioPadrao(resultados.map(_.accBalTr))
-        val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
-        val r = resultados reduce (_ ++ _)
-        val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
-        //ac2 significa sem R metafeatures, tirei na mão.
-        metads.write(s"insert  into r values ('${if (porRank) "ra" else "ac"}', '${if (smote) s"sm$smotePropor" else "nosm"}', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '${if (featureSel) "fs" else "nofs"}', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
-        (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
+          porMetaLea foreach { case (nome, resultados) =>
+            val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+            val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
+            val accBalTr = Stat.media_desvioPadrao(resultados.map(_.accBalTr))
+            val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
+            val r = resultados reduce (_ ++ _)
+            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
+            //ac2 significa sem R metafeatures, tirei na mão.
+            metads.write(s"insert  into r values ('$ra', '$sm', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '$fsel', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
+            (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
+          }
+        case x => println(s"${x} <- rows already stored")
+        //      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
+
+        //      out("histogramas ===========================")
+        //      out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
+        //      porMetaLea foreach { case (nome, resultados) =>
+        //        val r = resultados reduce (_ ++ _)
+        //        //          out(s"$nome: ------------")
+        //        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome tr " + x) foreach out
+        //        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"  metale:$nome ts " + x) foreach out
+        //        out("")
+        //      }
+
+        //      out(Tempo.stop + "s")
+        //      val fw = new FileWriter(txt)
+        //      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
+        //      //      fw.write(tx2)
+        //      fw.close()
       }
-      //      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
-
-      //      out("histogramas ===========================")
-      //      out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
-      //      porMetaLea foreach { case (nome, resultados) =>
-      //        val r = resultados reduce (_ ++ _)
-      //        //          out(s"$nome: ------------")
-      //        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome tr " + x) foreach out
-      //        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"  metale:$nome ts " + x) foreach out
-      //        out("")
-      //      }
-
-      //      out(Tempo.stop + "s")
-      //      val fw = new FileWriter(txt)
-      //      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
-      //      //      fw.write(tx2)
-      //      fw.close()
       metads.close()
       //      } else {
       //        val arq = Source.fromFile(txt)
@@ -177,13 +184,13 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       //        println(str)
       //      }
 
-      if (!porRank) Datasets.arff(arq, dedup, rmuseless = false) match {
-        case Right(x) => if (apenasUmPorBase) {
-          val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
-          patts2file(ps, arq + "umPorBase")
-          C45(laplace = false, 5, 1).tree(arq + "umPorBase.arff", arq + "umPorBase" + ".tex")
-          println(s"${arq} <- arq")
-        }
+      //      if (!porRank) Datasets.arff(arq, dedup, rmuseless = false) match {
+      //        case Right(x) => if (apenasUmPorBase) {
+      //          val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
+      //          patts2file(ps, arq + "umPorBase")
+      //          C45(laplace = false, 5, 1).tree(arq + "umPorBase.arff", arq + "umPorBase" + ".tex")
+      //          println(s"${arq} <- arq")
+      //        }
       }
     }
   }
