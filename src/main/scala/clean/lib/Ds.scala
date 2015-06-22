@@ -176,7 +176,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     }
 
     val res = r0 map { case Double.NegativeInfinity | Double.PositiveInfinity => Double.NaN; case x => x }
-    val nomes = nonHumanNumAttsNames ++ (if (suav) Array("suavidade", "suavidadedesv") else Array[String]())
+    val nomes = nonHumanNumAttsNames ++ (if (suav) Array("suavidadenb", "suavidadedesvnb", "suavidaderf", "suavidadedesvrf", "suavidadesvm", "suavidadedesvsvm", "suavidade5nn", "suavidadedesv5nn") else Array[String]())
     nomes zip res map (x => (x._1, x._2, "numeric"))
   })
 
