@@ -147,7 +147,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
   lazy val kurtavg = kurtoses.sum / kurtoses.size
   lazy val correlsavg = correls.sum / correls.size
 
-  def metaAttsrf(r: Int, f: Int) = metaAttsrfmap getOrElseUpdate((r, f), {
+  def metaAttsrf(r: Int, f: Int, suav: Boolean) = metaAttsrfmap getOrElseUpdate((r, f), {
     lazy val r00 = List[Double](
       nclasses, nattributes, poolSize,
       poolSizeByNatts, 100d * nomCount / nattributes, math.log10(poolSize), math.log10(poolSizeByNatts),
@@ -157,9 +157,10 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       mediasrf(r, f).min, mediasavgrf(r, f), mediasrf(r, f).max, mediasrf(r, f).min / mediasrf(r, f).max,
       desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, desviosrf(r, f).min / desviosrf(r, f).max,
       entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, entropiasrf(r, f).min / entropiasrf(r, f).max,
-      correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah)
+      correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah) ++
+      (if (suav) List(NBBatch(), RF(r * 1000 + f), SVMLibRBF(r * 1000 + f), KNNBatcha(5, "eucl", getPool(r, f), weighted = true)) flatMap suavidade(r, f) else List())
 
-    val arq = s"/home/davi/wcs/cache/$dataset$r.$f.cache"
+    val arq = s"/home/davi/wcs/cache/${if (suav) "suav" else ""}$dataset$r.$f.cache"
     val file = new File(arq)
     val r0 = if (file.exists()) {
       val maparq = Source.fromFile(file)
@@ -175,7 +176,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     }
 
     val res = r0 map { case Double.NegativeInfinity | Double.PositiveInfinity => Double.NaN; case x => x }
-    nonHumanNumAttsNames zip res map (x => (x._1, x._2, "numeric"))
+    val nomes = nonHumanNumAttsNames ++ (if (suav) Array("suavidade", "suavidadedesv") else Array[String]())
+    nomes zip res map (x => (x._1, x._2, "numeric"))
   })
 
   def mediasavgrf(r: Int, f: Int) = mediasrf(r, f).sum / mediasrf(r, f).size
@@ -631,14 +633,15 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
   def getPool(r: Int, f: Int) = poolMap getOrElseUpdate((r, f), queries(0, 0, r, f, null, null))
 
-  def suavidade(l: Learner) = {
+  def suavidade(r: Int, f: Int)(l: Learner) = {
     val le = allLearners(patterns, 42).find(_.id == l.id).getOrElse(quit("suavidade problems"))
-    val ts = new Random(0).shuffle(patterns).take(15 * nclasses)
+    val ts = new Random(0).shuffle(getPool(r, f)).take(15 * nclasses)
     val (fts, binaf, zscof) = criaFiltro(patterns, 0)
-    val tr = queries(0, 0, 0, 0, null, null).take(nclasses)
+    val tr = queries(0, 0, r, f, null, null).take(nclasses)
     lazy val ftr = aplicaFiltro(tr, 0, binaf, zscof)
-    val tr2 = if (Seq(6, 8, 11).contains(l.id)) ftr else tr
-    val ts2 = if (Seq(6, 8, 11).contains(l.id)) fts else ts
-    le.build(tr2).predictionEntropy(ts2)._1
+    val tr2 = if (l.querFiltro) ftr else tr
+    val ts2 = if (l.querFiltro) fts else ts
+    val md = le.build(tr2).predictionEntropy(ts2)
+    List(md._1, md._2)
   }
 }
