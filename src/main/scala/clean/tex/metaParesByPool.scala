@@ -10,7 +10,7 @@ import weka.core.{Instances, Attribute}
 import scala.io.Source
 
 object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "FS", "smote", "smotePropor", "suav")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "qtosPorBase", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "FS", "smote", "smotePropor", "suav", "semr")
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -42,8 +42,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l
       //    $rus.$ks
-      val arq = s"/home/davi/wcs/arff/${if (suav) "suav" else ""}$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${if (featureSel) "-FS" else ""}.arff"
-      val txt = s"/home/davi/results/${if (suav) "suav" else ""}trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
+      val arq = s"/home/davi/wcs/arff/${if (semR) "semR" else ""}${if (suav) "suav" else ""}$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${if (featureSel) "-FS" else ""}.arff"
+      val txt = s"/home/davi/results/${if (semR) "semR" else ""}${if (suav) "suav" else ""}trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}${if (featureSel) "-FS" else ""}${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
 
@@ -83,7 +83,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
             //            "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y"
             //FS não ajudou, mesmo robando assim:
             val selecionados = Seq("nominalValuesCountmin", "AH-conect.-1.5Y", "AH-silhueta-1.5Y", "\"#atributos\"", "kurtosesmin", "skewnessesmin", "\"#classes\"", "correlsavg", "mediasavg", "AH-silhueta-Y")
-            val metaatts00 = ds.metaAttsrf(r, f, suav).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
+            val metaatts00 = ds.metaAttsrf(r, f, suav).map(x => (x._1, x._2.toString, x._3)) ++ (if (semR) Seq() else ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3)))
             val metaatts0 = if (featureSel) metaatts00.filter(x => selecionados.contains(x._1)) else metaatts00
             val metaatts = ("\"bag_" + pares.size + "\"", ds.dataset, "string") +: metaatts0
             if (porRank) {
@@ -134,7 +134,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       if (porRank) print(s"$stratName Spearman correl. $rus*$ks-fold CV. ${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
       else print(s"$stratName Accuracy. $rus*$ks-fold CV. ${if (featureSel) "FeatSel" else ""}${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
 
-      val sm = (if (suav) "suav" else "") + (if (smote) s"sm$smotePropor" else "nosm")
+      val sm = (if (semR) "semr" else "") + (if (suav) "suav" else "") + (if (smote) s"sm$smotePropor" else "nosm")
       val fsel = if (featureSel) "fs" else "nofs"
       val ra = if (porRank) "ra" else "ac"
       val metads = new Db("meta", readOnly = false)
