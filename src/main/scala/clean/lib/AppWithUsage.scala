@@ -62,7 +62,7 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   lazy val smote = args(14) == "smote"
   lazy val smotePropor = args(15).toInt
   lazy val suav = args(16) == "su"
-  lazy val semR = args(17) == "semr"
+  lazy val semR = args(17)
 
   lazy val reduz = args(5).contains("r")
   lazy val comprimento = args(5)
