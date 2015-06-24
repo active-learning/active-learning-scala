@@ -58,7 +58,7 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   lazy val criterio = args(8).toInt
   lazy val (rus, ks) = args(9).toInt -> args(10).toInt
   lazy val (ini, fim) = args(11) -> args(12)
-  lazy val featureSel = args(13) == "fs"
+  lazy val featureSel = args(13)
   lazy val smote = args(14) == "smote"
   lazy val smotePropor = args(15).toInt
   lazy val suav = args(16) == "su"

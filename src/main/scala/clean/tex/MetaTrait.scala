@@ -35,8 +35,10 @@ import weka.classifiers.trees.RandomForest
 import weka.core.{Attribute, Instances, DenseInstance}
 import weka.core.converters.ArffSaver
 import weka.filters.supervised.instance.{SMOTE, ClassBalancer}
+import weka.filters.unsupervised.attribute.PrincipalComponents
 
 import scala.collection.mutable
+import scala.io.Source
 import scala.util.Random
 
 trait MetaTrait extends FilterTrait with Rank with Log {
@@ -104,6 +106,19 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     as.setInstances(Datasets.patterns2instances(patterns))
     as.setFile(new File(arq + ".arff"))
     as.writeBatch()
+
+    val f = Source.fromFile(arq + ".arff")
+    val lis = f.getLines().toList
+    f.close()
+    val lis2 = lis map {
+      case x if x.toLowerCase.startsWith("@attribute") && !x.contains(" class ") =>
+        val y = x.toLowerCase.replace("@attribute '", "@attributeº'").replace("@attribute -", "@attributeº'-").replace("@attribute 0", "@attributeº'0").replace("... numeric", "...'ºnumeric").replace(" numeric", "ºnumeric")
+        y.replace(" ", "-").replace("º", " ")
+      case x => x
+    }
+    val fw = new FileWriter(arq + ".arff")
+    fw.write(lis2.mkString("\n"))
+    fw.close()
   }
 
   val originalStream = System.out
@@ -170,7 +185,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
 
-  def cv(pct: Double, smote: Boolean, ntrees: Int, attsel: Boolean, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(pct: Double, smote: Boolean, ntrees: Int, attsel: String, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
     (1 to rs).par map { run =>
@@ -306,64 +321,81 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             val rf = Seq(trf, trfSemParecidos) map Datasets.applyFilterIdRnd(smf)
 
             (r(0), rf(0), ts, tsf, rf(1))
-          } else
-          //            if (attsel) {
-          //            val att = new AttributeSelection
-          //            val attf = new AttributeSelection
-          //            val eval = new WrapperSubsetEval
-          //            val evalf = new WrapperSubsetEval
-          //            val data = Seq(tr, ts) map Datasets.patterns2instancesId
-          //            val dataf = Seq(trf, tsf, trfSemParecidos) map Datasets.patterns2instancesId
-          //            val sample = Datasets.patterns2instancesId(tr)
-          //            val samplef = Datasets.patterns2instancesId(trf)
-          //            eval.buildEvaluator(sample)
-          //            evalf.buildEvaluator(samplef)
-          //            //            val cla = new RandomForest
-          //            //            val claf = new RandomForest
-          //            val cla = new IBk
-          //            val claf = new IBk
-          //            //            cla.setDoNotCheckCapabilities(true)
-          //            //            claf.setDoNotCheckCapabilities(true)
-          //            //            cla.setNumTrees(20)
-          //            //            claf.setNumTrees(20)
-          //            cla.setKNN(5)
-          //            claf.setKNN(5)
-          //            eval.setFolds(10)
-          //            eval.setClassifier(cla)
-          //            eval.setThreshold(0.01)
-          //            eval.setSeed(fold * run)
-          //            evalf.setFolds(10)
-          //            evalf.setClassifier(claf)
-          //            evalf.setThreshold(0.01)
-          //            evalf.setSeed(fold * run)
-          //            att.setEvaluator(eval)
-          //            attf.setEvaluator(evalf)
-          //            val sea = new BestFirst()
-          //            sea.setLookupCacheSize(10)
-          //            //            sea.setSearchTermination(3)
-          //            val seaf = new BestFirst()
-          //            seaf.setLookupCacheSize(10)
-          //            //            seaf.setSearchTermination(3)
-          //            /*
-          //            Searches the space of attribute subsets by greedy hillclimbing augmented with a backtracking facility.
-          //            Setting the number of consecutive non-improving nodes allowed controls the level of backtracking done.
-          //            Best first may start with the empty set of attributes and search forward, or start with the full set of
-          //            attributes and search backward, or start at any point and search in both directions (by considering all
-          //            possible single attribute additions and deletions at a given point).
-          //             */
-          //            sea.setStartSet("1")
-          //            seaf.setStartSet("1")
-          //            att.setSearch(sea)
-          //            attf.setSearch(seaf)
-          //            att.SelectAttributes(sample)
-          //            attf.SelectAttributes(samplef)
-          //            println(s"${att.selectedAttributes().toList} <- att.selectedAttributes()")
-          //            println(s"${attf.selectedAttributes().toList} <- attf.selectedAttributes()")
-          //            val seq = data map (x => Datasets.instances2patternsId(att.reduceDimensionality(x)).toVector)
-          //            val seqf = dataf map (x => Datasets.instances2patternsId(attf.reduceDimensionality(x)).toVector)
-          //            (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
-          //          } else
-            (tr, trf, ts, tsf, trfSemParecidos)
+          } else attsel.splitAt(3) match {
+            case ("pca", comps) =>
+              val pca = new PrincipalComponents()
+              pca.setDebug(false)
+              pca.setDoNotCheckCapabilities(true)
+              pca.setInputFormat(Datasets.patterns2instances(tr))
+              pca.setMaximumAttributes(comps.toInt)
+              val seq = Seq(tr, ts) map Datasets.applyFilterIdRnd(pca)
+
+              val pcaf = new PrincipalComponents()
+              pcaf.setDebug(false)
+              pcaf.setDoNotCheckCapabilities(true)
+              pcaf.setInputFormat(Datasets.patterns2instances(trf))
+              pcaf.setMaximumAttributes(comps.toInt)
+              val seqf = Seq(trf, tsf, trfSemParecidos) map Datasets.applyFilterIdRnd(pcaf)
+
+              (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
+
+            case ("fs", _) =>
+              val att = new AttributeSelection
+              val attf = new AttributeSelection
+              val eval = new WrapperSubsetEval
+              val evalf = new WrapperSubsetEval
+              val data = Seq(tr, ts) map Datasets.patterns2instancesId
+              val dataf = Seq(trf, tsf, trfSemParecidos) map Datasets.patterns2instancesId
+              val sample = Datasets.patterns2instancesId(tr)
+              val samplef = Datasets.patterns2instancesId(trf)
+              eval.buildEvaluator(sample)
+              evalf.buildEvaluator(samplef)
+              //            val cla = new RandomForest
+              //            val claf = new RandomForest
+              val cla = new IBk
+              val claf = new IBk
+              //            cla.setDoNotCheckCapabilities(true)
+              //            claf.setDoNotCheckCapabilities(true)
+              //            cla.setNumTrees(20)
+              //            claf.setNumTrees(20)
+              cla.setKNN(5)
+              claf.setKNN(5)
+              eval.setFolds(10)
+              eval.setClassifier(cla)
+              eval.setThreshold(0.01)
+              eval.setSeed(fold * run)
+              evalf.setFolds(10)
+              evalf.setClassifier(claf)
+              evalf.setThreshold(0.01)
+              evalf.setSeed(fold * run)
+              att.setEvaluator(eval)
+              attf.setEvaluator(evalf)
+              val sea = new BestFirst()
+              sea.setLookupCacheSize(10)
+              //            sea.setSearchTermination(3)
+              val seaf = new BestFirst()
+              seaf.setLookupCacheSize(10)
+              //            seaf.setSearchTermination(3)
+              /*
+                      Searches the space of attribute subsets by greedy hillclimbing augmented with a backtracking facility.
+                      Setting the number of consecutive non-improving nodes allowed controls the level of backtracking done.
+                      Best first may start with the empty set of attributes and search forward, or start with the full set of
+                      attributes and search backward, or start at any point and search in both directions (by considering all
+                      possible single attribute additions and deletions at a given point).
+                       */
+              sea.setStartSet("1")
+              seaf.setStartSet("1")
+              att.setSearch(sea)
+              attf.setSearch(seaf)
+              att.SelectAttributes(sample)
+              attf.SelectAttributes(samplef)
+              println(s"${att.selectedAttributes().toList} <- att.selectedAttributes()")
+              println(s"${attf.selectedAttributes().toList} <- attf.selectedAttributes()")
+              val seq = data map (x => Datasets.instances2patternsId(att.reduceDimensionality(x)).toVector)
+              val seqf = dataf map (x => Datasets.instances2patternsId(attf.reduceDimensionality(x)).toVector)
+              (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
+            case _ => (tr, trf, ts, tsf, trfSemParecidos)
+          }
 
           leas(trfs) map { le =>
             val (trtestbags, tstestbags, m) = if (le.querFiltro) {
