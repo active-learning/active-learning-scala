@@ -415,7 +415,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                     fm + FakeModelRank(((trffs ++ tsffs) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed(?) to free FM object
                   }
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
-                case PCTELM(_) => PCTELM(seed).build(trffs)
+                case PCTELM(_, _, _) => PCTELM(ntrees, seed, (trffs ++ tsffs).toVector).build(trffs)
                 case _ => le.build(trffs)
               }
               (trffs.groupBy(x => x.id), tsffs.groupBy(x => x.id), mo)
