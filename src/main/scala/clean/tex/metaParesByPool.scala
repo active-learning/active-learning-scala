@@ -141,7 +141,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val metads = new Db("meta", readOnly = false)
       metads.open()
       metads.readString(s"select mc from r where st='$stratName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
-        case l@List(v) if !l.contains("PE") =>
+        case l@List(v) if !l.contains(Vector("PE")) =>
           val porMetaLea = cv(smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
