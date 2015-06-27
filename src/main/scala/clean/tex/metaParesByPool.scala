@@ -26,16 +26,17 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
-      PCT(),
-      NinteraELM(),
-      PCTELM(),
-      CIELMBatch(),
-      SVMLibRBF(),
-      C45(false, 5),
-      KNNBatcha(5, "eucl", patts),
-      RF(42, ntrees),
-      Chute(),
-      Maj())
+      //      PCT(),
+      //      NinteraELM(),
+      PCTELM()
+      //      CIELMBatch(),
+      //      SVMLibRBF(),
+      //      C45(false, 5),
+      //      KNNBatcha(5, "eucl", patts),
+      //      RF(42, ntrees),
+      //      Chute(),
+      //      Maj()
+    )
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
     val leas = learnerStr.replace(" ", ".")
     stratsTex("all") foreach { strat =>
