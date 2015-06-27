@@ -10,21 +10,35 @@ import util.{Datasets, Stat, Tempo}
 import scala.io.Source
 
 object tableMeta extends App {
-  val db = new Db("meta", false)
+  //PE não aparece!
+  //  val ord = List("ELM","ELMr-a","PCT","PCTr-a","PE","PEr-a","RFw1000","C4.55","maj")
+  val ord = List("ELM", "ELMr-a", "PCT", "PCTr-a", "PEr-a", "RFw1000", "C4.55", "maj")
+
+  def ord2(l: List[Vector[String]]) = {
+    val u = ord.zipWithIndex.sortBy(_._1)
+    l.sortBy(_(1)).zip(u).sortBy(_._2._2).map(_._1)
+  }
+
+  val db = new Db("meta", true)
   db.open()
-  val dbrows = db.readString("select st,mc,abts,dbts from r where ra='acc' and rs=10 and fs=10 and ls='5nna,rbf,rf,nbb' order by mc")
-  val tableheader = "\t& " + dbrows.groupBy(_.head).values.flatten.map(_(1)).toList.distinct.sorted.mkString(" & ") + " \\\\ \\hline"
+  val dbrows = db.readString("select st,mc,abts,dbts,htr from r where rs=10 AND fs=10 and nt=1000 and (sm like 'nosm%') and mc in ('ELM','ELMr-a','PCT','PCTr-a','PE','PEr-a','RFw1000','C4.55','maj') and fsel not like 'pca%' order by abts;")
+  //  val tableheader = "\t& " + ord(dbrows.groupBy(_.head).values.flatten.map(_(1)).toList.distinct).mkString(" & ") + " \\\\ \\hline"
+  val tableheader = "\t& " + (ord ++ List("$\\delta$", "$\\frac{\\maj}{\\min}$")).mkString(" & ") + " \\\\ \\hline"
   val tablerows = dbrows.groupBy(_.head).values.toList.sortBy(_.head.head).map { case veclst =>
     val strat = veclst.head.head
-    val Max = (veclst map { case Vector(st, metacla, acc, dev) => acc }).max
-    val strs = veclst.sortBy(_(1)) map {
-      case Vector(st, metacla, Max, dev) => s"\\textbf{${"%2d".format((Max.toDouble * 100).round)}}/${"%2d".format((dev.toDouble * 100).round)}";
-      case Vector(st, metacla, acc, dev) => s"${"%2d".format((acc.toDouble * 100).round)}/${"%2d".format((dev.toDouble * 100).round)}";
+    val Min = (veclst map { case Vector(st, metacla, acc, dev, _) => acc }).min
+    val Max = (veclst map { case Vector(st, metacla, acc, dev, _) => acc }).max
+    val strs = (ord2(veclst) map {
+      case Vector(st, metacla, Max, dev, _) => s"\\textcolor{blue}{\\textbf{${"%2d".format((Max.toDouble * 100).round)}}}/${"%2d".format((dev.toDouble * 100).round)}";
+      case Vector(st, metacla, Min, dev, _) => s"\\textcolor{red}{${"%2d".format((Min.toDouble * 100).round)}}/${"%2d".format((dev.toDouble * 100).round)}";
+      case Vector(st, metacla, acc, dev, _) => s"${"%2d".format((acc.toDouble * 100).round)}/${"%2d".format((dev.toDouble * 100).round)}";
       case x => db.error(s"${x} <- x ALERTA")
-    }
-    strat + "\t& " + strs.mkString(" & ")
-  }.mkString(" \\\\ \n")
-  println(s"\\begin{table}[h]\n\\begin{center}\n\\begin{tabular}{l|" + Seq.fill(tablerows.split("\n").size - 1)("r").mkString + "}")
+    }) ++ List(s"${"%2d".format(((Max.toDouble - Min.toDouble) * 100).round)}")
+    val hx = veclst.head(4).split(";").head.split(" ").map(_.toDouble).max
+    val hn = veclst.head(4).split(";").head.split(" ").map(_.toDouble).min
+    strat + "\t& " + strs.mkString(" & ") + " & " + "%2d".format((100 * hx / hn).round)
+  }.sortBy(_.split("&")(ord.size).split("\\\\\\\\").head.toDouble).reverse.mkString(" \\\\ \n")
+  println(s"\\begin{table}[h]\n\\begin{center}\n\\begin{tabular}{l|" + Seq.fill(tableheader.split("&").size - 1)("r").mkString + "}")
   println(s"${tableheader}")
   println(s"${tablerows}")
   println("\\end{tabular}\n\\end{center}\n\\end{table}")

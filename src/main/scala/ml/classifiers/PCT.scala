@@ -38,12 +38,6 @@ case class PCT(ntrees: Int = 1000, seed: Int = 42, trts: Vector[Pattern] = Vecto
 
   def expected_change(model: Model)(pattern: Pattern) = ???
 
-  /**
-   * Every call to build generates a model from scratch
-   * (and reinstanciate all needed internal mutable objects, if any).
-   * @param pool
-   * @return
-   */
   def build(patterns0: Seq[Pattern]) = {
     val tr = patterns0.toVector
     val trSemParecidos = tr
