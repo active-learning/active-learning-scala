@@ -59,7 +59,7 @@ case class PCT(ntrees: Int = 1000, seed: Int = 42, trts: Vector[Pattern] = Vecto
     //coleta predições de tr e ts num só arquivo
     val clusTSPredictionsARFF = Datasets.arff(s"/run/shm/cla-clus$seed$id.test.pred.arff", dedup = false, rmuseless = false) match {
       case Right(x) => x
-      case Left(m) => error(s"${m} <- m")
+      case Left(m) => error(s"${m} <- m \n " + s"/run/shm/cla-clus$seed$id.test.pred.arff")
     }
 
     new File(arqtr + ".arff").delete

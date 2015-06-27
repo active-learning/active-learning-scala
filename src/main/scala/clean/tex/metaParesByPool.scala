@@ -141,7 +141,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val metads = new Db("meta", readOnly = false)
       metads.open()
       metads.readString(s"select mc from r where st='$stratName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
-        case l@List(v) if !l.contains(Vector("PE")) =>
+        case x: List[Vector[String]] if !x.map(_.head).contains("PE") =>
           val porMetaLea = cv(smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
@@ -156,7 +156,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
             metads.write(s"insert  into r values ('$ra', '$sm', $criterio, '$ini', '$fim', '$stratName', '$leas', $rus, $ks, '$nome', $ntrees, '$fsel', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
           }
-        case x => println(s"${x} <- rows already stored")
+        case x: List[Vector[String]] => println(s"${x} <- rows already stored")
         //      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
 
         //      out("histogramas ===========================")

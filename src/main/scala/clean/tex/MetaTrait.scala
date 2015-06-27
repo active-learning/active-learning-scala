@@ -110,12 +110,16 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     val f = Source.fromFile(arq + ".arff")
     val lis = f.getLines().toList
     f.close()
-    val lis2 = lis map {
-      case x if x.toLowerCase.startsWith("@attribute") && !x.contains(" class ") =>
-        val y = x.toLowerCase.replace("@attribute '", "@attributeº'").replace("@attribute -", "@attributeº'-").replace("@attribute 0", "@attributeº'0").replace("... numeric", "...'ºnumeric").replace(" numeric", "ºnumeric")
-        y.replace(" ", "-").replace("º", " ")
-      case x => x
-    }
+    val lis2 = lis
+
+    //parte pra PCA que nao funfa sem PCA:
+    //   val lis2 =  map {
+    //      case x if x.toLowerCase.startsWith("@attribute") && !x.contains(" class ") =>
+    //        val y = x.toLowerCase.replace("@attribute '", "@attributeº'").replace("@attribute -", "@attributeº'-").replace("@attribute 0", "@attributeº'0").replace("... numeric", "...'ºnumeric").replace(" numeric", "ºnumeric")
+    //        y.replace(" ", "-").replace("º", " ")
+    //      case x => x
+    //    }
+
     val fw = new FileWriter(arq + ".arff")
     fw.write(lis2.mkString("\n"))
     fw.close()
