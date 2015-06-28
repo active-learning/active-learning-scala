@@ -26,14 +26,14 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
-      PCT(),
+      //      PCT(),
       NinteraELM(),
       PCTELM(),
       CIELMBatch(),
-      SVMLibRBF(),
-      C45(false, 5),
-      KNNBatcha(5, "eucl", patts),
-      RF(42, ntrees),
+      //      SVMLibRBF(),
+      //      C45(false, 5),
+      //      KNNBatcha(5, "eucl", patts),
+      //      RF(42, ntrees),
       Chute(),
       Maj()
     )
@@ -142,7 +142,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val metads = new Db("meta", readOnly = false)
       metads.open()
       metads.readString(s"select mc from r where st='$stratName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
-        case x: List[Vector[String]] if !x.map(_.head).contains(???) =>
+        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector())).size == 0 =>
           val porMetaLea = cv(smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
