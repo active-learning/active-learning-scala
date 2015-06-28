@@ -322,6 +322,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             smf.setDoNotCheckCapabilities(true)
             smf.setInputFormat(Datasets.patterns2instances(trf))
             smf.setRandomSeed(seed)
+            smf.setPercentage(pct)
             val rf = Seq(trf, trfSemParecidos) map Datasets.applyFilterIdRnd(smf)
 
             (r(0), rf(0), ts, tsf, rf(1))
