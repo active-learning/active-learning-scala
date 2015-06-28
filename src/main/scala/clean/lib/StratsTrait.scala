@@ -72,7 +72,7 @@ trait StratsTrait {
       , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
       , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
       , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-      //      , Some((learner: Learner) => EntropyFixo(learner, fakePool))
+      , Some((learner: Learner) => EntropyFixo(learner, fakePool))
       , Some((learner: Learner) => MarginFixo(learner, fakePool))
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")) else None
