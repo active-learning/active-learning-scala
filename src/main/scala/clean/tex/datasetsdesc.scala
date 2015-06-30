@@ -46,7 +46,8 @@ object datasetsdesc extends Exp with Lock {
   def datasetFinished(ds: Ds) {
     acquire()
     println(ds.description2)
-    if (ds.nclasses == 2 && ds.poolSize > 200) m += renomeia(ds) -> (ds.description2._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
+    m += renomeia(ds) -> (ds.description2._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
+    //    if (ds.nclasses == 2 && ds.poolSize > 200) m += renomeia(ds) -> (ds.description2._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     //    if (ds.nclasses == 2) m += renomeia(ds) -> (ds.description._1.map(_.toString)) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     release()
   }
@@ -73,8 +74,8 @@ object datasetsdesc extends Exp with Lock {
       ((i + 1) + "-" + d) -> l
     }
     println(todas.size + " " + datasets.size)
-    val fw2 = new PrintWriter("/home/davi/wcs/artigos/bracis15/dataset-tables.tex", "UTF-8")
-    fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(133)))
+    val fw2 = new PrintWriter("/home/davi/wcs/artigos/revista15/dataset-tables.tex", "UTF-8")
+    fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(33)))
     fw2.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(33).take(33)))
     fw2.write(tabela("tab:datasetsc", "Características das bases de dados (67-94).", todas.drop(66)))
     fw2.close()

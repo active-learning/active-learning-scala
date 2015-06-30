@@ -58,7 +58,7 @@ object tableMeta extends App {
     case "ELM" => "'ELMr'"
     case "def" => "'defr'"
     case x => s"'$x'"
-  }.mkString(",") + ") and fsel not like 'pca%'  and ra!='ac2' order by abts;"
+  }.mkString(",") + ") and fsel not like 'pca%'  and ra!='ac2' order by ats;"
   val sql = if (acc) sqla else sqlr
   println(s"${sql}")
   val dbrows = db.readString(sql)
@@ -67,14 +67,16 @@ object tableMeta extends App {
   val tableheader = "\t& " + (sortedMCs).mkString(" & ") + " \\\\ \\hline"
   val tablerows0 = dbrows.groupBy(_.head).values.toList.sortBy(_.head.head).map { case veclst =>
     val strat = veclst.head.head
-    val vord = ord2(veclst) map { case Vector(st, metacla, acc, dev, _) => acc }
-    val Min = vord.dropRight(1).min //maj nao interessa
-  //  lazy val maj = vord.last.toDouble
-  val Max = vord.dropRight(1).max
-    val strs = ord2(veclst) map {
-      case Vector(st, metacla, Max, dev, _) if metacla != "maj" => s"\\textcolor{blue}{\\textbf{${"%2d".format((Max.toDouble * 100).round)}}}/${"%2d".format((dev.toDouble * 100).round)}";
-      case Vector(st, metacla, Min, dev, _) if metacla != "maj" => s"\\textcolor{red}{${"%2d".format((Min.toDouble * 100).round)}}/${"%2d".format((dev.toDouble * 100).round)}";
-      case Vector(st, metacla, ac, dev, _) => s"${"%2d".format((ac.toDouble * 100).round)}/${"%2d".format((dev.toDouble * 100).round)}";
+    def f(nu: Double) = if (acc) (nu * 100).round.toString else "%4.3f".format((nu * 1000).round / 1000d)
+    val vord = ord2(veclst) map { case Vector(st, metacla, acc, dev, _) => f(acc.toDouble) }
+    val Min = vord.dropRight(1).minBy(_.toDouble)
+    lazy val Maj = vord.last
+    val Max = vord.dropRight(1).maxBy(_.toDouble)
+    val strs = ord2(veclst).map(z => (z(0), z(1), f(z(2).toDouble), f(z(3).toDouble), z(4))) map {
+      case (st, metacla, Maj, dev, _) => s"${Maj}/${dev}";
+      case (st, metacla, Max, dev, _) => s"\\textcolor{blue}{\\textbf{${Max}}}/${dev}";
+      case (st, metacla, Min, dev, _) => s"\\textcolor{red}{${Min}}/${dev}";
+      case (st, metacla, ac, dev, _) => s"${ac}/${dev}";
       case x => db.error(s"${x} <- x ALERTA")
     } //++ List(s"${"%2d".format(((Min.toDouble - maj) * 100).round)}")
     //    val hx = veclst.head(4).split(";").head.split(" ").map(_.toDouble).max
