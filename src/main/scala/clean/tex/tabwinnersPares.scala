@@ -44,7 +44,8 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
     //         //         RandomSampling(Seq())
     //      )
     //    val strats = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
-    val strats = (for {s <- stratsTex("maha").map(_(RF()))} yield s).distinct
+    //    val strats = (for {s <- stratsTex("maha").map(_(RF()))} yield s).distinct
+    val strats = (for {s <- stratsTex("maha")} yield s).distinct
     val datasetLearnerAndBoth = for {
       dataset <- datasets.toList
     //        .filter { dataset =>
@@ -58,20 +59,29 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
         val ds = Ds(dataset, readOnly = true)
         ds.open()
         //         lazy val (ti, th, tf, tpass) = ranges(ds)
-        val sres = for {s <- strats} yield {
+        val sres = for {s0 <- strats} yield {
+
+          val metads = new Db("meta", readOnly = false)
+          metads.open()
+          val sql = s"select pre from e where mc='ELM' and st='${s0(NoLearner()).limp}' and ds='$dataset'"
+          val classif = metads.readString(sql) match {
+            case List(Vector(predito)) =>
+              val cla = predito.split("-").last
+              ls.find(_.limp == cla).getOrElse(???)
+            case x => println(s"${x} <- x")
+              println(s"${sql} <- ")
+              sys.exit(1)
+          }
+          val s = s0(classif)
+          metads.close()
+
           val (cs, vs) = (for {
             r <- 0 until runs
             f <- 0 until folds
           } yield {
               try {
 
-                val classif = RF()
-                //                val classif =
-                //val metads = new Db("meta", readOnly = false)
-                //                metads.open()
-                //                metads.readString(s"select mc from r where ls='$leas' and st='$stratName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
-                //                  case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-                //                }
+                //                val classif = RF()
                 val (ti, th, tf, tpass) = ranges(ds)
                 classif.limpa -> measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
                   println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
@@ -111,7 +121,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
     val flat = datasetLearnerAndWinners.flatMap(_._2)
     val flat2 = datasetLearnerAndLosers.flatMap(_._2)
     val flat3 = pioresQueRnd.flatMap(_._2)
-    val algs1 = strats.map(_.limpa) map { st =>
+    val algs1 = strats.map(_(NoLearner()).limp) map { st =>
       val topCount = flat.count(_ == st)
       val botCount = flat2.count(_ == st)
       val rndCount = flat3.count(_ == st)

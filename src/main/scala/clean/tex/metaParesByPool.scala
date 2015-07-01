@@ -30,7 +30,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       NinteraELM(),
       PCTELM(),
       CIELMBatch(),
-      SVMLibRBF(),
+      //      SVMLibRBF(),
       C45(false, 5),
       KNNBatcha(5, "eucl", patts),
       RF(42, ntrees),

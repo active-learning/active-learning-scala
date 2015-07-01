@@ -438,7 +438,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               }
               (trfs.groupBy(x => x.id), tsfs.groupBy(x => x.id), mo)
             }
-            val tr_ts = Vector(trtestbags, tstestbags) map { bags =>
+            val tr_ts = Vector(trtestbags, tstestbags).zipWithIndex map { case (bags, idx) =>
               val resPorClasse = mutable.Queue[(String, String, Double)]()
               bags.map(_._2) foreach { xbag =>
                 // com n>1 (ou n==1 com empates) statisticas p/ maj vão sair maiores que o verdadeiro valor maj, com esse criterio abaixo (n: número de vencedores)
@@ -447,7 +447,11 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val re = if (xbag.map(_.label).contains(pred)) 1d else 0d
                 val predito = xbag.head.classAttribute().value(pred)
                 val base = tsbags.head.head.nomeBase
-                metads.write(s"insert into e values ('${le.limp}', '$strat', '$base', '$esperado', '$predito')")
+                if (idx == 1) {
+                  val sql = s"insert into e values ('${le.limp}', '$strat', '$base', '$esperado', '$predito')"
+                  println(s"${sql} <- sql")
+                  metads.write(sql)
+                }
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
               resPorClasse
