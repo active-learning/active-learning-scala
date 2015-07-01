@@ -192,7 +192,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   def cv(strat: String, pct: Double, smote: Boolean, ntrees: Int, attsel: String, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
-    val base = patterns.head.nomeBase
 
     val metads = new Db("meta", readOnly = false)
     metads.open()
@@ -447,6 +446,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val pred = m.predict(xbag.head).toInt
                 val re = if (xbag.map(_.label).contains(pred)) 1d else 0d
                 val predito = xbag.head.classAttribute().value(pred)
+                val base = xbag.head.nomeBase
                 metads.write(s"insert into e values ('$strat', '$base', '$esperado', '$predito')")
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
