@@ -4,7 +4,8 @@ import clean.lib._
 import util.StatTests
 
 object tableMetaComparaSMOTE extends App {
-  val sortedMCs = List("ELM", "PCT", "RFw", "ELM+\\newline PCT")
+  val sortedMCs = List("ELM", "maj")
+  //  val sortedMCs = List("ELM", "PCT", "RFw", "ELM+\\newline PCT", "maj")
 
   def ord2(l: List[Vector[String]]) = {
     val u = sormcs2.zipWithIndex.sortBy(_._1)
@@ -24,13 +25,12 @@ object tableMetaComparaSMOTE extends App {
   val sqlsem = "select st,mc,abts,dbts,htr from r where rs=10 AND fs=10 and nt=1000 and (sm = 'nosm') and mc in (" + mcs + ") and fsel not like 'pca%'  and ra!='ac2' order by st,mc;"
   val sqlcom = sqlsem.replace("'nosm'", "'sm50'")
   val dbrows = db.readString(sqlsem) zip db.readString(sqlcom)
-  dbrows foreach println
   if (!db.readString(sqlsem).map(_.take(2).mkString).sameElements(db.readString(sqlcom).map(_.take(2).mkString))) ???
 
   val sormcs2 = sortedMCs ++ sortedMCs.map(_ + "s")
   val tableheader = "\t& " + sormcs2.mkString(" & ") + " \\\\ \\hline"
   val tablerows0 = dbrows.groupBy(_._1.head).values.toList.sortBy(_.head._1.head).map { case veclst0 =>
-    val veclst = veclst0.map(x => x._1 ++ x._2)
+    val veclst = veclst0.map(x => Seq(x._1, x._2)).flatten
     val strat = veclst.head.head
     def f(nu: Double) = (nu * 100).round.toString
     val vord = ord2(veclst) map { case Vector(st, metacla, acc, dev, _) => f(acc.toDouble) }
@@ -50,7 +50,10 @@ object tableMetaComparaSMOTE extends App {
     //    + " & " + "%2d".format((100 * hx / hn).round) //max/min
   }
   //  tablerows0 foreach println
-  val tablerows = tablerows0.sortBy(x => x.split("&").last.split("/").head.toDouble).reverse.mkString(" \\\\ \n")
+  val tablerows = tablerows0.sortBy { x =>
+    val vs = x.split("&")
+    vs(3).split("/").head.replace("\\textcolor{", "").replace("\\textbf{", "").replace("{", "").replace("}", "").replace("red", "").replace("blue", "").toDouble - vs(1).split("/").head.replace("\\textcolor{", "").replace("\\textbf{", "").replace("}", "").replace("{", "").replace("red", "").replace("blue", "").toDouble
+  }.reverse.mkString(" \\\\ \n")
   println(s"\\begin{table}[h]\n\\begin{center}\n\\begin{tabular}{l|l" + Seq.fill(tableheader.split("&").size - 2)("l").mkString + "}")
   println(s"$tableheader")
   println(s"$tablerows")
@@ -59,7 +62,7 @@ object tableMetaComparaSMOTE extends App {
 
 
   val tab = dbrows.groupBy(_._1.head).values.toList.sortBy(_.head._1.head).map { case veclst0 =>
-    val veclst = veclst0.map(x => x._1 ++ x._2)
+    val veclst = veclst0.map(x => Seq(x._1, x._2)).flatten
     val strat = veclst.head.head
     val vals = ord2(veclst) map {
       case Vector(st, metacla, acc, dev, _) => acc.toDouble
