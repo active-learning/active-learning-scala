@@ -446,8 +446,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val pred = m.predict(xbag.head).toInt
                 val re = if (xbag.map(_.label).contains(pred)) 1d else 0d
                 val predito = xbag.head.classAttribute().value(pred)
-                val base = xbag.head.nomeBase
-                metads.write(s"insert into e values ('$strat', '$base', '$esperado', '$predito')")
+                val base = tsbags.head.head.nomeBase
+                metads.write(s"insert into e values ('${le.limp}', '$strat', '$base', '$esperado', '$predito')")
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
               resPorClasse
