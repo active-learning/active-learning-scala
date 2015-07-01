@@ -22,7 +22,7 @@ package clean.tex
 import java.io.{File, FileWriter, OutputStream, PrintStream}
 import java.util.UUID
 
-import clean.lib.{FilterTrait, Log, Rank}
+import clean.lib.{Db, FilterTrait, Log, Rank}
 import clus.Clus
 import ml.{PatternParent, Pattern}
 import ml.classifiers._
@@ -192,9 +192,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   def cv(strat: String, pct: Double, smote: Boolean, ntrees: Int, attsel: String, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
-    (1 to rs).par map { run =>
+    val base = patterns.head.nomeBase
+
+    val metads = new Db("meta", readOnly = false)
+    metads.open()
+
+    val rrr = (1 to rs).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags = shuffled.groupBy(_.base).values.toVector
+
 
       Datasets.kfoldCV2(bags, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
         //seed tem sobreposição acima de 100 folds
@@ -440,6 +446,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val esperado = xbag.head.nominalLabel
                 val pred = m.predict(xbag.head).toInt
                 val re = if (xbag.map(_.label).contains(pred)) 1d else 0d
+                val predito = xbag.head.classAttribute().value(pred)
+                metads.write(s"insert into e values ('$strat', '$base', '$esperado', '$predito')")
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
               resPorClasse
@@ -462,6 +470,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         }
       }
     }
+    metads.close()
+    rrr
   }
 
   def mapZipper(map1: Map[String, Int], map2: Map[String, Int]) = {
