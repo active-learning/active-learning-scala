@@ -24,64 +24,79 @@ import clean.lib._
 import ml.classifiers._
 import util.Stat
 
-object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
+object METAtabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
   val context = "tabwinnersPares"
   val n = 1
   val qs = "100"
-  // 50 100 u2
   val measure = ALCKappa
   run()
 
   override def run() = {
     super.run()
     val ls = learners(learnersStr)
-    //      val strats = Seq(
-    //         //         MarginFixo(RF(), Seq()),
-    //         HTUFixo(Seq(), RF(), Seq(), "eucl"),
-    //         DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl"),
-    //         AgDensityWeightedTrainingUtility(Seq(), "eucl")
-    //         //         RandomSampling(Seq())
-    //      )
-    val strats = stratsTexRedux("maha")
+    //    val strats = Seq((l:Learner)=>MarginFixo(l,Seq()))
+    val strats = stratsTexReduxMeta("maha")
+    //    val strats = stratsTex("all")
     val datasetLearnerAndBoth = for {
       dataset <- datasets.toList
-    //        .filter { dataset =>
-    //        val ds = Ds(dataset, readOnly = true)
-    //        ds.open()
-    //        val r = ds.poolSize >= (if (qs == "50") 100 else 200)
-    //        ds.close()
-    //        if (qs == "u2") !r else r
-    //      }
     } yield {
         val ds = Ds(dataset, readOnly = true)
         ds.open()
         lazy val (ti, th, tf, tpass) = ranges(ds)
-        val sres = for {s0 <- strats; classif <- ls} yield {
+        val sres0 = for {s0 <- strats} yield {
+
+          val metads = new Db("meta", readOnly = true)
+          metads.open()
+          val sql = s"select pre from e where mc='ELM' and st='${s0(NoLearner()).limp}' and ds='$dataset'"
+          val classif = metads.readString(sql) match {
+            case List(Vector(predito)) =>
+              val cla = predito.split("-").last
+              ls.find(_.limp == cla).getOrElse(???)
+            case x => println(s"${x} <- x")
+              println(s"${sql} <- ")
+              sys.exit(1)
+          }
           val s = s0(classif)
+          metads.close()
+
           val (cs, vs) = (for {
             r <- 0 until runs
             f <- 0 until folds
           } yield {
               try {
-                //                val (classif, nr) = qs match {
-                //                  case "100" => BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s) -> -2
-                //                  case "50" => BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) -> -3
-                //                  case "u2" => BestClassifCVU2_10foldReadOnlyKappa(ds, r, f, s) -> -4
-                //                }
                 classif.limpa -> measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
                   println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
                 }
               } catch {
-                case e: Throwable => println((ds, s, classif, r, f) + "\n" + e.getMessage)
+                case e: Throwable => println((ds, s, s.learner, r, f) + e.getMessage)
                   sys.exit(0) //NA
               }
             }).unzip
-          //            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
-          s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
+          val sem = s.limp -> Stat.media_desvioPadrao(vs.toVector)._1
+
+          val classifc = RF()
+          val sc = s0(classifc)
+          val (csc, vsc) = (for {
+            r <- 0 until runs
+            f <- 0 until folds
+          } yield {
+              try {
+                classifc.limpa -> measure(ds, sc, classifc, r, f)(ti, tf).read(ds).getOrElse {
+                  println((ds, sc, sc.learner, classifc, r, f) + ": medida não encontrada")
+                  sys.exit(0) //NA
+                }
+              } catch {
+                case e: Throwable => println((ds, sc, sc.learner, r, f) + e.getMessage)
+                  sys.exit(0) //NA
+              }
+            }).unzip
+          val com = sc.limp + "_m" -> Stat.media_desvioPadrao(vsc.toVector)._1
+          Seq(sem, com)
         }
-        val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).getOrElse("" -> 0d)._2
+        val sres = sres0.flatten
+        val rnd = sres.find(x => x._1 == RandomSampling(Seq()).limp || x._1 == RandomSampling(Seq()).limp + "_m").getOrElse("" -> 0d)._2
         val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1),
           ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1),
           ds.dataset -> sres.filter(_._2 <= rnd).map(_._1).toList)
@@ -96,8 +111,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
     val flat = datasetLearnerAndWinners.flatMap(_._2)
     val flat2 = datasetLearnerAndLosers.flatMap(_._2)
     val flat3 = pioresQueRnd.flatMap(_._2)
-    val strats0 = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
-    val algs1 = strats0.map(_.limpa) map { st =>
+    val algs1 = flat.distinct map { st =>
       val topCount = flat.count(_ == st)
       val botCount = flat2.count(_ == st)
       val rndCount = flat3.count(_ == st)

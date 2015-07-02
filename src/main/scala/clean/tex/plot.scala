@@ -32,7 +32,7 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
   val tipoLearner = "all"
   val tipoSumariz = "media"
   val measure = Kappa
-  val bracis = true
+  val bracis = !true
   val strats = if (bracis) stratsForBRACIS15 else stratsTexRedux(dist)
   run()
 
