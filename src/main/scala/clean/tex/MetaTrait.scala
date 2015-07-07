@@ -450,7 +450,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 if (idx == 1) {
                   val sql = s"insert into e values ('${le.limp}', '$strat', '$base', '$esperado', '$predito')"
                   println(s"${sql} <- sql")
-                  metads.write(sql)
+                  //                  metads.write(sql)
                 }
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
