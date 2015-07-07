@@ -76,6 +76,19 @@ trait StratsTrait {
     ).flatten
   }
 
+  def stratsMinimal(dist: String) = {
+    Seq(
+      if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
+      , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
+      , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
+      , Some((learner: Learner) => MarginFixo(learner, fakePool))
+      //      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
+      //      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
+      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
+      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
+    ).flatten
+  }
+
   def stratsTex(dist: String) = {
     val fakePool = Seq()
     Seq(
