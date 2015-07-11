@@ -1,15 +1,9 @@
 package clean.tex
 
-import java.io.{File, FileWriter}
-
 import clean.lib._
-import ml.Pattern
-import ml.classifiers._
-import util.{StatTests, Datasets, Stat, Tempo}
+import util.StatTests
 
-import scala.io.Source
-
-object tableMeta extends App {
+object tableMetaEscolheStrats extends App {
   /*
 +---------+
 | mc      |
@@ -51,14 +45,14 @@ object tableMeta extends App {
     case "RFw" => "'RFw1000'"
     case "C4.5w" => "'C4.55'"
     case x => s"'$x'"
-  }.mkString(",") + ") and fsel not like 'pca%'  and ra!='ac2'  and st not in ('5NN','C4.5','CIELM','NB','RFw','SVM') order by abts;"
+  }.mkString(",") + ") and fsel not like 'pca%'  and ra!='ac2'  and st in ('5NN','C4.5','CIELM','NB','RFw','SVM') order by abts;"
   val sqlr = "select st,mc,ats,dts,htr from r where rs=10 AND fs=10 and nt=1000 and (sm like 'nosm%') and mc in (" + sortedMCs.map {
     case "PCT+ ELM" => "'PEr'"
     case "PCT" => "'PCTr'"
     case "ELM" => "'ELMr'"
     case "def" => "'defr'"
     case x => s"'$x'"
-  }.mkString(",") + ") and fsel not like 'pca%'  and ra!='ac2' and st not in ('5NN','C4.5','CIELM','NB','RFw','SVM') order by ats;"
+  }.mkString(",") + ") and fsel not like 'pca%'  and ra!='ac2' and st in ('5NN','C4.5','CIELM','NB','RFw','SVM') order by ats;"
   val sql = if (acc) sqla else sqlr
   println(s"${sql}")
   val dbrows = db.readString(sql)
