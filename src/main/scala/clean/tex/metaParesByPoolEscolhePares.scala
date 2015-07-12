@@ -38,12 +38,12 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
     println(s"Escolher poucos leas!")
     val todospares = for {strat <- stratsTexPermuta("eucl"); l <- ls} yield strat -> l
-    val permutacoes = todospares.combinations(2)
+    val permutacoes = todospares.combinations(2).toList
     println(s"${permutacoes.size} <- permutacoes")
     println(s"${todospares.size} <- todospares")
-
     permutacoes foreach { permuta =>
-      val hash = permuta.map { case (s, l) => s(l).limpa }.mkString("-")
+      val hash = permuta.map(x => x._1(x._2).limp + "-" + x._2.limp).mkString
+      println(s"$hash <- permuta")
       Tempo.start
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$semR${if (suav) "suav" else ""}$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${"pares" + (if (porRank) "Rank" else "")}-$hash-p$dsminSize$featureSel.arff"
