@@ -448,10 +448,10 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val predito = xbag.head.classAttribute().value(pred)
                 val base = tsbags.head.head.nomeBase
                 if (idx == 1) {
-                  if (ks == 94) {
+                  if (ks == 94 && !rank) {
                     val sql = s"insert into e values ('${mc.limp}', '$strat', '$base', '$esperado', '$predito')"
                     print(s"${sql} <- sql ")
-                    println(s"LOO ativa registro para contagem de vitorias")
+                    println(s"LOO+ank ativa registro para contagem de vitorias")
                     metads.write(sql)
                   }
                 }
