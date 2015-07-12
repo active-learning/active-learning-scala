@@ -141,8 +141,11 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
       val metads = new Db("meta", readOnly = false)
       metads.open()
       metads.readString(s"select mc from r where ls='$hash' and st='$permutaName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
-        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-          val porMetaLea = cv(permutaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+        //case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
+        case x: List[Vector[String]] if !x.map(_.head).sameElements(metaclassifs(Vector()).map(_.limp)) =>
+          val metaclassifsf = (v: Vector[Pattern]) => metaclassifs(v).filter(y => !x.map(_.head).contains(y.limp))
+          println(s"${metaclassifsf} <- metaclassifsf por fazer")
+          val porMetaLea = cv(permutaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifsf, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>
