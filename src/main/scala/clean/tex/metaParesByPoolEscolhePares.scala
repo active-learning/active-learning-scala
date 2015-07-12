@@ -48,8 +48,8 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
       println(s"${permutaName} <- permutaName")
       Tempo.start
       //    $rus.$ks
-      val arq = s"/home/davi/wcs/arff/$semR${if (suav) "suav" else ""}$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${"pares" + (if (porRank) "Rank" else "")}-$hash-p$dsminSize$featureSel.arff"
-      val txt = s"/home/davi/results/$semR${if (suav) "suav" else ""}trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${"pares" + (if (porRank) "Rank" else "")}-$hash-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}$featureSel${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
+      val arq = s"/home/davi/wcs/arff/$semR${if (suav) "suav" else ""}$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${permutaName + (if (porRank) "Rank" else "")}-$hash-p$dsminSize$featureSel.arff"
+      val txt = s"/home/davi/results/$semR${if (suav) "suav" else ""}trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${permutaName + (if (porRank) "Rank" else "")}-$hash-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}$featureSel${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = permuta.map { case (s, le) => s(le).limpa }
 
@@ -142,9 +142,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
       metads.open()
       metads.readString(s"select mc from r where ls='$hash' and st='$permutaName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
         case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-          val porMetaLea = cv({
-            "pares"
-          }, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(permutaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>
