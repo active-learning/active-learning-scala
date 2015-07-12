@@ -313,7 +313,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
         } else {
           //usando terminação fs pra indicar filtro
-          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) = if (smote && strat != "Ent") {
+          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) = if (smote && !strat.startsWith("Ent")) {
             val sm = new SMOTE()
             sm.setDebug(false)
             sm.setDoNotCheckCapabilities(true)
@@ -407,9 +407,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             case _ => (tr, trf, ts, tsf, trfSemParecidos)
           }
 
-          leas(trfs) map { le =>
-            val (trtestbags, tstestbags, m) = if (le.querFiltro) {
-              val mo = le match {
+          leas(trfs) map { mc =>
+            val (trtestbags, tstestbags, m) = if (mc.querFiltro) {
+              val mo = mc match {
                 case NinteraELM(_, _) =>
                   //ELMBag
                   (1 to ntrees).foldLeft(FakeModelRank(Map())) { (fm, seedinc) =>
@@ -426,15 +426,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                   }
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
                 case PCTELM(_, _, _) => PCTELM(ntrees, seed, (trffs ++ tsffs).toVector).build(trffs)
-                case _ => le.build(trffs)
+                case _ => mc.build(trffs)
               }
               (trffs.groupBy(x => x.id), tsffs.groupBy(x => x.id), mo)
             } else {
-              val mo = le match {
+              val mo = mc match {
                 case RF(_, n, _, _) => RF(seed, n).build(trfs)
                 case Chute(_) => Chute(seed).build(trfs)
                 case PCT(_, _, _) => PCT(ntrees, seed, trfs ++ tsfs).build(trfs)
-                case _ => le.build(trfs)
+                case _ => mc.build(trfs)
               }
               (trfs.groupBy(x => x.id), tsfs.groupBy(x => x.id), mo)
             }
@@ -448,9 +448,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val predito = xbag.head.classAttribute().value(pred)
                 val base = tsbags.head.head.nomeBase
                 if (idx == 1) {
-                  val sql = s"insert into e values ('${le.limp}', '$strat', '$base', '$esperado', '$predito')"
-                  println(s"${sql} <- sql")
-                  metads.write(sql)
+                  if (ks == 94) {
+                    val sql = s"insert into e values ('${mc.limp}', '$strat', '$base', '$esperado', '$predito')"
+                    print(s"${sql} <- sql ")
+                    println(s"LOO ativa registro para contagem de vitorias")
+                    metads.write(sql)
+                  }
                 }
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
@@ -469,7 +472,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 resPorClasse
                */
             }
-            Resultado(le.limpa, tr_ts.head, tr_ts(1))
+            Resultado(mc.limpa, tr_ts.head, tr_ts(1))
           }
         }
       }
