@@ -115,7 +115,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
           //          ((if (porRank) x.head.ndescs else x.head.numAttributes() - 1) to 1) foreach (nr => dat.insertAttributeAt(at(nr), 1))
           //          println(s"${dat.numAttributes()} <- dat.numAttributes()")
           //          val parent=PatternParent(dat)
-          //          val ps = (x.groupBy(_.base).map(_._2) map meanPatternComDesvios(porRank, parent)).toVector
+          //          val ps = (x .groupBy(_.base).map(_._2) map meanPatternComDesvios(porRank, parent)).toVector
 
           val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
 
