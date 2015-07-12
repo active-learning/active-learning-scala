@@ -38,12 +38,14 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
     println(s"Escolher poucos leas!")
     val todospares = for {strat <- stratsTexPermuta("eucl"); l <- ls} yield strat -> l
+    val hash = stratsTexPermuta("eucl").map(_(NoLearner()).limp).mkString(".") + "--" + ls.map(_.limp).mkString(".")
     val permutacoes = todospares.combinations(2).toList
     println(s"${permutacoes.size} <- permutacoes")
     println(s"${todospares.size} <- todospares")
     permutacoes foreach { permuta =>
-      val hash = permuta.map(x => x._1(x._2).limp + "-" + x._2.limp).mkString
-      println(s"$hash <- permuta")
+      val permutaName = permuta.map(x => x._1(x._2).limp + "-" + x._2.limp).mkString(".")
+      println(s"$hash <- hash")
+      println(s"${permutaName} <- permutaName")
       Tempo.start
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$semR${if (suav) "suav" else ""}$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${"pares" + (if (porRank) "Rank" else "")}-$hash-p$dsminSize$featureSel.arff"
@@ -130,15 +132,15 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
       //      if (!new File(txt).exists) {
 
 
-      if (porRank) print(s"${permuta} Spearman correl. $rus*$ks-fold CV. ${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
-      else print(s"${permuta} Accuracy. $rus*$ks-fold CV. $featureSel ${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
+      if (porRank) print(s"${permutaName} Spearman correl. $rus*$ks-fold CV. ${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
+      else print(s"${permutaName} Accuracy. $rus*$ks-fold CV. $featureSel ${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
 
       val sm = (if (semR == "all") "" else semR) + (if (suav) "suav" else "") + (if (smote) s"sm$smotePropor" else "nosm")
       val fsel = featureSel
       val ra = if (porRank) "ra" else "ac"
       val metads = new Db("meta", readOnly = false)
       metads.open()
-      metads.readString(s"select mc from r where ls='$hash' and st='${permuta}' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
+      metads.readString(s"select mc from r where ls='$hash' and st='$permutaName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
         case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
           val porMetaLea = cv({
             "pares"
@@ -154,7 +156,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
             val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
             //ls: permuta de leas ou strats (pra marcar experimento)
             //st: item atual dentro da permuta  (cada item é uma execução do programa todo.)
-            metads.write(s"insert  into r values ('$ra', '$sm', $criterio, '$ini', '$fim', '${permuta}', '$hash', $rus, $ks, '$nome', $ntrees, '$fsel', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
+            metads.write(s"insert  into r values ('$ra', '$sm', $criterio, '$ini', '$fim', '$permutaName', '$hash', $rus, $ks, '$nome', $ntrees, '$fsel', $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$resumoTr', '$resumoTs')")
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
           }
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
