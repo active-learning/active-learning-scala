@@ -42,7 +42,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
     pares foreach { case (p0, l0) =>
       val p = p0(l0)
       Tempo.start
-      val parName = p.limpa
+      val parName = p.limp + "-" + l0.limp
       //    $rus.$ks
       val arq = s"/home/davi/wcs/arff/$semR${if (suav) "suav" else ""}$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${parName + (if (porRank) "Rank" else "")}-$spares-p$dsminSize$featureSel.arff"
       val txt = s"/home/davi/results/$semR${if (suav) "suav" else ""}trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${parName + (if (porRank) "Rank" else "")}-$spares-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}$featureSel${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
