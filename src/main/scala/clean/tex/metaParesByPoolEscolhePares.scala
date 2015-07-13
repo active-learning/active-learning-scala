@@ -145,7 +145,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
         case x: List[Vector[String]] if !x.map(_.head).sameElements(metaclassifs(Vector()).map(_.limp)) =>
           val metaclassifsf = (v: Vector[Pattern]) => metaclassifs(v).filter(y => !x.map(_.head).contains(y.limp))
           println(s"${x.map(_.head)} <- x.map(_.head)")
-          println(s"${metaclassifs(v)} <- metaclassifs(v)")
+          println(s"${metaclassifs(Vector())} <- metaclassifs(v)")
           println(s"${metaclassifsf(Vector()).map(_.limp)} <- metaclassifsf por fazer")
           println(s" <- ")
           val porMetaLea = cv(permutaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifsf, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
