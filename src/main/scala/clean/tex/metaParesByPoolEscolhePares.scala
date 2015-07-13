@@ -142,7 +142,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
       metads.open()
       metads.readString(s"select mc from r where ls='$hash' and st='$permutaName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
         //case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-        case x: List[Vector[String]] if !x.map(_.head).sameElements(metaclassifs(Vector()).map(_.limp)) || porRank && x.size == 0 =>
+        case x: List[Vector[String]] if !x.map(_.head).sameElements(metaclassifs(Vector()).map(_.limp)) && !porRank || porRank && x.size == 0 =>
           val metaclassifsf = (v: Vector[Pattern]) => metaclassifs(v).filter(y => !x.map(_.head).contains(y.limp))
           println(s"${x.map(_.head)} <- x.map(_.head)")
           println(s"${metaclassifs(Vector())} <- metaclassifs(v)")
