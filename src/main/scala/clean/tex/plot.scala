@@ -32,20 +32,26 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
   val tipoLearner = "all"
   val tipoSumariz = "media"
   val measure = Kappa
-  val bracis = !true
-  val strats = if (bracis) stratsForBRACIS15 else stratsTexRedux(dist)
+  val conf = "artigos/bracis15"
+  //"hais14-expandido"
+  val strats = conf match {
+    case "artigos/hais14-expandido" => stratsTexRedux(dist)
+    case "artigos/bracis15" => stratsForBRACIS15
+    case "tese" => stratsTexRedux(dist)
+  }
+  val bina = true
   run()
 
   override def run() = {
     super.run()
-    val arq = s"/home/davi/wcs/${if (bracis) "artigos/bracis15" else "tese"}/$measure$dist$tipoSumariz$tipoLearner" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
+    val arq = s"/home/davi/wcs/$conf/$measure$dist$tipoSumariz$tipoLearner$bina" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
     println(s"$arq")
     val ls = learners(learnersStr)
     val ls2 = tipoLearner match {
       case "best" | "mediano" => Seq(NoLearner())
       case "all" => ls
     }
-    val dss = DsByMinSize(binaryDs(datasets), 200)
+    val dss = DsBy(binaryDs(datasets), 200, bina)
     println(dss.size)
     val (sls0, res9) = (for {
       dataset <- dss

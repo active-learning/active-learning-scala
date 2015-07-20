@@ -54,7 +54,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
       val labels = permuta.map { case (s, le) => s(le).limpa }
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
-      def bagsNaN = DsByMinSize(datasets, dsminSize).par map { d =>
+      def bagsNaN = DsBy(datasets, dsminSize, false).par map { d =>
         val ds = Ds(d, readOnly = true)
         ds.open()
         val (ti0, th0, tf0, tpass) = ranges(ds)

@@ -126,10 +126,10 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   }
 
 
-  def DsByMinSize(lst: List[String], size: Int) = lst.toList.filter { dataset =>
+  def DsBy(lst: List[String], size: Int, onlyBinaryProblems: Boolean) = lst.toList.filter { dataset =>
     val ds = Ds(dataset, readOnly = true)
     ds.open()
-    val r = ds.poolSize >= size
+    val r = ds.poolSize >= size && (!onlyBinaryProblems || onlyBinaryProblems && ds.nclasses == 2)
     ds.close()
     r
   }

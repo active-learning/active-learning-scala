@@ -50,7 +50,7 @@ object metaParesByPoolEscolheStrats extends AppWithUsage with LearnerTrait with 
       val labels = pares.map { case (s, le) => s(le).limpa }
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
-      def bagsNaN = DsByMinSize(datasets, dsminSize).par map { d =>
+      def bagsNaN = DsBy(datasets, dsminSize, false).par map { d =>
         val ds = Ds(d, readOnly = true)
         ds.open()
         val (ti0, th0, tf0, tpass) = ranges(ds)
@@ -157,9 +157,10 @@ object metaParesByPoolEscolheStrats extends AppWithUsage with LearnerTrait with 
         case Right(x) => if (apenasUmPorBase) {
           val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
           patts2file(ps, arq + "umPorBase")
-          C45(laplace = false, 5, 1).tree(arq + "umPorBase.arff", arq + "umPorBase" + ".tex")
+          C45(laplace = false, 5, 10).tree(arq + "umPorBase.arff", "/home/davi/wcs/artigos/hais14-expandido/tree.tex")
           println(s"${arq} <- arq")
         }
+        case _ =>
       }
     }
   }

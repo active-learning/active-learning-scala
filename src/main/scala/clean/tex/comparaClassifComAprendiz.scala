@@ -36,7 +36,7 @@ object comparaClassifComAprendiz extends AppWithUsage with LearnerTrait with Str
     val measure = Kappa
     val strats = stratsTex("all")
     val out = for {
-      dataset <- DsByMinSize(datasets, 200).par
+      dataset <- DsBy(datasets, 200, false).par
       s0 <- strats
 
     //          lea <- learners(learnersStr)

@@ -50,7 +50,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val labels = pares.map { case (s, l) => s(l).limpa }
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
-      def bagsNaN = DsByMinSize(datasets, dsminSize).par map { d =>
+      def bagsNaN = DsBy(datasets, dsminSize, false).par map { d =>
         val ds = Ds(d, readOnly = true)
         ds.open()
         val (ti0, th0, tf0, tpass) = ranges(ds)
