@@ -118,19 +118,9 @@ object metaParesByPoolEscolheStrats extends AppWithUsage with LearnerTrait with 
           val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
 
           patts2file(ps, arq + "umPorBase.arff")
-          //          out(s"Apenas um por base = ${ps.size}! Apenas um por base!")
-          //          out("umPorBase" + s"$arq")
           ps
         } else x
         case Left(m) => error(s"${m} <- m")
-      }
-
-      //      if (!new File(txt).exists) {
-      var tx1 = ""
-      var tx2 = ""
-      def out(t: String): Unit = {
-        println(t)
-        tx1 += t + "\n" //else tx2 += t + "\n"
       }
 
       if (porRank) print(s"$leaName Spearman correl. $rus*$ks-fold CV. ${if (smote) "-SMOTE" else ""}" + " " + arq + " ")
@@ -158,41 +148,19 @@ object metaParesByPoolEscolheStrats extends AppWithUsage with LearnerTrait with 
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
           }
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
-        //      outp.toList.sortBy(_._1._2).reverseMap(_._2) foreach out
-
-        //      out("histogramas ===========================")
-        //      out(s"${pares.map { case (s, l) => l.limpa }.mkString(" ")}")
-        //      porMetaLea foreach { case (nome, resultados) =>
-        //        val r = resultados reduce (_ ++ _)
-        //        //          out(s"$nome: ------------")
-        //        r.histTr.padTo(6, "   ").zip(r.histTrPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"metale:$nome tr " + x) foreach out
-        //        r.histTs.padTo(6, "   ").zip(r.histTsPred.padTo(6, "   ")).map(x => x._1 + "\t\t" + x._2).take(ls.size).map(x => s"  metale:$nome ts " + x) foreach out
-        //        out("")
-        //      }
-
-        //      out(Tempo.stop + "s")
-        //      val fw = new FileWriter(txt)
-        //      fw.write(tx1.split('\n').map(x => s"st:$stratName " + x).mkString("\n"))
-        //      //      fw.write(tx2)
-        //      fw.close()
       }
       metads.close()
       println()
-      //      } else {
-      //        val arq = Source.fromFile(txt)
-      //        val str = arq.getLines().toList.mkString("\n")
-      //        arq.close()
-      //        println(str)
-      //      }
 
-      //      if (!porRank) Datasets.arff(arq, dedup, rmuseless = false) match {
-      //        case Right(x) => if (apenasUmPorBase) {
-      //          val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
-      //          patts2file(ps, arq + "umPorBase")
-      //          C45(laplace = false, 5, 1).tree(arq + "umPorBase.arff", arq + "umPorBase" + ".tex")
-      //          println(s"${arq} <- arq")
-      //        }
-      //      }
+      //Imprime árvore.
+      if (!porRank) Datasets.arff(arq, dedup, rmuseless = false) match {
+        case Right(x) => if (apenasUmPorBase) {
+          val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
+          patts2file(ps, arq + "umPorBase")
+          C45(laplace = false, 5, 1).tree(arq + "umPorBase.arff", arq + "umPorBase" + ".tex")
+          println(s"${arq} <- arq")
+        }
+      }
     }
   }
 }
