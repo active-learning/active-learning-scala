@@ -126,10 +126,11 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   }
 
 
-  def DsBy(lst: List[String], size: Int, onlyBinaryProblems: Boolean) = lst.toList.filter { dataset =>
+  def DsBy(lst: List[String], size: Int, onlyBinaryProblems: Boolean, notBinary: Boolean = false) = lst.toList.filter { dataset =>
+    if (notBinary && onlyBinaryProblems) ???
     val ds = Ds(dataset, readOnly = true)
     ds.open()
-    val r = ds.poolSize >= size && (!onlyBinaryProblems || onlyBinaryProblems && ds.nclasses == 2)
+    val r = ds.poolSize >= size && (notBinary && ds.nclasses != 2 || !notBinary && (!onlyBinaryProblems || onlyBinaryProblems && ds.nclasses == 2))
     ds.close()
     r
   }

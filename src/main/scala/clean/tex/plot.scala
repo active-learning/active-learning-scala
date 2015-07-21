@@ -39,7 +39,7 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
     case "artigos/bracis15" => stratsForBRACIS15
     case "tese" => stratsTexRedux(dist)
   }
-  val bina = !true
+  val bina = true
   run()
 
   override def run() = {
