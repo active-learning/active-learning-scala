@@ -26,6 +26,8 @@ import clean.lib._
 import ml.classifiers.{KNNBatcha, NoLearner}
 import util.{Datasets, Stat}
 
+import scala.util.Random
+
 object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with CM {
   lazy val arguments = superArguments
   //++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
@@ -37,7 +39,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
 
   override def run() = {
     super.run()
-    val dss = DsBy(datasets, 200, onlyBinaryProblems = false, notBinary = true)
+    val dss = DsBy("qualitative-bankruptcy\nfertility-diagnosis\nacute-inflammations-urinary\nmicro-mass-pure-spectra\nmicro-mass-mixed-spectra\nappendicitis\nhayes-roth\nmusk\ncnae-9\ntexture\nbreast-tissue-4class\nlsvt-voice-rehabilitation\nmultiple-features\ndigits2-davi\noptdigits".split("\n").toList, 200, onlyBinaryProblems = false, notBinary = true)
     println(dss.size)
     val winners = for {
       dataset <- dss.take(3000).par
@@ -45,7 +47,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
         val ds = Ds(dataset, readOnly = true)
         println(s"$ds ${ds.nclasses}")
         ds.open()
-        val patts = ds.patterns
+        val patts = Random.shuffle(ds.patterns).take(1000)
         /*
         @book{evans1996straightforward,
           title={Straightforward statistics for the behavioral sciences},
