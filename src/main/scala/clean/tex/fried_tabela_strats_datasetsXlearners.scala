@@ -36,7 +36,7 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
          case "pt" => s"Um contra um para todos os algoritmos de aprendizado. Medida: kappa médio. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
          case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
       }
-     val dss = DsBy(binaryDs(datasets), 200, false)
+     val dss = DsBy(datasets, 200, onlyBinaryProblems = true)
      val (sls, res0) = (for {
          dataset <- dss
          le <- learners(learnersStr)
