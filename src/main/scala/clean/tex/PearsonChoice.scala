@@ -63,7 +63,8 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
          */
         //        Seq(0.8000,0.9000,0.9500,0.9900,0.9950,0.9990,0.9995,0.9999)
         //        Seq(0.80, 0.81, 0.82, 0.83, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.90, 0.99, 0.999, 0.9999, 0.99999, 0.999999)
-        val accs = Seq(-0.9, -0.8, -0.7, -0.6, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999, 0.9999999).zipWithIndex map { case (pearson, idx) =>
+        //        val accs = Seq(-0.9, -0.8, -0.7, -0.6, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999, 0.9999999).zipWithIndex map { case (pearson, idx) =>
+        val accs = Seq(0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999).zipWithIndex map { case (pearson, idx) =>
           val accs = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (pool, testset, fold, min) =>
             val learner = KNNBatcha(5, "eucl", pool, weighted = true)
             val strat = HTUFixo(pool, learner, pool, "eucl", 1, 1, debug = false, pearson)
