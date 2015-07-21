@@ -40,7 +40,6 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
   override def run() = {
     super.run()
     val dss = DsBy("musk,micro-mass-pure-spectra,micro-mass-mixed-spectra,cnae-9,texture,digits2-davi".split(",").toList, 200, onlyBinaryProblems = false, notBinary = false)
-    //    val dss = DsBy("qualitative-bankruptcy\nfertility-diagnosis\nacute-inflammations-urinary\nmicro-mass-pure-spectra\nmicro-mass-mixed-spectra\nappendicitis\nhayes-roth\nmusk\ncnae-9\ntexture\nbreast-tissue-4class\nlsvt-voice-rehabilitation\nmultiple-features\ndigits2-davi\noptdigits".split("\n").toList, 200, onlyBinaryProblems = false, notBinary = false)
     println(dss.size)
     val ranks = for {
       dataset <- dss.take(3000).par
@@ -64,7 +63,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
          */
         //        Seq(0.8000,0.9000,0.9500,0.9900,0.9950,0.9990,0.9995,0.9999)
         //        Seq(0.80, 0.81, 0.82, 0.83, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.90, 0.99, 0.999, 0.9999, 0.99999, 0.999999)
-        val accs = Seq(0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999).zipWithIndex map { case (pearson, idx) =>
+        val accs = Seq(-0.9, -0.8, -0.7, -0.6, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999, 0.9999999).zipWithIndex map { case (pearson, idx) =>
           val accs = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (pool, testset, fold, min) =>
             val learner = KNNBatcha(5, "eucl", pool, weighted = true)
             val strat = HTUFixo(pool, learner, pool, "eucl", 1, 1, debug = false, pearson)
@@ -74,11 +73,11 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
           }
           val acc = accs.sum / accs.size
           println(dataset + " " + pearson + " " + acc)
-          acc
+          -acc
         }
         ranqueia(accs)
       }
 
-    println(ranks.transpose.map(x => x.sum / x.size))
+    println(ranks.transpose.map(x => Stat.media_desvioPadrao(x.toVector)))
   }
 }
