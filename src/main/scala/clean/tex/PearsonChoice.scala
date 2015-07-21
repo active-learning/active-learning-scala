@@ -41,7 +41,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
     super.run()
     val dss = DsBy("qualitative-bankruptcy\nfertility-diagnosis\nacute-inflammations-urinary\nmicro-mass-pure-spectra\nmicro-mass-mixed-spectra\nappendicitis\nhayes-roth\nmusk\ncnae-9\ntexture\nbreast-tissue-4class\nlsvt-voice-rehabilitation\nmultiple-features\ndigits2-davi\noptdigits".split("\n").toList, 200, onlyBinaryProblems = false, notBinary = false)
     println(dss.size)
-    val winners = for {
+    val ranks = for {
       dataset <- dss.take(3000).par
     } yield {
         val ds = Ds(dataset, readOnly = true)
@@ -73,11 +73,11 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
           }
           val acc = accs.sum / accs.size
           println(dataset + " " + pearson + " " + acc)
-          pearson -> acc
+          acc
         }
-        accs.maxBy(_._2)._1
+        ranqueia(accs)
       }
 
-    println(s"${winners.groupBy(identity).toList.sortBy(_._1).map(x => x._1 -> x._2.size)} <- hist")
+    println(ranks.transpose.map(x => x.sum / x.size))
   }
 }
