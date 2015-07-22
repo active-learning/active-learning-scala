@@ -39,7 +39,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
 
   override def run() = {
     super.run()
-    val dss = DsBy("musk,micro-mass-pure-spectra,micro-mass-mixed-spectra,cnae-9,texture,digits2-davi".split(",").toList, 200, onlyBinaryProblems = false, notBinary = false)
+    val dss = DsBy(datasets, 200, onlyBinaryProblems = false, notBinary = false)
     println(dss.size)
     val ranks = for {
       dataset <- dss.take(3000).par
@@ -48,31 +48,20 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
         println(s"$ds ${ds.nclasses}")
         ds.open()
         val patts = Random.shuffle(ds.patterns).take(1000)
-        /*
-        @book{evans1996straightforward,
-          title={Straightforward statistics for the behavioral sciences},
-          author={Evans, James D},
-          year={1996},
-          publisher={Brooks/Cole}
-        }
-         .00-.19 “very weak”
-         .20-.39 “weak”
-         .40-.59 “moderate”
-         .60-.79 “strong”
-         .80-1.0 “very strong”
-         */
-        //        Seq(0.8000,0.9000,0.9500,0.9900,0.9950,0.9990,0.9995,0.9999)
-        //        Seq(0.80, 0.81, 0.82, 0.83, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.90, 0.99, 0.999, 0.9999, 0.99999, 0.999999)
-        //        val accs = Seq(-0.9, -0.8, -0.7, -0.6, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999, 0.9999999).zipWithIndex map { case (pearson, idx) =>
+        /*       .00-.19 “very weak”
+                 .20-.39 “weak”
+                 .40-.59 “moderate”
+                 .60-.79 “strong”
+                 .80-1.0 “very strong”         */
         val accs = Seq(0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999).zipWithIndex map { case (pearson, idx) =>
-          val accs = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (pool, testset, fold, min) =>
+          val kappas = Datasets.kfoldCV(patts.toVector, 5, parallel = true) { (pool, testset, fold, min) =>
             val learner = KNNBatcha(5, "eucl", pool, weighted = true)
             val strat = HTUFixo(pool, learner, pool, "eucl", 1, 1, debug = false, pearson)
             val queries = strat.queries.take(100)
             val model = learner.build(queries)
             kappa(model.confusion(testset))
           }
-          val acc = accs.sum / accs.size
+          val acc = kappas.sum / kappas.size
           println(dataset + " " + pearson + " " + acc)
           -acc
         }
@@ -82,3 +71,8 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
     println(ranks.transpose.map(x => Stat.media_desvioPadrao(x.toVector)))
   }
 }
+
+/*
+ParVector((2.8333333333333335,2.228601953392904), (3.8333333333333335,1.602081978759722), (2.9166666666666665,1.241638702145945), (3.25,1.036822067666386), (4.166666666666667,1.4719601443879744), (4.0,1.2649110640673518))
+ParVector((5.833333333333333,1.7511900715418263), (5.833333333333333,1.7511900715418263), (5.833333333333333,1.7511900715418263), (5.833333333333333,1.7511900715418263), (5.833333333333333,1.7511900715418263), (5.833333333333333,1.7511900715418263), (6.416666666666667,1.3570801990548187), (7.666666666666667,1.4023789311975088), (9.666666666666666,3.459287017098562), (7.833333333333333,4.445971959725642), (8.75,4.937104414532874), (8.333333333333334,5.173651192984183), (9.583333333333334,5.024108544474997), (13.666666666666666,0.8755950357709132), (13.083333333333334,1.6857243744653712))
+ */
