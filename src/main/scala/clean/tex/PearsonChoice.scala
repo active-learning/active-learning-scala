@@ -39,7 +39,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
 
   override def run() = {
     super.run()
-    val dss = DsBy(datasets, 200, onlyBinaryProblems = false, notBinary = false)
+    val dss = DsBy(datasets, 200, onlyBinaryProblems = false, notBinary = true)
     println(dss.size)
     val ranks = for {
       dataset <- dss.take(3000).par
