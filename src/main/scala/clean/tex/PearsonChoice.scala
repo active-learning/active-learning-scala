@@ -47,14 +47,15 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
         val ds = Ds(dataset, readOnly = true)
         println(s"$ds ${ds.nclasses}")
         ds.open()
-        val patts = Random.shuffle(ds.patterns).take(1000)
+        val patts = Random.shuffle(ds.patterns) //.take(1000)
         /*       .00-.19 “very weak”
                  .20-.39 “weak”
                  .40-.59 “moderate”
                  .60-.79 “strong”
                  .80-1.0 “very strong”         */
-        val accs = Seq(0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999).zipWithIndex map { case (pearson, idx) =>
-          val kappas = Datasets.kfoldCV(patts.toVector, 5, parallel = true) { (pool, testset, fold, min) =>
+        val accs = (-9999 to 9999 by 10).map(x => x / 10000d).zipWithIndex map { case (pearson, idx) =>
+            //        val accs = Seq(0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999).zipWithIndex map { case (pearson, idx) =>
+            val kappas = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (pool, testset, fold, min) =>
             val learner = KNNBatcha(5, "eucl", pool, weighted = true)
             val strat = HTUFixo(pool, learner, pool, "eucl", 1, 1, debug = false, pearson)
             val queries = strat.queries.take(100)
