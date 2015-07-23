@@ -45,7 +45,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
       dataset <- dss.take(3000).par
     } yield {
         val ds = Ds(dataset, readOnly = true)
-        println(s"$ds ${ds.nclasses}")
+        print(s"${renomeia(ds)}, ")
         ds.open()
         val patts = Random.shuffle(ds.patterns) //.take(1000)
         /*       .00-.19 “very weak”
@@ -61,11 +61,11 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
             val queries = strat.queries.take(100)
             val model = learner.build(queries)
             kappa(model.confusion(testset))
+      }
+            val acc = kappas.sum / kappas.size
+            println(dataset + " " + pearson + " " + acc)
+            -acc
           }
-          val acc = kappas.sum / kappas.size
-          println(dataset + " " + pearson + " " + acc)
-          -acc
-        }
         ranqueia(accs)
       }
 
