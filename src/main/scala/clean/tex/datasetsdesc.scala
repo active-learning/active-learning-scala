@@ -45,14 +45,20 @@ object datasetsdesc extends Exp with Lock {
 
   def datasetFinished(ds: Ds) {
     acquire()
-    println(ds.description2)
-    m += renomeia(ds) -> (ds.description2._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
+    println(ds.description)
+    m += renomeia(ds) -> (ds.description._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     //    if (ds.nclasses == 2 && ds.poolSize > 200) m += renomeia(ds) -> (ds.description2._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     //    if (ds.nclasses == 2) m += renomeia(ds) -> (ds.description._1.map(_.toString)) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     release()
   }
 
-  lazy val descriptionNames = Seq( """\pbox{20cm}{\#exemplos\\($|\mathcal{U}|$)}""", """\pbox{20cm}{\#classes\\($|Y|$)}""", "\\#atributos", "\\#nominais", "\\%majoritária", "\\%minoritária", """\pbox{20cm}{entropia da \\distr. de classes}""")
+  lazy val descriptionNames = Seq(
+    """\pbox{20cm}{\#exemplos\\($|\mathcal{U}|$)}""",
+    """\pbox{20cm}{\#classes\\($|Y|$)}""",
+    "\\#atributos",
+    "\\#nominais",
+    "")
+  //  lazy val descriptionNames = Seq( """\pbox{20cm}{\#exemplos\\($|\mathcal{U}|$)}""", """\pbox{20cm}{\#classes\\($|Y|$)}""", "\\#atributos", "\\#nominais", "\\%majoritária", "\\%minoritária", """\pbox{20cm}{entropia da \\distr. de classes}""")
 
   def tabela(tableName: String, caption: String, core: Seq[(String, Seq[String])]) = {
     val cols = descriptionNames.size - 1
@@ -75,9 +81,12 @@ object datasetsdesc extends Exp with Lock {
     }
     println(todas.size + " " + datasets.size)
     val fw2 = new PrintWriter("/home/davi/wcs/artigos/revista15/dataset-tables.tex", "UTF-8")
-    fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(33)))
-    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(33).take(33)))
-    fw2.write(tabela("tab:datasetsc", "Características das bases de dados (67-94).", todas.drop(66)))
+    fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(47)))
+    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(47)))
+
+    //    fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-33).", todas.take(33)))
+    //    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(33).take(33)))
+    //    fw2.write(tabela("tab:datasetsc", "Características das bases de dados (67-94).", todas.drop(66)))
     fw2.close()
 
     //    val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables-reduxes.tex", "ISO-8859-1")
