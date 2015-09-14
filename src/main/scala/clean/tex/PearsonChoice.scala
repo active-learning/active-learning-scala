@@ -23,7 +23,7 @@ import java.io.PrintWriter
 
 import al.strategies._
 import clean.lib._
-import ml.classifiers.{KNNBatcha, NoLearner}
+import ml.classifiers.{RF, KNNBatcha, NoLearner}
 import util.{Datasets, Stat}
 
 import scala.util.Random
@@ -37,39 +37,54 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
   //"hais14-expandido"
   run()
 
+  def transpose[A](xs: List[List[A]]): List[List[A]] = xs.filter(_.nonEmpty) match {
+    case Nil => Nil
+    case ys: List[List[A]] => ys.map {
+      _.head
+    } :: transpose(ys.map {
+      _.tail
+    })
+  }
+
   override def run() = {
     super.run()
-    val dss = DsBy(datasets, 200, onlyBinaryProblems = false, notBinary = true)
+    val dss = datasets //DsBy(datasets, 200, onlyBinaryProblems = false, notBinary = true)
+    println(dss)
     println(dss.size)
+    val nums = Seq(-0.999999d, -0.99999, -0.9999, -0.999, -0.99, -0.9, -0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8, 0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999)
     val ranks = for {
       dataset <- dss.take(3000).par
     } yield {
         val ds = Ds(dataset, readOnly = true)
         print(s"${renomeia(ds)}, ")
         ds.open()
-        val patts = Random.shuffle(ds.patterns) //.take(1000)
         /*       .00-.19 “very weak”
                  .20-.39 “weak”
                  .40-.59 “moderate”
                  .60-.79 “strong”
                  .80-1.0 “very strong”         */
-        val accs = (-9999 to 9999 by 10).map(x => x / 10000d).zipWithIndex map { case (pearson, idx) =>
-            //        val accs = Seq(0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999).zipWithIndex map { case (pearson, idx) =>
-            val kappas = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (pool, testset, fold, min) =>
-            val learner = KNNBatcha(5, "eucl", pool, weighted = true)
+        //        val accs = (-9999 to 9999 by 100).map(x => x / 10000d).zipWithIndex map { case (pearson, idx) =>
+        //        val accs = ((1 to 10) map { run =>
+        val patts = Random.shuffle(transpose(Random.shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(1000))
+        val accs = nums.zipWithIndex map { case (pearson, idx) =>
+          val kappas = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (pool, testset, fold, min) =>
+            val learner = RF(Random.nextInt(1000000))
+            //            val learner = KNNBatcha(5, "eucl", pool, weighted = true)
             val strat = HTUFixo(pool, learner, pool, "eucl", 1, 1, debug = false, pearson)
             val queries = strat.queries.take(100)
             val model = learner.build(queries)
             kappa(model.confusion(testset))
-      }
-            val acc = kappas.sum / kappas.size
-            println(dataset + " " + pearson + " " + acc)
-            -acc
           }
+          val acc = kappas.sum / kappas.size
+          println(ds.n + " " + dataset + " " + pearson + " " + acc)
+          acc
+        }
+        //        }).flatten
+        ds.close()
         ranqueia(accs)
       }
 
-    println(ranks.transpose.map(x => Stat.media_desvioPadrao(x.toVector)))
+    nums.zip(ranks.transpose.map(x => Stat.media_desvioPadrao(x.toVector))) foreach println
   }
 }
 

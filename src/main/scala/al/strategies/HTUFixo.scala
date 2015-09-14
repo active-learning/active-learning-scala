@@ -41,8 +41,8 @@ case class HTUFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pat
     val us = unlabeled.size
     var mixmax = -1d
     var agmax = -1d
-    var xmixmax: Pattern = null
-    var xagmax: Pattern = null
+    var xTUmax: Pattern = null
+    var xATUmax: Pattern = null
     val list_gn_mix = unlabeled map { x =>
       val similarityU = mapU(x) / us
       val similarityL = mapL(x) / ls
@@ -53,16 +53,16 @@ case class HTUFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pat
       val mix = gn * ag
       if (ag > agmax) {
         agmax = ag
-        xagmax = x
+        xATUmax = x
       }
       if (mix > mixmax) {
         mixmax = mix
-        xmixmax = x
+        xTUmax = x
       }
       gn -> mix
     }
-    val (a, b) = list_gn_mix.unzip
-    lazy val co = new PearsonsCorrelation().correlation(a.toArray, b.toArray)
-    if (a.size > 1 && co < pearson) xagmax else xmixmax
+    val (mar, tu) = list_gn_mix.unzip
+    lazy val co = new PearsonsCorrelation().correlation(mar.toArray, tu.toArray)
+    if (mar.size > 1 && co < pearson) xATUmax else xTUmax
   }
 }

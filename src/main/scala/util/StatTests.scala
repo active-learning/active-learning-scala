@@ -114,7 +114,8 @@ object StatTests extends RoundFilter {
    }
 
    def extensiveTable2(capti: String, take11: Boolean, precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
-      val nstrats = if (take11) measures.head._2.take(11).length else measures.head._2.drop(11).length
+     val nnn=7
+     val nstrats = if (take11) measures.head._2.take(nnn).length else measures.head._2.drop(nnn).length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip
          val r = cor(vs, precision, "blue", "red").zip(cor(ds, precision, "black", "darkgreen", "black")) map {
@@ -122,10 +123,10 @@ object StatTests extends RoundFilter {
             case (x, y) if y.contains("-9") => x
             case (x, y) => x + "/" + y
          }
-         val vals = (if (take11) r.take(11) else r.drop(11)).mkString(" & ")
+         val vals = (if (take11) r.take(nnn) else r.drop(nnn)).mkString(" & ")
          s"$d & $vals \\\\" + (if (i % seps == seps - 1) """ \hline""" else "")
       }.filter(_.nonEmpty).mkString("\n")
-      if (core.nonEmpty) table(capti, core, nstrats, if (take11) strategies.take(11) else strategies.drop(11), tableName, measure, language) else ""
+      if (core.nonEmpty) table(capti, core, nstrats, if (take11) strategies.take(nnn) else strategies.drop(nnn), tableName, measure, language) else ""
    }
 
    /**

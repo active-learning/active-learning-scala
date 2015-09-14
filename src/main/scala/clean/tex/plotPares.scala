@@ -38,18 +38,19 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
 
   override def run() = {
     super.run()
-    val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
-    println(s"$arq")
-    val algs = (for {s <- strats; l <- ls} yield s(l).limp + "-" + l.limp).toVector
-    val dss = datasets.filter { d =>
+    lazy val dss = datasets.filter { d =>
       val ds = Ds(d, readOnly = true)
       ds.open()
       val U = ds.poolSize.toInt
       ds.close()
       U > 200
     }
+    val dsss = dss.take(2345)
+    val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+    println(s"$arq")
+    val algs = (for {s <- strats; l <- ls} yield s(l).limp + "-" + l.limp).toVector
     val res0 = for {
-      dataset <- dss.take(1000)
+      dataset <- dsss
     } yield {
         val ds = Ds(dataset, readOnly = true)
         println(s"$ds")
@@ -100,44 +101,17 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       List(min, max, best) ++ resto
     }
     val (algs2, plot3) = minMaxBest.flatten.sortBy(_._2.sum).unzip
-
-    //    val (algs2, plot3) = algs.zip(plot.transpose).sortBy(_._2.min).unzip
-    //    val (algs2f, plot3f) = {
-    //      val zipp = algs.zip(plot.transpose)
-    //
-    //      val comecoMelhores = zipp.sortBy { case (nome, lista) =>
-    //        //soma rankings
-    //        val comecoBom = lista.take(50).sum
-    //        comecoBom
-    //      }
-    //
-    //      val finalMelhores = zipp.sortBy { case (nome, lista) =>
-    //        val finalBom = lista.takeRight(50).sum
-    //        finalBom
-    //      }
-    //
-    //      comecoMelhores.take(5) ++ finalMelhores.take(5)
-    //    }.unzip
     val plot2 = plot3.transpose
-    //    val plot2f = plot3f.transpose
-
-    {
-      val fw = new PrintWriter(arq, "ISO-8859-1")
-      fw.write("budget " + algs2.mkString(" ") + "\n")
-      plot2.zipWithIndex foreach { case (re, i) =>
-        fw.write((i + 10) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
-      }
-      fw.close()
+    val fw = new PrintWriter(arq, "ISO-8859-1")
+    fw.write("budget " + algs2.mkString(" ") + "\n")
+    plot2.zipWithIndex foreach { case (re, i) =>
+      fw.write((i + 10) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
     }
-
-    //    val fw = new PrintWriter(arq + "f", "ISO-8859-1")
-    //    fw.write("budget " + algs2f.mkString(" ") + "\n")
-    //    plot2f.zipWithIndex foreach { case (re, i) =>
-    //      fw.write((i + 10) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
-    //    }
-    //    fw.close()
-
+    fw.close()
     println(s"$arq")
-    println(s"$arq f")
+
+    algs2.zip(plot2.transpose).filter(x => !x._1.contains("max") && !x._1.contains("min")).foreach { case (alg, plo) =>
+      println(s"${(100 * plo.map(_ / dsss.size).sum / plo.size).round / 100d} & $alg \\\\")
+    }
   }
 }
