@@ -47,6 +47,9 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val txt = s"/home/davi/results/$semR${if (suav) "suav" else ""}trAccCorrigida-$rus*$ks-fold-$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-$leas-p$dsminSize${metaclassifs(Vector()).map(_.limpa).mkString("-")}${if (apenasUmPorBase) "-umPBase" else ""}$featureSel${if (smote) "-SMOTE" else ""}-${ntrees}trees.txt"
       //      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${melhor}m$measure-$ini.$fim-${pares.map { case (s, l) => s(l).id }.mkString("-").hashCode.toLong.abs + (if (porRank) "Rank" else "")}-${learnerStr.replace(" ", ".")}-p$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
+      val labelsleas = ls.map {
+        _.limpa
+      }
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
       def bagsNaN = DsBy(datasets, dsminSize, false).par map { d =>
@@ -144,7 +147,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-          val porMetaLea = cv(labels, stratName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(labelsleas, stratName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>

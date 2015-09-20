@@ -30,7 +30,7 @@ import scala.io.Source
 case class MetaLearner(ds: Ds, st: Strategy) extends Learner {
   val metads = new Db("meta", readOnly = false)
   metads.open()
-  val sql = s"select splitstr(esp,'-',2) as E, splitstr(pre,'-',2) as P from e where mc='PCT' and st='${st.limpa}' and ds='$ds';"
+  val sql = s"select splitstr(esp,'-',2) as E, splitstr(pre,'-',2) as P from e where mc='PCTr-a' and st='${st.limpa}' and ds='$ds';"
   println(s"${sql} <- sql")
   val LeaPreditoName = metads.readString(sql) match {
     case List(Vector(esp, pre)) => pre
