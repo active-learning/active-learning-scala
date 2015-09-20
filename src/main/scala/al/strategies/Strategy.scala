@@ -28,15 +28,18 @@ import util.Graphics.Plot
 import scala.io.Source
 
 case class MetaLearner(ds: Ds, st: Strategy) extends Learner {
-  val metads = new Db("meta", readOnly = false)
-  metads.open()
-  val sql = s"select splitstr(esp,'-',2) as E, splitstr(pre,'-',2) as P from e where mc='PCTr-a' and st='${st.limpa}' and ds='$ds';"
-  println(s"${sql} <- sql")
-  val LeaPreditoName = metads.readString(sql) match {
-    case List(Vector(esp, pre)) => pre
-    case x => sys.error(x.toString)
+  lazy val LeaPreditoName = {
+    val metads = new Db("meta", readOnly = false)
+    metads.open()
+    val sql = s"select esp, pre from e where mc='PCTr-a' and st='${st.limpa}' and ds='$ds';"
+    println(s"${sql} <- sql")
+    val res = metads.readString(sql) match {
+      case List(Vector(esp, pre)) => pre
+      case x => sys.error(x.toString)
+    }
+    metads.close()
+    res
   }
-  metads.close()
 
   lazy val learners = Seq(
     KNNBatcha(5, "eucl", Seq(), weighted = true)
@@ -46,9 +49,9 @@ case class MetaLearner(ds: Ds, st: Strategy) extends Learner {
     , SVMLibRBF(-1)
   )
   lazy val LeaPredito = learners.find(_.limpa == LeaPreditoName).get
-  val id = LeaPredito.id
+  lazy val id = LeaPredito.id
 
-  val abr = "Meta"
+  lazy val abr = "Meta" // + LeaPredito.limpa
 
   val attPref: String = ""
 

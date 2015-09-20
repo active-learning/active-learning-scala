@@ -21,9 +21,10 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies.MetaLearner
+import al.strategies.{Strategy, MetaLearner}
+import app.db.entities.Dataset
 import clean.lib._
-import ml.classifiers.NoLearner
+import ml.classifiers.{Learner, NoLearner}
 import util.Stat
 
 object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
@@ -32,7 +33,8 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
   //   val tipoSumariz = "mediana"
   val measure = Kappa
   val tipoSumariz = "media"
-  val ls = learners(learnersStr)
+  val ls = (ds: Ds, st: Strategy) => Seq(MetaLearner(ds, st))
+  //learners(learnersStr)
   val strats = stratsTexForGraficoComplexo(dist)
   run()
 
@@ -48,7 +50,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
     val dsss = dss.take(2345)
     val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
     println(s"$arq")
-    val algs = (for {s <- strats; l <- ls} yield s(l).limp + "-" + l.limp).toVector
+    val algs = (for {s <- strats; l <- ls(null, null)} yield s(l).limp + "-" + l.limp).toVector
     val res0 = for {
       dataset <- dsss
     } yield {
@@ -58,7 +60,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
 
         val sres = for {
           s0 <- strats.toList
-          le <- ls :+ MetaLearner(ds, s0(NoLearner()))
+          le <- ls(ds, s0(NoLearner()))
         } yield {
             val s = s0(le)
             val vs00 = for {
