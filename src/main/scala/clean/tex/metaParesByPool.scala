@@ -29,7 +29,6 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       PCT(),
       NinteraELM(),
       PCTELM(),
-      CIELMBatch(),
       //      SVMLibRBF(),
       C45(false, 5),
       KNNBatcha(5, "eucl", patts),
@@ -39,7 +38,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     )
     //    stratsTex("all").drop(8) foreach { strat => //drop rnd,clu,atus,qbcrf,svms
     val leas = learnerStr.replace(" ", ".")
-    stratsTex("all") foreach { strat =>
+    stratsTexForGraficoComplexo("all") foreach { strat =>
       Tempo.start
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l

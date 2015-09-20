@@ -21,10 +21,12 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies.Passive
+import al.strategies.{MetaStrategy, Passive}
 import clean.lib._
-import ml.classifiers.{NB, BestClassifCV100_10foldReadOnlyKappa, NoLearner}
+import ml.classifiers.{Learner, NB, BestClassifCV100_10foldReadOnlyKappa, NoLearner}
 import util.{Stat, StatTests}
+
+import scala.io.Source
 
 object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
@@ -57,7 +59,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
         ds.open()
 
         val sres = for {
-          s0 <- strats
+          s0 <- strats.toList :+ ((aa: Learner) => MetaStrategy(ds))
           le <- ls
         } yield {
             val s = s0(le)
@@ -66,6 +68,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
               f <- 0 until folds
             } yield {
                 measure(ds, s, le, r, f)(-2).readAll(ds).getOrElse {
+                  //pelo que entendi -2 poderia ser -3456,... (19/9/15)
                   println((ds, s, le, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
                 }

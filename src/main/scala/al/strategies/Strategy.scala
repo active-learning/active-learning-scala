@@ -20,12 +20,26 @@ package al.strategies
 
 import clean.lib.{Ds, Log}
 import ml.Pattern
-import ml.classifiers.{NoLearner, Limpa, Learner}
+import ml.classifiers._
+import util.Datasets
 import util.Graphics.Plot
 
-case class MetaStrategy(ds: Ds, r: Int, f: Int) extends Strategy {
-  val id = ???
-  //gerar id dinamicamente
+import scala.io.Source
+
+case class MetaStrategy(ds: Ds) extends Strategy {
+  val bests = Source.fromFile("/home/davi/wcs/arff/allmetaParesByPool-n1best1mALCKappa-ti.tf-Mar-5nna,rbf,rf,nbb-p1nofs.arffumPorBase.arff.arff").getLines.toList.drop(62).map(x => x.takeWhile(_ != ',') -> x.split("-").last).toMap
+  println(s"${bests.size} <- bests.size")
+  lazy val learners = Seq(
+    KNNBatcha(5, "eucl", pool, weighted = true)
+    , C45()
+    , RF(seed)
+    , NBBatch()
+    , CIELMBatch(seed)
+    , SVMLibRBF(seed)
+  )
+  lazy val best = learners.find(_.limpa == bests(ds.dataset)).get
+  val id = best.id
+
   val abr = "Meta"
   val debug: Boolean = ???
   val pool: Seq[Pattern] = ???
