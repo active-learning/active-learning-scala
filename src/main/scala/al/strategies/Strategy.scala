@@ -18,17 +18,53 @@
 
 package al.strategies
 
-import clean.lib.{Ds, Log}
+import clean.lib.{Db, Ds, Log}
 import ml.Pattern
 import ml.classifiers._
+import ml.models.Model
 import util.Datasets
 import util.Graphics.Plot
 
 import scala.io.Source
 
-case class MetaStrategy(ds: Ds) extends Strategy {
-  val bests = Source.fromFile("/home/davi/wcs/arff/allmetaParesByPool-n1best1mALCKappa-ti.tf-Mar-5nna,rbf,rf,nbb-p1nofs.arffumPorBase.arff.arff").getLines.toList.drop(62).map(x => x.takeWhile(_ != ',') -> x.split("-").last).toMap
-  println(s"${bests.size} <- bests.size")
+case class MetaLearner(ds: Ds, st: Strategy) extends Learner {
+  val metads = new Db("meta", readOnly = false)
+  metads.open()
+  val sql = s"select splitstr(esp,'-',2) as E, splitstr(pre,'-',2) as P from e where mc='PCT' and st='${st.limpa}' and ds='$ds';"
+  println(s"${sql} <- sql")
+  val LeaPreditoName = metads.readString(sql) match {
+    case List(Vector(esp, pre)) => pre
+    case x => sys.error(x.toString)
+  }
+  metads.close()
+
+  lazy val learners = Seq(
+    KNNBatcha(5, "eucl", Seq(), weighted = true)
+    , C45()
+    , RF(-1)
+    , NBBatch()
+    , SVMLibRBF(-1)
+  )
+  lazy val LeaPredito = learners.find(_.limpa == LeaPreditoName).get
+  val id = LeaPredito.id
+
+  val abr = "Meta"
+
+  val attPref: String = ""
+
+  def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = ???
+
+  def expected_change(model: Model)(pattern: Pattern) = ???
+
+  def build(pool: Seq[Pattern]) = ???
+
+  val boundaryType: String = ""
+}
+
+case class MetaStrategyBest(ds: Ds) extends Strategy {
+  val bests = ???
+  //Source.fromFile("/home/davi/wcs/arff/allmetaParesByPool-n1best1mALCKappa-ti.tf-Mar-5nna,rbf,rf,nbb-p1nofs.arffumPorBase.arff.arff").getLines.toList.drop(62).map(x => x.takeWhile(_ != ',') -> x.split("-").last).toMap
+  //  println(s"${bests.size} <- bests.size")
   lazy val learners = Seq(
     KNNBatcha(5, "eucl", pool, weighted = true)
     , C45()
@@ -37,8 +73,8 @@ case class MetaStrategy(ds: Ds) extends Strategy {
     , CIELMBatch(seed)
     , SVMLibRBF(seed)
   )
-  lazy val best = learners.find(_.limpa == bests(ds.dataset)).get
-  val id = best.id
+  //  lazy val best = learners.find(_.limpa == bests(ds.dataset)).get
+  val id = ??? //best.id
 
   val abr = "Meta"
   val debug: Boolean = ???
@@ -50,6 +86,7 @@ case class MetaStrategy(ds: Ds) extends Strategy {
 
   protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Unit = ???
 }
+
 
 trait Strategy extends Log with Limpa {
   val context = "Strategy"

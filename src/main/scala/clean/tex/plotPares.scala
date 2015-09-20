@@ -21,12 +21,10 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies.{MetaStrategy, Passive}
+import al.strategies.MetaLearner
 import clean.lib._
-import ml.classifiers.{Learner, NB, BestClassifCV100_10foldReadOnlyKappa, NoLearner}
-import util.{Stat, StatTests}
-
-import scala.io.Source
+import ml.classifiers.NoLearner
+import util.Stat
 
 object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
@@ -59,8 +57,8 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
         ds.open()
 
         val sres = for {
-          s0 <- strats.toList :+ ((aa: Learner) => MetaStrategy(ds))
-          le <- ls
+          s0 <- strats.toList
+          le <- ls :+ MetaLearner(ds, s0(NoLearner()))
         } yield {
             val s = s0(le)
             val vs00 = for {
