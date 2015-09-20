@@ -81,6 +81,11 @@ trait Rank extends FilterTrait with RoundFilter {
     }
   }
 
+  /**
+   * mantém ordem
+   * @param s
+   * @return
+   */
    def ranqueia(s: Seq[Double]) = s.zipWithIndex.sortBy(_._1).reverse.zipWithIndex.groupBy {
       case ((v, idx), ra) => ff(1000)(v)
    }.toList.map { case (k, g) =>

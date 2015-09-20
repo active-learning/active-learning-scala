@@ -148,7 +148,7 @@ object metaParesByPoolEscolhePares extends AppWithUsage with LearnerTrait with S
           println(s"${metaclassifs(Vector())} <- metaclassifs(v)")
           println(s"${metaclassifsf(Vector()).map(_.limp)} <- metaclassifsf por fazer")
           println(s" <- ")
-          val porMetaLea = cv(permutaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifsf, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(labels,permutaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifsf, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>

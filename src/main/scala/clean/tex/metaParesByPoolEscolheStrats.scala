@@ -133,7 +133,7 @@ object metaParesByPoolEscolheStrats extends AppWithUsage with LearnerTrait with 
       metads.open()
       metads.readString(s"select mc from r where ls='$stras' and st='$leaName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
         case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-          val porMetaLea = cv(leaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(labels,leaName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>

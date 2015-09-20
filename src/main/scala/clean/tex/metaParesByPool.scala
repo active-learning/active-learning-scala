@@ -140,9 +140,11 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
       val ra = if (porRank) "ra" else "ac"
       val metads = new Db("meta", readOnly = false)
       metads.open()
-      metads.readString(s"select mc from r where ls='$leas' and st='$stratName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks") match {
+      val sql69 = s"select mc from r where ls='$leas' and st='$stratName' and sm='$sm' and nt=$ntrees and fsel='$fsel' and ra='$ra' and rs=$rus and fs=$ks"
+      println(s"${sql69} <- sql69")
+      metads.readString(sql69) match {
         case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-          val porMetaLea = cv(stratName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(labels, stratName, smotePropor, smote, ntrees, featureSel, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>

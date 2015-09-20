@@ -189,7 +189,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
 
-  def cv(strat: String, pct: Double, smote: Boolean, ntrees: Int, attsel: String, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(labels: Seq[String], strat: String, pct: Double, smote: Boolean, ntrees: Int, attsel: String, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
@@ -290,13 +290,28 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               }
               speaPorComb
             }
-            val spearsTrTsAcc = Seq(tr, ts).map { tx =>
+            val spearsTrTsAcc = Seq(tr, ts).zipWithIndex map { case (tx, idx) =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
                 val esperado = pat.targets.zipWithIndex.minBy(_._1)._2
                 val predito = fm.output(pat).zipWithIndex.minBy(_._1)._2
                 val hit = if (predito == esperado) 1d else 0d
                 speaPorComb += ((esperado.toString, predito.toString, hit))
+
+
+
+                if (idx == 1 && ks == 94) {
+                  val esperadoStr = labels(esperado)
+                  val preditoStr = labels(predito)
+                  val base = tsbags.head.head.nomeBase
+                  val sql = s"insert into e values ('${alg + "-a"}', '$strat', '$base', '$esperadoStr', '$preditoStr')"
+                  print(s"${sql} <- sql ")
+                  println(s"LOO ativa registro para contagem de vitorias, mesmo no Rank, ranqueadores tb merecem recomendar o melhor, porque talvez errem menos feio que classificadores, mesmo que acertem menos")
+                  metads.write(sql)
+                }
+
+
+
                 /*
                 val melhorRank = pat.targets.min
                 val esperados = pat.targets.zipWithIndex.filter(_ == melhorRank).map(_._2)
