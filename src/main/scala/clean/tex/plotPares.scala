@@ -94,8 +94,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       x.sliding(20).map(y => y.sum / y.size).toList
     }.transpose
 
-    val porLea = algs.zip(plot.transpose).groupBy(_._1).toList
-    //    val porLea = algs.zip(plot.transpose).groupBy(_._1.split("-").last).toList
+    val porLea = algs.zip(plot.transpose).groupBy(_._1.replace("-a", "+a").split("-").last).toList
 
     val minMaxBest = porLea map { case (lea, curvas) =>
       val min = "min" + lea -> curvas.map(_._2).transpose.map(_.min)
