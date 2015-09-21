@@ -21,7 +21,7 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies.{Strategy, MetaLearner}
+import al.strategies.{MetaLearnerBest, Strategy, MetaLearner}
 import app.db.entities.Dataset
 import clean.lib._
 import ml.classifiers.{Learner, NoLearner}
@@ -33,8 +33,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
   //   val tipoSumariz = "mediana"
   val measure = Kappa
   val tipoSumariz = "media"
-  val ls = (ds: Ds, st: Strategy) => Seq(MetaLearner(ds, st))
-  //learners(learnersStr)
+  val ls = (ds: Ds, st: Strategy) => (Seq("PCTr-a", "PCT", "ELM", "ELMr-a", "PE", "PEr-a", "RFw1000", "5NN", "chu", "defr-a", "maj", "C4.55", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
   val strats = stratsTexForGraficoComplexo(dist)
   run()
 
@@ -47,7 +46,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       ds.close()
       U > 200
     }
-    val dsss = dss.take(2345)
+    val dsss = dss.take(599)
     val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
     println(s"$arq")
     val algs = (for {s <- strats; l <- ls(null, null)} yield s(l).limp + "-" + l.limp).toVector

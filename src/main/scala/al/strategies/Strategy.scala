@@ -27,16 +27,59 @@ import util.Graphics.Plot
 
 import scala.io.Source
 
-case class MetaLearner(ds: Ds, st: Strategy) extends Learner {
+case class MetaLearner(ds: Ds, st: Strategy)(mc: String) extends Learner {
   lazy val LeaPreditoName = {
     val metads = new Db("meta", readOnly = false)
     metads.open()
-    val sql = s"select esp, pre from e where mc='PCTr-a' and st='${st.limpa}' and ds='$ds';"
-    println(s"${sql} <- sql")
+    val sql = s"select esp, pre from e where mc='$mc' and st='${st.limpa}' and ds='$ds';"
+    print(s"${sql}\t\t")
     val res = metads.readString(sql) match {
-      case List(Vector(esp, pre)) => pre
+      case List(Vector(esp, pre)) => pre.split("-").last //as vezes tem strat junto, as vezes nao
       case x => sys.error(x.toString)
     }
+    metads.close()
+    println(s"$res")
+    res
+  }
+
+  lazy val learners = Seq(
+    KNNBatcha(5, "eucl", Seq(), weighted = true)
+    , C45()
+    , RF(-1)
+    , NBBatch()
+    , SVMLibRBF(-1)
+  )
+  lazy val LeaPredito = learners.find(_.limpa == LeaPreditoName).getOrElse {
+    println(s"${LeaPreditoName} <- LeaPreditoN")
+    sys.exit(0)
+  }
+
+  lazy val id = LeaPredito.id
+
+  lazy val abr = s"Meta$mc"
+
+  val attPref: String = ""
+
+  def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = ???
+
+  def expected_change(model: Model)(pattern: Pattern) = ???
+
+  def build(pool: Seq[Pattern]) = ???
+
+  val boundaryType: String = ""
+}
+
+case class MetaLearnerBest(ds: Ds, st: Strategy) extends Learner {
+  lazy val LeaPreditoName = {
+    val metads = new Db("meta", readOnly = false)
+    metads.open()
+    val sql = s"select esp, pre from e where mc='maj' and st='${st.limpa}' and ds='$ds';"
+    print(s"${sql} <- sql  ")
+    val res = metads.readString(sql) match {
+      case List(Vector(esp, pre)) => esp.split("-").last //as vezes tem strat junto, as vezes nao
+      case x => sys.error(x.toString)
+    }
+    println(s"${res} <- res")
     metads.close()
     res
   }
@@ -51,7 +94,7 @@ case class MetaLearner(ds: Ds, st: Strategy) extends Learner {
   lazy val LeaPredito = learners.find(_.limpa == LeaPreditoName).get
   lazy val id = LeaPredito.id
 
-  lazy val abr = "Meta" // + LeaPredito.limpa
+  lazy val abr = s"MetaBest"
 
   val attPref: String = ""
 
@@ -62,32 +105,6 @@ case class MetaLearner(ds: Ds, st: Strategy) extends Learner {
   def build(pool: Seq[Pattern]) = ???
 
   val boundaryType: String = ""
-}
-
-case class MetaStrategyBest(ds: Ds) extends Strategy {
-  val bests = ???
-  //Source.fromFile("/home/davi/wcs/arff/allmetaParesByPool-n1best1mALCKappa-ti.tf-Mar-5nna,rbf,rf,nbb-p1nofs.arffumPorBase.arff.arff").getLines.toList.drop(62).map(x => x.takeWhile(_ != ',') -> x.split("-").last).toMap
-  //  println(s"${bests.size} <- bests.size")
-  lazy val learners = Seq(
-    KNNBatcha(5, "eucl", pool, weighted = true)
-    , C45()
-    , RF(seed)
-    , NBBatch()
-    , CIELMBatch(seed)
-    , SVMLibRBF(seed)
-  )
-  //  lazy val best = learners.find(_.limpa == bests(ds.dataset)).get
-  val id = ??? //best.id
-
-  val abr = "Meta"
-  val debug: Boolean = ???
-  val pool: Seq[Pattern] = ???
-
-  def learner: Learner = ???
-
-  protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Stream[Pattern] = ???
-
-  protected def visual_test(selected: Pattern, unlabeled: Seq[Pattern], labeled: Seq[Pattern]): Unit = ???
 }
 
 
