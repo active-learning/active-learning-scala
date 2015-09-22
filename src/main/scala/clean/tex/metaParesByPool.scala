@@ -16,7 +16,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
   val measure = ALCKappa
   //1 100 200 (Kappa exige 200)
-  val dsminSize = 1
+  val dsminSize = 200
   //n=2 estraga stats
   val n = 1
   run()
