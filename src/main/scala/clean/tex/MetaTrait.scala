@@ -215,16 +215,18 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           tr00 -> ts00
         }
 
-        println()
-        println()
-        println(s"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        tr foreach println
-        println("---------")
-        ts foreach println
-        println("----------------------------------------------------------------------")
-        println()
-        println()
-        if (tr.isEmpty || ts.isEmpty) sys.exit(0)
+        if (tr.isEmpty || ts.isEmpty) {
+          println()
+          println()
+          println(s"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+          tr foreach println
+          println("---------")
+          ts foreach println
+          println("----------------------------------------------------------------------")
+          println()
+          println()
+          sys.exit(0)
+        }
         lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
         //pega apenas um ex. por base (um que tiver label mais frequente)
         lazy val tr_trfSemParecidos = Seq(tr0.zip(tr).groupBy(_._1.base).map(_._2.map(_._2)), tr0.zip(trf).groupBy(_._1.base).map(_._2.map(_._2))) map { bags =>
