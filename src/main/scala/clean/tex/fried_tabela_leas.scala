@@ -71,14 +71,14 @@ object fried_tabela_leas extends AppWithUsage with LearnerTrait with StratsTrait
 
       val sorted = res0.toList.filter(!_._2.contains(NA, NA)).sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
 
-      val fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex", "ISO-8859-1")
-      sorted.grouped(33).zipWithIndex foreach { case (res1, i) =>
+     val fw = new PrintWriter("/home/davi/wcs/tese/classifsTab.tex") //, "ISO-8859-1")
+     sorted.grouped(38).zipWithIndex foreach { case (res1, i) =>
          fw.write(StatTests.extensiveTable2("", true, 100, res1.toSeq, ls.map(_.abr), "tab:balaccClassif" + i, measure.toString, 5))
       }
       fw.close()
       //
       val pairs = StatTests.friedmanNemenyi(sorted.map(x => x._1 -> x._2.map(_._1)), ls.map(_.abr))
-      val fw7 = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex", "ISO-8859-1")
+     val fw7 = new PrintWriter("/home/davi/wcs/tese/classifsFried.tex") //, "ISO-8859-1")
       fw7.write(StatTests.pairTable(pairs, "tab:friedClassif", 2, caption))
       fw7.close()
       println(s"${sorted.size} datasets completos")

@@ -94,7 +94,7 @@ object datasetsdesc extends Exp with Lock {
     fw2.close()
 
     val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables-reduxes.tex") //, "ISO-8859-1")
-    val maisDesbalanceadas = todas.filter(x => x._2(4).toDouble > 5 * x._2(5).toDouble).toList.sortBy(x => x._2(4).toDouble / x._2(5).toDouble).reverse
+    val maisDesbalanceadas = todas.filter(x => x._2(4).toDouble > 20 * x._2(5).toDouble).toList.sortBy(x => x._2(4).toDouble / x._2(5).toDouble).reverse
     fw.write(tabela("tab:imb", "Bases de dados mais desbalanceadas.", maisDesbalanceadas))
 
     val maisAtributos = todas.filter(x => x._2(2).toDouble > 50).toList.sortBy(x => x._2(2).toDouble).reverse
@@ -103,10 +103,10 @@ object datasetsdesc extends Exp with Lock {
     val maisClasses = todas.filter(x => x._2(1).toDouble > 6).toList.sortBy(x => x._2(1).toDouble).reverse
     fw.write(tabela("tab:y", "Bases de dados com mais classes.", maisClasses))
 
-    val maisExemplos = todas.filter(x => x._2(0).toDouble > 3000).toList.sortBy(x => x._2(0).toDouble).reverse
+    val maisExemplos = todas.filter(x => x._2(0).toDouble > 4000).toList.sortBy(x => x._2(0).toDouble).reverse
     fw.write(tabela("tab:n", "Bases de dados com mais exemplos.", maisExemplos))
 
-    val menosExemplos = todas.filter(x => x._2(0).toDouble < 300).toList.sortBy(x => x._2(0).toDouble)
+    val menosExemplos = todas.filter(x => x._2(0).toDouble < 250).toList.sortBy(x => x._2(0).toDouble)
     fw.write(tabela("tab:nm", "Bases de dados com menos exemplos.", menosExemplos))
     fw.close()
   }

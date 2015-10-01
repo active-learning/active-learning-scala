@@ -75,7 +75,7 @@ object StatTests extends RoundFilter {
       val caption = language match {
          case "pt" =>
             if (capti != "") capti
-            else s"$measure: " + (if (contemStdDev.nonEmpty) "Os maiores valores da média e desvio padrão" else "O maior valor") + " de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente." +
+            else s"$measure: " + (if (contemStdDev.nonEmpty) "Os maiores valores da média e desvio padrão" else "O maior e o menor valor") + " de cada base está em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente." +
                s" Valores isolados estão sublinhados.$contemStdDev Apenas negrito indica segundo melhor valor."
          case "en" => s"$measure: Highest average (std. deviation) for each dataset is in \\textcolor{blue}{\\textbf{blue bold}}(\\textcolor{red}{\\textbf{red bold}}) face. When unique, values are underlined." +
             s" Lowest std. values are in \\textcolor{darkgreen}{green}. Bold face only number shows second best value."
