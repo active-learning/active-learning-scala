@@ -81,7 +81,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
               else Stat.media_desvioPadrao(v.toVector)._1
             }
             val fst = ts.head
-            ts.reverse.padTo(200, fst).reverse.toList
+            ts.reverse.padTo(100, fst).reverse.toList
           }
 
         ds.close()
@@ -91,7 +91,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       }
     val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
     val plot = plot0.toList.transpose.map { x =>
-      x.sliding(20).map(y => y.sum / y.size).toList
+      x.sliding(10).map(y => y.sum / y.size).toList
     }.transpose
 
     val porLea = algs.zip(plot.transpose).groupBy(_._1.replace("-a", "+a").split("-").last).toList
