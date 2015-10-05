@@ -66,7 +66,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
               r <- 0 until runs
               f <- 0 until folds
             } yield {
-                measure(ds, s, le, r, f)(-2).readAll(ds).getOrElse {
+                measure(ds, s, le, r, f)(-2).readAll99(ds).getOrElse {
                   //pelo que entendi -2 poderia ser -3456,... (19/9/15)
                   println((ds, s, le, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
