@@ -27,9 +27,6 @@ object metaParesByPoolEscolheStrats extends AppWithUsage with LearnerTrait with 
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
       PCT(),
-      NinteraELM(),
-      PCTELM(),
-      CIELMBatch(),
       //      SVMLibRBF(),
       C45(false, 5),
       KNNBatcha(5, "eucl", patts),

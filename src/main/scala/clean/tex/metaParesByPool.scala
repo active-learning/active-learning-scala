@@ -16,7 +16,7 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
   val measure = ALCKappa
   //1 100 200 (Kappa exige 200)
-  val dsminSize = 200
+  val dsminSize = 100
   //n=2 estraga stats
   val n = 1
   run()
@@ -27,8 +27,8 @@ object metaParesByPool extends AppWithUsage with LearnerTrait with StratsTrait w
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
       PCT(),
-      NinteraELM(),
-      PCTELM(),
+      //      NinteraELM(),
+      //      PCTELM(),
       //      SVMLibRBF(),
       C45(false, 5),
       KNNBatcha(5, "eucl", patts),

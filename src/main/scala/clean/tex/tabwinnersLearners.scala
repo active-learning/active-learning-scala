@@ -91,3 +91,25 @@ object tabwinnersLearners extends AppWithUsage with LearnerTrait with StratsTrai
    }
 
 }
+
+/*
+--------Kappa---------------
+78 total de vencedores
+76 total de perdedores
+SVM & C4.5 & 5NN & NB
+SVM        & 	36	 & 		5	\\
+C4.5       & 	17	 & 		11	\\
+5NN        & 	15	 & 		29	\\
+NB         & 	10	 & 		31	\\
+------------------------------
+--------Kappa---------------
+79 total de vencedores
+81 total de perdedores
+SVM & C4.5 & 5NN & NB & VFDTw
+SVM        & 	33	 & 		2	\\
+C4.5       & 	17	 & 		8	\\
+5NN        & 	15	 & 		18	\\
+NB         & 	10	 & 		22	\\
+VFDTw      & 	4	 & 		31	\\
+------------------------------
+*/

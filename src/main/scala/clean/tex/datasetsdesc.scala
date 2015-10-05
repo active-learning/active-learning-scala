@@ -46,7 +46,7 @@ object datasetsdesc extends Exp with Lock {
   def datasetFinished(ds: Ds) {
     acquire()
     //    println(ds.description)
-    if (ds.poolSize > 200) println(s"$ds")
+    println(s"${ds.poolSize} $ds")
     m += renomeia(ds) -> (ds.description._1.map(x => x.toString) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     //    if (ds.nclasses == 2 && ds.poolSize > 200) m += renomeia(ds) -> (ds.description2._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     //        if (ds.nclasses == 2) m += renomeia(ds) -> (ds.description._1.map(_.toString)) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
