@@ -52,7 +52,7 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
          ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
          //         val best = BestPassiveClassif(ds, 42, Seq()) //desnecessário, pois best já tá incluído em aprendiz=classif (não faz sentido usar passiva na avaliação de pares)
          for {
-           learner <- learnersPool(pool, learnerSeed) //++ learnersFpool(learnerSeed)
+           learner <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
             s <- stratsPool("all", pool, pool).map(_(learner)) ++ stratsFpool(pool, fpool).map(_(learner))
             classif <- Seq(learner) //, BestPassiveClassif(ds, learnerSeed, pool)) passive não faz sentido pra par, já tem 10-fold
          //            classif <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
