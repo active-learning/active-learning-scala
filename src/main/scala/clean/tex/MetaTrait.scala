@@ -312,7 +312,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
 
 
-                if (idx == 1 && (ks == 94 || ks == 75)) {
+                if (idx == 1 && (ks == 94 || ks == 75 || ks == 87)) {
                   val esperadoStr = labels(esperado)
                   val preditoStr = labels(predito)
                   val base = tsbags.head.head.nomeBase
@@ -475,7 +475,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val predito = xbag.head.classAttribute().value(pred)
                 val base = tsbags.head.head.nomeBase
                 if (idx == 1) {
-                  if ((ks == 94 || ks == 75) && !rank) {
+                  if ((ks == 94 || ks == 75 || ks == 87) && !rank) {
                     val sql = s"insert into e values ('${mc.limp}', '$strat', '$base', '$esperado', '$predito')"
                     print(s"${sql} <- sql ")
                     println(s"LOO+ank ativa registro para contagem de vitorias")
