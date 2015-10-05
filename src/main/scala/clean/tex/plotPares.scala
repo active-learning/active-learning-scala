@@ -110,7 +110,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
     val fw = new PrintWriter(arq, "ISO-8859-1")
     fw.write("budget " + algs2.mkString(" ") + "\n")
     plot2.zipWithIndex foreach { case (re, i) =>
-      fw.write((i + 10) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
+      fw.write((i + 5) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
     }
     fw.close()
     println(s"$arq")
