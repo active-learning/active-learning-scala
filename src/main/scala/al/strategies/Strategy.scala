@@ -145,6 +145,8 @@ trait Strategy extends Log with Limpa {
     case 12 => 30
     case 8001 => 40
     case 666003 => 50
+    case 5541 => 60
+    case 5542 => 70
   }
 
   /**

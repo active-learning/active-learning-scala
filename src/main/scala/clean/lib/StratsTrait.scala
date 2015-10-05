@@ -144,11 +144,11 @@ trait StratsTrait {
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
       , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
-      , Some((learner: Learner) => QBC(fakePool))
-      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
-      , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
+//      , Some((learner: Learner) => QBC(fakePool))
+//      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+//      , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
       , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-      , Some((learner: Learner) => EntropyFixo(learner, fakePool))
+//      , Some((learner: Learner) => EntropyFixo(learner, fakePool))
       , Some((learner: Learner) => MarginFixo(learner, fakePool))
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")) else None
@@ -195,11 +195,11 @@ trait StratsTrait {
       case "mah" => Seq()
     }) ++
       Seq(
-        (learner: Learner) => QBC(poolForLearner)
+//        (learner: Learner) => QBC(poolForLearner)
         //essas precisam ser Fixo porque os hits ficam sem vinculo com o learner gerador das queries (por isso dava duplicated key)
         //copiei as qs e os hs porque todos já estavam gerados desde antigamente
-        , (learner: Learner) => EntropyFixo(learner, poolForLearner) //
-        , (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
+//        , (learner: Learner) => EntropyFixo(learner, poolForLearner) //
+        (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
         , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy") //pid:200000 ... 200050; sid:11000000 ...          //11000050
         , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "balacc") //pid:300000 ... 300050; sid:74000000 ... 74000050
         , (learner: Learner) => SGmultiFixo(learner, poolForLearner, "consensus") //pid:400000 ... 400050; sid:14000000 ... 14000050
@@ -220,9 +220,9 @@ trait StratsTrait {
     //apaguei somente learners que não querem filtro no mysql: id voltou pra 991
     , (learner: Learner) => AgDensityWeightedTrainingUtility(fpool, "maha") //991
 
-    //apaguei todos os hits de classifs diferentes de svmrbf.
-    , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw") //9690094
-    , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw") //9660091
+//    //apaguei todos os hits de classifs diferentes de svmrbf.
+//    , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw") //9690094
+//    , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw") //9660091
   )
 
   def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)
