@@ -27,355 +27,355 @@ import weka.filters.Filter
 import scala.collection.mutable
 
 object acv extends Exp with LearnerTrait with StratsTrait {
-   val context = "acvApp"
-   val arguments = superArguments
-   val ignoreNotDone = false
-   var outroProcessoVaiTerminarEsteDataset = false
-   var acabou = true
-   run()
+  val context = "acvApp"
+  val arguments = superArguments
+  val ignoreNotDone = false
+  var outroProcessoVaiTerminarEsteDataset = false
+  var acabou = true
+  run()
 
-   def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
-      try {
-         fila += f
-      } catch {
-         case e: Throwable => acabou = false
-      }
+  def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
+    try {
+      fila += f
+    } catch {
+      case e: Throwable => acabou = false
+    }
 
-   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-      val fila = mutable.Set[String]()
-      if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
-      else if (ds.isAliveByOtherJob(run, fold)) {
-         outroProcessoVaiTerminarEsteDataset = true
-         ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
-      } else {
-         ds.startbeat(run, fold)
-         ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
-         //         val best = BestPassiveClassif(ds, learnerSeed, pool)
+  def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+    val fila = mutable.Set[String]()
+    if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
+    else if (ds.isAliveByOtherJob(run, fold)) {
+      outroProcessoVaiTerminarEsteDataset = true
+      ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
+    } else {
+      ds.startbeat(run, fold)
+      ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
+      //         val best = BestPassiveClassif(ds, learnerSeed, pool)
 
-         learnersPool(pool, learnerSeed) foreach { learner =>
-            stratsPool("all", pool, pool).map(_(learner)) foreach { strat =>
-               ds.log(s"$learner $strat ...")
+      learnersPool(pool, learnerSeed) foreach { learner =>
+        stratsPool("all", pool, pool).map(_(learner)) foreach { strat =>
+          ds.log(s"$learner $strat ...")
 
-               val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
-                  ds.log(s" Queries  done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
-                  ds.queries(strat, run, fold, null, null)
-               } else ds.writeQueries(strat, run, fold, maxQueries(ds))
-               val fqueries = ds.queries(strat, run, fold, binaf, zscof)
+          val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
+            ds.log(s" Queries  done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
+            ds.queries(strat, run, fold, null, null)
+          } else ds.writeQueries(strat, run, fold, maxQueries(ds))
+          val fqueries = ds.queries(strat, run, fold, binaf, zscof)
 
-              //                              learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif => //todos leas só pra sbmmulti e qbc
-              Seq(learner) foreach { classif =>
-                if (classif.querFiltro) {
-                  ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
-                  if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
-                  else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-                } else {
-                  ds.log(s"Hits [$learner $strat $classif] at pool $run.$fold.")
-                  if (ds.areHitsFinished(pool.size, testSet, strat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
-                  else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-                }
-              }
-
-
-              //               //               if (pool.size >= 100) {
-              //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
-              //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
-              //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-3)
-              //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-3)
-              //               //                  try {
-              //               //                     if (!k.existia || !b.existia) {
-              //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-              //               //                     }
-              //               //                  } catch {
-              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-              //               //                        acabou = false
-              //               //                  }
-              //               //               }
-              //               if (pool.size < 200) {
-              //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
-              //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
-              //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-4)
-              //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-4)
-              //                  try {
-              //                     if (!k.existia || !b.existia) {
-              //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-              //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-              //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-              //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-              //                     }
-              //                  } catch {
-              //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-              //                        acabou = false
-              //                  }
-              //               }
-              //               //
-              //               //               if (pool.size >= 200) {
-              //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-              //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
-              //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
-              //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
-              //               //                  try {
-              //               //                     if (!k.existia || !b.existia) {
-              //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-              //               //                     }
-              //               //                  } catch {
-              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-              //               //                        acabou = false
-              //               //                  }
-              //               //               }
+          //                              learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif => //todos leas só pra sbmmulti e qbc
+          Seq(learner) foreach { classif =>
+            if (classif.querFiltro) {
+              ds.log(s"fHits [$learner $strat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            } else {
+              ds.log(s"Hits [$learner $strat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(pool.size, testSet, strat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
             }
+          }
 
-            stratsFpool(pool, fpool).map(_(learner)) foreach { fstrat =>
-               ds.log(s"$learner $fstrat ...")
 
-               val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
-                  ds.log(s"fQueries  done for ${fstrat.abr}/${fstrat.learner} at pool $run.$fold. Retrieving from disk.")
-                  ds.queries(fstrat, run, fold, binaf, zscof)
-               } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
-               val queries = ds.queries(fstrat, run, fold, null, null)
+          //               //               if (pool.size >= 100) {
+          //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+          //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-3)
+          //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-3)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+          //               if (pool.size < 200) {
+          //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
+          //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
+          //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-4)
+          //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-4)
+          //                  try {
+          //                     if (!k.existia || !b.existia) {
+          //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //                     }
+          //                  } catch {
+          //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //                        acabou = false
+          //                  }
+          //               }
+          //               //
+          //               //               if (pool.size >= 200) {
+          //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+          //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
+          //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+        }
 
-              Seq(learner) foreach { classif =>
-                //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
-                if (classif.querFiltro) {
-                  ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
-                  if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
-                  else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-                } else {
-                  ds.log(s"Hits [$learner $fstrat $classif] at pool $run.$fold.")
-                  if (ds.areHitsFinished(pool.size, testSet, fstrat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
-                  else ds.writeHits(pool.size, testSet, queries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-                }
-              }
+        stratsFpool(pool, fpool).map(_(learner)) foreach { fstrat =>
+          ds.log(s"$learner $fstrat ...")
 
-              //               //               if (pool.size >= 200) {
-              //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-              //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
-              //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
-              //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
-              //               //                  try {
-              //               //                     if (!k.existia || !b.existia) {
-              //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-              //               //                     }
-              //               //                  } catch {
-              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-              //               //                        acabou = false
-              //               //                  }
-              //               //               }
-              //               if (pool.size < 200) {
-              //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
-              //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
-              //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-4)
-              //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-4)
-              //                  try {
-              //                     if (!k.existia || !b.existia) {
-              //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-              //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-              //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-              //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-              //                     }
-              //                  } catch {
-              //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-              //                        acabou = false
-              //                  }
-              //               }
-              //               //               if (pool.size >= 100) {
-              //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
-              //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
-              //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-3)
-              //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-3)
-              //               //                  try {
-              //               //                     if (!k.existia || !b.existia) {
-              //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-              //               //                     }
-              //               //                  } catch {
-              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-              //               //                        acabou = false
-              //               //                  }
-              //               //               }
+          val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
+            ds.log(s"fQueries  done for ${fstrat.abr}/${fstrat.learner} at pool $run.$fold. Retrieving from disk.")
+            ds.queries(fstrat, run, fold, binaf, zscof)
+          } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
+          val queries = ds.queries(fstrat, run, fold, null, null)
+
+          Seq(learner) foreach { classif =>
+            //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
+            if (classif.querFiltro) {
+              ds.log(s"fHits [$learner $fstrat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            } else {
+              ds.log(s"Hits [$learner $fstrat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(pool.size, testSet, fstrat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(pool.size, testSet, queries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
             }
-            if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-            fila.clear()
-         }
+          }
 
-        //         learnersFpool(learnerSeed) foreach { flearner =>
-        //            stratsPool("all", fpool, pool).map(_(flearner)) foreach { strat =>
-        //               ds.log(s"$flearner $strat ...")
-        //
-        //               val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
-        //                  ds.log(s" Queries  done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
-        //                  ds.queries(strat, run, fold, null, null)
-        //               } else ds.writeQueries(strat, run, fold, maxQueries(ds))
-        //               val fqueries = ds.queries(strat, run, fold, binaf, zscof)
-        //
-        //              Seq(flearner) foreach { classif =>
-        //                //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
-        //                if (classif.querFiltro) {
-        //                  ds.log(s"fHits [$flearner $strat $classif] at pool $run.$fold.")
-        //                  if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
-        //                  else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-        //                } else {
-        //                  ds.log(s"Hits [$flearner $strat $classif] at pool $run.$fold.")
-        //                  if (ds.areHitsFinished(pool.size, testSet, strat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
-        //                  else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-        //                }
-        //              }
-        //
-        //              //               //               if (pool.size >= 200) {
-        //              //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-        //              //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
-        //              //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
-        //              //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
-        //              //               //                  try {
-        //              //               //                     if (!k.existia || !b.existia) {
-        //              //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-        //              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-        //              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-        //              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-        //              //               //                     }
-        //              //               //                  } catch {
-        //              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-        //              //               //                        acabou = false
-        //              //               //                  }
-        //              //               //               }
-        //              //
-        //              //               if (pool.size < 200) {
-        //              //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
-        //              //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
-        //              //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-4)
-        //              //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-4)
-        //              //                  try {
-        //              //                     if (!k.existia || !b.existia) {
-        //              //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-        //              //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-        //              //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-        //              //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-        //              //                     }
-        //              //                  } catch {
-        //              //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-        //              //                        acabou = false
-        //              //                  }
-        //              //               }
-        //              //               //               if (pool.size >= 100) {
-        //              //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
-        //              //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
-        //              //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-3)
-        //              //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-3)
-        //              //               //                  try {
-        //              //               //                     if (!k.existia || !b.existia) {
-        //              //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-        //              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-        //              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-        //              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-        //              //               //                     }
-        //              //               //                  } catch {
-        //              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-        //              //               //                        acabou = false
-        //              //               //                  }
-        //              //               //               }
-        //            }
-        //
-        //            stratsFpool(fpool, fpool).map(_(flearner)) foreach { fstrat =>
-        //               ds.log(s"$flearner $fstrat ...")
-        //
-        //               val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
-        //                  ds.log(s"fQueries  done for ${fstrat.abr}/${fstrat.learner} at pool $run.$fold. Retrieving from disk.")
-        //                  ds.queries(fstrat, run, fold, binaf, zscof)
-        //               } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
-        //               val queries = ds.queries(fstrat, run, fold, null, null)
-        //
-        //              //                              learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
-        //              Seq(flearner) foreach { classif =>
-        //                if (classif.querFiltro) {
-        //                  ds.log(s"fHits [$flearner $fstrat $classif] at pool $run.$fold.")
-        //                  if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
-        //                  else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-        //                } else {
-        //                  ds.log(s"Hits [$flearner $fstrat $classif] at pool $run.$fold.")
-        //                  if (ds.areHitsFinished(pool.size, testSet, fstrat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
-        //                  else ds.writeHits(pool.size, testSet, queries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-        //                }
-        //              }
-        //
-        //              //               //               if (pool.size >= 200) {
-        //              //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
-        //              //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
-        //              //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
-        //              //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
-        //              //               //                  try {
-        //              //               //                     if (!k.existia || !b.existia) {
-        //              //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
-        //              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-        //              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-        //              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-        //              //               //                     }
-        //              //               //                  } catch {
-        //              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-        //              //               //                        acabou = false
-        //              //               //                  }
-        //              //               //               }
-        //              //               if (pool.size < 200) {
-        //              //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
-        //              //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
-        //              //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-4)
-        //              //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-4)
-        //              //                  try {
-        //              //                     if (!k.existia || !b.existia) {
-        //              //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-        //              //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-        //              //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-        //              //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-        //              //                     }
-        //              //                  } catch {
-        //              //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-        //              //                        acabou = false
-        //              //                  }
-        //              //               }
-        //              //               //               if (pool.size >= 100) {
-        //              //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
-        //              //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
-        //              //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-3)
-        //              //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-3)
-        //              //               //                  try {
-        //              //               //                     if (!k.existia || !b.existia) {
-        //              //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
-        //              //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
-        //              //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
-        //              //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
-        //              //               //                     }
-        //              //               //                  } catch {
-        //              //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
-        //              //               //                        acabou = false
-        //              //               //                  }
-        //              //               //               }
-        //            }
-        //            if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-        //            fila.clear()
-        //         }
+          //               //               if (pool.size >= 200) {
+          //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+          //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+          //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+          //               if (pool.size < 200) {
+          //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
+          //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
+          //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-4)
+          //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-4)
+          //                  try {
+          //                     if (!k.existia || !b.existia) {
+          //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //                     }
+          //                  } catch {
+          //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //                        acabou = false
+          //                  }
+          //               }
+          //               //               if (pool.size >= 100) {
+          //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+          //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-3)
+          //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-3)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+        }
+        if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+        fila.clear()
       }
-   }
 
-   def datasetFinished(ds: Ds) = {
-      if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-        ds.markAsFinishedRun("acvu29" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
-         ds.log("Dataset marcado como terminado !", 50)
+      learnersFpool(learnerSeed) foreach { flearner =>
+        stratsPool("all", fpool, pool).map(_(flearner)) foreach { strat =>
+          ds.log(s"$flearner $strat ...")
+
+          val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
+            ds.log(s" Queries  done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
+            ds.queries(strat, run, fold, null, null)
+          } else ds.writeQueries(strat, run, fold, maxQueries(ds))
+          val fqueries = ds.queries(strat, run, fold, binaf, zscof)
+
+          Seq(flearner) foreach { classif =>
+            //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
+            if (classif.querFiltro) {
+              ds.log(s"fHits [$flearner $strat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            } else {
+              ds.log(s"Hits [$flearner $strat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(pool.size, testSet, strat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            }
+          }
+
+          //               //               if (pool.size >= 200) {
+          //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+          //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, strat, qt100, fqt100, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-2)
+          //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-2)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+          //
+          //               if (pool.size < 200) {
+          //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
+          //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
+          //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-4)
+          //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-4)
+          //                  try {
+          //                     if (!k.existia || !b.existia) {
+          //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //                     }
+          //                  } catch {
+          //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //                        acabou = false
+          //                  }
+          //               }
+          //               //               if (pool.size >= 100) {
+          //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+          //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, strat, qt50, fqt50, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, strat, classif, run, fold, forcePid = true)(-3)
+          //               //                  val b = BalancedAcc(ds, strat, classif, run, fold, forcePid = true)(-3)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+        }
+
+        stratsFpool(fpool, fpool).map(_(flearner)) foreach { fstrat =>
+          ds.log(s"$flearner $fstrat ...")
+
+          val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
+            ds.log(s"fQueries  done for ${fstrat.abr}/${fstrat.learner} at pool $run.$fold. Retrieving from disk.")
+            ds.queries(fstrat, run, fold, binaf, zscof)
+          } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
+          val queries = ds.queries(fstrat, run, fold, null, null)
+
+          //                              learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
+          Seq(flearner) foreach { classif =>
+            if (classif.querFiltro) {
+              ds.log(s"fHits [$flearner $fstrat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            } else {
+              ds.log(s"Hits [$flearner $fstrat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(pool.size, testSet, fstrat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(pool.size, testSet, queries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            }
+          }
+
+          //               //               if (pool.size >= 200) {
+          //               //                  val (qt100, fqt100) = (queries.take(100), fqueries.take(100))
+          //               //                  val classif = BestClassifCV100_10foldKappa(ds, run, fold, fstrat, qt100, fqt100, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+          //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-2)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt100 else qt100)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+          //               if (pool.size < 200) {
+          //                  val (qt50, fqt50) = (queries.take(pool.size / 2), fqueries.take(pool.size / 2))
+          //                  val classif = BestClassifCVU2_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
+          //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-4)
+          //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-4)
+          //                  try {
+          //                     if (!k.existia || !b.existia) {
+          //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //                     }
+          //                  } catch {
+          //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //                        acabou = false
+          //                  }
+          //               }
+          //               //               if (pool.size >= 100) {
+          //               //                  val (qt50, fqt50) = (queries.take(50), fqueries.take(50))
+          //               //                  val classif = BestClassifCV50_10foldKappa(ds, run, fold, fstrat, qt50, fqt50, learnerSeed, pool)
+          //               //                  val k = Kappa(ds, fstrat, classif, run, fold, forcePid = true)(-3)
+          //               //                  val b = BalancedAcc(ds, fstrat, classif, run, fold, forcePid = true)(-3)
+          //               //                  try {
+          //               //                     if (!k.existia || !b.existia) {
+          //               //                        val m = classif.build(if (classif.querFiltro) fqt50 else qt50)
+          //               //                        val CM = m.confusion(if (classif.querFiltro) ftestSet else testSet)
+          //               //                        poeNaFila(fila, k.sqlToWrite(ds, CM))
+          //               //                        poeNaFila(fila, b.sqlToWrite(ds, CM))
+          //               //                     }
+          //               //                  } catch {
+          //               //                     case e: NoPidForNonPassive => log(e.getMessage, 30)
+          //               //                        acabou = false
+          //               //                  }
+          //               //               }
+        }
+        if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+        fila.clear()
       }
-      outroProcessoVaiTerminarEsteDataset = false
-      acabou = true
-   }
+    }
+  }
 
-  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acvu29" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+  def datasetFinished(ds: Ds) = {
+    if (acabou && !outroProcessoVaiTerminarEsteDataset) {
+      ds.markAsFinishedRun("acvu291" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+      ds.log("Dataset marcado como terminado !", 50)
+    }
+    outroProcessoVaiTerminarEsteDataset = false
+    acabou = true
+  }
 
-   def end(res: Map[String, Boolean]): Unit = {
-   }
+  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("acvu291" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+
+  def end(res: Map[String, Boolean]): Unit = {
+  }
 }

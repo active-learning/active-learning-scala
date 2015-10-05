@@ -29,7 +29,7 @@ trait LearnerTrait {
 
   //neste arquivo ficam apenas classificadores básicos.
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    RoF(learnerSeed), ABoo(learnerSeed)
+    ABoo(learnerSeed)
     //      KNNBatcha(5, "eucl", pool, weighted = true) //2
     //      , C45() //3
     //      , RF(learnerSeed) //773
@@ -38,9 +38,10 @@ trait LearnerTrait {
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
-    CIELMBatch(learnerSeed) //8001
+    RoF(learnerSeed)
+    //    CIELMBatch(learnerSeed) //8001
     //      , NinteraELM(learnerSeed) //11
-    , SVMLibRBF(learnerSeed)
+    //    , SVMLibRBF(learnerSeed)
   )
 
   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
