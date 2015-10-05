@@ -44,7 +44,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       ds.open()
       val U = ds.poolSize.toInt
       ds.close()
-      U > 200
+      U >= 100
     }
     val dsss = dss.take(599)
     val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
