@@ -61,6 +61,8 @@ trait LearnerTrait {
   )
 
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
+    case "aboo" => ABoo(learnerSeed)
+    case "rof" => RoF(learnerSeed)
     case "nbb" => NBBatch()
     case "5nna" => KNNBatcha(5, "eucl", pool, weighted = true)
     case "5nnb" => KNNBatchb(5, "eucl", pool, weighted = true)
