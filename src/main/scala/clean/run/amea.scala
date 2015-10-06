@@ -57,8 +57,9 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
             classif <- Seq(learner) //, BestPassiveClassif(ds, learnerSeed, pool)) passive não faz sentido pra par, já tem 10-fold
          //            classif <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
          } yield {
-            lazy val (tmin, thalf, tmax, tpass) = ranges(ds)
-            for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
+           lazy val (tmin, _, tmax, _) = ranges(ds)
+           //            for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
+           for ((ti, tf) <- Seq((tmin, tmax))) {
                poeNaFila(fila, ALCKappa(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
                poeNaFila(fila, ALCBalancedAcc(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
             }
@@ -66,9 +67,9 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
                poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
                poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
             }
-            val t = tpass
-            poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
-            poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
+           //            val t = tpass
+           //            poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
+           //            poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
          }
       }
 
