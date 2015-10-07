@@ -29,7 +29,10 @@ trait LearnerTrait {
 
   //neste arquivo ficam apenas classificadores básicos.
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    ABoo(learnerSeed)
+    ABoo(learnerSeed),
+    Knn10(pool),
+    BagC45(learnerSeed),
+    BagNB(learnerSeed)
     //      KNNBatcha(5, "eucl", pool, weighted = true) //2
     //      , C45() //3
     //      , RF(learnerSeed) //773
@@ -61,6 +64,10 @@ trait LearnerTrait {
   )
 
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
+    case "bagnb" => BagNB(learnerSeed)
+    case "bagc45" => BagC45(learnerSeed)
+    case "10nn" => Knn10(pool)
+
     case "aboo" => ABoo(learnerSeed)
     case "rof" => RoF(learnerSeed)
     case "nbb" => NBBatch()
