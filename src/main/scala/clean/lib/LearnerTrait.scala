@@ -29,19 +29,22 @@ trait LearnerTrait {
 
   //neste arquivo ficam apenas classificadores básicos.
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    ABoo(learnerSeed),
-    Knn10(pool),
-    BagC45(learnerSeed),
-    BagNB(learnerSeed)
-    //      KNNBatcha(5, "eucl", pool, weighted = true) //2
-    //      , C45() //3
-    //      , RF(learnerSeed) //773
-    //      , NBBatch() //12
-    //      , VFDT() //4
+    // KNNBatcha(5, "eucl", pool, weighted = true)
+    // NBBatch()
+    C452() // C45()
+
+
+    //RF(learnerSeed)
+    //    ABoo(learnerSeed)
+    //RoF (usa filtro, então aparece mais abaixo, na outra função)
+
+    //    BagC45(learnerSeed),
+    //    BagNB(learnerSeed),
+    //      Knn10(pool)
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
-    RoF(learnerSeed)
+    //    RoF(learnerSeed)
     //    CIELMBatch(learnerSeed) //8001
     //      , NinteraELM(learnerSeed) //11
     //    , SVMLibRBF(learnerSeed)
@@ -74,6 +77,7 @@ trait LearnerTrait {
     case "5nna" => KNNBatcha(5, "eucl", pool, weighted = true)
     case "5nnb" => KNNBatchb(5, "eucl", pool, weighted = true)
     case "c45" => C45()
+    case "c452" => C452()
     case "cib" => CIELMBatch(learnerSeed)
     case "rf" => RF(learnerSeed)
     case "elm" => NinteraELM(learnerSeed)
