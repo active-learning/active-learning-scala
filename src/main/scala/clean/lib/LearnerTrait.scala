@@ -35,8 +35,8 @@ trait LearnerTrait {
 
 
     //RF(learnerSeed)
-    //    ABoo(learnerSeed)
-    //RoF (usa filtro, então aparece mais abaixo, na outra função)
+    , ABoo(learnerSeed)
+    //RoF usa filtro, então aparece mais abaixo, na outra função
 
     //    BagC45(learnerSeed),
     //    BagNB(learnerSeed),
@@ -44,9 +44,7 @@ trait LearnerTrait {
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
-    //    RoF(learnerSeed)
-    //    CIELMBatch(learnerSeed) //8001
-    //      , NinteraELM(learnerSeed) //11
+    RoF(learnerSeed)
     //    , SVMLibRBF(learnerSeed)
   )
 
