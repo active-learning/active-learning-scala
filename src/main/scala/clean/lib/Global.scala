@@ -52,11 +52,11 @@ object Global {
    )
 
    lazy val (mysqlHostRW, mysqlPortRW, mysqlPassRW) = {
-      val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
+     val l = Source.fromFile("mysql.txt").getLines().toList
       (l(0), l(1), l(2))
    }
    lazy val (mysqlHostRO, mysqlPortRO, mysqlPassRO) = {
-      val l = Source.fromFile("/usr/local/share/mysql.txt").getLines().toList
+     val l = Source.fromFile("mysql.txt").getLines().toList
       (l(3), l(4), l(5))
    }
    var running = true

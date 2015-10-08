@@ -33,7 +33,8 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
   //   val tipoSumariz = "mediana"
   val measure = Kappa
   val tipoSumariz = "media"
-  val ls = (ds: Ds, st: Strategy) => (Seq("SVM", "PCTr-a", "PCT", "RFw1000", "5NN", "chu", "defr-a", "maj", "C4.55", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
+  //  val ls = (ds: Ds, st: Strategy) => (Seq("SVM", "PCTr-a", "PCT", "RFw1000", "5NN", "chu", "defr-a", "maj", "C4.55", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
+  val ls = (ds: Ds, st: Strategy) => learners(learnersStr)
   val strats = stratsTexForGraficoComplexo(dist)
   run()
 
