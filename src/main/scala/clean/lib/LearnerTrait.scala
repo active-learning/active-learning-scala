@@ -19,7 +19,7 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.lib
 
-import ml.Pattern
+import ml.{classifiers, Pattern}
 import ml.classifiers._
 
 trait LearnerTrait {
@@ -38,9 +38,9 @@ trait LearnerTrait {
     , ABoo(learnerSeed)
     //RoF usa filtro, então aparece mais abaixo, na outra função
 
-    //    BagC45(learnerSeed),
-    //    BagNB(learnerSeed),
-    //      Knn10(pool)
+    , BagC45(learnerSeed)
+    , BagNB(learnerSeed)
+    , Knn10(pool)
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
