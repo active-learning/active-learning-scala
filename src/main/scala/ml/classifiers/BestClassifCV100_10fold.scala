@@ -43,7 +43,6 @@ case class BestClassifCV100_10fold(ds: Ds, r: Int, f: Int, s: Strategy, queries:
       , C45()
       , RF(seed)
       , NBBatch()
-      , CIELMBatch(seed)
       , SVMLibRBF(seed)
    )
    lazy val classif = learners.maxBy { l =>

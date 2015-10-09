@@ -50,9 +50,9 @@ object tempo extends Exp with LearnerTrait with StratsTrait with Lock {
       val qs = maxQueries(ds)
       ds.log(s"${pool.size} amostrados")
       stratsemLearnerExterno(pool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
-      stratcomLearnerExterno(IELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
+     stratcomLearnerExterno(NB(), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
       //      stratcomLearnerExterno(CIELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, run, fold))
-      stratcomLearnerExterno(NinteraELM(System.currentTimeMillis().toInt), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
+     stratcomLearnerExterno(NB(), fpool) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
       Seq(NB(), KNNBatchb(5, "eucl", ds.patterns, weighted = true), SVMLibDegree1(System.currentTimeMillis().toInt)).foreach { learner =>
          stratsComLearnerExterno_FilterFree(pool, learner) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))
          stratsComLearnerExterno_FilterDependent(fpool, learner) foreach (strat => gravaTempo(ds, poolSize, strat, qs, fold))

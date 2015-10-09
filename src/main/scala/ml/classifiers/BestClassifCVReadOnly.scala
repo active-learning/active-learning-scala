@@ -37,7 +37,6 @@ case class BestClassifCVReadOnly(ds: Ds, r: Int, f: Int, s: Strategy) extends Le
       , C45()
       , RF(42)
       , NBBatch()
-      , CIELMBatch(42)
       , SVMLibRBF(42)
    )
 

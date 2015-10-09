@@ -44,7 +44,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       , C45()
       , RF()
       , NBBatch()
-      , CIELMBatch()
       , SVMLibRBF()
     )
     learners.map { l =>

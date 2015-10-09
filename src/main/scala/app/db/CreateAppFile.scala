@@ -41,7 +41,7 @@ object CreateAppFile extends App {
     Margin(NoLearner(), Seq()),
     new SGmulti(NoLearner(), Seq(), "consensus"),
     new SGmulti(NoLearner(), Seq(), "majority"),
-//    new SGmultiJS(NoLearner(), Seq()),
+    //    new SGmultiJS(NoLearner(), Seq()),
     ExpErrorReduction(NoLearner(), Seq(), "entropy", sampleSize),
     ExpErrorReduction(NoLearner(), Seq(), "accuracy", sampleSize),
     DensityWeightedTrainingUtility(NoLearner(), Seq(), "cheb"),
@@ -74,8 +74,6 @@ object CreateAppFile extends App {
 
   val learners = Seq(NoLearner(), KNNBatchb(5, "eucl", Seq(), weighted = true), KNNBatchb(5, "manh", Seq()),
     KNNBatchb(1, "eucl", Seq()),
-    IELM(), IELMEnsemble(), EIELM(), CIELM(), ECIELM(),
-    interaELM(),
     LASVM(),
     SVMLibDegree1(),
     NB(), C45(), VFDT() //"semzscore"

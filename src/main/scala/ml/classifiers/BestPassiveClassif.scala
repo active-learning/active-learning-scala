@@ -32,7 +32,6 @@ case class BestPassiveClassif(ds: Ds, seed: Int, pool: Seq[Pattern]) extends Lea
       , C45()
       , RF(seed)
       , NBBatch()
-      , CIELMBatch(seed)
       , SVMLibRBF(seed)
    )
   lazy val bestLearnerId = ds.bestPassiveLearner.id

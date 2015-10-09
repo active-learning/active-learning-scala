@@ -22,7 +22,6 @@ package clean.tex
 import java.io.PrintWriter
 
 import clean.lib._
-import ml.classifiers.{RF, NinteraELM, SVMLibRBF}
 import util.{Stat, StatTests}
 
 object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {

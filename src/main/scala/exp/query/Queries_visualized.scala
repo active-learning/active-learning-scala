@@ -95,7 +95,7 @@ object Queries_visualized extends App {
    var labeled = List[Pattern]()
    var model: Model = null
 
-   def c = NinteraELM() //KNNBatch(75, "eucl", train, weighted = true) //CIELMBatch()
+  def c = KNNBatcha(75, "eucl", train, weighted = true) //CIELMBatch()
 
 
    //      MLP(20,0)

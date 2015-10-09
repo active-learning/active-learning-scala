@@ -37,7 +37,6 @@ case class BestClassifCV100_10foldReadOnlyKappa(ds: Ds, r: Int, f: Int, s: Strat
       , C45()
       , RF(42)
       , NBBatch()
-      , CIELMBatch(42)
       , SVMLibRBF(42)
    )
 

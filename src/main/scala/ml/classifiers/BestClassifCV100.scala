@@ -41,7 +41,6 @@ case class BestClassifCV100(ds: Ds, r: Int, f: Int, s: Strategy, queries: Seq[Pa
       , C45()
       , RF(seed)
       , NBBatch()
-      , CIELMBatch(seed)
       , SVMLibRBF(seed)
    )
    lazy val classif = learners.maxBy { l =>

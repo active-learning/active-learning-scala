@@ -256,8 +256,7 @@ trait StratsTrait {
     //      SVMmultiRBFW(pool, "BALANCED_EEw"),
     //      SVMmultiRBFW(pool, "SIMPLEw"),
     SVMmultiRBF(pool, "BALANCED_EEw"),
-    SVMmultiRBF(pool, "SIMPLEw"),
-    ExpELMChange(pool) //1006600
+    SVMmultiRBF(pool, "SIMPLEw")
   )
 
   def stratsComLearnerExterno_FilterFree(pool: Seq[Pattern], learner: Learner) = List[Strategy](
@@ -311,8 +310,7 @@ trait StratsTrait {
 
     , SVMmultiRBF(pool, "BALANCED_EEw")
     , SVMmultiRBF(pool, "SIMPLEw")
-    , ExpELMChange(pool), //1006600
-    QBC(pool) //1292212
+    , QBC(pool) //1292212
   )
 
   def stratsForTreeRedux(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
@@ -338,8 +336,7 @@ trait StratsTrait {
 
     , SVMmultiRBF(pool, "BALANCED_EEw")
     , SVMmultiRBF(pool, "SIMPLEw")
-    , ExpELMChange(pool), //1006600
-    QBC(pool) //1292212
+    , QBC(pool) //1292212
   )
 
   def stratsForTreeReduxEuc(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
@@ -357,8 +354,7 @@ trait StratsTrait {
 
     , SVMmultiRBF(pool, "BALANCED_EEw")
     , SVMmultiRBF(pool, "SIMPLEw")
-    , ExpELMChange(pool), //1006600
-    QBC(pool) //1292212
+    , QBC(pool) //1292212
   )
 
   def stratsForTreeReduxMan(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
@@ -376,8 +372,7 @@ trait StratsTrait {
 
     , SVMmultiRBF(pool, "BALANCED_EEw")
     , SVMmultiRBF(pool, "SIMPLEw")
-    , ExpELMChange(pool), //1006600
-    QBC(pool) //1292212
+    , QBC(pool) //1292212
   )
 
   def stratsForTreeReduxMah(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
@@ -395,8 +390,7 @@ trait StratsTrait {
 
     , SVMmultiRBF(pool, "BALANCED_EEw")
     , SVMmultiRBF(pool, "SIMPLEw")
-    , ExpELMChange(pool), //1006600
-    QBC(pool) //1292212
+    , QBC(pool) //1292212
   )
 }
 

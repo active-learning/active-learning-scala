@@ -26,7 +26,7 @@ import clean.lib.{Db, FilterTrait, Log, Rank}
 import clus.Clus
 import ml.{PatternParent, Pattern}
 import ml.classifiers._
-import ml.models.{RandomRank, FakeModelRank, EnsembleModel, ELMModel}
+import ml.models.{RandomRank, FakeModelRank, EnsembleModel}
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat}
 import weka.attributeSelection.{BestFirst, AttributeSelection, WrapperSubsetEval, GreedyStepwise}
@@ -235,17 +235,17 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         lazy val (trSemParecidos, trfSemParecidos) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
 
         if (leas(tr).isEmpty) {
-          //ELMBag
-          val elmFM = (1 to ntrees).foldLeft(FakeModelRank(Map())) { (fm, seedinc) =>
-            val l = NinteraELM(seed + seedinc * 10000)
-            //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
-            var m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
-            val L = l.LForMeta(m0, LOO = false)
-            //treinar com todos foi melhor que tirando similares 44.0 > 42.5 (subamostras não melhorou muito, então nem deixei)
-            m0 = l.batchBuild(trf).asInstanceOf[ELMModel]
-            m0 = l.fullBuildForMeta(L, m0)
-            fm + FakeModelRank(((trf ++ tsf) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed to free FM object
-          }
+          //          //ELMBag
+          //          val elmFM = (1 to ntrees).foldLeft(FakeModelRank(Map())) { (fm, seedinc) =>
+          //            val l = NinteraELM(seed + seedinc * 10000)
+          //            //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
+          //            var m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
+          //            val L = l.LForMeta(m0, LOO = false)
+          //            //treinar com todos foi melhor que tirando similares 44.0 > 42.5 (subamostras não melhorou muito, então nem deixei)
+          //            m0 = l.batchBuild(trf).asInstanceOf[ELMModel]
+          //            m0 = l.fullBuildForMeta(L, m0)
+          //            fm + FakeModelRank(((trf ++ tsf) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed to free FM object
+          //          }
 
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed$id"
@@ -285,7 +285,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
           def fo(x: Double) = "%2.1f".format(x)
 
-          Vector(RandomRank(seed), clusFM, elmFM, defaultFM, clusFM.normalized + elmFM.normalized).zip(Vector("rndr", "PCTr", "ELMr", "defr", "PEr")) flatMap { case (fm, alg) =>
+          Vector(RandomRank(seed), clusFM, defaultFM).zip(Vector("rndr", "PCTr", "defr")) flatMap { case (fm, alg) =>
             val spearsTrTs = Seq(tr, ts).map { tx =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
@@ -437,22 +437,21 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           leas(trfs) map { mc =>
             val (trtestbags, tstestbags, m) = if (mc.querFiltro) {
               val mo = mc match {
-                case NinteraELM(_, _) =>
-                  //ELMBag
-                  (1 to ntrees).foldLeft(FakeModelRank(Map())) { (fm, seedinc) =>
-                    val l = NinteraELM(seed + seedinc * 10000)
-                    //pega apenas a média dos exs. de cada base
-                    //foi melhor filtrar: 41,7 > 36,9
-                    var m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel]
-                    val L = l.LForMeta(m0, LOO = false)
-                    //41,7 > 39,3 (subamostragem não ajudou muito)
-                    //new Random(seed + seedinc * 10001).shuffle(trffs).take((trffs.size ).round.toInt)
-                    m0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
-                    l.fullBuildForMeta(L, m0)
-                    fm + FakeModelRank(((trffs ++ tsffs) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed(?) to free FM object
-                  }
+                //                case NinteraELM(_, _) =>
+                //                  //ELMBag
+                //                  (1 to ntrees).foldLeft(FakeModelRank(Map())) { (fm, seedinc) =>
+                //                    val l = NinteraELM(seed + seedinc * 10000)
+                //                    //pega apenas a média dos exs. de cada base
+                //                    //foi melhor filtrar: 41,7 > 36,9
+                //                    var m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel]
+                //                    val L = l.LForMeta(m0, LOO = false)
+                //                    //41,7 > 39,3 (subamostragem não ajudou muito)
+                //                    //new Random(seed + seedinc * 10001).shuffle(trffs).take((trffs.size ).round.toInt)
+                //                    m0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
+                //                    l.fullBuildForMeta(L, m0)
+                //                    fm + FakeModelRank(((trffs ++ tsffs) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed(?) to free FM object
+                //                  }
                 case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
-                case PCTELM(_, _, _) => PCTELM(ntrees, seed, (trffs ++ tsffs).toVector).build(trffs)
                 case _ => mc.build(trffs)
               }
               (trffs.groupBy(x => x.id), tsffs.groupBy(x => x.id), mo)

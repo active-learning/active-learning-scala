@@ -37,7 +37,6 @@ case class BestClassifCV100_10foldReadOnly(ds: Ds, r: Int, f: Int, s: Strategy) 
       , C45()
       , RF(42)
       , NBBatch()
-      , CIELMBatch(42)
       , SVMLibRBF(42)
    )
 

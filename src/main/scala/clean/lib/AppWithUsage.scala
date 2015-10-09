@@ -6,8 +6,7 @@ import java.util.UUID
 
 import al.strategies.Strategy
 import ml.Pattern
-import ml.classifiers.{NinteraELM, KNNBatcha, Learner}
-import ml.models.ELMModel
+import ml.classifiers.{KNNBatcha, Learner}
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Stat, Datasets, XSRandom}
 import weka.attributeSelection.{WrapperSubsetEval, CfsSubsetEval, GreedyStepwise}

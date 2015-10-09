@@ -57,7 +57,6 @@ trait LearnerTrait {
   )
 
   def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-    CIELMBatch(learnerSeed) //8001
     //      , NinteraELM(learnerSeed) //11
     ////      , LogReg(learnerSeed) //556665
     //      , SVMLibDegree1(learnerSeed)//165111
@@ -76,9 +75,7 @@ trait LearnerTrait {
     case "5nnb" => KNNBatchb(5, "eucl", pool, weighted = true)
     case "c45" => C45()
     case "c452" => C452()
-    case "cib" => CIELMBatch(learnerSeed)
     case "rf" => RF(learnerSeed)
-    case "elm" => NinteraELM(learnerSeed)
     case "vfdt" => VFDT()
     //      case "reg" => LogReg(learnerSeed)
     case "poly1" => SVMLibDegree1(learnerSeed)

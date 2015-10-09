@@ -20,8 +20,6 @@ package ml.generators
 
 import java.io.FileWriter
 
-import ml.classifiers.{OSELM, interaELM}
-import ml.models.ELMModel
 import util.{Datasets, Stat, Tempo}
 
 import scala.collection.mutable
@@ -55,28 +53,28 @@ object CSV2ARFFCVTest extends App {
   val ts = patts.drop(2 * n / 3)
 
   7 to 28 by 7 foreach { N =>
-    val l = interaELM()
-    var mi = l.batchBuild(tr.take(N).flatten).asInstanceOf[ELMModel]
-    mi = l.modelSelection(mi)
-
-    println(s"N $N (L ${mi.L})")
-    val cv = Datasets.kfoldCV(patts, 10, false) { case (tr0, ts0, fold, minSize) =>
-      val tr = new Random(fold).shuffle(tr0).grouped(100).toList
-      val ts = ts0
-      val os = OSELM(mi.L, fold + 1)
-      val (firstm, t) = Tempo.timev(os.build(tr.take(N).flatten))
-      val q = mutable.Queue((firstm.accuracy(ts), t))
-      tr.drop(N).foldLeft(firstm) { (model, chunk) =>
-        val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => os.update(model)(ex)))
-        q.enqueue((r.accuracy(ts), t))
-        r
-      }
-      q
-    }.transpose
-    cv.foreach { x =>
-      val (m, d, i) = Stat.media_std_intervalo_confianca99(x.map(_._1).toVector)
-      println(s"$m $d $i ${x.map(_._2).sum}")
-    }
-    println("")
+    //    val l = interaELM()
+    //    var mi = l.batchBuild(tr.take(N).flatten).asInstanceOf[ELMModel]
+    //    mi = l.modelSelection(mi)
+    //
+    //    println(s"N $N (L ${mi.L})")
+    //    val cv = Datasets.kfoldCV(patts, 10, false) { case (tr0, ts0, fold, minSize) =>
+    //      val tr = new Random(fold).shuffle(tr0).grouped(100).toList
+    //      val ts = ts0
+    //      val os = OSELM(mi.L, fold + 1)
+    //      val (firstm, t) = Tempo.timev(os.build(tr.take(N).flatten))
+    //      val q = mutable.Queue((firstm.accuracy(ts), t))
+    //      tr.drop(N).foldLeft(firstm) { (model, chunk) =>
+    //        val (r, t) = Tempo.timev(chunk.foldLeft(model)((model2, ex) => os.update(model)(ex)))
+    //        q.enqueue((r.accuracy(ts), t))
+    //        r
+    //      }
+    //      q
+    //    }.transpose
+    //    cv.foreach { x =>
+    //      val (m, d, i) = Stat.media_std_intervalo_confianca99(x.map(_._1).toVector)
+    //      println(s"$m $d $i ${x.map(_._2).sum}")
+    //    }
+    //    println("")
   }
 }

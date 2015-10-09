@@ -21,7 +21,7 @@ package clean.tex
 
 import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.{NoLearner, NinteraELM, RF, SVMLibRBF}
+import ml.classifiers.NoLearner
 import util.Stat
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
