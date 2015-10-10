@@ -80,14 +80,14 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
 
    def datasetFinished(ds: Ds) = {
       if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-        ds.markAsFinishedRun("*lapack")
+        ds.markAsFinishedRun("*lapack2")
          ds.log("Dataset marcado como terminado !", 50)
       }
       outroProcessoVaiTerminarEsteDataset = false
       acabou = true
    }
 
-  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("*lapack")
+  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("*lapack2")
 
    def end(res: Map[String, Boolean]): Unit = {
    }

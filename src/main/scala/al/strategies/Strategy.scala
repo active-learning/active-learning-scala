@@ -152,6 +152,8 @@ trait Strategy extends Log with Limpa {
     case 54321 => 90 //bagnb
     case 54322 => 100 //bagc45
     case 54323 => 200 //10nn
+
+    case 124356 => 400 //5nnm
   }
 
   /**

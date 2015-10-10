@@ -31,6 +31,7 @@ trait LearnerTrait {
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
     //individuais, 4 tipos
     KNNBatcha(5, "eucl", pool, weighted = true)
+    , KNNBatcha(5, "manh", pool, weighted = true)
     , NBBatch()
     , C452()
     //SVM usa filtro, então aparece mais abaixo, na outra função
