@@ -29,15 +29,18 @@ trait LearnerTrait {
 
   //neste arquivo ficam apenas classificadores básicos.
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    // KNNBatcha(5, "eucl", pool, weighted = true)
-    // NBBatch()
-    C452() // C45()
+    //individuais, 4 tipos
+    KNNBatcha(5, "eucl", pool, weighted = true)
+    , NBBatch()
+    , C452()
+    //SVM usa filtro, então aparece mais abaixo, na outra função
 
-
-    //RF(learnerSeed)
+    //Florestas, 3 tipos distintos de ensemble
+    , RF(learnerSeed)
     , ABoo(learnerSeed)
     //RoF usa filtro, então aparece mais abaixo, na outra função
 
+    //Baggings e 10NN
     , BagC45(learnerSeed)
     , BagNB(learnerSeed)
     , Knn10(pool)
@@ -45,7 +48,7 @@ trait LearnerTrait {
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
     RoF(learnerSeed)
-    //    , SVMLibRBF(learnerSeed)
+    , SVMLibRBF(learnerSeed)
   )
 
   def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](

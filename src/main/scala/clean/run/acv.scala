@@ -79,19 +79,47 @@ object acv extends Exp with LearnerTrait with StratsTrait {
         if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
         fila.clear()
       }
+
+      learnersFpool(learnerSeed) foreach { flearner =>
+        stratsPool("all", fpool, pool).map(_(flearner)) foreach { strat =>
+          ds.log(s"$flearner $strat ...")
+
+          val queries = if (ds.areQueriesFinished(pool.size, strat, run, fold, null, null, completeIt = true, maxQueries(ds))) {
+            ds.log(s" Queries  done for ${strat.abr}/${strat.learner} at pool $run.$fold. Retrieving from disk.")
+            ds.queries(strat, run, fold, null, null)
+          } else ds.writeQueries(strat, run, fold, maxQueries(ds))
+          val fqueries = ds.queries(strat, run, fold, binaf, zscof)
+
+          Seq(flearner) foreach { classif =>
+            //               learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
+            if (classif.querFiltro) {
+              ds.log(s"fHits [$flearner $strat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(fpool.size, ftestSet, strat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            } else {
+              ds.log(s"Hits [$flearner $strat $classif] at pool $run.$fold.")
+              if (ds.areHitsFinished(pool.size, testSet, strat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${strat.abr}/$classif at pool $run.$fold.")
+              else ds.writeHits(pool.size, testSet, queries.toVector, strat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
+            }
+          }
+        }
+
+        if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+        fila.clear()
+      }
     }
   }
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("semlapack" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+      ds.markAsFinishedRun("-lapack")
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
     acabou = true
   }
 
-  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("semlapack" + (stratsFpool().map(_(NoLearner())) ++ stratsPool("all").map(_(NoLearner())) ++ allLearners()).map(x => x.limpa).mkString)
+  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("-lapack")
 
   def end(res: Map[String, Boolean]): Unit = {
   }
