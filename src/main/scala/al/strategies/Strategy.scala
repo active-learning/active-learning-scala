@@ -141,7 +141,6 @@ trait Strategy extends Log with Limpa {
   def convlid(id: Int) = id match {
     case 773 => 0
     case 2651110 => 10
-    case 2 => 20
     case 12 => 30
     case 8001 => 40
     case 666003 => 50
@@ -151,9 +150,14 @@ trait Strategy extends Log with Limpa {
 
     case 54321 => 90 //bagnb
     case 54322 => 100 //bagc45
-    case 54323 => 200 //10nn
 
-    case 124358 => 400 //5nnm
+    case 54323 => 200 //10nnew
+    case 254323 => 700 //10nne
+
+    case 2 => 20//5nnew
+    case 200002 => 600 //5nne
+    case 124358 => 400 //5nnmw
+    case 324358 => 500 //5nnm
   }
 
   /**
