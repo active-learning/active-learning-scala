@@ -60,9 +60,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
           while (Global.running && alive(r)(f)) {
             heartbeat(r, f)
 
-            //240s
-            1 to 4000 takeWhile { _ =>
-              Thread.sleep(60)
+            //960s
+            1 to 540 takeWhile { _ =>
+              Thread.sleep(1000)
               Global.running && alive(r)(f)
             }
           }
@@ -83,7 +83,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
     new java.util.Date(milliseconds)
   }
 
-  def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 300): Boolean = {
+  def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 600): Boolean = {
     val now = Calendar.getInstance().getTime
     val sql = s"select * from l where r=$r and f=$f"
     try {
