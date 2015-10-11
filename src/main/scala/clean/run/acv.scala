@@ -112,14 +112,14 @@ object acv extends Exp with LearnerTrait with StratsTrait {
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("-lapack2")
+      ds.markAsFinishedRun("-lapack4")
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
     acabou = true
   }
 
-  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("-lapack2")
+  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("-lapack4")
 
   def end(res: Map[String, Boolean]): Unit = {
   }

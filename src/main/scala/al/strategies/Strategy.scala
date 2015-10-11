@@ -153,6 +153,8 @@ trait Strategy extends Log with Limpa {
 
     case 54323 => 200 //10nnew
     case 254323 => 700 //10nne
+    case 154323 => 800 //10nnmw
+    case 354323 => 900 //10nnm
 
     case 2 => 20//5nnew
     case 200002 => 600 //5nne

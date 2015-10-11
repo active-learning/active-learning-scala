@@ -29,10 +29,10 @@ trait LearnerTrait {
 
   //neste arquivo ficam apenas classificadores básicos.
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    //individuais, 4 tipos
-    KNNBatcha(5, "eucl", pool, weighted = true)
-    , KNNBatcha(5, "eucl", pool, weighted = false)
-    , KNNBatcha(5, "manh", pool, weighted = true)
+    //individuais, 6
+    //    KNNBatcha(5, "eucl", pool, weighted = true)
+    KNNBatcha(5, "eucl", pool, weighted = false)
+    //    , KNNBatcha(5, "manh", pool, weighted = true)
     , KNNBatcha(5, "manh", pool, weighted = false)
     , NBBatch()
     , C452()
@@ -43,11 +43,12 @@ trait LearnerTrait {
     , ABoo(learnerSeed)
     //RoF usa filtro, então aparece mais abaixo, na outra função
 
-    //Baggings e 10NN
+    //Baggings e 10NN, 4
     , BagC45(learnerSeed)
     , BagNB(learnerSeed)
-    , Knn10(pool, weighted = true)
-    , Knn10(pool, weighted = false)
+    //    , Knn10(pool, weighted = true)
+    , Knn10(pool, weighted = false, distance_name = "eucl")
+    , Knn10(pool, weighted = false, distance_name = "manh")
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
@@ -73,8 +74,10 @@ trait LearnerTrait {
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
     case "bagnb" => BagNB(learnerSeed)
     case "bagc45" => BagC45(learnerSeed)
-    case "10nnw" => Knn10(pool, weighted = true)
-    case "10nn" => Knn10(pool, weighted = false)
+    case "10nnw" => Knn10(pool, weighted = true, distance_name = "eucl")
+    case "10nn" => Knn10(pool, weighted = false, distance_name = "eucl")
+    case "10nnmw" => Knn10(pool, weighted = true, distance_name = "manh")
+    case "10nnm" => Knn10(pool, weighted = false, distance_name = "manh")
 
     case "aboo" => ABoo(learnerSeed)
     case "rof" => RoF(learnerSeed)
