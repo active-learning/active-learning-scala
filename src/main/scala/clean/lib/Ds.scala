@@ -255,15 +255,6 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     attsFromRNames zip res map (x => (x._1, x._2, "numeric"))
   }
 
-  def isFinishedMea(stratsLeas: String) = readString(s"select finished from mea") match {
-    case lista if lista.map(_.head).contains(stratsLeas) => true
-    case x => false
-  }
-
-  def markAsFinishedMea(stratsLeas: String): Unit = {
-    write(s"insert into mea values ('$stratsLeas')")
-  }
-
   def isFinishedRun(stratsLeas: String) = readString(s"select finished from run") match {
     case lista if lista.map(_.head).contains(stratsLeas) => true
     case x => false

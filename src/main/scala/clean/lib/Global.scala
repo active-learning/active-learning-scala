@@ -22,7 +22,9 @@ Copyright (c) 2014 Davi Pereira dos Santos
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 object Global {
-   //17176,17177,17178,17179 e 4173006,4173007,4173008,4173009 são gno com learner interno, mas recebem tratamento de agnósticas
+  val versao = 4
+
+  //17176,17177,17178,17179 e 4173006,4173007,4173008,4173009 são gno com learner interno, mas recebem tratamento de agnósticas
    //9660091, 9670092, 9680093, 9690094 passaram pro outro grupo para permitir RF no hits, por exemplo
    val gnosticasComLearnerInterno = Seq(1292212, 1006600, 10066, 966000, 967000, 968000, 969000, 966009, 967009, 968009, 969009)
 

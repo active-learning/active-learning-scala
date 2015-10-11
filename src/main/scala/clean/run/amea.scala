@@ -27,68 +27,74 @@ import weka.filters.Filter
 import scala.collection.mutable
 
 object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
-   val context = "amea4App"
-   val arguments = superArguments
-   val ignoreNotDone = false
-   var outroProcessoVaiTerminarEsteDataset = false
-   var acabou = true
-   run()
+  val context = "amea4App"
+  val arguments = superArguments
+  val ignoreNotDone = false
+  var outroProcessoVaiTerminarEsteDataset = false
+  var acabou = true
+  run()
 
-   def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
-      try {
-         fila += f
-      } catch {
-         case e: Throwable => acabou = false
+  def poeNaFila(fila: mutable.Set[String], f: => String): Unit =
+    try {
+      fila += f
+    } catch {
+      case e: Throwable => acabou = false
+    }
+
+  def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
+    val fila = mutable.Set[String]()
+    if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
+    else if (ds.isAliveByOtherJob(run, fold)) {
+      outroProcessoVaiTerminarEsteDataset = true
+      ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping this pool...", 30)
+    } else {
+      ds.startbeat(run, fold)
+      ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
+      //         val best = BestPassiveClassif(ds, 42, Seq()) //desnecessário, pois best já tá incluído em aprendiz=classif (não faz sentido usar passiva na avaliação de pares)
+      for {
+        learner <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
+        s <- stratsPool("all", pool, pool).map(_(learner)) ++ stratsFpool(pool, fpool).map(_(learner))
+        classif <- Seq(learner) //, BestPassiveClassif(ds, learnerSeed, pool)) passive não faz sentido pra par, já tem 10-fold
+      //            classif <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
+      } yield {
+        lazy val (tmin, _, tmax, _) = ranges(ds)
+        //            for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
+        for ((ti, tf) <- Seq((tmin, tmax))) {
+          poeNaFila(fila, ALCKappa(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
+          poeNaFila(fila, ALCBalancedAcc(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
+        }
+        for (t <- tmin to tmax) {
+          poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
+          poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
+        }
+        //            val t = tpass
+        //            poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
+        //            poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
       }
+    }
 
-   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
-      val fila = mutable.Set[String]()
-      if (ds.nclasses > maxQueries(ds)) ds.error(s"ds.nclasses ${ds.nclasses} > ${maxQueries(ds)} maxtimesteps!")
-      else if (ds.isAliveByOtherJob(run, fold)) {
-         outroProcessoVaiTerminarEsteDataset = true
-         ds.log(s"Outro job está all-izando este pool ($run.$fold). Skipping all' for this pool...", 30)
-      } else {
-         ds.startbeat(run, fold)
-         ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
-         //         val best = BestPassiveClassif(ds, 42, Seq()) //desnecessário, pois best já tá incluído em aprendiz=classif (não faz sentido usar passiva na avaliação de pares)
-         for {
-           learner <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
-            s <- stratsPool("all", pool, pool).map(_(learner)) ++ stratsFpool(pool, fpool).map(_(learner))
-            classif <- Seq(learner) //, BestPassiveClassif(ds, learnerSeed, pool)) passive não faz sentido pra par, já tem 10-fold
-         //            classif <- learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
-         } yield {
-           lazy val (tmin, _, tmax, _) = ranges(ds)
-           //            for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
-           for ((ti, tf) <- Seq((tmin, tmax))) {
-               poeNaFila(fila, ALCKappa(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
-               poeNaFila(fila, ALCBalancedAcc(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
-            }
-            for (t <- tmin to tmax) {
-               poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
-               poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
-            }
-           //            val t = tpass
-           //            poeNaFila(fila, Kappa(ds, s, classif, run, fold)(t).sqlToWrite(ds))
-           //            poeNaFila(fila, BalancedAcc(ds, s, classif, run, fold)(t).sqlToWrite(ds))
-         }
-      }
+    ds.log(fila.mkString("\n"), 10)
+    if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
+    fila.clear()
+  }
 
-      ds.log(fila.mkString("\n"), 10)
-      if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-      fila.clear()
-   }
+  def datasetFinished(ds: Ds) = {
+    if (acabou && !outroProcessoVaiTerminarEsteDataset) {
+      ds.markAsFinishedRun("*lapack" + Global.versao)
+      ds.log("Dataset marcado como terminado !", 50)
+    }
+    outroProcessoVaiTerminarEsteDataset = false
+    acabou = true
+  }
 
-   def datasetFinished(ds: Ds) = {
-      if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-        ds.markAsFinishedRun("*lapack4")
-         ds.log("Dataset marcado como terminado !", 50)
-      }
-      outroProcessoVaiTerminarEsteDataset = false
-      acabou = true
-   }
+  def isAlreadyDone(ds: Ds) = {
+    val despreparado = if (!ds.isFinishedRun("-lapack" + Global.versao) || !ds.isFinishedRun("+lapack" + Global.versao)) {
+      ds.log(s"acv ou acvf ainda não terminaram este dataset, skipping...", 30)
+      true
+    } else false
+    despreparado || ds.isFinishedRun("*lapack" + Global.versao)
+  }
 
-  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("*lapack4")
-
-   def end(res: Map[String, Boolean]): Unit = {
-   }
+  def end(res: Map[String, Boolean]): Unit = {
+  }
 }
