@@ -83,7 +83,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
     new java.util.Date(milliseconds)
   }
 
-  def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 180): Boolean = {
+  def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 300): Boolean = {
     val now = Calendar.getInstance().getTime
     val sql = s"select * from l where r=$r and f=$f"
     try {
