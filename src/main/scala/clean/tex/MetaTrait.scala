@@ -189,11 +189,11 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
 
-  def cv(labels: Seq[String], strat: String, pct: Double, smote: Boolean, ntrees: Int, attsel: String, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
-    val metads = new Db("meta", readOnly = false)
+    val metads = new Db("metanew", readOnly = false)
     metads.open()
 
     val rrr = (1 to rs).par map { run =>
@@ -310,19 +310,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val hit = if (predito == esperado) 1d else 0d
                 speaPorComb += ((esperado.toString, predito.toString, hit))
 
-
-
-                if (idx == 1 && (ks == 94 || ks == 75 || ks == 87)) {
+                if (idx == 1 && ks == patterns.size) {
                   val esperadoStr = labels(esperado)
                   val preditoStr = labels(predito)
                   val base = tsbags.head.head.nomeBase
-                  val sql = s"insert into e values ('${alg + "-a"}', '$strat', '$base', '$esperadoStr', '$preditoStr')"
+                  val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr')"
                   print(s"${sql} <- sql ")
                   println(s"LOO ativa registro para contagem de vitorias, mesmo no Rank, ranqueadores tb merecem recomendar o melhor, porque talvez errem menos feio que classificadores, mesmo que acertem menos")
                   metads.write(sql)
                 }
-
-
 
                 /*
                 val melhorRank = pat.targets.min
@@ -339,164 +335,44 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           }
 
         } else {
-          //usando terminação fs pra indicar filtro
-          val (trfs, trffs, tsfs, tsffs, trfSemParecidos1fs) = if (smote && !strat.startsWith("Ent")) {
-            val sm = new SMOTE()
-            sm.setDebug(false)
-            sm.setDoNotCheckCapabilities(true)
-            sm.setInputFormat(Datasets.patterns2instances(tr))
-            sm.setRandomSeed(seed)
-            sm.setPercentage(pct)
-            val r = Seq(tr) map Datasets.applyFilterIdRnd(sm)
-
-            val smf = new SMOTE()
-            smf.setDebug(false)
-            smf.setDoNotCheckCapabilities(true)
-            smf.setInputFormat(Datasets.patterns2instances(trf))
-            smf.setRandomSeed(seed)
-            smf.setPercentage(pct)
-            val rf = Seq(trf, trfSemParecidos) map Datasets.applyFilterIdRnd(smf)
-
-            (r(0), rf(0), ts, tsf, rf(1))
-          } else attsel.splitAt(3) match {
-            case ("pca", comps) =>
-              val pca = new PrincipalComponents()
-              pca.setDebug(false)
-              pca.setDoNotCheckCapabilities(true)
-              pca.setInputFormat(Datasets.patterns2instances(tr))
-              pca.setMaximumAttributes(comps.toInt)
-              val seq = Seq(tr, ts) map Datasets.applyFilterIdRnd(pca)
-
-              val pcaf = new PrincipalComponents()
-              pcaf.setDebug(false)
-              pcaf.setDoNotCheckCapabilities(true)
-              pcaf.setInputFormat(Datasets.patterns2instances(trf))
-              pcaf.setMaximumAttributes(comps.toInt)
-              val seqf = Seq(trf, tsf, trfSemParecidos) map Datasets.applyFilterIdRnd(pcaf)
-
-              (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
-
-            case ("fs", _) =>
-              val att = new AttributeSelection
-              val attf = new AttributeSelection
-              val eval = new WrapperSubsetEval
-              val evalf = new WrapperSubsetEval
-              val data = Seq(tr, ts) map Datasets.patterns2instancesId
-              val dataf = Seq(trf, tsf, trfSemParecidos) map Datasets.patterns2instancesId
-              val sample = Datasets.patterns2instancesId(tr)
-              val samplef = Datasets.patterns2instancesId(trf)
-              eval.buildEvaluator(sample)
-              evalf.buildEvaluator(samplef)
-              //            val cla = new RandomForest
-              //            val claf = new RandomForest
-              val cla = new IBk
-              val claf = new IBk
-              //            cla.setDoNotCheckCapabilities(true)
-              //            claf.setDoNotCheckCapabilities(true)
-              //            cla.setNumTrees(20)
-              //            claf.setNumTrees(20)
-              cla.setKNN(5)
-              claf.setKNN(5)
-              eval.setFolds(10)
-              eval.setClassifier(cla)
-              eval.setThreshold(0.01)
-              eval.setSeed(fold * run)
-              evalf.setFolds(10)
-              evalf.setClassifier(claf)
-              evalf.setThreshold(0.01)
-              evalf.setSeed(fold * run)
-              att.setEvaluator(eval)
-              attf.setEvaluator(evalf)
-              val sea = new BestFirst()
-              sea.setLookupCacheSize(10)
-              //            sea.setSearchTermination(3)
-              val seaf = new BestFirst()
-              seaf.setLookupCacheSize(10)
-              //            seaf.setSearchTermination(3)
-              /*
-                      Searches the space of attribute subsets by greedy hillclimbing augmented with a backtracking facility.
-                      Setting the number of consecutive non-improving nodes allowed controls the level of backtracking done.
-                      Best first may start with the empty set of attributes and search forward, or start with the full set of
-                      attributes and search backward, or start at any point and search in both directions (by considering all
-                      possible single attribute additions and deletions at a given point).
-                       */
-              sea.setStartSet("1")
-              seaf.setStartSet("1")
-              att.setSearch(sea)
-              attf.setSearch(seaf)
-              att.SelectAttributes(sample)
-              attf.SelectAttributes(samplef)
-              println(s"${att.selectedAttributes().toList} <- att.selectedAttributes()")
-              println(s"${attf.selectedAttributes().toList} <- attf.selectedAttributes()")
-              val seq = data map (x => Datasets.instances2patternsId(att.reduceDimensionality(x)).toVector)
-              val seqf = dataf map (x => Datasets.instances2patternsId(attf.reduceDimensionality(x)).toVector)
-              (seq(0), seqf(0), seq(1), seqf(1), seqf(2))
-            case _ => (tr, trf, ts, tsf, trfSemParecidos)
+          if (ks == patterns.size && !rank) {
+            println(s"LOO+ank ativa registro para contagem de vitorias")
           }
-
-          leas(trfs) map { mc =>
+          leas(tr) map { mc =>
             val (trtestbags, tstestbags, m) = if (mc.querFiltro) {
               val mo = mc match {
-                //                case NinteraELM(_, _) =>
-                //                  //ELMBag
-                //                  (1 to ntrees).foldLeft(FakeModelRank(Map())) { (fm, seedinc) =>
-                //                    val l = NinteraELM(seed + seedinc * 10000)
-                //                    //pega apenas a média dos exs. de cada base
-                //                    //foi melhor filtrar: 41,7 > 36,9
-                //                    var m0 = l.batchBuild(trfSemParecidos1fs).asInstanceOf[ELMModel]
-                //                    val L = l.LForMeta(m0, LOO = false)
-                //                    //41,7 > 39,3 (subamostragem não ajudou muito)
-                //                    //new Random(seed + seedinc * 10001).shuffle(trffs).take((trffs.size ).round.toInt)
-                //                    m0 = l.batchBuild(trffs).asInstanceOf[ELMModel]
-                //                    l.fullBuildForMeta(L, m0)
-                //                    fm + FakeModelRank(((trffs ++ tsffs) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed(?) to free FM object
-                //                  }
-                case SVMLibRBF(_) => SVMLibRBF(seed).build(trffs) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
-                case _ => mc.build(trffs)
+                case SVMLibRBF(_) => SVMLibRBF(seed).build(trf) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
+                case _ => mc.build(trf)
               }
-              (trffs.groupBy(x => x.id), tsffs.groupBy(x => x.id), mo)
+              (trf.groupBy(x => x.id), tsf.groupBy(x => x.id), mo)
             } else {
               val mo = mc match {
-                case RF(_, n, _, _) => RF(seed, n).build(trfs)
-                case Chute(_) => Chute(seed).build(trfs)
-                case PCT(_, _, _) => PCT(ntrees, seed, trfs ++ tsfs).build(trfs)
-                case _ => mc.build(trfs)
+                case RF(_, n, _, _) => RF(seed, n).build(tr)
+                case Chute(_) => Chute(seed).build(tr)
+                case PCT(_, _, _) => PCT(ntrees, seed, tr ++ ts).build(tr)
+                case _ => mc.build(tr)
               }
-              (trfs.groupBy(x => x.id), tsfs.groupBy(x => x.id), mo)
+              (tr.groupBy(x => x.id), ts.groupBy(x => x.id), mo)
             }
             val tr_ts = Vector(trtestbags, tstestbags).zipWithIndex map { case (bags, idx) =>
               val resPorClasse = mutable.Queue[(String, String, Double)]()
               bags.map(_._2) foreach { xbag =>
                 // com n>1 (ou n==1 com empates) statisticas p/ maj vão sair maiores que o verdadeiro valor maj, com esse criterio abaixo (n: número de vencedores)
-                val esperado = xbag.head.nominalLabel
+                val esperado = xbag.head.nominalLabel.split("-").last
                 val pred = m.predict(xbag.head).toInt
                 val re = if (xbag.map(_.label).contains(pred)) 1d else 0d
-                val predito = xbag.head.classAttribute().value(pred)
+                val predito = xbag.head.classAttribute().value(pred).split("-").last
                 val base = tsbags.head.head.nomeBase
                 if (idx == 1) {
-                  if ((ks == 94 || ks == 75 || ks == 87) && !rank) {
-                    val sql = s"insert into e values ('${mc.limp}', '$strat', '$base', '$esperado', '$predito')"
+                  if (ks == patterns.size && !rank) {
+                    val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito')"
                     print(s"${sql} <- sql ")
-                    println(s"LOO+ank ativa registro para contagem de vitorias")
                     metads.write(sql)
                   }
                 }
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
               resPorClasse
-              /*
-                val resPorClasse = mutable.Queue[(Int, Int, Option[Double])]()
-                bags.map(_._2) foreach { xbag =>
-                  val esperados = xbag.map(_.label.toInt).sorted
-                  val pred = m.predict(xbag.head).toInt
-                  val re = if (esperados.contains(pred)) 1d else 0d
-                  resPorClasse += ((esperados.head, pred, Some(re)))
-                  esperados foreach { esperado =>
-                    resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), None))
-                  }
-                }
-                resPorClasse
-               */
             }
             Resultado(mc.limpa, tr_ts.head, tr_ts(1))
           }

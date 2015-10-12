@@ -19,20 +19,28 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.lib
 
-import ml.{classifiers, Pattern}
+import al.strategies.Strategy
+import ml.Pattern
 import ml.classifiers._
 
 trait LearnerTrait {
   def learners(learnersStr: Seq[String]) = learnersStr map str2learner()
 
-  def allLearners(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed)
+  def learnersbothPool(ds: Ds, pool: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = {
+    val seqleas = learners("5nn,5nnm,nbb,c452,rbf".split(",")) map (_.limpa)
+    //    val seqleas = learners("5nn,5nnm,nbb,c452,rbf,rf,aboo,rof,bagc45,bagnb,10nn,10nnm".split(",")) map (_.limpa)
+    List[(Strategy) => Learner](
+      // ALC inteira não precisa regerar queries, só tem aqui metade
+      //      (st: Strategy) => MetaLearner(learnerSeed, ds, "metade", st, seqleas)("PCTr-a")
+      //      , (st: Strategy) => MetaLearner(learnerSeed, ds, "metade", st, seqleas)("defr-a")
+    )
+  }
 
-  //neste arquivo ficam apenas classificadores básicos.
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    //individuais, 6
-    //    KNNBatcha(5, "eucl", pool, weighted = true)
+    //individuais
+    //fora    KNNBatcha(5, "eucl", pool, weighted = true)
+    //fora    , KNNBatcha(5, "manh", pool, weighted = true)
     KNNBatcha(5, "eucl", pool, weighted = false)
-    //    , KNNBatcha(5, "manh", pool, weighted = true)
     , KNNBatcha(5, "manh", pool, weighted = false)
     , NBBatch()
     , C452()
@@ -43,10 +51,10 @@ trait LearnerTrait {
     , ABoo(learnerSeed)
     //RoF usa filtro, então aparece mais abaixo, na outra função
 
-    //Baggings e 10NN, 4
+    //Baggings e 10NN
+    //fora    , Knn10(pool, weighted = true)
     , BagC45(learnerSeed)
     , BagNB(learnerSeed)
-    //    , Knn10(pool, weighted = true)
     , Knn10(pool, weighted = false, distance_name = "eucl")
     , Knn10(pool, weighted = false, distance_name = "manh")
   )
@@ -54,21 +62,6 @@ trait LearnerTrait {
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
     RoF(learnerSeed)
     , SVMLibRBF(learnerSeed)
-  )
-
-  def learnersFilterFree(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    KNNBatcha(5, "eucl", pool, weighted = true) //2
-    , C45() //3
-    //      , RF(learnerSeed) //773
-    , NBBatch() //12
-    //      , VFDT() //4
-  )
-
-  def learnersFilterDependent(learnerSeed: Int = -1) = List[Learner](
-    //      , NinteraELM(learnerSeed) //11
-    ////      , LogReg(learnerSeed) //556665
-    //      , SVMLibDegree1(learnerSeed)//165111
-    ////      , SVMLibRBF(learnerSeed)
   )
 
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {

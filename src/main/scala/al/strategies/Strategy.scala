@@ -27,50 +27,9 @@ import util.Graphics.Plot
 
 import scala.io.Source
 
-case class MetaLearner(ds: Ds, st: Strategy)(mc: String) extends Learner {
-  lazy val LeaPreditoName = {
-    val metads = new Db("meta", readOnly = false)
-    metads.open()
-    val sql = s"select esp, pre from e where mc='$mc' and st='${st.limpa}' and ds='$ds';"
-    print(s"${sql}\t\t")
-    val res = metads.readString(sql) match {
-      case List(Vector(esp, pre)) => pre.split("-").last //as vezes tem strat junto, as vezes nao
-      case x => sys.error(x.toString)
-    }
-    metads.close()
-    println(s"$res")
-    res
-  }
-
-  lazy val learners = Seq(
-    KNNBatcha(5, "eucl", Seq(), weighted = true)
-    , C45()
-    , RF(-1)
-    , NBBatch()
-    , SVMLibRBF(-1)
-  )
-  lazy val LeaPredito = learners.find(_.limpa == LeaPreditoName).getOrElse {
-    println(s"${LeaPreditoName} <- LeaPreditoN")
-    sys.exit(0)
-  }
-
-  lazy val id = LeaPredito.id
-
-  lazy val abr = s"Meta$mc"
-
-  val attPref: String = ""
-
-  def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = ???
-
-  def expected_change(model: Model)(pattern: Pattern) = ???
-
-  def build(pool: Seq[Pattern]) = ???
-
-  val boundaryType: String = ""
-}
-
 case class MetaLearnerBest(ds: Ds, st: Strategy) extends Learner {
   lazy val LeaPreditoName = {
+    ???
     val metads = new Db("meta", readOnly = false)
     metads.open()
     val sql = s"select esp, pre from e where mc='maj' and st='${st.limpa}' and ds='$ds';"

@@ -156,8 +156,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       mediasrf(r, f).min, mediasavgrf(r, f), mediasrf(r, f).max, mediasrf(r, f).min / mediasrf(r, f).max,
       desviosrf(r, f).min, desviosavgrf(r, f), desviosrf(r, f).max, desviosrf(r, f).min / desviosrf(r, f).max,
       entropiasrf(r, f).min, entropiasavgrf(r, f), entropiasrf(r, f).max, entropiasrf(r, f).min / entropiasrf(r, f).max,
-      correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah) ++
-      (if (suav) List(NBBatch(), RF(r * 1000 + f), SVMLibRBF(r * 1000 + f), KNNBatcha(5, "eucl", getPool(r, f), weighted = true)) flatMap suavidade(r, f) else List())
+      correlsrf(r, f).min, correlsavgrf(r, f), correlsrf(r, f).max, correlsrf(r, f).min / correlsrf(r, f).max, correleucmah, correleucman, correlmanmah)
+//    ++      (if (suav) List(NBBatch(), RF(r * 1000 + f), SVMLibRBF(r * 1000 + f), KNNBatcha(5, "eucl", getPool(r, f), weighted = true)) flatMap suavidade(r, f) else List())
 
     val arq = s"/home/davi/wcs/cache/${if (suav) "suav" else ""}$dataset$r.$f.cache"
     val file = new File(arq)
@@ -490,7 +490,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
   /**
    * Retrieve instances from disk in querying order.
-   * Apply filters previously calibrated with training set.
+   * Apply filters previously calibrated with training set (só precisa passar filtro se a estratégia requerer).
    * Fetch all instances first to avoid missing nominal attribute values in dataset/"ARFF" header.
    * @param strat
    * @param run
@@ -623,15 +623,15 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
   def getPool(r: Int, f: Int) = poolMap getOrElseUpdate((r, f), queries(0, 0, r, f, null, null))
 
-  def suavidade(r: Int, f: Int)(l: Learner) = {
-    val le = allLearners(patterns, 42).find(_.id == l.id).getOrElse(quit("suavidade problems"))
-    val ts = new Random(0).shuffle(getPool(r, f)).take(15 * nclasses)
-    val (fts, binaf, zscof) = criaFiltro(patterns, 0)
-    val tr = queries(0, 0, r, f, null, null).take(nclasses)
-    lazy val ftr = aplicaFiltro(tr, 0, binaf, zscof)
-    val tr2 = if (l.querFiltro) ftr else tr
-    val ts2 = if (l.querFiltro) fts else ts
-    val md = le.build(tr2).predictionEntropy(ts2)
-    List(md._1, md._2)
-  }
+//  def suavidade(r: Int, f: Int)(l: Learner) = {
+//    val le = allLearners(patterns, 42).find(_.id == l.id).getOrElse(quit("suavidade problems"))
+//    val ts = new Random(0).shuffle(getPool(r, f)).take(15 * nclasses)
+//    val (fts, binaf, zscof) = criaFiltro(patterns, 0)
+//    val tr = queries(0, 0, r, f, null, null).take(nclasses)
+//    lazy val ftr = aplicaFiltro(tr, 0, binaf, zscof)
+//    val tr2 = if (l.querFiltro) ftr else tr
+//    val ts2 = if (l.querFiltro) fts else ts
+//    val md = le.build(tr2).predictionEntropy(ts2)
+//    List(md._1, md._2)
+//  }
 }

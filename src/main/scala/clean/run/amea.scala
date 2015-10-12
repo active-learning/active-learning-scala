@@ -59,7 +59,7 @@ object amea extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
       } yield {
         lazy val (tmin, _, tmax, _) = ranges(ds)
         //            for ((ti, tf) <- Seq((tmin, thalf), (thalf, tmax), (tmin, tmax), (tmin, 49))) {
-        for ((ti, tf) <- Seq((tmin, tmax))) {
+        for ((ti, tf) <- Seq((tmin, tmax), (tmin, 49), (50, tmax))) {
           poeNaFila(fila, ALCKappa(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
           poeNaFila(fila, ALCBalancedAcc(ds, s, classif, run, fold)(ti, tf).sqlToWrite(ds))
         }

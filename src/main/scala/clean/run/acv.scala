@@ -81,6 +81,7 @@ object acv extends Exp with LearnerTrait with StratsTrait {
       }
 
       learnersFpool(learnerSeed) foreach { flearner =>
+        //lembrar que flearner recebe o fpool via strat (a diff entre acv e acvf é que este tem strats com mahala)
         stratsPool("all", fpool, pool).map(_(flearner)) foreach { strat =>
           ds.log(s"$flearner $strat ...")
 
