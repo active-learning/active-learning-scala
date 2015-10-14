@@ -21,7 +21,6 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.NoLearner
 import weka.filters.Filter
 
 import scala.collection.mutable
@@ -80,34 +79,6 @@ object acvf extends Exp with LearnerTrait with StratsTrait {
       }
 
       learnersFpool(learnerSeed) foreach { flearner =>
-        stratsFpool(fpool, fpool).map(_(flearner)) foreach { fstrat =>
-          ds.log(s"$flearner $fstrat ...")
-
-          val fqueries = if (ds.areQueriesFinished(fpool.size, fstrat, run, fold, binaf, zscof, completeIt = true, maxQueries(ds))) {
-            ds.log(s"fQueries  done for ${fstrat.abr}/${fstrat.learner} at pool $run.$fold. Retrieving from disk.")
-            ds.queries(fstrat, run, fold, binaf, zscof)
-          } else ds.writeQueries(fstrat, run, fold, maxQueries(ds))
-          val queries = ds.queries(fstrat, run, fold, null, null)
-
-          //                              learnersPool(pool, learnerSeed) ++ learnersFpool(learnerSeed) foreach { classif =>
-          Seq(flearner) foreach { classif =>
-            if (classif.querFiltro) {
-              ds.log(s"fHits [$flearner $fstrat $classif] at pool $run.$fold.")
-              if (ds.areHitsFinished(fpool.size, ftestSet, fstrat, classif, run, fold, binaf, zscof, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
-              else ds.writeHits(fpool.size, ftestSet, fqueries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-            } else {
-              ds.log(s"Hits [$flearner $fstrat $classif] at pool $run.$fold.")
-              if (ds.areHitsFinished(pool.size, testSet, fstrat, classif, run, fold, null, null, completeIt = true, maxQueries(ds) - ds.nclasses + 1)) ds.log(s"Hits  done for ${fstrat.abr}/$classif at pool $run.$fold.")
-              else ds.writeHits(pool.size, testSet, queries.toVector, fstrat, run, fold, maxQueries(ds) - ds.nclasses + 1)(classif)
-            }
-          }
-        }
-        if (fila.exists(_.startsWith("insert"))) ds.batchWrite(fila.toList)
-        fila.clear()
-      }
-
-      //pondo aqui, e falta por no acv
-      learnersbothPool(ds, st, seqleas, pool, fpool, learnerSeed) foreach { flearner =>
         stratsFpool(fpool, fpool).map(_(flearner)) foreach { fstrat =>
           ds.log(s"$flearner $fstrat ...")
 

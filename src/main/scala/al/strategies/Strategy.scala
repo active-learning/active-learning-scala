@@ -97,10 +97,12 @@ trait Strategy extends Log with Limpa {
 
   def learner: Learner
 
-  def convlid(id: Int) = id match {
+  def convlid(lid: Int) = lid match {
+    case n if n >= 100000000 && n < 300000000 => n //MetaLearner
+
     case 773 => 0
     case 2651110 => 10
-    case 12 => 30
+    case 12 => 30 //nbbatch
     case 8001 => 40
     case 666003 => 50
     case 6660032 => 300 //c452

@@ -21,10 +21,9 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies.{MetaLearnerBest, Strategy, MetaLearner}
-import app.db.entities.Dataset
+import al.strategies.Strategy
 import clean.lib._
-import ml.classifiers.{Learner, NoLearner}
+import ml.classifiers.NoLearner
 import util.Stat
 
 object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {

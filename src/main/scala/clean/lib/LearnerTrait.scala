@@ -19,22 +19,11 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.lib
 
-import al.strategies.Strategy
 import ml.Pattern
 import ml.classifiers._
 
 trait LearnerTrait {
   def learners(learnersStr: Seq[String]) = learnersStr map str2learner()
-
-  def learnersbothPool(ds: Ds, pool: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = {
-    val seqleas = learners("5nn,5nnm,nbb,c452,rbf".split(",")) map (_.limpa)
-    //    val seqleas = learners("5nn,5nnm,nbb,c452,rbf,rf,aboo,rof,bagc45,bagnb,10nn,10nnm".split(",")) map (_.limpa)
-    List[(Strategy) => Learner](
-      // ALC inteira não precisa regerar queries, só tem aqui metade
-      //      (st: Strategy) => MetaLearner(learnerSeed, ds, "metade", st, seqleas)("PCTr-a")
-      //      , (st: Strategy) => MetaLearner(learnerSeed, ds, "metade", st, seqleas)("defr-a")
-    )
-  }
 
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
     //individuais
