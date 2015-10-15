@@ -28,7 +28,7 @@ import scala.collection.mutable
 
 object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
   val context = "ameametaApp"
-  val arguments = superArguments :+ "leas"
+  val arguments = superArguments :+ "leas(unused)" :+ "versao"
   val ignoreNotDone = false
   var outroProcessoVaiTerminarEsteDataset = false
   var acabou = true
@@ -78,7 +78,7 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("meta*lapack" + Global.versao)
+      ds.markAsFinishedRun("meta*lapack" + versao)
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
@@ -86,11 +86,11 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
   }
 
   def isAlreadyDone(ds: Ds) = {
-    val despreparado = if (!ds.isFinishedRun("meta-lapack" + Global.versao) || !ds.isFinishedRun("meta+lapack" + Global.versao)) {
+    val despreparado = if (!ds.isFinishedRun("meta-lapack" + versao) || !ds.isFinishedRun("meta+lapack" + versao)) {
       ds.log(s"acv ou acvf ainda não terminaram este dataset, skipping...", 30)
       true
     } else false
-    despreparado || ds.isFinishedRun("meta*lapack" + Global.versao)
+    despreparado || ds.isFinishedRun("meta*lapack" + versao)
   }
 
   def end(res: Map[String, Boolean]): Unit = {

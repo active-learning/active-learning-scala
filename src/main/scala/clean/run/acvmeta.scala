@@ -28,7 +28,7 @@ import scala.collection.mutable
 
 object acvmeta extends Exp with StratsTrait with LearnerTrait {
   val context = "acvmetaApp"
-  val arguments = superArguments :+ "leas"
+  val arguments = superArguments :+ "leas" :+ "versao"
   val ignoreNotDone = false
   var outroProcessoVaiTerminarEsteDataset = false
   var acabou = true
@@ -86,14 +86,14 @@ object acvmeta extends Exp with StratsTrait with LearnerTrait {
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("meta+lapack" + Global.versao)
+      ds.markAsFinishedRun("meta+lapack" + versao)
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
     acabou = true
   }
 
-  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("meta+lapack" + Global.versao)
+  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("meta+lapack" + versao)
 
   def end(res: Map[String, Boolean]): Unit = {
   }
