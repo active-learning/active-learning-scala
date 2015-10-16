@@ -52,7 +52,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
         println(s"${renomeia(ds)}, ")
         ds.open()
         val preds = learnersfun(learnersStr).par.map { learnerfun =>
-          ((1 to 100) map { run =>
+          ((1 to 1) map { run =>
             val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
             val cms = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
               val learner = learnerfun(tr, (1000 * fold) + run + seed.toInt)
