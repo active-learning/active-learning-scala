@@ -79,7 +79,7 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("meta*lapack" + versao)
+      ds.markAsFinishedRun("metaamea" + versao)
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
@@ -87,11 +87,11 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
   }
 
   def isAlreadyDone(ds: Ds) = {
-    val despreparado = if (!ds.isFinishedRun("meta-lapack" + versao) || !ds.isFinishedRun("meta+lapack" + versao)) {
+    val despreparado = if (!ds.isFinishedRun("meta" + versao)) {
       ds.log(s"acv ou acvf ainda não terminaram este dataset, skipping...", 30)
       true
     } else false
-    despreparado || ds.isFinishedRun("meta*lapack" + versao)
+    despreparado || ds.isFinishedRun("metaamea" + versao)
   }
 
   def end(res: Map[String, Boolean]): Unit = {
