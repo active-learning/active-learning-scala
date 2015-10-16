@@ -66,10 +66,10 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
           ds.close()
           kfoldres
         }
-      nomelea -> preds.sortBy { case (ds, col) => renomeia(ds) }
+      nomelea -> preds.toList.sortBy { case (ds, col) => renomeia(ds) }
     }
 
-    val matsorted = mat.sortBy { case (lea, col) => lea.limpa }
+    val matsorted = mat.toList.sortBy { case (lea, col) => lea.limpa }
     val dsvectors = matsorted map { case (lea, row) =>
       lea -> row.map { case (ds, col) => col }.flatten
     }
