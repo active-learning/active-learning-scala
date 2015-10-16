@@ -42,22 +42,22 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
   override def run() = {
     super.run()
     val dss = datasets
-    println(dss)
+    //    println(dss)
     println(dss.size)
     val mat = for {
       dataset <- dss.par
     } yield {
         val ds = Ds(dataset, readOnly = true)
-        print(s"${renomeia(ds)}, ")
+        println(s"${renomeia(ds)}, ")
         ds.open()
         val preds = learnersfun(learnersStr).par.map { learnerfun =>
           val nomelea = learnerfun(Seq(), 42)
-          println(s"$nomelea <- learner ")
+          //          println(s"$nomelea <- learner ")
           val patts = new Random(42).shuffle(transpose(new Random(43).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
           val kfoldres = nomelea -> Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
             val learner = learnerfun(tr, fold)
             val model = learner.build(tr)
-            println(s"${testset.size} <- testset.size")
+            //            println(s"${testset.size} <- testset.size")
             if (testset.size != 10) error("testset.size != 10")
             testset map (x => model.predict(x).toLong)
           }.flatten.toList
@@ -84,9 +84,9 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
     val poeLea = m.map(x => x._2.sorted -> x._1).toMap
     val msorted = sorted map { x => poeLea(x.sorted) -> x }
 
-    println(s"${m} <- m")
-    println(s"${sorted} <- sorted")
-    println(s"${msorted} <- msorted")
+    //    println(s"${m} <- m")
+    //    println(s"${sorted} <- sorted")
+    //    println(s"${msorted} <- msorted")
 
     msorted foreach { case (ds, simis) =>
       println(s"$ds ${simis.mkString(" ")}")
