@@ -49,7 +49,7 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
       val nomelea = learnerfun(Seq(), 42)
       println(s"$nomelea <- learner ")
       val preds = for {
-        dataset <- dss.par //.take(20)
+        dataset <- dss.par //.take(2)
       } yield {
           val ds = Ds(dataset, readOnly = true)
           print(s"${renomeia(ds)}, ")
@@ -76,7 +76,6 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
 
     val m = dsvectors.zipWithIndex map { case ((lea, a), i) =>
       lea -> dsvectors.zipWithIndex.map {
-        case ((ds, b), i2) if i == i2 => 0
         case ((ds, b), i2) => (dist(a)(b) * 100).round
       }
     }
