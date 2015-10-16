@@ -82,7 +82,7 @@ trait Rank extends FilterTrait with RoundFilter {
   }
 
   /**
-   * mantém ordem
+   * apenas troca valor de acuracia por posicionamento
    * @param s
    * @return
    */

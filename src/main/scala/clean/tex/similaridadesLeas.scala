@@ -54,17 +54,19 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
           val ds = Ds(dataset, readOnly = true)
           print(s"${renomeia(ds)}, ")
           ds.open()
-          val patts = new Random(42).shuffle(transpose(new Random(43).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
-          val kfoldres = ds -> Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
-            val learner = learnerfun(tr, fold)
-            val model = learner.build(tr)
-            println(s"${testset.size} <- testset.size")
-            if (testset.size != 10) error("testset.size != 10")
-            //            Random.nextInt(2).toDouble +:
-            (testset map model.predict)
-          }.flatten.toList
+          val kfoldres = ((1 to 10) map { run =>
+            val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
+            Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
+              val learner = learnerfun(tr, (100 * fold) + run + seed.toInt)
+              val model = learner.build(tr)
+              println(s"${testset.size} <- testset.size")
+              if (testset.size != 10) error("testset.size != 10")
+              //            Random.nextInt(2).toDouble +:
+              testset map model.predict
+            }
+          }).flatten
           ds.close()
-          kfoldres
+          ds -> kfoldres.flatten.toList
         }
       nomelea -> preds.toList.sortBy { case (ds, col) => renomeia(ds) }
     }
