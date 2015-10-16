@@ -54,7 +54,7 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
           val ds = Ds(dataset, readOnly = true)
           print(s"${renomeia(ds)}, ")
           ds.open()
-          val kfoldres = ((1 to 10) map { run =>
+          val kfoldres = ((1 to 100) map { run =>
             val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
             Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
               val learner = learnerfun(tr, (100 * fold) + run + seed.toInt)
