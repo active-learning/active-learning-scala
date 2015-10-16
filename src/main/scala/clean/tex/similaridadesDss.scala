@@ -45,39 +45,30 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
     //    println(dss)
     println(dss.size)
     val mat = for {
-      dataset <- dss.par
+      dataset <- dss.par.take(15)
     } yield {
         val ds = Ds(dataset, readOnly = true)
         println(s"${renomeia(ds)}, ")
         ds.open()
         val preds = learnersfun(learnersStr).par.map { learnerfun =>
-          val nomelea = learnerfun(Seq(), 42)
-          //          println(s"$nomelea <- learner ")
           val patts = new Random(42).shuffle(transpose(new Random(43).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
-          val kfoldres = nomelea -> Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
+          Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
             val learner = learnerfun(tr, fold)
             val model = learner.build(tr)
-            //            println(s"${testset.size} <- testset.size")
             if (testset.size != 10) error("testset.size != 10")
-            testset map (x => model.predict(x).toLong)
-          }.flatten.toList
-          kfoldres
+            model.accuracy(testset)
+          }.toList
         }.toList
-        val m = preds map { case (lea, a) =>
-          preds.map {
-            case (lea2, b) => dist(a)(b)
-          }
-        }
         ds.close()
-        ds -> m.flatten
+        ds -> preds.flatten
       }
 
     val matsorted = mat.toList.sortBy { case (ds, col) => renomeia(ds) }
     val dsvectors = matsorted
 
-    val m = dsvectors map { case (lea, a) =>
-      lea -> dsvectors.map {
-        case (lea2, b) => (100 / (1 + eucl(a)(b))).round / 100d
+    val m = dsvectors map { case (ds, a) =>
+      ds -> dsvectors.map {
+        case (ds2, b) => (100 / (1 + eucl(a)(b))).round / 100d
       }
     }
     val sorted = m.map(_._2).sortBy(x => x.sum).transpose.sortBy(x => x.zipWithIndex.find(_._1 == 1).get._2).transpose
@@ -88,6 +79,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
     //    println(s"${sorted} <- sorted")
     //    println(s"${msorted} <- msorted")
 
+    println("\n\n\n\n\n\n\n\n")
     msorted foreach { case (ds, simis) =>
       println(s"$ds ${simis.mkString(" ")}")
     }
