@@ -49,7 +49,7 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
       val nomelea = learnerfun(Seq(), 42)
       println(s"$nomelea <- learner ")
       val preds = for {
-        dataset <- dss.par //.take(2)
+        dataset <- dss
       } yield {
           val ds = Ds(dataset, readOnly = true)
           print(s"${renomeia(ds)}, ")
