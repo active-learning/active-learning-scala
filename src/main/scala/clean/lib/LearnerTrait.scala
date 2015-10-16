@@ -23,7 +23,9 @@ import ml.Pattern
 import ml.classifiers._
 
 trait LearnerTrait {
-  def learners(learnersStr: Seq[String]) = learnersStr map str2learner()
+  def learners(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersStr map str2learner(pool, learnerSeed)
+
+  def learnersfun(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersStr map str2learnerfun
 
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
     //individuais
@@ -97,5 +99,27 @@ trait LearnerTrait {
     //      case "5NNc" => KNNBatch(5, "cheb", pool)
     //      case "5NNm" => KNNBatch(5, "manh", pool)
     //    case "Varios" => NoLearner()
+  }
+
+  def str2learnerfun(str: String) = str match {
+    case "bagnb" => (pool: Seq[Pattern], learnerSeed: Int) => BagNB(learnerSeed)
+    case "bagc45" => (pool: Seq[Pattern], learnerSeed: Int) => BagC45(learnerSeed)
+    case "10nnw" => (pool: Seq[Pattern], learnerSeed: Int) => Knn10(pool, weighted = true, distance_name = "eucl")
+    case "10nn" => (pool: Seq[Pattern], learnerSeed: Int) => Knn10(pool, weighted = false, distance_name = "eucl")
+    case "10nnmw" => (pool: Seq[Pattern], learnerSeed: Int) => Knn10(pool, weighted = true, distance_name = "manh")
+    case "10nnm" => (pool: Seq[Pattern], learnerSeed: Int) => Knn10(pool, weighted = false, distance_name = "manh")
+    case "aboo" => (pool: Seq[Pattern], learnerSeed: Int) => ABoo(learnerSeed)
+    case "rof" => (pool: Seq[Pattern], learnerSeed: Int) => RoF(learnerSeed)
+    case "nbb" => (pool: Seq[Pattern], learnerSeed: Int) => NBBatch()
+    case "5nnw" => (pool: Seq[Pattern], learnerSeed: Int) => KNNBatcha(5, "eucl", pool, weighted = true)
+    case "5nnmw" => (pool: Seq[Pattern], learnerSeed: Int) => KNNBatcha(5, "manh", pool, weighted = true)
+    case "5nn" => (pool: Seq[Pattern], learnerSeed: Int) => KNNBatcha(5, "eucl", pool, weighted = false)
+    case "5nnm" => (pool: Seq[Pattern], learnerSeed: Int) => KNNBatcha(5, "manh", pool, weighted = false)
+    case "c45" => (pool: Seq[Pattern], learnerSeed: Int) => C45()
+    case "c452" => (pool: Seq[Pattern], learnerSeed: Int) => C452()
+    case "rf" => (pool: Seq[Pattern], learnerSeed: Int) => RF(learnerSeed)
+    case "vfdt" => (pool: Seq[Pattern], learnerSeed: Int) => VFDT()
+    case "poly1" => (pool: Seq[Pattern], learnerSeed: Int) => SVMLibDegree1(learnerSeed)
+    case "rbf" => (pool: Seq[Pattern], learnerSeed: Int) => SVMLibRBF(learnerSeed)
   }
 }
