@@ -45,7 +45,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
     println(dss)
     println(dss.size)
     val mat = for {
-      dataset <- dss.par.take(10)
+      dataset <- dss.par
     } yield {
         val ds = Ds(dataset, readOnly = true)
         print(s"${renomeia(ds)}, ")
