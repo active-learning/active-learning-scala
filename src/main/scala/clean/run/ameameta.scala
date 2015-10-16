@@ -54,7 +54,8 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
       val mapa = ((fpool ++ ftestSet) map (p => p.id -> p)) toMap
       val fmapa = ((fpool ++ ftestSet) map (p => p.id -> p)) toMap
 
-      (stratsPool("all", pool, pool) ++ stratsFpool(pool, fpool)).map { st =>
+      stratsPool("all", pool, pool).map { st =>
+        //      (stratsPool("all", pool, pool) ++ stratsFpool(pool, fpool)).map { st =>
         val fakelearner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(NoLearner()), seqleas)("PCTr-a")
         val learner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(fakelearner), seqleas)("PCTr-a")
         learner -> st(learner)
