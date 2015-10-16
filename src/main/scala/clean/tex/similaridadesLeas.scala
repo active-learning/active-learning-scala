@@ -79,7 +79,7 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
         case ((ds, b), i2) => (dist(a)(b) * 100).round
       }
     }
-    val sorted = m.map(_._2).sortBy(x => x.sum).transpose.sortBy(x => x.sum).transpose
+    val sorted = m.map(_._2).sortBy(x => x.sum).transpose.sortBy(x => x.zipWithIndex.find(_._1 == 100).get._2).transpose
     val poeLea = m.map(x => x._2.sorted -> x._1).toMap
     val msorted = sorted map { x => poeLea(x.sorted) -> x }
 
