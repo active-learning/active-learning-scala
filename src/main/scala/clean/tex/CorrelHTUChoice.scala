@@ -28,7 +28,7 @@ import util.{Datasets, Stat}
 
 import scala.util.Random
 
-object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with CM {
+object CorrelHTUChoice extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with CM {
   lazy val arguments = superArguments
   //++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
   val context = "PearsonChoice"
@@ -51,7 +51,7 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
     val dss = datasets //DsBy(datasets, 200, onlyBinaryProblems = false, notBinary = true)
     println(dss)
     println(dss.size)
-    val nums = Seq(-0.999999d, -0.99999, -0.9999, -0.999, -0.99, -0.9, -0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8, 0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999)
+    val nums = Seq[Double](-0.999999d, -0.99999, -0.9999, -0.999, -0.99, -0.9, -0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8, 0.9000, 0.9900, 0.9990, 0.9999, 0.99999, 0.999999)
     val ranks = for {
       dataset <- dss.take(3000).par
     } yield {
@@ -66,17 +66,17 @@ object PearsonChoice extends AppWithUsage with LearnerTrait with StratsTrait wit
         //        val accs = (-9999 to 9999 by 100).map(x => x / 10000d).zipWithIndex map { case (pearson, idx) =>
         //        val accs = ((1 to 10) map { run =>
         val patts = Random.shuffle(transpose(Random.shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(1000))
-        val accs = nums.zipWithIndex map { case (pearson, idx) =>
+        val accs = nums.zipWithIndex map { case (correl, idx) =>
           val kappas = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (pool, testset, fold, min) =>
             val learner = RF(Random.nextInt(1000000))
             //            val learner = KNNBatcha(5, "eucl", pool, weighted = true)
-            val strat = HTUFixo(pool, learner, pool, "eucl", 1, 1, debug = false, pearson)
+            val strat = HTUFixoSpea(pool, learner, pool, "eucl", 1, 1, debug = false, correl)
             val queries = strat.queries.take(100)
             val model = learner.build(queries)
             kappa(model.confusion(testset))
           }
           val acc = kappas.sum / kappas.size
-          println(ds.n + " " + dataset + " " + pearson + " " + acc)
+          println(ds.n + " " + dataset + " " + correl + " " + acc)
           acc
         }
         //        }).flatten

@@ -52,7 +52,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
         println(s"${renomeia(ds)}, ")
         ds.open()
         val preds = learnersfun(learnersStr).par.map { learnerfun =>
-          ((1 to 100) map { run =>
+          (1 to 100) map { run =>
             val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
             val cms = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
               val learner = learnerfun(tr, (1000 * fold) + run + seed.toInt)
@@ -65,10 +65,10 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
               for (i <- 0 until ds.patterns.head.nclasses; j <- 0 until ds.patterns.head.nclasses) cmres(i)(j) += cm(i)(j)
             }
             kappa(cmres)
-          }).sum
+          }
         }
         ds.close()
-        ds -> ranqueia(preds.toList)
+        ds -> ranqueia(preds.flatten.toList)
       }
 
     val matsorted = mat.toList.sortBy { case (ds, col) => renomeia(ds) }
@@ -84,14 +84,19 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
     val sorted = m.map(_._2) //.sortBy(x => x.sum).transpose.sortBy(x => x.zipWithIndex.find(_._1 == 1).get._2).transpose
     val poeLea = m.map(x => x._2.sorted -> x._1).toMap
     val msorted = sorted map { x => poeLea(x.sorted) -> x }
-
-    //    println(s"${m} <- m")
-    //    println(s"${sorted} <- sorted")
-    //    println(s"${msorted} <- msorted")
-
     println("\n\n\n\n\n\n\n\n")
     msorted foreach { case (ds, simis) =>
       println(s"$ds ${simis.mkString(" ")}")
+    }
+
+    {
+      val sorted = m.map(_._2).sortBy(x => x.sum).transpose.sortBy(x => x.zipWithIndex.find(_._1 == 1).get._2).transpose
+      val poeLea = m.map(x => x._2.sorted -> x._1).toMap
+      val msorted = sorted map { x => poeLea(x.sorted) -> x }
+      println("\n\n\n\n\n\n\n\n")
+      msorted foreach { case (ds, simis) =>
+        println(s"$ds ${simis.mkString(" ")}")
+      }
     }
   }
 
