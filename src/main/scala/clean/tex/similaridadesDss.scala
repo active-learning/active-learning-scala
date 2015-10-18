@@ -21,7 +21,7 @@ package clean.tex
 
 import clean.lib._
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
-import util.Datasets
+import util.{Tempo, Datasets}
 
 import scala.util.Random
 
@@ -51,27 +51,29 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
         val ds = Ds(dataset, readOnly = true)
         println(s"${renomeia(ds)}, ")
         ds.open()
-        val preds = learnersfun(learnersStr).par.map { learnerfun =>
-          (1 to 100) map { run =>
-            val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
-            val cms = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
-              val learner = learnerfun(tr, (1000 * fold) + run + seed.toInt)
-              val model = learner.build(tr)
-              //              if (testset.size != 10) error("testset.size != 10")
-              model.confusion(testset)
+        val (preds, t) = Tempo.timev {
+          learnersfun(learnersStr).par.map { learnerfun =>
+            (1 to 100) map { run =>
+              val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
+              val cms = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
+                val learner = learnerfun(tr, (1000 * fold) + run + seed.toInt)
+                val model = learner.build(tr)
+                //              if (testset.size != 10) error("testset.size != 10")
+                model.confusion(testset)
+              }
+              val cmres = Array.fill(ds.patterns.head.nclasses)(Array.fill(ds.patterns.head.nclasses)(0))
+              cms.foreach { cm =>
+                for (i <- 0 until ds.patterns.head.nclasses; j <- 0 until ds.patterns.head.nclasses) cmres(i)(j) += cm(i)(j)
+              }
+              kappa(cmres)
             }
-            val cmres = Array.fill(ds.patterns.head.nclasses)(Array.fill(ds.patterns.head.nclasses)(0))
-            cms.foreach { cm =>
-              for (i <- 0 until ds.patterns.head.nclasses; j <- 0 until ds.patterns.head.nclasses) cmres(i)(j) += cm(i)(j)
-            }
-            kappa(cmres)
           }
         }
         ds.close()
-        ds -> ranqueia(preds.flatten.toList)
+        (ds, t, ranqueia(preds.flatten.toList))
       }
 
-    val matsorted = mat.toList.sortBy { case (ds, col) => renomeia(ds) }
+    val matsorted = mat.map(x => x._1 -> x._3).sortBy { case (ds, col) => renomeia(ds) }
     val dsvectors = matsorted
 
     val m = dsvectors map { case (ds, a) =>
@@ -98,6 +100,9 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
         println(s"$ds ${simis.mkString(" ")}")
       }
     }
+
+    println(s"")
+    mat.map(x => x._1 + " " + x._2) foreach println
   }
 
   def dist(a: List[Long])(b: List[Long]) = a.zip(b).map { case (x, y) => if (x == y) 1d else 0d }.sum / a.size
