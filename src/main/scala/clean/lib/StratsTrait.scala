@@ -116,15 +116,15 @@ trait StratsTrait {
       , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "balacc"))
       , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
       , Some((learner: Learner) => ClusterBased(fakePool)) //1
-    , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
-    , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
-    , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
-    , Some((learner: Learner) => MarginFixo(learner, fakePool))
-    , Some((learner: Learner) => RandomSampling(fakePool)) //0
-    , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-    , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
-    , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
-    , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
+      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
+      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
+      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
+      , Some((learner: Learner) => MarginFixo(learner, fakePool))
+      , Some((learner: Learner) => RandomSampling(fakePool)) //0
+      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
+      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
+      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
+      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
 
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")) else None
@@ -144,11 +144,11 @@ trait StratsTrait {
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
       , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
-//      , Some((learner: Learner) => QBC(fakePool))
-//      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
-//      , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
+      //      , Some((learner: Learner) => QBC(fakePool))
+      //      , Some((learner: Learner) => SVMmultiRBF(fakePool, "BALANCED_EEw"))
+      //      , Some((learner: Learner) => SVMmultiRBF(fakePool, "SIMPLEw"))
       , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-//      , Some((learner: Learner) => EntropyFixo(learner, fakePool))
+      //      , Some((learner: Learner) => EntropyFixo(learner, fakePool))
       , Some((learner: Learner) => MarginFixo(learner, fakePool))
       , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
       , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")) else None
@@ -172,7 +172,21 @@ trait StratsTrait {
    */
   def stratsPool(dist: String, poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq()) =
   //essas ganharam ids por par s/l porque suas medidas de distancia foram afetadas por filtros
-    (dist match {
+    Seq(
+      //        (learner: Learner) => QBC(poolForLearner)
+      //essas precisam ser Fixo porque os hits ficam sem vinculo com o learner gerador das queries (por isso dava duplicated key)
+      //copiei as qs e os hs porque todos já estavam gerados desde antigamente
+      //        , (learner: Learner) => EntropyFixo(learner, poolForLearner) //
+      (learner: Learner) => ClusterBased(pool) //1
+      , (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
+      , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy") //pid:200000 ... 200050; sid:11000000 ...          //11000050
+      , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "balacc") //pid:300000 ... 300050; sid:74000000 ... 74000050
+      , (learner: Learner) => SGmultiFixo(learner, poolForLearner, "consensus") //pid:400000 ... 400050; sid:14000000 ... 14000050
+
+      //essas naturalmente não usaram filtro e cada 'learner' decidiu sozinho se usava filtro ou não (all.scala mostra que hits foi feito c/s filtro de acordo com classif)
+      //(svm.scala força filtro nas strats, porém, por serem agnósticas, as queries já foram geradas corretamente antes pelo all.scala ou rf.scala
+      , (learner: Learner) => RandomSampling(pool) //0
+    ) ++ (dist match {
       case "man" => Seq((learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
         , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "manh")
         , (learner: Learner) => DensityWeightedFixo(poolForLearner, learner, pool, 1, "manh")
@@ -193,22 +207,7 @@ trait StratsTrait {
         , (learner: Learner) => AgDensityWeightedTrainingUtility(pool, "eucl") //691
       )
       case "mah" => Seq()
-    }) ++
-      Seq(
-//        (learner: Learner) => QBC(poolForLearner)
-        //essas precisam ser Fixo porque os hits ficam sem vinculo com o learner gerador das queries (por isso dava duplicated key)
-        //copiei as qs e os hs porque todos já estavam gerados desde antigamente
-//        , (learner: Learner) => EntropyFixo(learner, poolForLearner) //
-        (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
-        , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy") //pid:200000 ... 200050; sid:11000000 ...          //11000050
-        , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "balacc") //pid:300000 ... 300050; sid:74000000 ... 74000050
-        , (learner: Learner) => SGmultiFixo(learner, poolForLearner, "consensus") //pid:400000 ... 400050; sid:14000000 ... 14000050
-
-        //essas naturalmente não usaram filtro e cada 'learner' decidiu sozinho se usava filtro ou não (all.scala mostra que hits foi feito c/s filtro de acordo com classif)
-        //(svm.scala força filtro nas strats, porém, por serem agnósticas, as queries já foram geradas corretamente antes pelo all.scala ou rf.scala
-        , (learner: Learner) => RandomSampling(pool) //0
-        , (learner: Learner) => ClusterBased(pool) //1
-      )
+    })
 
   def stratsFpool(poolForLearner: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq()) = Seq(
     //essas ganharam ids por par s/l porque medem distancia filtradas e afetaram seus learners (e precisavam ser reimplementadas para receber pools independentes)
@@ -220,9 +219,9 @@ trait StratsTrait {
     //apaguei somente learners que não querem filtro no mysql: id voltou pra 991
     , (learner: Learner) => AgDensityWeightedTrainingUtility(fpool, "maha") //991
 
-//    //apaguei todos os hits de classifs diferentes de svmrbf.
-//    , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw") //9690094
-//    , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw") //9660091
+    //    //apaguei todos os hits de classifs diferentes de svmrbf.
+    //    , (learner: Learner) => SVMmultiRBF(fpool, "BALANCED_EEw") //9690094
+    //    , (learner: Learner) => SVMmultiRBF(fpool, "SIMPLEw") //9660091
   )
 
   def allStrats(learner: Learner = NoLearner(), pool: Seq[Pattern] = Seq()) = stratsemLearnerExterno(pool) ++ stratcomLearnerExterno(learner, pool)
