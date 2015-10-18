@@ -53,9 +53,9 @@ object temposDss extends AppWithUsage with LearnerTrait with StratsTrait with Ra
         learnersfun(learnersStr).map { learnerfun =>
           val leaFake = learnerfun(Seq(), 42)
           val (v, t) = Tempo.timev {
-            val patts0 = new Random(seed.toInt).shuffle(transpose(new Random(1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
+            val patts0 = new Random(seed.toInt).shuffle(transpose(new Random(1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(2000)).toList).flatten.take(4000))
             val patts = if (leaFake.querFiltro) criaFiltro(patts0, 0)._1 else patts0
-            Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
+            Datasets.kfoldCV(patts.toVector, 5, parallel = true) { (tr, testset, fold, min) =>
               val learner = learnerfun(tr, (1000 * fold) + seed.toInt)
               stratsForTempo(tr, learner) foreach { st =>
                 st.queries.take(100).toList

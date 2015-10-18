@@ -394,8 +394,7 @@ trait StratsTrait {
   )
 
   def stratsForTempo(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-    ClusterBased(pool) //1
-    , HTUFixo(Seq(), learner, pool, "eucl")
+    HTUFixo(Seq(), learner, pool, "eucl")
     , new SGmultiFixo(learner, pool, "consensus")
     , ExpErrorReductionMarginFixo(learner, pool, "balacc")
     , ExpErrorReductionMarginFixo(learner, pool, "entropy")
