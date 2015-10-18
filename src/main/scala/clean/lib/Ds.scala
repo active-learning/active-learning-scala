@@ -356,7 +356,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
         sid match {
           case x if x == 0 => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries! l:$lid")
-            case PoolSize => true
+            case PoolSize | 100 => true
             case _ => error(s"$qs previous rnd queries should be $PoolSize.  l:$lid")
           }
           case _ => qs match {
