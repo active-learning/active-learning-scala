@@ -68,7 +68,7 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
           ds -> kfoldres.flatten.toList
         }
       }
-      (nomelea, t, preds.toList.sortBy { case (ds, col) => renomeia(ds) })
+      (nomelea, t, preds.toList.sortBy { case (ds, col) => renomeia(ds.dataset) })
     }
     mat.map(x => x._1 + " " + x._2) foreach println
 

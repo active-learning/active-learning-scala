@@ -65,7 +65,7 @@ object fried_tabela_leas extends AppWithUsage with LearnerTrait with StratsTrait
             else Stat.media_desvioPadrao(vs.toVector)
          }
          ds.close()
-         renomeia(ds) -> lres.map(_._1 -> NA)
+          renomeia(ds.dataset) -> lres.map(_._1 -> NA)
       }
       res0 foreach (x => println(x._2.map(_._1).mkString(" ")))
 

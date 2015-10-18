@@ -67,7 +67,7 @@ object fried_tabela_strats_datasetsXlearners extends AppWithUsage with LearnerTr
             s(le).abr -> (if (!porRisco) Stat.media_desvioPadrao(vs.toVector) else Stat.media_desvioPadrao(vs.toVector)._2 -> NA)
          }).unzip
          ds.close()
-         sts -> (renomeia(ds) -> sres)
+         sts -> (renomeia(ds.dataset) -> sres)
       }).unzip
       val sl = sls.head
 

@@ -56,7 +56,7 @@ object CorrelHTUChoice extends AppWithUsage with LearnerTrait with StratsTrait w
       dataset <- dss.take(3000).par
     } yield {
         val ds = Ds(dataset, readOnly = true)
-        print(s"${renomeia(ds)}, ")
+        print(s"${renomeia(ds.dataset)}, ")
         ds.open()
         /*       .00-.19 “very weak”
                  .20-.39 “weak”

@@ -49,7 +49,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
       dataset <- dss
     } yield {
         val ds = Ds(dataset, readOnly = true)
-        println(s"${renomeia(ds)}, ")
+        println(s"${renomeia(ds.dataset)}, ")
         ds.open()
         val preds = learnersfun(learnersStr).map { learnerfun =>
           val leaFake = learnerfun(Seq(), 42)
@@ -74,7 +74,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
           v
         }
         ds.close()
-        (ds, ranqueia(preds.flatten.toList))
+        (ds.dataset, ranqueia(preds.flatten.toList))
       }
 
     val matsorted = mat.map(x => x._1 -> x._2).sortBy { case (ds, col) => renomeia(ds) }
