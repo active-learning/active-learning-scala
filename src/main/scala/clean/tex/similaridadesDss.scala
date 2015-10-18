@@ -51,10 +51,12 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
         val ds = Ds(dataset, readOnly = true)
         println(s"${renomeia(ds)}, ")
         ds.open()
-        val (preds, t) = Tempo.timev {
-          learnersfun(learnersStr).par.map { learnerfun =>
-            (1 to 100) map { run =>
-              val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
+        val preds = learnersfun(learnersStr).map { learnerfun =>
+          val leaFake = learnerfun(Seq(), 42)
+          val (v, t) = Tempo.timev {
+            (1 to 100).par map { run =>
+              val patts0 = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
+              val patts = if (leaFake.querFiltro) criaFiltro(patts0, run)._1 else patts0
               val cms = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
                 val learner = learnerfun(tr, (1000 * fold) + run + seed.toInt)
                 val model = learner.build(tr)
@@ -68,12 +70,14 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
               kappa(cmres)
             }
           }
+          println(s"tempo: $ds $leaFake $t")
+          v
         }
         ds.close()
-        (ds, t, ranqueia(preds.flatten.toList))
+        (ds, ranqueia(preds.flatten.toList))
       }
 
-    val matsorted = mat.map(x => x._1 -> x._3).sortBy { case (ds, col) => renomeia(ds) }
+    val matsorted = mat.map(x => x._1 -> x._2).sortBy { case (ds, col) => renomeia(ds) }
     val dsvectors = matsorted
 
     val m = dsvectors map { case (ds, a) =>
@@ -100,9 +104,6 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
         println(s"$ds ${simis.mkString(" ")}")
       }
     }
-
-    println(s"")
-    mat.map(x => x._1 + " " + x._2) foreach println
   }
 
   def dist(a: List[Long])(b: List[Long]) = a.zip(b).map { case (x, y) => if (x == y) 1d else 0d }.sum / a.size
