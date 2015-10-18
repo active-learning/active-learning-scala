@@ -177,7 +177,8 @@ trait StratsTrait {
       //essas precisam ser Fixo porque os hits ficam sem vinculo com o learner gerador das queries (por isso dava duplicated key)
       //copiei as qs e os hs porque todos já estavam gerados desde antigamente
       //        , (learner: Learner) => EntropyFixo(learner, poolForLearner) //
-      (learner: Learner) => ClusterBased(pool) //1
+      (learner: Learner) => RandomSampling(pool) //0
+      , (learner: Learner) => ClusterBased(pool) //1
       , (learner: Learner) => MarginFixo(learner, poolForLearner) //pid:100000 ... 100050; sid:3000000 ... 3000050
       , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy") //pid:200000 ... 200050; sid:11000000 ...          //11000050
       , (learner: Learner) => ExpErrorReductionMarginFixo(learner, poolForLearner, "balacc") //pid:300000 ... 300050; sid:74000000 ... 74000050
@@ -185,7 +186,6 @@ trait StratsTrait {
 
       //essas naturalmente não usaram filtro e cada 'learner' decidiu sozinho se usava filtro ou não (all.scala mostra que hits foi feito c/s filtro de acordo com classif)
       //(svm.scala força filtro nas strats, porém, por serem agnósticas, as queries já foram geradas corretamente antes pelo all.scala ou rf.scala
-      , (learner: Learner) => RandomSampling(pool) //0
     ) ++ (dist match {
       case "man" => Seq((learner: Learner) => DensityWeightedTrainingUtilityFixo(poolForLearner, learner, pool, "manh")
         , (learner: Learner) => HTUFixo(poolForLearner, learner, pool, "manh")
