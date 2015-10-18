@@ -21,7 +21,7 @@ package clean.tex
 
 import clean.lib._
 import ml.classifiers.NoLearner
-import util.Datasets
+import util.{Tempo, Datasets}
 
 import scala.util.Random
 
@@ -45,33 +45,34 @@ object similaridadesLeas extends AppWithUsage with LearnerTrait with StratsTrait
     val dss = datasets
     println(dss)
     println(dss.size)
-    val mat = learnersfun(learnersStr).par map { learnerfun =>
+    val mat = learnersfun(learnersStr) map { learnerfun =>
       val nomelea = learnerfun(Seq(), 42)
       println(s"$nomelea <- learner ")
-      val preds = for {
-        dataset <- dss
-      } yield {
+      val (preds, t) = Tempo.timev {
+        for {
+          dataset <- dss
+        } yield {
           val ds = Ds(dataset, readOnly = true)
-          print(s"${renomeia(ds)}, ")
           ds.open()
-          val kfoldres = ((1 to 100) map { run =>
-            val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
+          val kfoldres = ((1 to 100).par map { run =>
+            val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
+            //            val patts = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(math.max(100, math.min(1000, ds.patterns.size / 10))))
             Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
               val learner = learnerfun(tr, (100 * fold) + run + seed.toInt)
               val model = learner.build(tr)
-              println(s"${testset.size} <- testset.size")
               if (testset.size != 10) error("testset.size != 10")
-              //            Random.nextInt(2).toDouble +:
               testset map model.predict
             }
           }).flatten
           ds.close()
           ds -> kfoldres.flatten.toList
         }
-      nomelea -> preds.toList.sortBy { case (ds, col) => renomeia(ds) }
+      }
+      (nomelea, t, preds.toList.sortBy { case (ds, col) => renomeia(ds) })
     }
+    mat.map(x => x._1 + " " + x._2) foreach println
 
-    val matsorted = mat.toList.sortBy { case (lea, col) => lea.limpa }
+    val matsorted = mat.map(x => x._1 -> x._3).toList.sortBy { case (lea, col) => lea.limpa }
     val dsvectors = matsorted map { case (lea, row) =>
       lea -> row.map { case (ds, col) => col }.flatten
     }

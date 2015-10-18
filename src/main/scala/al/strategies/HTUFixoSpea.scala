@@ -63,6 +63,9 @@ case class HTUFixoSpea(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq
     }
     val (mar, tu) = list_gn_mix.unzip
     lazy val co = new SpearmansCorrelation().correlation(mar.toArray, tu.toArray)
+//    println()
+//    mar.zip(tu).map(x=> x._1 + " " + x._2) foreach println
+//    println()
     if (mar.size > 1 && co < pearson) xATUmax else xTUmax
   }
 }
