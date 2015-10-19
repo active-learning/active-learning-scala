@@ -585,7 +585,10 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
     val qtdQueriesToTake = 100 //if (strat.id == 0 && learner.id < 4) poolSize else h + nclasses - 1
     val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
-    if (nclasses != initialPatterns.size || initialPatterns.size + rest.size != qtdQueriesToTake) error("Problems picking initialPatterns for hits.")
+    if (nclasses != initialPatterns.size || initialPatterns.size + rest.size != qtdQueriesToTake) {
+      println(s"${initialPatterns.size} + ${rest.size} <- initialPatterns.size + rest.size")
+      error("Problems picking initialPatterns for hits.")
+    }
 
     //gera hits e sql strs
     var m = learner.build(initialPatterns)
