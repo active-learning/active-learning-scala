@@ -356,7 +356,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
         sid match {
           case x if x == 0 => qs match {
             case 0 => error(s"Inconsistency: there is a pool $pid for no queries! l:$lid")
-            case PoolSize | 100 => true
+            case PoolSize => true
             case _ => error(s"$qs previous rnd queries should be $PoolSize.  l:$lid")
           }
           case _ => qs match {
@@ -583,7 +583,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     } provided queries for hits is lesser than $expectedQ expected!")
 
     //para rnd com learners especiais Q is not yet defined, pega |U|; senão pega apenas Q das queries fornecidas
-    val qtdQueriesToTake = if (strat.id == 0 && learner.id < 4) poolSize else h + nclasses - 1
+    val qtdQueriesToTake = 100 //if (strat.id == 0 && learner.id < 4) poolSize else h + nclasses - 1
     val (initialPatterns, rest) = queries.take(qtdQueriesToTake).splitAt(nclasses)
     if (nclasses != initialPatterns.size || initialPatterns.size + rest.size != qtdQueriesToTake) error("Problems picking initialPatterns for hits.")
 
