@@ -1,5 +1,4 @@
 abalone-3class
-appendicitis
 artificial-characters
 autoUniv-au1-1000
 autoUniv-au6-1000
@@ -11,7 +10,6 @@ autoUniv-au7-cpd1-500
 balance-scale
 banana
 banknote-authentication
-breast-tissue-4class
 bupa
 car-evaluation
 cardiotocography-3class
@@ -55,7 +53,6 @@ phoneme
 pima-indians-diabetes
 planning-relax
 qsar-biodegradation
-qualitative-bankruptcy
 robot-failure-lp5
 robot-nav-sensor-readings-2
 saheart
@@ -72,7 +69,6 @@ statlog-landsat-satellite
 statlog-vehicle-silhouettes
 steel-plates-faults
 systhetic-control
-teaching-assistant-evaluation
 texture
 thyroid-ann
 thyroid-hypothyroid
