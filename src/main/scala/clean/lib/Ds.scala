@@ -577,7 +577,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     }
 
     //para rnd e quaisquer learners, |queries| = |U|.
-    val expectedQ = if (strat.id == 0) poolSize else h + nclasses - 1
+    val expectedQ = h + nclasses - 1
     if (expectedQ > queries.size) quit(s"Number of ${
       queries.size
     } provided queries for hits is lesser than $expectedQ expected!")
