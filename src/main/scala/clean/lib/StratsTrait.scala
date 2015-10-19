@@ -392,8 +392,8 @@ trait StratsTrait {
     , QBC(pool) //1292212
   )
 
-  def stratsForTempo(pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
-    HTUFixo(Seq(), learner, pool, "eucl")
+  def stratsForTempo(pool: Seq[Pattern] = Seq(), fpool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
+    HTUFixo(fpool, learner, pool, "eucl")
     , new SGmultiFixo(learner, pool, "consensus")
     , ExpErrorReductionMarginFixo(learner, pool, "balacc")
     , ExpErrorReductionMarginFixo(learner, pool, "entropy")
