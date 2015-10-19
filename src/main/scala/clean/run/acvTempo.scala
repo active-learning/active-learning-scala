@@ -30,25 +30,27 @@ object acvTempo extends Exp with LearnerTrait with StratsTrait {
   val context = "acvApp"
   val arguments = superArguments :+ "leas(unused)" :+ "versao"
   val ignoreNotDone = false
+  var t = 0d
   run()
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
     ds.log(s"Iniciando tempo para pool $run.$fold ...", 30)
-    val (_, t) = Tempo.timev {
-      learnersFpool(learnerSeed) foreach { flearner =>
-        stratsForTempo(pool, fpool, flearner) foreach { strat =>
-          ds.log(s"$flearner $strat ...")
-          strat.queries.take(50).toList
-        }
+    learnersFpool(learnerSeed).take(1) foreach { flearner =>
+      stratsForTempo(pool, fpool, flearner) foreach { strat =>
+        ds.log(s"$flearner $strat ...")
+        strat.queries.take(50).toList
       }
     }
-    println(s"$ds $run.$fold $t")
+  }
+
+  def isAlreadyDone(ds: Ds) = {
+    t = Tempo.now
+    false
   }
 
   def datasetFinished(ds: Ds) = {
+    println(s"tempo $ds ${(Tempo.now - t) / 1000d}")
   }
-
-  def isAlreadyDone(ds: Ds) = false
 
   def end(res: Map[String, Boolean]): Unit = {
   }
