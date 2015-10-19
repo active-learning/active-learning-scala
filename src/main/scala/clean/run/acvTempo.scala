@@ -42,7 +42,7 @@ object acvTempo extends Exp with LearnerTrait with StratsTrait {
         }
       }
     }
-    println(s"$ds $t")
+    println(s"$ds $run.$fold $t")
   }
 
   def datasetFinished(ds: Ds) = {
