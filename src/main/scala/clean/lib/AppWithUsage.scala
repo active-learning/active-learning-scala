@@ -1,22 +1,7 @@
 package clean.lib
 
-import java.io.{File, FileWriter}
 import java.security.SecureRandom
 import java.util.UUID
-
-import al.strategies.Strategy
-import ml.Pattern
-import ml.classifiers.{KNNBatcha, Learner}
-import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
-import util.{Stat, Datasets, XSRandom}
-import weka.attributeSelection.{WrapperSubsetEval, CfsSubsetEval, GreedyStepwise}
-import weka.classifiers.`lazy`.IBk
-import weka.classifiers.trees.J48
-import weka.core.Instances
-import weka.core.converters.ArffSaver
-import weka.filters.Filter
-import weka.filters.supervised.attribute.AttributeSelection
-import weka.filters.unsupervised.attribute.PrincipalComponents
 
 import scala.util.Random
 
@@ -73,8 +58,7 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   lazy val trulyrnd = new SecureRandom()
   lazy val seed = trulyrnd.nextInt() + System.nanoTime() + System.currentTimeMillis() + UUID.randomUUID().toString.map(_.toByte).map(_.toInt).sum
   lazy val xsrnd = {
-    val tmp = new XSRandom()
-    tmp.setSeed(seed)
+    val tmp = new Random(seed)
     tmp
   }
   lazy val rnd = new Random(xsrnd.nextInt())
