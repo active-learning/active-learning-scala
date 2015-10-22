@@ -1,0 +1,445 @@
+[0m[[0minfo[0m] [0mLoading project definition from /home/davi/wcs/als/project[0m
+[0m[[0minfo[0m] [0mLoading project definition from /home/davi/.sbt/0.13/staging/a2f35764af87f70e3317/mls/project[0m
+[0m[[0minfo[0m] [0mSet current project to als (in build file:/home/davi/wcs/als/)[0m
+[0m[[0minfo[0m] [0mRunning clean.tex.similaridadesDss 0 30 n -1 bagnb,bagc45,aboo,rof,nbb,5nn,5nnm,c452,rf,rbf[0m
+0 30 n -1 bagnb,bagc45,aboo,rof,nbb,5nn,5nnm,c452,rf,rbf
+30
+voting, 
+tempo: voting BagNB 1.27
+tempo: voting BagC45 0.896
+tempo: voting ABoo 0.476
+tempo: voting RoF 5.751
+tempo: voting NBBatch 0.153
+tempo: voting 5NN 0.438
+tempo: voting 5NNm 0.219
+tempo: voting C4.52 0.179
+tempo: voting RFw 0.353
+tempo: voting SVM 2.773
+page blocks, 
+tempo: page-blocks BagNB 1.36
+tempo: page-blocks BagC45 1.481
+tempo: page-blocks ABoo 0.256
+tempo: page-blocks RoF 2.728
+tempo: page-blocks NBBatch 0.212
+tempo: page-blocks 5NN 0.179
+tempo: page-blocks 5NNm 0.176
+tempo: page-blocks C4.52 0.25
+tempo: page-blocks RFw 0.642
+tempo: page-blocks SVM 2.214
+twonorm, 
+tempo: twonorm BagNB 1.337
+tempo: twonorm BagC45 1.565
+tempo: twonorm ABoo 0.275
+tempo: twonorm RoF 4.366
+tempo: twonorm NBBatch 0.255
+tempo: twonorm 5NN 0.236
+tempo: twonorm 5NNm 0.251
+tempo: twonorm C4.52 0.345
+tempo: twonorm RFw 0.71
+tempo: twonorm SVM 2.979
+waveform v2, 
+tempo: waveform-v2 BagNB 2.361
+tempo: waveform-v2 BagC45 3.249
+tempo: waveform-v2 ABoo 0.288
+tempo: waveform-v2 RoF 7.362
+tempo: waveform-v2 NBBatch 0.301
+tempo: waveform-v2 5NN 0.277
+tempo: waveform-v2 5NNm 0.299
+tempo: waveform-v2 C4.52 0.521
+tempo: waveform-v2 RFw 0.933
+tempo: waveform-v2 SVM 5.285
+wine, 
+tempo: wine BagNB 0.813
+tempo: wine BagC45 0.711
+tempo: wine ABoo 0.138
+tempo: wine RoF 2.899
+tempo: wine NBBatch 0.119
+tempo: wine 5NN 0.083
+tempo: wine 5NNm 0.094
+tempo: wine C4.52 0.123
+tempo: wine RFw 0.411
+tempo: wine SVM 1.894
+seeds, 
+tempo: seeds BagNB 0.53
+tempo: seeds BagC45 0.528
+tempo: seeds ABoo 0.13
+tempo: seeds RoF 1.914
+tempo: seeds NBBatch 0.088
+tempo: seeds 5NN 0.067
+tempo: seeds 5NNm 0.069
+tempo: seeds C4.52 0.1
+tempo: seeds RFw 0.413
+tempo: seeds SVM 1.159
+glass, 
+tempo: glass BagNB 0.699
+tempo: glass BagC45 1.286
+tempo: glass ABoo 0.175
+tempo: glass RoF 2.324
+tempo: glass NBBatch 0.101
+tempo: glass 5NN 0.079
+tempo: glass 5NNm 0.08
+tempo: glass C4.52 0.183
+tempo: glass RFw 0.583
+tempo: glass SVM 2.142
+thyroid hypothyroi..., 
+tempo: thyroid-hypothyroid BagNB 0.647
+tempo: thyroid-hypothyroid BagC45 0.509
+tempo: thyroid-hypothyroid ABoo 0.171
+tempo: thyroid-hypothyroid RoF 4.235
+tempo: thyroid-hypothyroid NBBatch 0.137
+tempo: thyroid-hypothyroid 5NN 0.139
+tempo: thyroid-hypothyroid 5NNm 0.152
+tempo: thyroid-hypothyroid C4.52 0.141
+tempo: thyroid-hypothyroid RFw 0.346
+tempo: thyroid-hypothyroid SVM 2.878
+cardiotocography 3..., 
+tempo: cardiotocography-3class BagNB 1.469
+tempo: cardiotocography-3class BagC45 2.107
+tempo: cardiotocography-3class ABoo 0.208
+tempo: cardiotocography-3class RoF 6.114
+tempo: cardiotocography-3class NBBatch 0.211
+tempo: cardiotocography-3class 5NN 0.197
+tempo: cardiotocography-3class 5NNm 0.207
+tempo: cardiotocography-3class C4.52 0.324
+tempo: cardiotocography-3class RFw 0.742
+tempo: cardiotocography-3class SVM 4.317
+statlog german cre..., 
+tempo: statlog-german-credit-numeric BagNB 0.78
+tempo: statlog-german-credit-numeric BagC45 2.045
+tempo: statlog-german-credit-numeric ABoo 0.197
+tempo: statlog-german-credit-numeric RoF 4.696
+tempo: statlog-german-credit-numeric NBBatch 0.124
+tempo: statlog-german-credit-numeric 5NN 0.146
+tempo: statlog-german-credit-numeric 5NNm 0.152
+tempo: statlog-german-credit-numeric C4.52 0.298
+tempo: statlog-german-credit-numeric RFw 0.753
+tempo: statlog-german-credit-numeric SVM 3.405
+robot failure lp5, 
+tempo: robot-failure-lp5 BagNB 3.953
+tempo: robot-failure-lp5 BagC45 6.285
+tempo: robot-failure-lp5 ABoo 0.243
+tempo: robot-failure-lp5 RoF 17.903
+tempo: robot-failure-lp5 NBBatch 0.48
+tempo: robot-failure-lp5 5NN 0.3
+tempo: robot-failure-lp5 5NNm 0.342
+tempo: robot-failure-lp5 C4.52 1.058
+tempo: robot-failure-lp5 RFw 1.124
+tempo: robot-failure-lp5 SVM 10.106
+thyroid sick euthy..., 
+tempo: thyroid-sick-euthyroid BagNB 0.65
+tempo: thyroid-sick-euthyroid BagC45 0.7
+tempo: thyroid-sick-euthyroid ABoo 0.183
+tempo: thyroid-sick-euthyroid RoF 4.404
+tempo: thyroid-sick-euthyroid NBBatch 0.134
+tempo: thyroid-sick-euthyroid 5NN 0.134
+tempo: thyroid-sick-euthyroid 5NNm 0.141
+tempo: thyroid-sick-euthyroid C4.52 0.171
+tempo: thyroid-sick-euthyroid RFw 0.429
+tempo: thyroid-sick-euthyroid SVM 2.967
+statlog vehicle si..., 
+tempo: statlog-vehicle-silhouettes BagNB 0.981
+tempo: statlog-vehicle-silhouettes BagC45 1.946
+tempo: statlog-vehicle-silhouettes ABoo 0.198
+tempo: statlog-vehicle-silhouettes RoF 3.661
+tempo: statlog-vehicle-silhouettes NBBatch 0.137
+tempo: statlog-vehicle-silhouettes 5NN 0.116
+tempo: statlog-vehicle-silhouettes 5NNm 0.125
+tempo: statlog-vehicle-silhouettes C4.52 0.291
+tempo: statlog-vehicle-silhouettes RFw 0.721
+tempo: statlog-vehicle-silhouettes SVM 2.986
+user knowledge, 
+tempo: user-knowledge BagNB 0.434
+tempo: user-knowledge BagC45 0.795
+tempo: user-knowledge ABoo 0.155
+tempo: user-knowledge RoF 1.563
+tempo: user-knowledge NBBatch 0.076
+tempo: user-knowledge 5NN 0.068
+tempo: user-knowledge 5NNm 0.073
+tempo: user-knowledge C4.52 0.128
+tempo: user-knowledge RFw 0.488
+tempo: user-knowledge SVM 1.698
+parkinsons, 
+tempo: parkinsons BagNB 1.113
+tempo: parkinsons BagC45 1.352
+tempo: parkinsons ABoo 0.16
+tempo: parkinsons RoF 4.381
+tempo: parkinsons NBBatch 0.148
+tempo: parkinsons 5NN 0.11
+tempo: parkinsons 5NNm 0.126
+tempo: parkinsons C4.52 0.216
+tempo: parkinsons RFw 0.538
+tempo: parkinsons SVM 2.835
+banknote authentic..., 
+tempo: banknote-authentication BagNB 0.364
+tempo: banknote-authentication BagC45 0.416
+tempo: banknote-authentication ABoo 0.146
+tempo: banknote-authentication RoF 1.456
+tempo: banknote-authentication NBBatch 0.088
+tempo: banknote-authentication 5NN 0.085
+tempo: banknote-authentication 5NNm 0.087
+tempo: banknote-authentication C4.52 0.102
+tempo: banknote-authentication RFw 0.361
+tempo: banknote-authentication SVM 0.92
+lymphography, 
+tempo: lymphography BagNB 0.422
+tempo: lymphography BagC45 0.69
+tempo: lymphography ABoo 0.182
+tempo: lymphography RoF 6.531
+tempo: lymphography NBBatch 0.071
+tempo: lymphography 5NN 0.091
+tempo: lymphography 5NNm 0.095
+tempo: lymphography C4.52 0.111
+tempo: lymphography RFw 0.302
+tempo: lymphography SVM 5.488
+leaf, 
+tempo: leaf BagNB 3.128
+tempo: leaf BagC45 3.046
+tempo: leaf ABoo 0.29
+tempo: leaf RoF 3.671
+tempo: leaf NBBatch 0.333
+tempo: leaf 5NN 0.101
+tempo: leaf 5NNm 0.112
+tempo: leaf C4.52 0.489
+tempo: leaf RFw 1.409
+tempo: leaf SVM 5.354
+hepatitis, 
+tempo: hepatitis BagNB 0.465
+tempo: hepatitis BagC45 0.902
+tempo: hepatitis ABoo 0.128
+tempo: hepatitis RoF 3.888
+tempo: hepatitis NBBatch 0.076
+tempo: hepatitis 5NN 0.085
+tempo: hepatitis 5NNm 0.093
+tempo: hepatitis C4.52 0.15
+tempo: hepatitis RFw 0.376
+tempo: hepatitis SVM 2.556
+wilt, 
+tempo: wilt BagNB 0.494
+tempo: wilt BagC45 0.65
+tempo: wilt ABoo 0.205
+tempo: wilt RoF 1.539
+tempo: wilt NBBatch 0.137
+tempo: wilt 5NN 0.133
+tempo: wilt 5NNm 0.135
+tempo: wilt C4.52 0.172
+tempo: wilt RFw 0.479
+tempo: wilt SVM 1.185
+ecoli, 
+tempo: ecoli BagNB 0.573
+tempo: ecoli BagC45 0.944
+tempo: ecoli ABoo 0.159
+tempo: ecoli RoF 2.13
+tempo: ecoli NBBatch 0.092
+tempo: ecoli 5NN 0.07
+tempo: ecoli 5NNm 0.075
+tempo: ecoli C4.52 0.143
+tempo: ecoli RFw 0.578
+tempo: ecoli SVM 1.886
+steel plates fault..., 
+tempo: steel-plates-faults BagNB 1.22
+tempo: steel-plates-faults BagC45 2.263
+tempo: steel-plates-faults ABoo 0.228
+tempo: steel-plates-faults RoF 5.685
+tempo: steel-plates-faults NBBatch 0.187
+tempo: steel-plates-faults 5NN 0.186
+tempo: steel-plates-faults 5NNm 0.198
+tempo: steel-plates-faults C4.52 0.337
+tempo: steel-plates-faults RFw 0.723
+tempo: steel-plates-faults SVM 3.847
+monks1, 
+tempo: monks1 BagNB 0.333
+tempo: monks1 BagC45 0.751
+tempo: monks1 ABoo 0.247
+tempo: monks1 RoF 1.611
+tempo: monks1 NBBatch 0.067
+tempo: monks1 5NN 0.073
+tempo: monks1 5NNm 0.074
+tempo: monks1 C4.52 0.121
+tempo: monks1 RFw 0.432
+tempo: monks1 SVM 1.27
+banana, 
+tempo: banana BagNB 0.367
+tempo: banana BagC45 0.568
+tempo: banana ABoo 0.201
+tempo: banana RoF 1.034
+tempo: banana NBBatch 0.133
+tempo: banana 5NN 0.134
+tempo: banana 5NNm 0.135
+tempo: banana C4.52 0.149
+tempo: banana RFw 0.438
+tempo: banana SVM 0.925
+connect. vowel..., 
+tempo: connectionist-vowel BagNB 1.037
+tempo: connectionist-vowel BagC45 2.045
+tempo: connectionist-vowel ABoo 0.225
+tempo: connectionist-vowel RoF 3.148
+tempo: connectionist-vowel NBBatch 0.146
+tempo: connectionist-vowel 5NN 0.096
+tempo: connectionist-vowel 5NNm 0.108
+tempo: connectionist-vowel C4.52 0.319
+tempo: connectionist-vowel RFw 0.872
+tempo: connectionist-vowel SVM 3.455
+statlog german cre..., 
+tempo: statlog-german-credit BagNB 0.491
+tempo: statlog-german-credit BagC45 0.937
+tempo: statlog-german-credit ABoo 0.157
+tempo: statlog-german-credit RoF 10.297
+tempo: statlog-german-credit NBBatch 0.095
+tempo: statlog-german-credit 5NN 0.12
+tempo: statlog-german-credit 5NNm 0.129
+tempo: statlog-german-credit C4.52 0.164
+tempo: statlog-german-credit RFw 0.406
+tempo: statlog-german-credit SVM 6.437
+kr vs kp, 
+tempo: kr-vs-kp BagNB 0.607
+tempo: kr-vs-kp BagC45 0.822
+tempo: kr-vs-kp ABoo 0.196
+tempo: kr-vs-kp RoF 6.369
+tempo: kr-vs-kp NBBatch 0.132
+tempo: kr-vs-kp 5NN 0.18
+tempo: kr-vs-kp 5NNm 0.192
+tempo: kr-vs-kp C4.52 0.17
+tempo: kr-vs-kp RFw 0.415
+tempo: kr-vs-kp SVM 4.371
+monks3, 
+tempo: monks3 BagNB 0.328
+tempo: monks3 BagC45 0.359
+tempo: monks3 ABoo 0.126
+tempo: monks3 RoF 1.376
+tempo: monks3 NBBatch 0.066
+tempo: monks3 5NN 0.073
+tempo: monks3 5NNm 0.076
+tempo: monks3 C4.52 0.074
+tempo: monks3 RFw 0.339
+tempo: monks3 SVM 1.265
+robot nav sensor r..., 
+tempo: robot-nav-sensor-readings-2 BagNB 0.442
+tempo: robot-nav-sensor-readings-2 BagC45 0.409
+tempo: robot-nav-sensor-readings-2 ABoo 0.2
+tempo: robot-nav-sensor-readings-2 RoF 1.056
+tempo: robot-nav-sensor-readings-2 NBBatch 0.145
+tempo: robot-nav-sensor-readings-2 5NN 0.138
+tempo: robot-nav-sensor-readings-2 5NNm 0.137
+tempo: robot-nav-sensor-readings-2 C4.52 0.147
+tempo: robot-nav-sensor-readings-2 RFw 0.33
+tempo: robot-nav-sensor-readings-2 SVM 0.981
+statlog image segm..., 
+tempo: statlog-image-segmentation BagNB 1.552
+tempo: statlog-image-segmentation BagC45 1.697
+tempo: statlog-image-segmentation ABoo 0.219
+tempo: statlog-image-segmentation RoF 3.625
+tempo: statlog-image-segmentation NBBatch 0.224
+tempo: statlog-image-segmentation 5NN 0.139
+tempo: statlog-image-segmentation 5NNm 0.152
+tempo: statlog-image-segmentation C4.52 0.265
+tempo: statlog-image-segmentation RFw 0.713
+tempo: statlog-image-segmentation SVM 3.088
+(banana,List(1.0, 0.67, 0.345, 0.01, 0.157, -0.052, -0.15, -0.119, -0.001, -0.202, -0.05, -0.423, -0.181, 0.533, -0.412, -0.519, 0.404, 0.034, -0.079, 0.047, 0.395, 0.2, -0.347, -0.267, 0.277, -0.098, 0.066, -0.091, 0.271, -0.004))
+(banknote-authentication,List(0.67, 1.0, 0.468, -0.042, 0.314, -0.128, -0.025, -0.114, -0.093, -0.043, -0.115, -0.473, -0.263, 0.575, -0.464, -0.703, 0.512, 0.038, -0.047, 0.035, 0.405, 0.313, -0.391, -0.28, 0.447, -0.152, 0.125, 0.04, 0.276, 0.164))
+(cardiotocography-3class,List(0.345, 0.468, 1.0, -0.108, 0.288, -0.193, -0.117, 0.162, -0.372, -0.125, -0.094, -0.225, -0.235, 0.397, -0.512, -0.543, 0.376, 0.082, -0.002, -0.045, 0.307, 0.665, -0.365, -0.121, 0.249, -0.129, 0.292, 0.009, 0.151, -0.106))
+(connectionist-vowel,List(0.01, -0.042, -0.108, 1.0, -0.219, 0.567, -0.106, 0.525, 0.371, -0.043, 0.653, 0.495, 0.556, -0.103, 0.409, 0.225, -0.013, 0.124, 0.0, 0.454, 0.383, 0.08, 0.388, 0.428, -0.269, 0.538, 0.387, -0.041, 0.557, -0.118))
+(ecoli,List(0.157, 0.314, 0.288, -0.219, 1.0, -0.216, 0.289, -0.215, -0.255, 0.358, -0.381, -0.351, -0.306, 0.248, -0.195, -0.422, 0.333, 0.047, 0.082, -0.214, -0.031, 0.083, -0.254, -0.168, 0.59, -0.279, -0.15, 0.32, -0.176, 0.409))
+(glass,List(-0.052, -0.128, -0.193, 0.567, -0.216, 1.0, -0.138, 0.391, 0.463, -0.073, 0.514, 0.441, 0.564, -0.056, 0.437, 0.265, -0.104, 0.058, -0.007, 0.433, 0.27, -0.103, 0.382, 0.419, -0.327, 0.482, 0.336, -0.101, 0.398, -0.186))
+(hepatitis,List(-0.15, -0.025, -0.117, -0.106, 0.289, -0.138, 1.0, -0.211, -0.117, 0.488, -0.216, -0.015, -0.146, -0.075, 0.201, -0.079, 0.028, 0.19, 0.262, -0.076, -0.177, -0.207, 0.094, -0.081, 0.482, -0.156, -0.183, 0.488, -0.251, 0.527))
+(kr-vs-kp,List(-0.119, -0.114, 0.162, 0.525, -0.215, 0.391, -0.211, 1.0, 0.115, -0.071, 0.623, 0.561, 0.492, -0.129, 0.264, 0.16, -0.034, 0.123, 0.059, 0.441, 0.343, 0.44, 0.359, 0.55, -0.379, 0.503, 0.572, -0.105, 0.493, -0.249))
+(leaf,List(-0.001, -0.093, -0.372, 0.371, -0.255, 0.463, -0.117, 0.115, 1.0, -0.11, 0.384, 0.297, 0.502, 0.069, 0.491, 0.255, -0.022, -0.082, -0.094, 0.386, 0.18, -0.404, 0.368, 0.269, -0.273, 0.285, -0.013, -0.184, 0.223, -0.09))
+(lymphography,List(-0.202, -0.043, -0.125, -0.043, 0.358, -0.073, 0.488, -0.071, -0.11, 1.0, -0.176, 0.05, -0.072, -0.132, 0.258, -0.059, 0.023, 0.128, 0.248, -0.111, -0.16, -0.117, 0.169, 0.07, 0.454, -0.006, -0.154, 0.443, -0.145, 0.532))
+(monks1,List(-0.05, -0.115, -0.094, 0.653, -0.381, 0.514, -0.216, 0.623, 0.384, -0.176, 1.0, 0.525, 0.602, -0.153, 0.395, 0.297, -0.09, 0.085, -0.002, 0.546, 0.419, 0.166, 0.403, 0.504, -0.464, 0.588, 0.477, -0.15, 0.56, -0.269))
+(monks3,List(-0.423, -0.473, -0.225, 0.495, -0.351, 0.441, -0.015, 0.561, 0.297, 0.05, 0.525, 1.0, 0.558, -0.42, 0.551, 0.516, -0.257, 0.018, 0.067, 0.383, 0.051, 0.008, 0.606, 0.554, -0.481, 0.461, 0.298, -0.028, 0.286, -0.138))
+(page-blocks,List(-0.181, -0.263, -0.235, 0.556, -0.306, 0.564, -0.146, 0.492, 0.502, -0.072, 0.602, 0.558, 1.0, -0.16, 0.574, 0.397, -0.143, 0.047, 0.017, 0.467, 0.253, -0.087, 0.509, 0.464, -0.46, 0.477, 0.216, -0.184, 0.376, -0.219))
+(parkinsons,List(0.533, 0.575, 0.397, -0.103, 0.248, -0.056, -0.075, -0.129, 0.069, -0.132, -0.153, -0.42, -0.16, 1.0, -0.334, -0.534, 0.384, 0.051, -0.054, 0.022, 0.31, 0.131, -0.313, -0.248, 0.295, -0.157, 0.048, -0.036, 0.125, 0.037))
+(robot-failure-lp5,List(-0.412, -0.464, -0.512, 0.409, -0.195, 0.437, 0.201, 0.264, 0.491, 0.258, 0.395, 0.551, 0.574, -0.334, 1.0, 0.483, -0.246, 0.052, 0.115, 0.332, -0.047, -0.379, 0.645, 0.457, -0.197, 0.394, -0.002, 0.108, 0.111, 0.124))
+(robot-nav-sensor-readings-2,List(-0.519, -0.703, -0.543, 0.225, -0.422, 0.265, -0.079, 0.16, 0.255, -0.059, 0.297, 0.516, 0.397, -0.534, 0.483, 1.0, -0.508, -0.09, -0.011, 0.116, -0.254, -0.357, 0.447, 0.328, -0.551, 0.262, -0.046, -0.165, -0.067, -0.211))
+(seeds,List(0.404, 0.512, 0.376, -0.013, 0.333, -0.104, 0.028, -0.034, -0.022, 0.023, -0.09, -0.257, -0.143, 0.384, -0.246, -0.508, 1.0, -0.006, -0.027, 0.033, 0.23, 0.249, -0.237, -0.165, 0.348, -0.092, 0.049, 0.097, 0.18, 0.166))
+(statlog-german-credit-numeric,List(0.034, 0.038, 0.082, 0.124, 0.047, 0.058, 0.19, 0.123, -0.082, 0.128, 0.085, 0.018, 0.047, 0.051, 0.052, -0.09, -0.006, 1.0, 0.627, 0.041, 0.069, 0.091, 0.021, 0.079, 0.112, 0.124, 0.057, 0.179, 0.078, 0.145))
+(statlog-german-credit,List(-0.079, -0.047, -0.002, 0.0, 0.082, -0.007, 0.262, 0.059, -0.094, 0.248, -0.002, 0.067, 0.017, -0.054, 0.115, -0.011, -0.027, 0.627, 1.0, -0.012, -0.072, 0.022, 0.05, 0.1, 0.142, 0.029, -0.066, 0.23, -0.043, 0.217))
+(statlog-image-segmentation,List(0.047, 0.035, -0.045, 0.454, -0.214, 0.433, -0.076, 0.441, 0.386, -0.111, 0.546, 0.383, 0.467, 0.022, 0.332, 0.116, 0.033, 0.041, -0.012, 1.0, 0.408, 0.039, 0.32, 0.36, -0.257, 0.413, 0.345, -0.089, 0.433, -0.118))
+(statlog-vehicle-silhouettes,List(0.395, 0.405, 0.307, 0.383, -0.031, 0.27, -0.177, 0.343, 0.18, -0.16, 0.419, 0.051, 0.253, 0.31, -0.047, -0.254, 0.23, 0.069, -0.072, 0.408, 1.0, 0.28, 0.004, 0.108, -0.012, 0.322, 0.357, -0.101, 0.505, -0.124))
+(steel-plates-faults,List(0.2, 0.313, 0.665, 0.08, 0.083, -0.103, -0.207, 0.44, -0.404, -0.117, 0.166, 0.008, -0.087, 0.131, -0.379, -0.357, 0.249, 0.091, 0.022, 0.039, 0.28, 1.0, -0.183, 0.088, -0.03, 0.095, 0.483, -0.016, 0.299, -0.201))
+(thyroid-hypothyroid,List(-0.347, -0.391, -0.365, 0.388, -0.254, 0.382, 0.094, 0.359, 0.368, 0.169, 0.403, 0.606, 0.509, -0.313, 0.645, 0.447, -0.237, 0.021, 0.05, 0.32, 0.004, -0.183, 1.0, 0.477, -0.284, 0.437, 0.18, 0.068, 0.207, 0.022))
+(thyroid-sick-euthyroid,List(-0.267, -0.28, -0.121, 0.428, -0.168, 0.419, -0.081, 0.55, 0.269, 0.07, 0.504, 0.554, 0.464, -0.248, 0.457, 0.328, -0.165, 0.079, 0.1, 0.36, 0.108, 0.088, 0.477, 1.0, -0.342, 0.452, 0.322, -0.007, 0.318, -0.096))
+(twonorm,List(0.277, 0.447, 0.249, -0.269, 0.59, -0.327, 0.482, -0.379, -0.273, 0.454, -0.464, -0.481, -0.46, 0.295, -0.197, -0.551, 0.348, 0.112, 0.142, -0.257, -0.012, -0.03, -0.284, -0.342, 1.0, -0.31, -0.227, 0.49, -0.209, 0.595))
+(user-knowledge,List(-0.098, -0.152, -0.129, 0.538, -0.279, 0.482, -0.156, 0.503, 0.285, -0.006, 0.588, 0.461, 0.477, -0.157, 0.394, 0.262, -0.092, 0.124, 0.029, 0.413, 0.322, 0.095, 0.437, 0.452, -0.31, 1.0, 0.344, -0.031, 0.459, -0.142))
+(voting,List(0.066, 0.125, 0.292, 0.387, -0.15, 0.336, -0.183, 0.572, -0.013, -0.154, 0.477, 0.298, 0.216, 0.048, -0.002, -0.046, 0.049, 0.057, -0.066, 0.345, 0.357, 0.483, 0.18, 0.322, -0.227, 0.344, 1.0, -0.055, 0.468, -0.226))
+(waveform-v2,List(-0.091, 0.04, 0.009, -0.041, 0.32, -0.101, 0.488, -0.105, -0.184, 0.443, -0.15, -0.028, -0.184, -0.036, 0.108, -0.165, 0.097, 0.179, 0.23, -0.089, -0.101, -0.016, 0.068, -0.007, 0.49, -0.031, -0.055, 1.0, -0.106, 0.49))
+(wilt,List(0.271, 0.276, 0.151, 0.557, -0.176, 0.398, -0.251, 0.493, 0.223, -0.145, 0.56, 0.286, 0.376, 0.125, 0.111, -0.067, 0.18, 0.078, -0.043, 0.433, 0.505, 0.299, 0.207, 0.318, -0.209, 0.459, 0.468, -0.106, 1.0, -0.148))
+(wine,List(-0.004, 0.164, -0.106, -0.118, 0.409, -0.186, 0.527, -0.249, -0.09, 0.532, -0.269, -0.138, -0.219, 0.037, 0.124, -0.211, 0.166, 0.145, 0.217, -0.118, -0.124, -0.201, 0.022, -0.096, 0.595, -0.142, -0.226, 0.49, -0.148, 1.0))
+
+
+
+
+
+
+
+
+
+banana 1.0 0.67 0.345 0.01 0.157 -0.052 -0.15 -0.119 -0.001 -0.202 -0.05 -0.423 -0.181 0.533 -0.412 -0.519 0.404 0.034 -0.079 0.047 0.395 0.2 -0.347 -0.267 0.277 -0.098 0.066 -0.091 0.271 -0.004
+banknote-authentication 0.67 1.0 0.468 -0.042 0.314 -0.128 -0.025 -0.114 -0.093 -0.043 -0.115 -0.473 -0.263 0.575 -0.464 -0.703 0.512 0.038 -0.047 0.035 0.405 0.313 -0.391 -0.28 0.447 -0.152 0.125 0.04 0.276 0.164
+cardiotocography-3class 0.345 0.468 1.0 -0.108 0.288 -0.193 -0.117 0.162 -0.372 -0.125 -0.094 -0.225 -0.235 0.397 -0.512 -0.543 0.376 0.082 -0.002 -0.045 0.307 0.665 -0.365 -0.121 0.249 -0.129 0.292 0.009 0.151 -0.106
+connectionist-vowel 0.01 -0.042 -0.108 1.0 -0.219 0.567 -0.106 0.525 0.371 -0.043 0.653 0.495 0.556 -0.103 0.409 0.225 -0.013 0.124 0.0 0.454 0.383 0.08 0.388 0.428 -0.269 0.538 0.387 -0.041 0.557 -0.118
+ecoli 0.157 0.314 0.288 -0.219 1.0 -0.216 0.289 -0.215 -0.255 0.358 -0.381 -0.351 -0.306 0.248 -0.195 -0.422 0.333 0.047 0.082 -0.214 -0.031 0.083 -0.254 -0.168 0.59 -0.279 -0.15 0.32 -0.176 0.409
+glass -0.052 -0.128 -0.193 0.567 -0.216 1.0 -0.138 0.391 0.463 -0.073 0.514 0.441 0.564 -0.056 0.437 0.265 -0.104 0.058 -0.007 0.433 0.27 -0.103 0.382 0.419 -0.327 0.482 0.336 -0.101 0.398 -0.186
+hepatitis -0.15 -0.025 -0.117 -0.106 0.289 -0.138 1.0 -0.211 -0.117 0.488 -0.216 -0.015 -0.146 -0.075 0.201 -0.079 0.028 0.19 0.262 -0.076 -0.177 -0.207 0.094 -0.081 0.482 -0.156 -0.183 0.488 -0.251 0.527
+kr-vs-kp -0.119 -0.114 0.162 0.525 -0.215 0.391 -0.211 1.0 0.115 -0.071 0.623 0.561 0.492 -0.129 0.264 0.16 -0.034 0.123 0.059 0.441 0.343 0.44 0.359 0.55 -0.379 0.503 0.572 -0.105 0.493 -0.249
+leaf -0.001 -0.093 -0.372 0.371 -0.255 0.463 -0.117 0.115 1.0 -0.11 0.384 0.297 0.502 0.069 0.491 0.255 -0.022 -0.082 -0.094 0.386 0.18 -0.404 0.368 0.269 -0.273 0.285 -0.013 -0.184 0.223 -0.09
+lymphography -0.202 -0.043 -0.125 -0.043 0.358 -0.073 0.488 -0.071 -0.11 1.0 -0.176 0.05 -0.072 -0.132 0.258 -0.059 0.023 0.128 0.248 -0.111 -0.16 -0.117 0.169 0.07 0.454 -0.006 -0.154 0.443 -0.145 0.532
+monks1 -0.05 -0.115 -0.094 0.653 -0.381 0.514 -0.216 0.623 0.384 -0.176 1.0 0.525 0.602 -0.153 0.395 0.297 -0.09 0.085 -0.002 0.546 0.419 0.166 0.403 0.504 -0.464 0.588 0.477 -0.15 0.56 -0.269
+monks3 -0.423 -0.473 -0.225 0.495 -0.351 0.441 -0.015 0.561 0.297 0.05 0.525 1.0 0.558 -0.42 0.551 0.516 -0.257 0.018 0.067 0.383 0.051 0.008 0.606 0.554 -0.481 0.461 0.298 -0.028 0.286 -0.138
+page-blocks -0.181 -0.263 -0.235 0.556 -0.306 0.564 -0.146 0.492 0.502 -0.072 0.602 0.558 1.0 -0.16 0.574 0.397 -0.143 0.047 0.017 0.467 0.253 -0.087 0.509 0.464 -0.46 0.477 0.216 -0.184 0.376 -0.219
+parkinsons 0.533 0.575 0.397 -0.103 0.248 -0.056 -0.075 -0.129 0.069 -0.132 -0.153 -0.42 -0.16 1.0 -0.334 -0.534 0.384 0.051 -0.054 0.022 0.31 0.131 -0.313 -0.248 0.295 -0.157 0.048 -0.036 0.125 0.037
+robot-failure-lp5 -0.412 -0.464 -0.512 0.409 -0.195 0.437 0.201 0.264 0.491 0.258 0.395 0.551 0.574 -0.334 1.0 0.483 -0.246 0.052 0.115 0.332 -0.047 -0.379 0.645 0.457 -0.197 0.394 -0.002 0.108 0.111 0.124
+robot-nav-sensor-readings-2 -0.519 -0.703 -0.543 0.225 -0.422 0.265 -0.079 0.16 0.255 -0.059 0.297 0.516 0.397 -0.534 0.483 1.0 -0.508 -0.09 -0.011 0.116 -0.254 -0.357 0.447 0.328 -0.551 0.262 -0.046 -0.165 -0.067 -0.211
+seeds 0.404 0.512 0.376 -0.013 0.333 -0.104 0.028 -0.034 -0.022 0.023 -0.09 -0.257 -0.143 0.384 -0.246 -0.508 1.0 -0.006 -0.027 0.033 0.23 0.249 -0.237 -0.165 0.348 -0.092 0.049 0.097 0.18 0.166
+statlog-german-credit-numeric 0.034 0.038 0.082 0.124 0.047 0.058 0.19 0.123 -0.082 0.128 0.085 0.018 0.047 0.051 0.052 -0.09 -0.006 1.0 0.627 0.041 0.069 0.091 0.021 0.079 0.112 0.124 0.057 0.179 0.078 0.145
+statlog-german-credit -0.079 -0.047 -0.002 0.0 0.082 -0.007 0.262 0.059 -0.094 0.248 -0.002 0.067 0.017 -0.054 0.115 -0.011 -0.027 0.627 1.0 -0.012 -0.072 0.022 0.05 0.1 0.142 0.029 -0.066 0.23 -0.043 0.217
+statlog-image-segmentation 0.047 0.035 -0.045 0.454 -0.214 0.433 -0.076 0.441 0.386 -0.111 0.546 0.383 0.467 0.022 0.332 0.116 0.033 0.041 -0.012 1.0 0.408 0.039 0.32 0.36 -0.257 0.413 0.345 -0.089 0.433 -0.118
+statlog-vehicle-silhouettes 0.395 0.405 0.307 0.383 -0.031 0.27 -0.177 0.343 0.18 -0.16 0.419 0.051 0.253 0.31 -0.047 -0.254 0.23 0.069 -0.072 0.408 1.0 0.28 0.004 0.108 -0.012 0.322 0.357 -0.101 0.505 -0.124
+steel-plates-faults 0.2 0.313 0.665 0.08 0.083 -0.103 -0.207 0.44 -0.404 -0.117 0.166 0.008 -0.087 0.131 -0.379 -0.357 0.249 0.091 0.022 0.039 0.28 1.0 -0.183 0.088 -0.03 0.095 0.483 -0.016 0.299 -0.201
+thyroid-hypothyroid -0.347 -0.391 -0.365 0.388 -0.254 0.382 0.094 0.359 0.368 0.169 0.403 0.606 0.509 -0.313 0.645 0.447 -0.237 0.021 0.05 0.32 0.004 -0.183 1.0 0.477 -0.284 0.437 0.18 0.068 0.207 0.022
+thyroid-sick-euthyroid -0.267 -0.28 -0.121 0.428 -0.168 0.419 -0.081 0.55 0.269 0.07 0.504 0.554 0.464 -0.248 0.457 0.328 -0.165 0.079 0.1 0.36 0.108 0.088 0.477 1.0 -0.342 0.452 0.322 -0.007 0.318 -0.096
+twonorm 0.277 0.447 0.249 -0.269 0.59 -0.327 0.482 -0.379 -0.273 0.454 -0.464 -0.481 -0.46 0.295 -0.197 -0.551 0.348 0.112 0.142 -0.257 -0.012 -0.03 -0.284 -0.342 1.0 -0.31 -0.227 0.49 -0.209 0.595
+user-knowledge -0.098 -0.152 -0.129 0.538 -0.279 0.482 -0.156 0.503 0.285 -0.006 0.588 0.461 0.477 -0.157 0.394 0.262 -0.092 0.124 0.029 0.413 0.322 0.095 0.437 0.452 -0.31 1.0 0.344 -0.031 0.459 -0.142
+voting 0.066 0.125 0.292 0.387 -0.15 0.336 -0.183 0.572 -0.013 -0.154 0.477 0.298 0.216 0.048 -0.002 -0.046 0.049 0.057 -0.066 0.345 0.357 0.483 0.18 0.322 -0.227 0.344 1.0 -0.055 0.468 -0.226
+waveform-v2 -0.091 0.04 0.009 -0.041 0.32 -0.101 0.488 -0.105 -0.184 0.443 -0.15 -0.028 -0.184 -0.036 0.108 -0.165 0.097 0.179 0.23 -0.089 -0.101 -0.016 0.068 -0.007 0.49 -0.031 -0.055 1.0 -0.106 0.49
+wilt 0.271 0.276 0.151 0.557 -0.176 0.398 -0.251 0.493 0.223 -0.145 0.56 0.286 0.376 0.125 0.111 -0.067 0.18 0.078 -0.043 0.433 0.505 0.299 0.207 0.318 -0.209 0.459 0.468 -0.106 1.0 -0.148
+wine -0.004 0.164 -0.106 -0.118 0.409 -0.186 0.527 -0.249 -0.09 0.532 -0.269 -0.138 -0.219 0.037 0.124 -0.211 0.166 0.145 0.217 -0.118 -0.124 -0.201 0.022 -0.096 0.595 -0.142 -0.226 0.49 -0.148 1.0
+
+
+
+
+
+
+
+
+
+robot-nav-sensor-readings-2 1.0 -0.551 -0.422 -0.534 -0.519 -0.543 -0.079 -0.211 -0.703 -0.059 -0.508 -0.165 -0.357 -0.011 -0.09 0.255 0.483 0.447 0.516 -0.046 0.328 0.397 -0.254 0.265 0.262 0.116 0.16 0.297 -0.067 0.225
+twonorm -0.551 1.0 0.59 0.295 0.277 0.249 0.482 0.595 0.447 0.454 0.348 0.49 -0.03 0.142 0.112 -0.273 -0.197 -0.284 -0.481 -0.227 -0.342 -0.46 -0.012 -0.327 -0.31 -0.257 -0.379 -0.464 -0.209 -0.269
+ecoli -0.422 0.59 1.0 0.248 0.157 0.288 0.289 0.409 0.314 0.358 0.333 0.32 0.083 0.082 0.047 -0.255 -0.195 -0.254 -0.351 -0.15 -0.168 -0.306 -0.031 -0.216 -0.279 -0.214 -0.215 -0.381 -0.176 -0.219
+parkinsons -0.534 0.295 0.248 1.0 0.533 0.397 -0.075 0.037 0.575 -0.132 0.384 -0.036 0.131 -0.054 0.051 0.069 -0.334 -0.313 -0.42 0.048 -0.248 -0.16 0.31 -0.056 -0.157 0.022 -0.129 -0.153 0.125 -0.103
+banana -0.519 0.277 0.157 0.533 1.0 0.345 -0.15 -0.004 0.67 -0.202 0.404 -0.091 0.2 -0.079 0.034 -0.001 -0.412 -0.347 -0.423 0.066 -0.267 -0.181 0.395 -0.052 -0.098 0.047 -0.119 -0.05 0.271 0.01
+cardiotocography-3class -0.543 0.249 0.288 0.397 0.345 1.0 -0.117 -0.106 0.468 -0.125 0.376 0.009 0.665 -0.002 0.082 -0.372 -0.512 -0.365 -0.225 0.292 -0.121 -0.235 0.307 -0.193 -0.129 -0.045 0.162 -0.094 0.151 -0.108
+hepatitis -0.079 0.482 0.289 -0.075 -0.15 -0.117 1.0 0.527 -0.025 0.488 0.028 0.488 -0.207 0.262 0.19 -0.117 0.201 0.094 -0.015 -0.183 -0.081 -0.146 -0.177 -0.138 -0.156 -0.076 -0.211 -0.216 -0.251 -0.106
+wine -0.211 0.595 0.409 0.037 -0.004 -0.106 0.527 1.0 0.164 0.532 0.166 0.49 -0.201 0.217 0.145 -0.09 0.124 0.022 -0.138 -0.226 -0.096 -0.219 -0.124 -0.186 -0.142 -0.118 -0.249 -0.269 -0.148 -0.118
+banknote-authentication -0.703 0.447 0.314 0.575 0.67 0.468 -0.025 0.164 1.0 -0.043 0.512 0.04 0.313 -0.047 0.038 -0.093 -0.464 -0.391 -0.473 0.125 -0.28 -0.263 0.405 -0.128 -0.152 0.035 -0.114 -0.115 0.276 -0.042
+lymphography -0.059 0.454 0.358 -0.132 -0.202 -0.125 0.488 0.532 -0.043 1.0 0.023 0.443 -0.117 0.248 0.128 -0.11 0.258 0.169 0.05 -0.154 0.07 -0.072 -0.16 -0.073 -0.006 -0.111 -0.071 -0.176 -0.145 -0.043
+seeds -0.508 0.348 0.333 0.384 0.404 0.376 0.028 0.166 0.512 0.023 1.0 0.097 0.249 -0.027 -0.006 -0.022 -0.246 -0.237 -0.257 0.049 -0.165 -0.143 0.23 -0.104 -0.092 0.033 -0.034 -0.09 0.18 -0.013
+waveform-v2 -0.165 0.49 0.32 -0.036 -0.091 0.009 0.488 0.49 0.04 0.443 0.097 1.0 -0.016 0.23 0.179 -0.184 0.108 0.068 -0.028 -0.055 -0.007 -0.184 -0.101 -0.101 -0.031 -0.089 -0.105 -0.15 -0.106 -0.041
+steel-plates-faults -0.357 -0.03 0.083 0.131 0.2 0.665 -0.207 -0.201 0.313 -0.117 0.249 -0.016 1.0 0.022 0.091 -0.404 -0.379 -0.183 0.008 0.483 0.088 -0.087 0.28 -0.103 0.095 0.039 0.44 0.166 0.299 0.08
+statlog-german-credit -0.011 0.142 0.082 -0.054 -0.079 -0.002 0.262 0.217 -0.047 0.248 -0.027 0.23 0.022 1.0 0.627 -0.094 0.115 0.05 0.067 -0.066 0.1 0.017 -0.072 -0.007 0.029 -0.012 0.059 -0.002 -0.043 0.0
+statlog-german-credit-numeric -0.09 0.112 0.047 0.051 0.034 0.082 0.19 0.145 0.038 0.128 -0.006 0.179 0.091 0.627 1.0 -0.082 0.052 0.021 0.018 0.057 0.079 0.047 0.069 0.058 0.124 0.041 0.123 0.085 0.078 0.124
+leaf 0.255 -0.273 -0.255 0.069 -0.001 -0.372 -0.117 -0.09 -0.093 -0.11 -0.022 -0.184 -0.404 -0.094 -0.082 1.0 0.491 0.368 0.297 -0.013 0.269 0.502 0.18 0.463 0.285 0.386 0.115 0.384 0.223 0.371
+robot-failure-lp5 0.483 -0.197 -0.195 -0.334 -0.412 -0.512 0.201 0.124 -0.464 0.258 -0.246 0.108 -0.379 0.115 0.052 0.491 1.0 0.645 0.551 -0.002 0.457 0.574 -0.047 0.437 0.394 0.332 0.264 0.395 0.111 0.409
+thyroid-hypothyroid 0.447 -0.284 -0.254 -0.313 -0.347 -0.365 0.094 0.022 -0.391 0.169 -0.237 0.068 -0.183 0.05 0.021 0.368 0.645 1.0 0.606 0.18 0.477 0.509 0.004 0.382 0.437 0.32 0.359 0.403 0.207 0.388
+monks3 0.516 -0.481 -0.351 -0.42 -0.423 -0.225 -0.015 -0.138 -0.473 0.05 -0.257 -0.028 0.008 0.067 0.018 0.297 0.551 0.606 1.0 0.298 0.554 0.558 0.051 0.441 0.461 0.383 0.561 0.525 0.286 0.495
+voting -0.046 -0.227 -0.15 0.048 0.066 0.292 -0.183 -0.226 0.125 -0.154 0.049 -0.055 0.483 -0.066 0.057 -0.013 -0.002 0.18 0.298 1.0 0.322 0.216 0.357 0.336 0.344 0.345 0.572 0.477 0.468 0.387
+thyroid-sick-euthyroid 0.328 -0.342 -0.168 -0.248 -0.267 -0.121 -0.081 -0.096 -0.28 0.07 -0.165 -0.007 0.088 0.1 0.079 0.269 0.457 0.477 0.554 0.322 1.0 0.464 0.108 0.419 0.452 0.36 0.55 0.504 0.318 0.428
+page-blocks 0.397 -0.46 -0.306 -0.16 -0.181 -0.235 -0.146 -0.219 -0.263 -0.072 -0.143 -0.184 -0.087 0.017 0.047 0.502 0.574 0.509 0.558 0.216 0.464 1.0 0.253 0.564 0.477 0.467 0.492 0.602 0.376 0.556
+statlog-vehicle-silhouettes -0.254 -0.012 -0.031 0.31 0.395 0.307 -0.177 -0.124 0.405 -0.16 0.23 -0.101 0.28 -0.072 0.069 0.18 -0.047 0.004 0.051 0.357 0.108 0.253 1.0 0.27 0.322 0.408 0.343 0.419 0.505 0.383
+glass 0.265 -0.327 -0.216 -0.056 -0.052 -0.193 -0.138 -0.186 -0.128 -0.073 -0.104 -0.101 -0.103 -0.007 0.058 0.463 0.437 0.382 0.441 0.336 0.419 0.564 0.27 1.0 0.482 0.433 0.391 0.514 0.398 0.567
+user-knowledge 0.262 -0.31 -0.279 -0.157 -0.098 -0.129 -0.156 -0.142 -0.152 -0.006 -0.092 -0.031 0.095 0.029 0.124 0.285 0.394 0.437 0.461 0.344 0.452 0.477 0.322 0.482 1.0 0.413 0.503 0.588 0.459 0.538
+statlog-image-segmentation 0.116 -0.257 -0.214 0.022 0.047 -0.045 -0.076 -0.118 0.035 -0.111 0.033 -0.089 0.039 -0.012 0.041 0.386 0.332 0.32 0.383 0.345 0.36 0.467 0.408 0.433 0.413 1.0 0.441 0.546 0.433 0.454
+kr-vs-kp 0.16 -0.379 -0.215 -0.129 -0.119 0.162 -0.211 -0.249 -0.114 -0.071 -0.034 -0.105 0.44 0.059 0.123 0.115 0.264 0.359 0.561 0.572 0.55 0.492 0.343 0.391 0.503 0.441 1.0 0.623 0.493 0.525
+monks1 0.297 -0.464 -0.381 -0.153 -0.05 -0.094 -0.216 -0.269 -0.115 -0.176 -0.09 -0.15 0.166 -0.002 0.085 0.384 0.395 0.403 0.525 0.477 0.504 0.602 0.419 0.514 0.588 0.546 0.623 1.0 0.56 0.653
+wilt -0.067 -0.209 -0.176 0.125 0.271 0.151 -0.251 -0.148 0.276 -0.145 0.18 -0.106 0.299 -0.043 0.078 0.223 0.111 0.207 0.286 0.468 0.318 0.376 0.505 0.398 0.459 0.433 0.493 0.56 1.0 0.557
+connectionist-vowel 0.225 -0.269 -0.219 -0.103 0.01 -0.108 -0.106 -0.118 -0.042 -0.043 -0.013 -0.041 0.08 0.0 0.124 0.371 0.409 0.388 0.495 0.387 0.428 0.556 0.383 0.567 0.538 0.454 0.525 0.653 0.557 1.0
+[0m[[32msuccess[0m] [0mTotal time: 339 s, completed Oct 22, 2015 3:20:29 PM[0m
