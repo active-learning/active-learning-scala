@@ -96,7 +96,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
     }
 
     {
-      val sorted = m.map(_._2).sortBy(x => x.sum).transpose.sortBy(x => x.zipWithIndex.find(_._1 == 1).get._2).transpose
+      val sorted = m.map(_._2).sortBy(x => x.sorted.reverse(1)).transpose.sortBy(x => x.zipWithIndex.find(_._1 == 1).get._2).transpose
       val poeLea = m.map(x => x._2.sorted -> x._1).toMap
       val msorted = sorted map { x => poeLea(x.sorted) -> x }
       println("\n\n\n\n\n\n\n\n")
