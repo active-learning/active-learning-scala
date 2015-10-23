@@ -439,8 +439,8 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
           (strat.id, learner.id) match {
             case (s, l) if s == 0 && l < 4 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
-              case ExpectedHitsForFullPool => true
-              case _ => error(s"$hs previous rnd hits should be $ExpectedHitsForFullPool")
+              case nhs if nhs >= ExpectedHitsForNormalPool => true
+              case _ => error(s"$hs previous rnd hits should be >= $ExpectedHitsForNormalPool")
             }
             case (s, l) if s == 0 => hs match {
               case 0 => error(s"Inconsistency: there is a pool $pid for no hits!")
