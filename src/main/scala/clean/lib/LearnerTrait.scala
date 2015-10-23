@@ -29,9 +29,9 @@ trait LearnerTrait {
 
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
     //individuais
-    //fora    KNNBatcha(5, "eucl", pool, weighted = true)
-    //fora    , KNNBatcha(5, "manh", pool, weighted = true)
-    KNNBatcha(5, "eucl", pool, weighted = false)
+    KNNBatcha(5, "eucl", pool, weighted = true)
+    , KNNBatcha(5, "manh", pool, weighted = true)
+    , KNNBatcha(5, "eucl", pool, weighted = false)
     , KNNBatcha(5, "manh", pool, weighted = false)
     , NBBatch()
     , C452()
@@ -46,8 +46,8 @@ trait LearnerTrait {
     //fora    , Knn10(pool, weighted = true)
     , BagC45(learnerSeed)
     , BagNB(learnerSeed)
-    , Knn10(pool, weighted = false, distance_name = "eucl")
-    , Knn10(pool, weighted = false, distance_name = "manh")
+    //    , Knn10(pool, weighted = false, distance_name = "eucl")
+    //    , Knn10(pool, weighted = false, distance_name = "manh")
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
