@@ -21,6 +21,7 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
+import ml.classifiers.RoF
 import util.Tempo
 import weka.filters.Filter
 
@@ -35,11 +36,10 @@ object acvTempo extends Exp with LearnerTrait with StratsTrait {
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
     ds.log(s"Iniciando tempo para pool $run.$fold ...", 30)
-    learnersFpool(learnerSeed).take(1) foreach { flearner =>
-      stratsForTempo(pool, fpool, flearner) foreach { strat =>
-        ds.log(s"$flearner $strat ...")
-        strat.queries.take(50).toList
-      }
+    val flearner = RoF(learnerSeed, 2)
+    stratsForTempo(pool, fpool, flearner) foreach { strat =>
+      ds.log(s"$flearner $strat ...")
+      strat.queries.take(50).toList
     }
   }
 
