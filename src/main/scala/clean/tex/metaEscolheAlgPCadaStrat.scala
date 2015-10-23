@@ -30,6 +30,8 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
     else Vector(//NB não funciona porque quebra na discretização
       PCT(),
       RF(42, ntrees),
+      RoF(42, ntrees),
+      ABoo(42, ntrees),
       //esses 3 precisam de seleção de parâmetros/modelo:
       //      SVMLibRBF(),
       //      C45(false, 5),
@@ -138,7 +140,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             val accBalTr = Stat.media_desvioPadrao(resultados.map(_.accBalTr))
             val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
             val r = resultados reduce (_ ++ _)
-//            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
+            //            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
             metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2})") //, '$resumoTr', '$resumoTs')")
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
           }
