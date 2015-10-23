@@ -28,7 +28,7 @@ import scala.collection.mutable
 
 object acvTempo extends Exp with LearnerTrait with StratsTrait {
   val context = "acvApp"
-  val arguments = superArguments :+ "leas(unused)" :+ "versao"
+  val arguments = superArguments :+ "leas(unused)" :+ "versao(unused)"
   val ignoreNotDone = false
   var t = 0d
   run()
