@@ -71,10 +71,10 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
             }
           }
           println(s"tempo: $ds $leaFake $t")
-          v
+          v.sum / v.size
         }
         ds.close()
-        (ds.dataset, ranqueia(preds.flatten.toList))
+        (ds.dataset, ranqueia(preds.toList))
       }
 
     val matsorted = mat.map(x => x._1 -> x._2).sortBy { case (ds, col) => renomeia(ds) }
