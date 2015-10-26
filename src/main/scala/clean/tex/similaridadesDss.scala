@@ -74,7 +74,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
           v
         }
         ds.close()
-        (ds.dataset, ranqueia(preds.transpose.reduce((a, b) => a.zip(b).map(x => x._1 + x._2)).toList))
+        (ds.dataset, (preds.transpose map ranqueia).reduce((a, b) => a.zip(b).map(x => x._1 + x._2)))
       }
 
     val matsorted = mat.map(x => x._1 -> x._2).sortBy { case (ds, col) => renomeia(ds) }
