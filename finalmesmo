@@ -2,7 +2,9 @@ abalone-3class
 artificial-characters
 autoUniv-au1-1000
 autoUniv-au6-1000
+autoUniv-au6-250-drift-au6-cd1-500
 autoUniv-au6-cd1-400
+autoUniv-au7-300-drift-au7-cpd1-800
 autoUniv-au7-700
 autoUniv-au7-cpd1-500
 balance-scale
@@ -12,7 +14,6 @@ bupa
 car-evaluation
 cardiotocography-3class
 climate-simulation-craches
-cnae-9
 connectionist-mines-vs-rocks
 connectionist-vowel
 ecoli
@@ -80,9 +81,13 @@ twonorm
 user-knowledge
 vertebra-column-2c
 vertebra-column-3c
+volcanoes-a1
 volcanoes-a3
+volcanoes-a4
 volcanoes-b5
+volcanoes-d1
 volcanoes-d4
+volcanoes-e1
 volcanoes-e5
 voting
 waveform-v2
@@ -93,8 +98,3 @@ wine
 wine-quality-red
 wine-quality-white-5class
 yeast-4class
-volcanoes-a4
-volcanoes-d1
-volcanoes-e1
-autoUniv-au6-250-drift-au6-cd1-500
-autoUniv-au7-300-drift-au7-cpd1-800
