@@ -250,7 +250,9 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
 
   def metaAttsFromR(r: Int, f: Int) = {
     val s = Source.fromFile(s"/home/davi/wcs/als/csv/$this-r$r-f$f-normalized-pool.arff.csv")
-    val res = s.getLines().toList.last.split(",").map(_.toDouble)
+    val sg = s.getLines().toList
+    println(s"$sg <- s.getLines()")
+    val res = sg.last.split(",").map(_.toDouble)
     s.close()
     attsFromRNames zip res map (x => (x._1, x._2, "numeric"))
   }
