@@ -249,9 +249,10 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y").map(x => "\"" + x + "\"")
 
   def metaAttsFromR(r: Int, f: Int) = {
-    val s = Source.fromFile(s"/home/davi/wcs/als/csv/$this-r$r-f$f-normalized-pool.arff.csv")
+    val ar = s"/home/davi/wcs/als/csv/$this-r$r-f$f-normalized-pool.arff.csv"
+    val s = Source.fromFile(ar)
     val sg = s.getLines().toList
-    println(s"$sg <- s.getLines()")
+    println(s"$sg <- s.getLines() $ar")
     val res = sg.last.split(",").map(_.toDouble)
     s.close()
     attsFromRNames zip res map (x => (x._1, x._2, "numeric"))
