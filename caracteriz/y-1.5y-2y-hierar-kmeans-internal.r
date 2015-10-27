@@ -3,7 +3,7 @@ library("foreign")
 library("parallel")
 library("clValid")
 
-path = "/home/davi/caracteriz/arff-pools/normalizados"
+path = "/home/davi/caracteriz/arff-pools2/normalizados"
 
 main = function() {
 	files = list.files(path,full.names=TRUE)
