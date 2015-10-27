@@ -59,11 +59,11 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
         val (ti0, th0, tf0, tpass) = ranges(ds)
         val ti = ini match {
           case "ti" => ti0
-          case "th" => th0
+          case "th" => th0 + 1
         }
         val tf = fim match {
-          case "tf" => tf0
           case "th" => th0
+          case "tf" => tf0
         }
         val res = for {
           r <- 0 until runs
