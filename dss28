@@ -1,0 +1,473 @@
+[0m[[0minfo[0m] [0mLoading project definition from /home/davi/wcs/als/project[0m
+[0m[[0minfo[0m] [0mLoading project definition from /home/davi/.sbt/0.13/staging/a2f35764af87f70e3317/mls/project[0m
+[0m[[0minfo[0m] [0mSet current project to als (in build file:/home/davi/wcs/als/)[0m
+[0m[[0minfo[0m] [0mRunning clean.tex.similaridadesDss 0 28 n -1 bagnb,bagc45,aboo,nbb,5nn,5nnm,c452,rf,c45,5nnw,rof,rbf[0m
+0 28 n -1 bagnb,bagc45,aboo,nbb,5nn,5nnm,c452,rf,c45,5nnw,rof,rbf
+28
+vertebra column 2c, 
+tempo: vertebra-column-2c BagNB 1.714
+tempo: vertebra-column-2c BagC45 1.004
+tempo: vertebra-column-2c ABoo 0.461
+tempo: vertebra-column-2c NBBatch 0.128
+tempo: vertebra-column-2c 5NN 0.341
+tempo: vertebra-column-2c 5NNm 0.262
+tempo: vertebra-column-2c C4.52 0.141
+tempo: vertebra-column-2c RFw 0.525
+tempo: vertebra-column-2c C4.5 0.122
+tempo: vertebra-column-2c 5NNw 2.315
+tempo: vertebra-column-2c RoF 3.164
+tempo: vertebra-column-2c SVM 2.001
+ozone eighthr, 
+tempo: ozone-eighthr BagNB 3.061
+tempo: ozone-eighthr BagC45 4.463
+tempo: ozone-eighthr ABoo 0.237
+tempo: ozone-eighthr NBBatch 0.35
+tempo: ozone-eighthr 5NN 0.261
+tempo: ozone-eighthr 5NNm 0.334
+tempo: ozone-eighthr C4.52 0.675
+tempo: ozone-eighthr RFw 0.743
+tempo: ozone-eighthr C4.5 0.612
+tempo: ozone-eighthr 5NNw 2.094
+tempo: ozone-eighthr RoF 13.799
+tempo: ozone-eighthr SVM 6.542
+waveform v2, 
+tempo: waveform-v2 BagNB 1.947
+tempo: waveform-v2 BagC45 2.738
+tempo: waveform-v2 ABoo 0.273
+tempo: waveform-v2 NBBatch 0.298
+tempo: waveform-v2 5NN 0.241
+tempo: waveform-v2 5NNm 0.283
+tempo: waveform-v2 C4.52 0.503
+tempo: waveform-v2 RFw 0.702
+tempo: waveform-v2 C4.5 0.424
+tempo: waveform-v2 5NNw 2.012
+tempo: waveform-v2 RoF 7.735
+tempo: waveform-v2 SVM 5.272
+twonorm, 
+tempo: twonorm BagNB 1.27
+tempo: twonorm BagC45 1.526
+tempo: twonorm ABoo 0.26
+tempo: twonorm NBBatch 0.25
+tempo: twonorm 5NN 0.214
+tempo: twonorm 5NNm 0.237
+tempo: twonorm C4.52 0.33
+tempo: twonorm RFw 0.575
+tempo: twonorm C4.5 0.322
+tempo: twonorm 5NNw 1.946
+tempo: twonorm RoF 4.079
+tempo: twonorm SVM 2.625
+thyroid sick euthy..., 
+tempo: thyroid-sick-euthyroid BagNB 0.694
+tempo: thyroid-sick-euthyroid BagC45 0.773
+tempo: thyroid-sick-euthyroid ABoo 0.188
+tempo: thyroid-sick-euthyroid NBBatch 0.134
+tempo: thyroid-sick-euthyroid 5NN 0.133
+tempo: thyroid-sick-euthyroid 5NNm 0.154
+tempo: thyroid-sick-euthyroid C4.52 0.175
+tempo: thyroid-sick-euthyroid RFw 0.454
+tempo: thyroid-sick-euthyroid C4.5 0.157
+tempo: thyroid-sick-euthyroid 5NNw 1.94
+tempo: thyroid-sick-euthyroid RoF 5.487
+tempo: thyroid-sick-euthyroid SVM 2.757
+iris, 
+tempo: iris BagNB 0.34
+tempo: iris BagC45 0.326
+tempo: iris ABoo 0.106
+tempo: iris NBBatch 0.063
+tempo: iris 5NN 0.056
+tempo: iris 5NNm 0.056
+tempo: iris C4.52 0.064
+tempo: iris RFw 0.243
+tempo: iris C4.5 0.061
+tempo: iris 5NNw 1.877
+tempo: iris RoF 1.311
+tempo: iris SVM 0.843
+ecoli, 
+tempo: ecoli BagNB 0.593
+tempo: ecoli BagC45 0.821
+tempo: ecoli ABoo 0.152
+tempo: ecoli NBBatch 0.091
+tempo: ecoli 5NN 0.068
+tempo: ecoli 5NNm 0.074
+tempo: ecoli C4.52 0.137
+tempo: ecoli RFw 0.502
+tempo: ecoli C4.5 0.092
+tempo: ecoli 5NNw 1.881
+tempo: ecoli RoF 2.086
+tempo: ecoli SVM 1.817
+pendigits, 
+tempo: pendigits BagNB 1.767
+tempo: pendigits BagC45 1.947
+tempo: pendigits ABoo 0.38
+tempo: pendigits NBBatch 0.357
+tempo: pendigits 5NN 0.282
+tempo: pendigits 5NNm 0.296
+tempo: pendigits C4.52 0.448
+tempo: pendigits RFw 0.905
+tempo: pendigits C4.5 0.366
+tempo: pendigits 5NNw 2.121
+tempo: pendigits RoF 3.956
+tempo: pendigits SVM 3.536
+banknote authentic..., 
+tempo: banknote-authentication BagNB 0.375
+tempo: banknote-authentication BagC45 0.41
+tempo: banknote-authentication ABoo 0.132
+tempo: banknote-authentication NBBatch 0.085
+tempo: banknote-authentication 5NN 0.081
+tempo: banknote-authentication 5NNm 0.084
+tempo: banknote-authentication C4.52 0.098
+tempo: banknote-authentication RFw 0.3
+tempo: banknote-authentication C4.5 0.095
+tempo: banknote-authentication 5NNw 1.797
+tempo: banknote-authentication RoF 1.428
+tempo: banknote-authentication SVM 0.825
+wilt, 
+tempo: wilt BagNB 0.465
+tempo: wilt BagC45 0.599
+tempo: wilt ABoo 0.187
+tempo: wilt NBBatch 0.134
+tempo: wilt 5NN 0.127
+tempo: wilt 5NNm 0.132
+tempo: wilt C4.52 0.16
+tempo: wilt RFw 0.393
+tempo: wilt C4.5 0.161
+tempo: wilt 5NNw 1.934
+tempo: wilt RoF 1.531
+tempo: wilt SVM 1.119
+ozone onehr, 
+tempo: ozone-onehr BagNB 2.561
+tempo: ozone-onehr BagC45 3.739
+tempo: ozone-onehr ABoo 0.221
+tempo: ozone-onehr NBBatch 0.329
+tempo: ozone-onehr 5NN 0.248
+tempo: ozone-onehr 5NNm 0.323
+tempo: ozone-onehr C4.52 0.629
+tempo: ozone-onehr RFw 0.693
+tempo: ozone-onehr C4.5 0.539
+tempo: ozone-onehr 5NNw 2.014
+tempo: ozone-onehr RoF 13.699
+tempo: ozone-onehr SVM 6.508
+heart disease hung..., 
+tempo: heart-disease-processed-hungarian BagNB 0.499
+tempo: heart-disease-processed-hungarian BagC45 0.963
+tempo: heart-disease-processed-hungarian ABoo 0.134
+tempo: heart-disease-processed-hungarian NBBatch 0.079
+tempo: heart-disease-processed-hungarian 5NN 0.076
+tempo: heart-disease-processed-hungarian 5NNm 0.086
+tempo: heart-disease-processed-hungarian C4.52 0.155
+tempo: heart-disease-processed-hungarian RFw 0.397
+tempo: heart-disease-processed-hungarian C4.5 0.126
+tempo: heart-disease-processed-hungarian 5NNw 1.891
+tempo: heart-disease-processed-hungarian RoF 2.629
+tempo: heart-disease-processed-hungarian SVM 1.72
+tic tac toe, 
+tempo: tic-tac-toe BagNB 0.267
+tempo: tic-tac-toe BagC45 0.388
+tempo: tic-tac-toe ABoo 0.169
+tempo: tic-tac-toe NBBatch 0.07
+tempo: tic-tac-toe 5NN 0.089
+tempo: tic-tac-toe 5NNm 0.095
+tempo: tic-tac-toe C4.52 0.091
+tempo: tic-tac-toe RFw 0.339
+tempo: tic-tac-toe C4.5 0.079
+tempo: tic-tac-toe 5NNw 1.864
+tempo: tic-tac-toe RoF 4.878
+tempo: tic-tac-toe SVM 3.5
+qsar biodegradatio..., 
+tempo: qsar-biodegradation BagNB 1.285
+tempo: qsar-biodegradation BagC45 2.448
+tempo: qsar-biodegradation ABoo 0.177
+tempo: qsar-biodegradation NBBatch 0.187
+tempo: qsar-biodegradation 5NN 0.158
+tempo: qsar-biodegradation 5NNm 0.194
+tempo: qsar-biodegradation C4.52 0.422
+tempo: qsar-biodegradation RFw 0.529
+tempo: qsar-biodegradation C4.5 0.362
+tempo: qsar-biodegradation 5NNw 1.92
+tempo: qsar-biodegradation RoF 6.929
+tempo: qsar-biodegradation SVM 4.303
+wine, 
+tempo: wine BagNB 0.731
+tempo: wine BagC45 0.699
+tempo: wine ABoo 0.124
+tempo: wine NBBatch 0.112
+tempo: wine 5NN 0.073
+tempo: wine 5NNm 0.084
+tempo: wine C4.52 0.116
+tempo: wine RFw 0.311
+tempo: wine C4.5 0.112
+tempo: wine 5NNw 1.852
+tempo: wine RoF 2.722
+tempo: wine SVM 1.736
+movement libras, 
+tempo: movement-libras BagNB 7.266
+tempo: movement-libras BagC45 8.83
+tempo: movement-libras ABoo 0.309
+tempo: movement-libras NBBatch 0.749
+tempo: movement-libras 5NN 0.244
+tempo: movement-libras 5NNm 0.341
+tempo: movement-libras C4.52 1.583
+tempo: movement-libras RFw 1.425
+tempo: movement-libras C4.5 0.878
+tempo: movement-libras 5NNw 1.971
+tempo: movement-libras RoF 17.763
+tempo: movement-libras SVM 10.121
+wdbc, 
+tempo: wdbc BagNB 1.292
+tempo: wdbc BagC45 1.193
+tempo: wdbc ABoo 0.137
+tempo: wdbc NBBatch 0.183
+tempo: wdbc 5NN 0.116
+tempo: wdbc 5NNm 0.151
+tempo: wdbc C4.52 0.193
+tempo: wdbc RFw 0.385
+tempo: wdbc C4.5 0.188
+tempo: wdbc 5NNw 1.917
+tempo: wdbc RoF 5.249
+tempo: wdbc SVM 2.906
+bupa, 
+tempo: bupa BagNB 0.326
+tempo: bupa BagC45 0.775
+tempo: bupa ABoo 0.132
+tempo: bupa NBBatch 0.062
+tempo: bupa 5NN 0.064
+tempo: bupa 5NNm 0.068
+tempo: bupa C4.52 0.114
+tempo: bupa RFw 0.404
+tempo: bupa C4.5 0.102
+tempo: bupa 5NNw 1.852
+tempo: bupa RoF 1.481
+tempo: bupa SVM 1.204
+habermans survival, 
+tempo: habermans-survival BagNB 0.255
+tempo: habermans-survival BagC45 0.506
+tempo: habermans-survival ABoo 0.131
+tempo: habermans-survival NBBatch 0.054
+tempo: habermans-survival 5NN 0.055
+tempo: habermans-survival 5NNm 0.058
+tempo: habermans-survival C4.52 0.065
+tempo: habermans-survival RFw 0.395
+tempo: habermans-survival C4.5 0.062
+tempo: habermans-survival 5NNw 1.862
+tempo: habermans-survival RoF 0.989
+tempo: habermans-survival SVM 0.923
+banana, 
+tempo: banana BagNB 0.351
+tempo: banana BagC45 0.504
+tempo: banana ABoo 0.191
+tempo: banana NBBatch 0.126
+tempo: banana 5NN 0.128
+tempo: banana 5NNm 0.128
+tempo: banana C4.52 0.141
+tempo: banana RFw 0.381
+tempo: banana C4.5 0.14
+tempo: banana 5NNw 1.943
+tempo: banana RoF 1.002
+tempo: banana SVM 0.861
+statlog heart, 
+tempo: statlog-heart BagNB 0.469
+tempo: statlog-heart BagC45 0.894
+tempo: statlog-heart ABoo 0.133
+tempo: statlog-heart NBBatch 0.081
+tempo: statlog-heart 5NN 0.076
+tempo: statlog-heart 5NNm 0.086
+tempo: statlog-heart C4.52 0.146
+tempo: statlog-heart RFw 0.372
+tempo: statlog-heart C4.5 0.124
+tempo: statlog-heart 5NNw 1.826
+tempo: statlog-heart RoF 2.925
+tempo: statlog-heart SVM 1.806
+eeg eye state, 
+tempo: eeg-eye-state BagNB 1.13
+tempo: eeg-eye-state BagC45 1.802
+tempo: eeg-eye-state ABoo 0.38
+tempo: eeg-eye-state NBBatch 0.311
+tempo: eeg-eye-state 5NN 0.301
+tempo: eeg-eye-state 5NNm 0.316
+tempo: eeg-eye-state C4.52 0.406
+tempo: eeg-eye-state RFw 0.754
+tempo: eeg-eye-state C4.5 0.401
+tempo: eeg-eye-state 5NNw 2.16
+tempo: eeg-eye-state RoF 3.25
+tempo: eeg-eye-state SVM 2.398
+kr vs kp, 
+tempo: kr-vs-kp BagNB 0.596
+tempo: kr-vs-kp BagC45 0.834
+tempo: kr-vs-kp ABoo 0.209
+tempo: kr-vs-kp NBBatch 0.134
+tempo: kr-vs-kp 5NN 0.18
+tempo: kr-vs-kp 5NNm 0.208
+tempo: kr-vs-kp C4.52 0.174
+tempo: kr-vs-kp RFw 0.598
+tempo: kr-vs-kp C4.5 0.159
+tempo: kr-vs-kp 5NNw 1.87
+tempo: kr-vs-kp RoF 6.042
+tempo: kr-vs-kp SVM 4.047
+lymphography, 
+tempo: lymphography BagNB 0.419
+tempo: lymphography BagC45 0.699
+tempo: lymphography ABoo 0.131
+tempo: lymphography NBBatch 0.07
+tempo: lymphography 5NN 0.085
+tempo: lymphography 5NNm 0.102
+tempo: lymphography C4.52 0.111
+tempo: lymphography RFw 0.355
+tempo: lymphography C4.5 0.08
+tempo: lymphography 5NNw 1.898
+tempo: lymphography RoF 6.228
+tempo: lymphography SVM 5.011
+parkinsons, 
+tempo: parkinsons BagNB 1.064
+tempo: parkinsons BagC45 1.375
+tempo: parkinsons ABoo 0.141
+tempo: parkinsons NBBatch 0.146
+tempo: parkinsons 5NN 0.089
+tempo: parkinsons 5NNm 0.116
+tempo: parkinsons C4.52 0.198
+tempo: parkinsons RFw 0.393
+tempo: parkinsons C4.5 0.189
+tempo: parkinsons 5NNw 1.862
+tempo: parkinsons RoF 4.018
+tempo: parkinsons SVM 2.564
+wine quality white..., 
+tempo: wine-quality-white-5class BagNB 0.736
+tempo: wine-quality-white-5class BagC45 1.671
+tempo: wine-quality-white-5class ABoo 0.24
+tempo: wine-quality-white-5class NBBatch 0.155
+tempo: wine-quality-white-5class 5NN 0.142
+tempo: wine-quality-white-5class 5NNm 0.154
+tempo: wine-quality-white-5class C4.52 0.323
+tempo: wine-quality-white-5class RFw 0.648
+tempo: wine-quality-white-5class C4.5 0.198
+tempo: wine-quality-white-5class 5NNw 1.927
+tempo: wine-quality-white-5class RoF 2.63
+tempo: wine-quality-white-5class SVM 2.454
+texture, 
+tempo: texture BagNB 4.153
+tempo: texture BagC45 3.655
+tempo: texture ABoo 0.346
+tempo: texture NBBatch 0.586
+tempo: texture 5NN 0.243
+tempo: texture 5NNm 0.283
+tempo: texture C4.52 0.681
+tempo: texture RFw 1.024
+tempo: texture C4.5 0.467
+tempo: texture 5NNw 2.018
+tempo: texture RoF 7.738
+tempo: texture SVM 5.369
+optdigits, 
+tempo: optdigits BagNB 3.071
+tempo: optdigits BagC45 3.801
+tempo: optdigits ABoo 0.33
+tempo: optdigits NBBatch 0.425
+tempo: optdigits 5NN 0.313
+tempo: optdigits 5NNm 0.376
+tempo: optdigits C4.52 0.735
+tempo: optdigits RFw 0.955
+tempo: optdigits C4.5 0.501
+tempo: optdigits 5NNw 2.03
+tempo: optdigits RoF 9.685
+tempo: optdigits SVM 7.211
+(banana,List(1.0, 0.874, 0.329, 0.42, 0.818, -0.242, -0.245, 0.79, -0.524, -0.084, 0.594, 0.566, 0.531, 0.448, 0.937, 0.713, 0.147, -0.042, 0.776, -0.601, 0.692, 0.566, -0.049, -0.273, 0.734, 0.049, 0.049, 0.014))
+(banknote-authentication,List(0.874, 1.0, 0.406, 0.406, 0.79, -0.035, -0.245, 0.811, -0.308, 0.084, 0.762, 0.552, 0.573, 0.58, 0.839, 0.839, 0.35, -0.056, 0.811, -0.497, 0.86, 0.566, 0.21, -0.105, 0.643, 0.259, 0.189, 0.266))
+(bupa,List(0.329, 0.406, 1.0, 0.133, 0.455, 0.508, -0.028, 0.168, 0.329, -0.133, 0.28, -0.217, 0.566, 0.699, 0.273, 0.238, 0.685, 0.084, 0.21, 0.364, 0.462, 0.105, 0.587, 0.245, 0.259, 0.832, 0.049, 0.524))
+(ecoli,List(0.42, 0.406, 0.133, 1.0, 0.21, 0.123, 0.734, 0.699, -0.392, 0.636, 0.469, 0.783, 0.86, 0.671, 0.315, 0.727, 0.469, 0.853, 0.608, -0.371, 0.217, 0.944, 0.217, 0.636, 0.839, -0.175, 0.783, 0.434))
+(eeg-eye-state,List(0.818, 0.79, 0.455, 0.21, 1.0, -0.081, -0.336, 0.622, -0.224, 0.007, 0.727, 0.441, 0.441, 0.538, 0.853, 0.685, 0.252, -0.196, 0.811, -0.322, 0.846, 0.35, 0.168, -0.196, 0.531, 0.252, -0.028, 0.259))
+(habermans-survival,List(-0.242, -0.035, 0.508, 0.123, -0.081, 1.0, 0.193, -0.193, 0.651, -0.035, 0.067, -0.249, 0.266, 0.382, -0.301, -0.025, 0.736, 0.27, -0.203, 0.662, 0.07, -0.042, 0.774, 0.441, -0.133, 0.609, -0.021, 0.764))
+(heart-disease-processed-hungarian,List(-0.245, -0.245, -0.028, 0.734, -0.336, 0.193, 1.0, 0.098, -0.084, 0.671, -0.042, 0.385, 0.545, 0.406, -0.287, 0.196, 0.308, 0.944, 0.077, 0.042, -0.287, 0.552, 0.196, 0.86, 0.392, -0.245, 0.762, 0.378))
+(iris,List(0.79, 0.811, 0.168, 0.699, 0.622, -0.193, 0.098, 1.0, -0.587, 0.434, 0.769, 0.762, 0.671, 0.573, 0.671, 0.888, 0.273, 0.301, 0.832, -0.685, 0.559, 0.86, 0.035, 0.133, 0.839, -0.077, 0.538, 0.196))
+(kr-vs-kp,List(-0.524, -0.308, 0.329, -0.392, -0.224, 0.651, -0.084, -0.587, 1.0, -0.203, -0.224, -0.636, -0.105, 0.077, -0.392, -0.371, 0.462, -0.203, -0.364, 0.937, 0.07, -0.594, 0.727, 0.182, -0.503, 0.685, -0.252, 0.329))
+(lymphography,List(-0.084, 0.084, -0.133, 0.636, 0.007, -0.035, 0.671, 0.434, -0.203, 1.0, 0.538, 0.601, 0.497, 0.49, -0.035, 0.573, 0.336, 0.678, 0.455, -0.21, 0.098, 0.643, 0.126, 0.734, 0.49, -0.175, 0.916, 0.462))
+(movement-libras,List(0.594, 0.762, 0.28, 0.469, 0.727, 0.067, -0.042, 0.769, -0.224, 0.538, 1.0, 0.643, 0.58, 0.671, 0.636, 0.902, 0.524, 0.154, 0.839, -0.357, 0.762, 0.622, 0.252, 0.203, 0.643, 0.245, 0.462, 0.545))
+(optdigits,List(0.566, 0.552, -0.217, 0.783, 0.441, -0.249, 0.385, 0.762, -0.636, 0.601, 0.643, 1.0, 0.559, 0.42, 0.559, 0.832, 0.105, 0.49, 0.797, -0.72, 0.399, 0.86, -0.119, 0.266, 0.755, -0.462, 0.587, 0.21))
+(ozone-eighthr,List(0.531, 0.573, 0.566, 0.86, 0.441, 0.266, 0.545, 0.671, -0.105, 0.497, 0.58, 0.559, 1.0, 0.923, 0.483, 0.769, 0.741, 0.678, 0.692, -0.112, 0.517, 0.797, 0.503, 0.622, 0.853, 0.301, 0.692, 0.573))
+(ozone-onehr,List(0.448, 0.58, 0.699, 0.671, 0.538, 0.382, 0.406, 0.573, 0.077, 0.49, 0.671, 0.42, 0.923, 1.0, 0.455, 0.748, 0.832, 0.538, 0.664, 0.042, 0.643, 0.636, 0.657, 0.65, 0.734, 0.51, 0.615, 0.741))
+(parkinsons,List(0.937, 0.839, 0.273, 0.315, 0.853, -0.301, -0.287, 0.671, -0.392, -0.035, 0.636, 0.559, 0.483, 0.455, 1.0, 0.72, 0.161, -0.133, 0.832, -0.503, 0.811, 0.441, -0.007, -0.28, 0.692, 0.098, 0.028, 0.028))
+(pendigits,List(0.713, 0.839, 0.238, 0.727, 0.685, -0.025, 0.196, 0.888, -0.371, 0.573, 0.902, 0.832, 0.769, 0.748, 0.72, 1.0, 0.483, 0.364, 0.937, -0.51, 0.755, 0.832, 0.245, 0.308, 0.839, 0.07, 0.608, 0.469))
+(qsar-biodegradation,List(0.147, 0.35, 0.685, 0.469, 0.252, 0.736, 0.308, 0.273, 0.462, 0.336, 0.524, 0.105, 0.741, 0.832, 0.161, 0.483, 1.0, 0.448, 0.336, 0.427, 0.476, 0.357, 0.832, 0.622, 0.42, 0.734, 0.427, 0.825))
+(statlog-heart,List(-0.042, -0.056, 0.084, 0.853, -0.196, 0.27, 0.944, 0.301, -0.203, 0.678, 0.154, 0.49, 0.678, 0.538, -0.133, 0.364, 0.448, 1.0, 0.189, -0.07, -0.182, 0.72, 0.217, 0.853, 0.573, -0.168, 0.797, 0.497))
+(texture,List(0.776, 0.811, 0.21, 0.608, 0.811, -0.203, 0.077, 0.832, -0.364, 0.455, 0.839, 0.797, 0.692, 0.664, 0.832, 0.937, 0.336, 0.189, 1.0, -0.503, 0.811, 0.706, 0.161, 0.133, 0.797, 0.021, 0.462, 0.28))
+(thyroid-sick-euthyroid,List(-0.601, -0.497, 0.364, -0.371, -0.322, 0.662, 0.042, -0.685, 0.937, -0.21, -0.357, -0.72, -0.112, 0.042, -0.503, -0.51, 0.427, -0.07, -0.503, 1.0, -0.147, -0.601, 0.622, 0.231, -0.497, 0.636, -0.252, 0.329))
+(tic-tac-toe,List(0.692, 0.86, 0.462, 0.217, 0.846, 0.07, -0.287, 0.559, 0.07, 0.098, 0.762, 0.399, 0.517, 0.643, 0.811, 0.755, 0.476, -0.182, 0.811, -0.147, 1.0, 0.301, 0.455, -0.042, 0.497, 0.462, 0.098, 0.385))
+(twonorm,List(0.566, 0.566, 0.105, 0.944, 0.35, -0.042, 0.552, 0.86, -0.594, 0.643, 0.622, 0.86, 0.797, 0.636, 0.441, 0.832, 0.357, 0.72, 0.706, -0.601, 0.301, 1.0, 0.049, 0.49, 0.881, -0.224, 0.769, 0.364))
+(vertebra-column-2c,List(-0.049, 0.21, 0.587, 0.217, 0.168, 0.774, 0.196, 0.035, 0.727, 0.126, 0.252, -0.119, 0.503, 0.657, -0.007, 0.245, 0.832, 0.217, 0.161, 0.622, 0.455, 0.049, 1.0, 0.524, 0.126, 0.72, 0.182, 0.713))
+(waveform-v2,List(-0.273, -0.105, 0.245, 0.636, -0.196, 0.441, 0.86, 0.133, 0.182, 0.734, 0.203, 0.266, 0.622, 0.65, -0.28, 0.308, 0.622, 0.853, 0.133, 0.231, -0.042, 0.49, 0.524, 1.0, 0.357, 0.147, 0.804, 0.664))
+(wdbc,List(0.734, 0.643, 0.259, 0.839, 0.531, -0.133, 0.392, 0.839, -0.503, 0.49, 0.643, 0.755, 0.853, 0.734, 0.692, 0.839, 0.42, 0.573, 0.797, -0.497, 0.497, 0.881, 0.126, 0.357, 1.0, -0.035, 0.636, 0.308))
+(wilt,List(0.049, 0.259, 0.832, -0.175, 0.252, 0.609, -0.245, -0.077, 0.685, -0.175, 0.245, -0.462, 0.301, 0.51, 0.098, 0.07, 0.734, -0.168, 0.021, 0.636, 0.462, -0.224, 0.72, 0.147, -0.035, 1.0, -0.091, 0.51))
+(wine,List(0.049, 0.189, 0.049, 0.783, -0.028, -0.021, 0.762, 0.538, -0.252, 0.916, 0.462, 0.587, 0.692, 0.615, 0.028, 0.608, 0.427, 0.797, 0.462, -0.252, 0.098, 0.769, 0.182, 0.804, 0.636, -0.091, 1.0, 0.406))
+(wine-quality-white-5class,List(0.014, 0.266, 0.524, 0.434, 0.259, 0.764, 0.378, 0.196, 0.329, 0.462, 0.545, 0.21, 0.573, 0.741, 0.028, 0.469, 0.825, 0.497, 0.28, 0.329, 0.385, 0.364, 0.713, 0.664, 0.308, 0.51, 0.406, 1.0))
+
+
+
+
+
+
+
+
+
+thyroid-sick-euthyroid 1.0 0.937 0.662 0.636 0.042 -0.503 -0.601 0.364 -0.21 -0.07 -0.322 0.622 -0.72 0.231 -0.252 -0.497 -0.147 -0.685 0.329 -0.601 -0.503 -0.371 -0.357 -0.497 0.427 -0.51 -0.112 0.042
+kr-vs-kp 0.937 1.0 0.651 0.685 -0.084 -0.392 -0.524 0.329 -0.203 -0.203 -0.224 0.727 -0.636 0.182 -0.252 -0.308 0.07 -0.587 0.329 -0.594 -0.364 -0.392 -0.224 -0.503 0.462 -0.371 -0.105 0.077
+habermans-survival 0.662 0.651 1.0 0.609 0.193 -0.301 -0.242 0.508 -0.035 0.27 -0.081 0.774 -0.249 0.441 -0.021 -0.035 0.07 -0.193 0.764 -0.042 -0.203 0.123 0.067 -0.133 0.736 -0.025 0.266 0.382
+wilt 0.636 0.685 0.609 1.0 -0.245 0.098 0.049 0.832 -0.175 -0.168 0.252 0.72 -0.462 0.147 -0.091 0.259 0.462 -0.077 0.51 -0.224 0.021 -0.175 0.245 -0.035 0.734 0.07 0.301 0.51
+heart-disease-processed-hungarian 0.042 -0.084 0.193 -0.245 1.0 -0.287 -0.245 -0.028 0.671 0.944 -0.336 0.196 0.385 0.86 0.762 -0.245 -0.287 0.098 0.378 0.552 0.077 0.734 -0.042 0.392 0.308 0.196 0.545 0.406
+parkinsons -0.503 -0.392 -0.301 0.098 -0.287 1.0 0.937 0.273 -0.035 -0.133 0.853 -0.007 0.559 -0.28 0.028 0.839 0.811 0.671 0.028 0.441 0.832 0.315 0.636 0.692 0.161 0.72 0.483 0.455
+banana -0.601 -0.524 -0.242 0.049 -0.245 0.937 1.0 0.329 -0.084 -0.042 0.818 -0.049 0.566 -0.273 0.049 0.874 0.692 0.79 0.014 0.566 0.776 0.42 0.594 0.734 0.147 0.713 0.531 0.448
+bupa 0.364 0.329 0.508 0.832 -0.028 0.273 0.329 1.0 -0.133 0.084 0.455 0.587 -0.217 0.245 0.049 0.406 0.462 0.168 0.524 0.105 0.21 0.133 0.28 0.259 0.685 0.238 0.566 0.699
+lymphography -0.21 -0.203 -0.035 -0.175 0.671 -0.035 -0.084 -0.133 1.0 0.678 0.007 0.126 0.601 0.734 0.916 0.084 0.098 0.434 0.462 0.643 0.455 0.636 0.538 0.49 0.336 0.573 0.497 0.49
+statlog-heart -0.07 -0.203 0.27 -0.168 0.944 -0.133 -0.042 0.084 0.678 1.0 -0.196 0.217 0.49 0.853 0.797 -0.056 -0.182 0.301 0.497 0.72 0.189 0.853 0.154 0.573 0.448 0.364 0.678 0.538
+eeg-eye-state -0.322 -0.224 -0.081 0.252 -0.336 0.853 0.818 0.455 0.007 -0.196 1.0 0.168 0.441 -0.196 -0.028 0.79 0.846 0.622 0.259 0.35 0.811 0.21 0.727 0.531 0.252 0.685 0.441 0.538
+vertebra-column-2c 0.622 0.727 0.774 0.72 0.196 -0.007 -0.049 0.587 0.126 0.217 0.168 1.0 -0.119 0.524 0.182 0.21 0.455 0.035 0.713 0.049 0.161 0.217 0.252 0.126 0.832 0.245 0.503 0.657
+optdigits -0.72 -0.636 -0.249 -0.462 0.385 0.559 0.566 -0.217 0.601 0.49 0.441 -0.119 1.0 0.266 0.587 0.552 0.399 0.762 0.21 0.86 0.797 0.783 0.643 0.755 0.105 0.832 0.559 0.42
+waveform-v2 0.231 0.182 0.441 0.147 0.86 -0.28 -0.273 0.245 0.734 0.853 -0.196 0.524 0.266 1.0 0.804 -0.105 -0.042 0.133 0.664 0.49 0.133 0.636 0.203 0.357 0.622 0.308 0.622 0.65
+wine -0.252 -0.252 -0.021 -0.091 0.762 0.028 0.049 0.049 0.916 0.797 -0.028 0.182 0.587 0.804 1.0 0.189 0.098 0.538 0.406 0.769 0.462 0.783 0.462 0.636 0.427 0.608 0.692 0.615
+banknote-authentication -0.497 -0.308 -0.035 0.259 -0.245 0.839 0.874 0.406 0.084 -0.056 0.79 0.21 0.552 -0.105 0.189 1.0 0.86 0.811 0.266 0.566 0.811 0.406 0.762 0.643 0.35 0.839 0.573 0.58
+tic-tac-toe -0.147 0.07 0.07 0.462 -0.287 0.811 0.692 0.462 0.098 -0.182 0.846 0.455 0.399 -0.042 0.098 0.86 1.0 0.559 0.385 0.301 0.811 0.217 0.762 0.497 0.476 0.755 0.517 0.643
+iris -0.685 -0.587 -0.193 -0.077 0.098 0.671 0.79 0.168 0.434 0.301 0.622 0.035 0.762 0.133 0.538 0.811 0.559 1.0 0.196 0.86 0.832 0.699 0.769 0.839 0.273 0.888 0.671 0.573
+wine-quality-white-5class 0.329 0.329 0.764 0.51 0.378 0.028 0.014 0.524 0.462 0.497 0.259 0.713 0.21 0.664 0.406 0.266 0.385 0.196 1.0 0.364 0.28 0.434 0.545 0.308 0.825 0.469 0.573 0.741
+twonorm -0.601 -0.594 -0.042 -0.224 0.552 0.441 0.566 0.105 0.643 0.72 0.35 0.049 0.86 0.49 0.769 0.566 0.301 0.86 0.364 1.0 0.706 0.944 0.622 0.881 0.357 0.832 0.797 0.636
+texture -0.503 -0.364 -0.203 0.021 0.077 0.832 0.776 0.21 0.455 0.189 0.811 0.161 0.797 0.133 0.462 0.811 0.811 0.832 0.28 0.706 1.0 0.608 0.839 0.797 0.336 0.937 0.692 0.664
+ecoli -0.371 -0.392 0.123 -0.175 0.734 0.315 0.42 0.133 0.636 0.853 0.21 0.217 0.783 0.636 0.783 0.406 0.217 0.699 0.434 0.944 0.608 1.0 0.469 0.839 0.469 0.727 0.86 0.671
+movement-libras -0.357 -0.224 0.067 0.245 -0.042 0.636 0.594 0.28 0.538 0.154 0.727 0.252 0.643 0.203 0.462 0.762 0.762 0.769 0.545 0.622 0.839 0.469 1.0 0.643 0.524 0.902 0.58 0.671
+wdbc -0.497 -0.503 -0.133 -0.035 0.392 0.692 0.734 0.259 0.49 0.573 0.531 0.126 0.755 0.357 0.636 0.643 0.497 0.839 0.308 0.881 0.797 0.839 0.643 1.0 0.42 0.839 0.853 0.734
+qsar-biodegradation 0.427 0.462 0.736 0.734 0.308 0.161 0.147 0.685 0.336 0.448 0.252 0.832 0.105 0.622 0.427 0.35 0.476 0.273 0.825 0.357 0.336 0.469 0.524 0.42 1.0 0.483 0.741 0.832
+pendigits -0.51 -0.371 -0.025 0.07 0.196 0.72 0.713 0.238 0.573 0.364 0.685 0.245 0.832 0.308 0.608 0.839 0.755 0.888 0.469 0.832 0.937 0.727 0.902 0.839 0.483 1.0 0.769 0.748
+ozone-eighthr -0.112 -0.105 0.266 0.301 0.545 0.483 0.531 0.566 0.497 0.678 0.441 0.503 0.559 0.622 0.692 0.573 0.517 0.671 0.573 0.797 0.692 0.86 0.58 0.853 0.741 0.769 1.0 0.923
+ozone-onehr 0.042 0.077 0.382 0.51 0.406 0.455 0.448 0.699 0.49 0.538 0.538 0.657 0.42 0.65 0.615 0.58 0.643 0.573 0.741 0.636 0.664 0.671 0.671 0.734 0.832 0.748 0.923 1.0
+
+
+
+
+
+
+
+
+
+habermans-survival 1.0 0.764 0.508 0.736 0.774 0.609 -0.081 -0.249 0.07 0.441 -0.035 -0.133 -0.193 0.067 -0.035 -0.021 0.266 0.382 -0.242 0.651 -0.301 -0.025 -0.203 0.662 0.123 0.193 0.27 -0.042
+wine-quality-white-5class 0.764 1.0 0.524 0.825 0.713 0.51 0.259 0.21 0.385 0.664 0.266 0.308 0.196 0.545 0.462 0.406 0.573 0.741 0.014 0.329 0.028 0.469 0.28 0.329 0.434 0.378 0.497 0.364
+bupa 0.508 0.524 1.0 0.685 0.587 0.832 0.455 -0.217 0.462 0.245 0.406 0.259 0.168 0.28 -0.133 0.049 0.566 0.699 0.329 0.329 0.273 0.238 0.21 0.364 0.133 -0.028 0.084 0.105
+qsar-biodegradation 0.736 0.825 0.685 1.0 0.832 0.734 0.252 0.105 0.476 0.622 0.35 0.42 0.273 0.524 0.336 0.427 0.741 0.832 0.147 0.462 0.161 0.483 0.336 0.427 0.469 0.308 0.448 0.357
+vertebra-column-2c 0.774 0.713 0.587 0.832 1.0 0.72 0.168 -0.119 0.455 0.524 0.21 0.126 0.035 0.252 0.126 0.182 0.503 0.657 -0.049 0.727 -0.007 0.245 0.161 0.622 0.217 0.196 0.217 0.049
+wilt 0.609 0.51 0.832 0.734 0.72 1.0 0.252 -0.462 0.462 0.147 0.259 -0.035 -0.077 0.245 -0.175 -0.091 0.301 0.51 0.049 0.685 0.098 0.07 0.021 0.636 -0.175 -0.245 -0.168 -0.224
+eeg-eye-state -0.081 0.259 0.455 0.252 0.168 0.252 1.0 0.441 0.846 -0.196 0.79 0.531 0.622 0.727 0.007 -0.028 0.441 0.538 0.818 -0.224 0.853 0.685 0.811 -0.322 0.21 -0.336 -0.196 0.35
+optdigits -0.249 0.21 -0.217 0.105 -0.119 -0.462 0.441 1.0 0.399 0.266 0.552 0.755 0.762 0.643 0.601 0.587 0.559 0.42 0.566 -0.636 0.559 0.832 0.797 -0.72 0.783 0.385 0.49 0.86
+tic-tac-toe 0.07 0.385 0.462 0.476 0.455 0.462 0.846 0.399 1.0 -0.042 0.86 0.497 0.559 0.762 0.098 0.098 0.517 0.643 0.692 0.07 0.811 0.755 0.811 -0.147 0.217 -0.287 -0.182 0.301
+waveform-v2 0.441 0.664 0.245 0.622 0.524 0.147 -0.196 0.266 -0.042 1.0 -0.105 0.357 0.133 0.203 0.734 0.804 0.622 0.65 -0.273 0.182 -0.28 0.308 0.133 0.231 0.636 0.86 0.853 0.49
+banknote-authentication -0.035 0.266 0.406 0.35 0.21 0.259 0.79 0.552 0.86 -0.105 1.0 0.643 0.811 0.762 0.084 0.189 0.573 0.58 0.874 -0.308 0.839 0.839 0.811 -0.497 0.406 -0.245 -0.056 0.566
+wdbc -0.133 0.308 0.259 0.42 0.126 -0.035 0.531 0.755 0.497 0.357 0.643 1.0 0.839 0.643 0.49 0.636 0.853 0.734 0.734 -0.503 0.692 0.839 0.797 -0.497 0.839 0.392 0.573 0.881
+iris -0.193 0.196 0.168 0.273 0.035 -0.077 0.622 0.762 0.559 0.133 0.811 0.839 1.0 0.769 0.434 0.538 0.671 0.573 0.79 -0.587 0.671 0.888 0.832 -0.685 0.699 0.098 0.301 0.86
+movement-libras 0.067 0.545 0.28 0.524 0.252 0.245 0.727 0.643 0.762 0.203 0.762 0.643 0.769 1.0 0.538 0.462 0.58 0.671 0.594 -0.224 0.636 0.902 0.839 -0.357 0.469 -0.042 0.154 0.622
+lymphography -0.035 0.462 -0.133 0.336 0.126 -0.175 0.007 0.601 0.098 0.734 0.084 0.49 0.434 0.538 1.0 0.916 0.497 0.49 -0.084 -0.203 -0.035 0.573 0.455 -0.21 0.636 0.671 0.678 0.643
+wine -0.021 0.406 0.049 0.427 0.182 -0.091 -0.028 0.587 0.098 0.804 0.189 0.636 0.538 0.462 0.916 1.0 0.692 0.615 0.049 -0.252 0.028 0.608 0.462 -0.252 0.783 0.762 0.797 0.769
+ozone-eighthr 0.266 0.573 0.566 0.741 0.503 0.301 0.441 0.559 0.517 0.622 0.573 0.853 0.671 0.58 0.497 0.692 1.0 0.923 0.531 -0.105 0.483 0.769 0.692 -0.112 0.86 0.545 0.678 0.797
+ozone-onehr 0.382 0.741 0.699 0.832 0.657 0.51 0.538 0.42 0.643 0.65 0.58 0.734 0.573 0.671 0.49 0.615 0.923 1.0 0.448 0.077 0.455 0.748 0.664 0.042 0.671 0.406 0.538 0.636
+banana -0.242 0.014 0.329 0.147 -0.049 0.049 0.818 0.566 0.692 -0.273 0.874 0.734 0.79 0.594 -0.084 0.049 0.531 0.448 1.0 -0.524 0.937 0.713 0.776 -0.601 0.42 -0.245 -0.042 0.566
+kr-vs-kp 0.651 0.329 0.329 0.462 0.727 0.685 -0.224 -0.636 0.07 0.182 -0.308 -0.503 -0.587 -0.224 -0.203 -0.252 -0.105 0.077 -0.524 1.0 -0.392 -0.371 -0.364 0.937 -0.392 -0.084 -0.203 -0.594
+parkinsons -0.301 0.028 0.273 0.161 -0.007 0.098 0.853 0.559 0.811 -0.28 0.839 0.692 0.671 0.636 -0.035 0.028 0.483 0.455 0.937 -0.392 1.0 0.72 0.832 -0.503 0.315 -0.287 -0.133 0.441
+pendigits -0.025 0.469 0.238 0.483 0.245 0.07 0.685 0.832 0.755 0.308 0.839 0.839 0.888 0.902 0.573 0.608 0.769 0.748 0.713 -0.371 0.72 1.0 0.937 -0.51 0.727 0.196 0.364 0.832
+texture -0.203 0.28 0.21 0.336 0.161 0.021 0.811 0.797 0.811 0.133 0.811 0.797 0.832 0.839 0.455 0.462 0.692 0.664 0.776 -0.364 0.832 0.937 1.0 -0.503 0.608 0.077 0.189 0.706
+thyroid-sick-euthyroid 0.662 0.329 0.364 0.427 0.622 0.636 -0.322 -0.72 -0.147 0.231 -0.497 -0.497 -0.685 -0.357 -0.21 -0.252 -0.112 0.042 -0.601 0.937 -0.503 -0.51 -0.503 1.0 -0.371 0.042 -0.07 -0.601
+ecoli 0.123 0.434 0.133 0.469 0.217 -0.175 0.21 0.783 0.217 0.636 0.406 0.839 0.699 0.469 0.636 0.783 0.86 0.671 0.42 -0.392 0.315 0.727 0.608 -0.371 1.0 0.734 0.853 0.944
+heart-disease-processed-hungarian 0.193 0.378 -0.028 0.308 0.196 -0.245 -0.336 0.385 -0.287 0.86 -0.245 0.392 0.098 -0.042 0.671 0.762 0.545 0.406 -0.245 -0.084 -0.287 0.196 0.077 0.042 0.734 1.0 0.944 0.552
+statlog-heart 0.27 0.497 0.084 0.448 0.217 -0.168 -0.196 0.49 -0.182 0.853 -0.056 0.573 0.301 0.154 0.678 0.797 0.678 0.538 -0.042 -0.203 -0.133 0.364 0.189 -0.07 0.853 0.944 1.0 0.72
+twonorm -0.042 0.364 0.105 0.357 0.049 -0.224 0.35 0.86 0.301 0.49 0.566 0.881 0.86 0.622 0.643 0.769 0.797 0.636 0.566 -0.594 0.441 0.832 0.706 -0.601 0.944 0.552 0.72 1.0
+[0m[[32msuccess[0m] [0mTotal time: 434 s, completed Oct 26, 2015 4:29:33 PM[0m
