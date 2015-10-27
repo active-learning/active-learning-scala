@@ -37,12 +37,12 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   //   lazy val pesadas = args(4).contains("p")
   //   lazy val todas = args(4).contains("t")
   //  lazy val passivas = args(4).contains("p")
-  lazy val porRank = args(4).contains("r")
-  lazy val ntrees = args(5).toInt
+  lazy val porRank = args(5).contains("r")
+  lazy val ntrees = args(6).toInt
   //  lazy val apenasUmPorBase = args(7).contains("um")
-  lazy val criterio = args(6).toInt
-  lazy val (rus, ks) = args(7).toInt -> args(8).toInt
-  lazy val (ini, fim) = args(9) -> args(10)
+  lazy val criterio = args(7).toInt
+  lazy val (rus, ks) = args(8).toInt -> args(9).toInt
+  lazy val (ini, fim) = args(10) -> args(11)
   //  lazy val featureSel = args(13)
   //  lazy val smote = args(14) == "smote"
   //  lazy val smotePropor = args(15).toInt
