@@ -196,14 +196,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     val metads = new Db("metanew", readOnly = false)
     metads.open()
 
-    val rrr = (1 to rs).par map { run =>
+    val rrr = (0 to rs - 1).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
       val bags = shuffled.groupBy(_.base).values.toVector
 
 
       Datasets.kfoldCV2(bags, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
         //seed tem sobreposição acima de 100 folds
-        if (ks >= 100) ???
+        if (ks > 100) ???
         val seed = run * 100 + fold
 
         val (tr0, ts0) = trbags.flatten.toVector -> tsbags.flatten.toVector
