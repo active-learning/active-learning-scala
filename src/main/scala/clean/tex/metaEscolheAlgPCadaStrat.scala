@@ -127,10 +127,12 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       val ra = if (porRank) "ra" else "ac"
       val metads = new Db("metanew", readOnly = false)
       metads.open()
-      val sql69 = s"select mc from r where ls='$leastxt' and st='$stratName' and nt=$ntrees and ra='$ra' and rs=$rus and fs=$ks and qtpbase='$dsminSize'"
+      //      select ra,cr,i,f,st,ls,rs,fs,mc,nt,dsminsize from r
+      val sql69 = s"select mc from r where ra='$ra' and cr=$criterio and i='$ini' and f='$fim' and st='$stratName' and ls='$leastxt' and rs=$rus and fs=$ks and nt=$ntrees and dsminsize='$dsminSize'"
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
-        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
+        //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
+        case x: List[Vector[String]] if x.isEmpty =>
           val porMetaLea = cv(ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
@@ -139,9 +141,9 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
             val accBalTr = Stat.media_desvioPadrao(resultados.map(_.accBalTr))
             val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
-            val r = resultados reduce (_ ++ _)
+            //            val r = resultados reduce (_ ++ _)
             //            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
-            metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2})") //, '$resumoTr', '$resumoTs')")
+            metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2})")
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
           }
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
