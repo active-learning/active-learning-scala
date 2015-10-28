@@ -252,7 +252,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
     val ar = s"/home/davi/wcs/als/csv/$this-r$r-f$f-normalized-pool.arff.csv"
     val s = Source.fromFile(ar)
     val sg = s.getLines().toList
-    println(s"$sg <- s.getLines() $ar")
+    //    println(s"$sg <- s.getLines() $ar")
     val res = sg.last.split(",").map(_.toDouble)
     s.close()
     attsFromRNames zip res map (x => (x._1, x._2, "numeric"))
