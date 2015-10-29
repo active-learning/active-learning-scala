@@ -25,12 +25,12 @@ import ml.classifiers.NoLearner
 import util.Stat
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
-   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "comprimento:all,half,50")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
    //, "porRisco:r", "dist:euc,man,mah")
    val context = "tabwinnerstex"
    val n = 3
-   val dista = "maha"
    val measure = ALCKappa
+  val sts = stratsTexForGraficoComplexo("all")
    run()
 
    override def run() = {
@@ -40,15 +40,10 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
          dataset <- datasets.toList.par
          l <- ls
       } yield {
-         val sts = stratsTexRedux(dista)
-         val ds = Ds(dataset, readOnly = true)
+          val ds = Ds(dataset, readOnly = true)
          ds.open()
          val (ti, th, tf0, tpass) = ranges(ds)
-         val tf = comprimento match {
-            case "half" => th
-            case "all" => tf0
-            case "50" => 49
-         }
+          val tf = 99
          val sres = for {
             s0 <- sts
             s = s0(l)
@@ -78,7 +73,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       val flat = datasetLearnerAndWinners.flatMap(_._2)
       val flat2 = datasetLearnerAndLosers.flatMap(_._2)
       val flat3 = pioresQueRnd.flatMap(_._2)
-      val algs = (for (s <- stratsTexRedux(dista)) yield s(NoLearner()).limp) map { st =>
+     val algs = (for (s <- sts) yield s(NoLearner()).limp) map { st =>
          val topCount = flat.count(_ == st)
          val botCount = flat2.count(_ == st)
          val rndCount = flat3.count(_ == st)
