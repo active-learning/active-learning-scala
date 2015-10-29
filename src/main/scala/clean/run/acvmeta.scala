@@ -58,7 +58,7 @@ object acvmeta extends Exp with StratsTrait with LearnerTrait {
       val fmapa = ((fpool ++ ftestSet) map (p => p.id -> p)) toMap
 
       stratsPool("all", pool, pool).map { st =>
-        // defr pode ser apenas interessante pra tabela de acurácis, que vai ter também RF1000 e qq outro que seja interessante
+        // defr pode ser apenas interessante pra tabela de acurácias, que vai ter também RF1000 e qq outro que seja interessante
         // MetaLearner(pool, mapa, learnerSeed, ds, "metade", st, seqleas)("defr-a")
         val fakelearner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(NoLearner()), seqleas)("PCTr-a")
         val learner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(fakelearner), seqleas)("PCTr-a")
