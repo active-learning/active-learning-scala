@@ -29,30 +29,16 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
   val context = "tabwinnersPares"
   val n = 1
   val qs = "100"
-  // 50 100 u2
   val measure = ALCKappa
   run()
 
   override def run() = {
     super.run()
     val ls = learners(learnersStr)
-    //      val strats = Seq(
-    //         //         MarginFixo(RF(), Seq()),
-    //         HTUFixo(Seq(), RF(), Seq(), "eucl"),
-    //         DensityWeightedTrainingUtilityFixo(Seq(), RF(), Seq(), "eucl"),
-    //         AgDensityWeightedTrainingUtility(Seq(), "eucl")
-    //         //         RandomSampling(Seq())
-    //      )
-    val strats = stratsTexRedux("maha")
+    val strats = stratsTexForGraficoComplexo("all")
+
     val datasetLearnerAndBoth = for {
       dataset <- datasets.toList
-    //        .filter { dataset =>
-    //        val ds = Ds(dataset, readOnly = true)
-    //        ds.open()
-    //        val r = ds.poolSize >= (if (qs == "50") 100 else 200)
-    //        ds.close()
-    //        if (qs == "u2") !r else r
-    //      }
     } yield {
         val ds = Ds(dataset, readOnly = true)
         ds.open()
@@ -64,11 +50,6 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
             f <- 0 until folds
           } yield {
               try {
-                //                val (classif, nr) = qs match {
-                //                  case "100" => BestClassifCV100_10foldReadOnlyKappa(ds, r, f, s) -> -2
-                //                  case "50" => BestClassifCV50_10foldReadOnlyKappa(ds, r, f, s) -> -3
-                //                  case "u2" => BestClassifCVU2_10foldReadOnlyKappa(ds, r, f, s) -> -4
-                //                }
                 classif.limpa -> measure(ds, s, classif, r, f)(ti, tf).read(ds).getOrElse {
                   println((ds, s, s.learner, classif, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
@@ -96,7 +77,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
     val flat = datasetLearnerAndWinners.flatMap(_._2)
     val flat2 = datasetLearnerAndLosers.flatMap(_._2)
     val flat3 = pioresQueRnd.flatMap(_._2)
-    val strats0 = (for {l <- ls; s <- stratsTex("all").map(_(l))} yield s).distinct
+    val strats0 = (for {l <- ls; s <- strats.map(_(l))} yield s).distinct
     val algs1 = strats0.map(_.limpa) map { st =>
       val topCount = flat.count(_ == st)
       val botCount = flat2.count(_ == st)
