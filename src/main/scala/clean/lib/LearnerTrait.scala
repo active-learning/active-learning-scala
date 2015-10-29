@@ -31,8 +31,9 @@ trait LearnerTrait {
     //individuais
     KNNBatcha(5, "eucl", pool, weighted = true)
     , KNNBatcha(5, "manh", pool, weighted = true)
-    //    , KNNBatcha(5, "eucl", pool, weighted = false)
-    //    , KNNBatcha(5, "manh", pool, weighted = false)
+    , KNNBatcha(5, "eucl", pool, weighted = false)
+    , KNNBatcha(5, "manh", pool, weighted = false)
+    , C45()
     , NBBatch()
     , C452()
     //SVM usa filtro, então aparece mais abaixo, na outra função
