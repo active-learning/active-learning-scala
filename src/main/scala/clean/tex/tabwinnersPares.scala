@@ -98,7 +98,7 @@ algoritmo & \makecell{primeiros\\lugares} & \makecell{últimos\\lugares} \\
     //algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
     //\hline
     //             """)
-    algs1.sortBy(_._3).sortBy(_._2).reverse foreach { case (st, topCount, botCount) =>
+    algs1.sortBy(_._3 * -1).sortBy(_._2).reverse foreach { case (st, topCount, botCount) =>
       println(s"${st.padTo(10, ' ')} & \t$topCount & \t$botCount \\\\")
     }
     //    algs1.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
