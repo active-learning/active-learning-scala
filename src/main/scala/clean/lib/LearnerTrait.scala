@@ -28,32 +28,20 @@ trait LearnerTrait {
   def learnersfun(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersStr map str2learnerfun
 
   def learnersPool(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = List[Learner](
-    //individuais
     KNNBatcha(5, "eucl", pool, weighted = true)
-    , KNNBatcha(5, "manh", pool, weighted = true)
-    , KNNBatcha(5, "eucl", pool, weighted = false)
-    , KNNBatcha(5, "manh", pool, weighted = false)
-    , C45()
     , NBBatch()
     , C452()
-    //SVM usa filtro, então aparece mais abaixo, na outra função
 
-    //Florestas, 3 tipos distintos de ensemble
     , RF(learnerSeed)
-    , ABoo(learnerSeed)
-    //RoF usa filtro, então aparece mais abaixo, na outra função
-
-    //Baggings e 10NN
-    //fora    , Knn10(pool, weighted = true)
     , BagC45(learnerSeed)
     , BagNB(learnerSeed)
-    //    , Knn10(pool, weighted = false, distance_name = "eucl")
-    //    , Knn10(pool, weighted = false, distance_name = "manh")
+    , Knn10(pool, weighted = true, distance_name = "eucl")
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](
-    RoF(learnerSeed)
-    , SVMLibRBF(learnerSeed)
+    SVMLibRBF(learnerSeed)
+
+    , RoF(learnerSeed)
   )
 
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
@@ -61,14 +49,14 @@ trait LearnerTrait {
     case "bagc45" => BagC45(learnerSeed)
     case "10nnw" => Knn10(pool, weighted = true, distance_name = "eucl")
     case "10nn" => Knn10(pool, weighted = false, distance_name = "eucl")
-    case "10nnmw" => Knn10(pool, weighted = true, distance_name = "manh")
+    //    case "10nnmw" => Knn10(pool, weighted = true, distance_name = "manh")
     case "10nnm" => Knn10(pool, weighted = false, distance_name = "manh")
 
     case "aboo" => ABoo(learnerSeed)
     case "rof" => RoF(learnerSeed)
     case "nbb" => NBBatch()
     case "5nnw" => KNNBatcha(5, "eucl", pool, weighted = true)
-    case "5nnmw" => KNNBatcha(5, "manh", pool, weighted = true)
+    //    case "5nnmw" => KNNBatcha(5, "manh", pool, weighted = true)
     case "5nn" => KNNBatcha(5, "eucl", pool, weighted = false)
     case "5nnm" => KNNBatcha(5, "manh", pool, weighted = false)
     case "c45" => C45()

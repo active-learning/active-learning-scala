@@ -25,10 +25,9 @@ import ml.classifiers._
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "?", "?", "?", "?", "?", "ini", "fim")
   val context = "tabwinnersPares"
   val n = 1
-  val qs = "100"
   val measure = ALCKappa
   run()
 
@@ -42,7 +41,16 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
     } yield {
         val ds = Ds(dataset, readOnly = true)
         ds.open()
-        lazy val (ti, th, tf, tpass) = ranges(ds)
+        lazy val (ti0, th0, tf0, tpass) = ranges(ds)
+        val ti = ini match {
+          case "ti" => ti0
+          case "th" => th0 + 1
+        }
+        val tf = fim match {
+          case "th" => th0
+          case "tf" => tf0
+        }
+
         val sres = for {s0 <- strats; classif <- ls} yield {
           val s = s0(classif)
           val (cs, vs) = (for {
@@ -89,7 +97,6 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
       //      (st, topCount, rndCount, botCount)
     }
 
-    println(s"${if (qs == "50") "50" else ""}")
     println( """\begin{tabular}{lccc}
 algoritmo & \makecell{primeiros\\lugares} & \makecell{últimos\\lugares} \\
 \hline
