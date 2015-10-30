@@ -35,7 +35,6 @@ trait LearnerTrait {
     , RF(learnerSeed)
     , BagC45(learnerSeed)
     , BagNB(learnerSeed)
-    , Knn10(pool, weighted = true, distance_name = "eucl")
   )
 
   def learnersFpool(learnerSeed: Int = -1) = List[Learner](

@@ -25,7 +25,7 @@ import ml.classifiers._
 import util.Stat
 
 object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "?", "?", "?", "?", "?", "ini", "fim")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "r:sóMar", "?", "?", "?", "?", "ini", "fim")
   val context = "tabwinnersPares"
   val n = 1
   val measure = ALCKappa
@@ -34,7 +34,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
   override def run() = {
     super.run()
     val ls = learners(learnersStr)
-    val strats = stratsTexForGraficoComplexo("all")
+    val strats = if (porRank) Seq((learner: Learner) => MarginFixo(learner, fakePool)) else stratsTexForGraficoComplexo("all")
 
     val datasetLearnerAndBoth = for {
       dataset <- datasets.toList
