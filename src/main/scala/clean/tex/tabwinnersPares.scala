@@ -60,39 +60,50 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
               }
             }).unzip
           //            if (vs.contains(NA)) None else Some(s.limpa + cs.mkString(";") -> Stat.media_desvioPadrao(vs.toVector)._1)
-          s.limpa -> Stat.media_desvioPadrao(vs.toVector)._1
+          s.limp + classif.limp -> Stat.media_desvioPadrao(vs.toVector)._1
         }
-        val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).getOrElse("" -> 0d)._2
-        val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1),
-          ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1),
-          ds.dataset -> sres.filter(_._2 <= rnd).map(_._1).toList)
+        //        val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).getOrElse("" -> 0d)._2
+        val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1), ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1))
+        //          ds.dataset -> sres.filter(_._2 <= rnd).map(_._1).toList)
+        //        val res = (ds.dataset -> pegaMelhores(sres, n)(_._2).map(_._1),
+        //          ds.dataset -> pegaMelhores(sres, n)(-_._2).map(_._1),
+        //          ds.dataset -> sres.filter(_._2 <= rnd).map(_._1).toList)
         ds.close()
         res
       }
 
-    val (datasetLearnerAndWinners, datasetLearnerAndLosers, pioresQueRnd) = datasetLearnerAndBoth.unzip3
+    val (datasetLearnerAndWinners, datasetLearnerAndLosers) = datasetLearnerAndBoth.unzip
+    //    val (datasetLearnerAndWinners, datasetLearnerAndLosers, pioresQueRnd) = datasetLearnerAndBoth.unzip3
     println(s"$n primeiros/últimos")
     println(s"${datasetLearnerAndBoth.size} tests.")
     println(s"--------$measure---------------")
     val flat = datasetLearnerAndWinners.flatMap(_._2)
     val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-    val flat3 = pioresQueRnd.flatMap(_._2)
-    val strats0 = (for {l <- ls; s <- strats.map(_(l))} yield s).distinct
-    val algs1 = strats0.map(_.limpa) map { st =>
+    //    val flat3 = pioresQueRnd.flatMap(_._2)
+    val strats0 = (for {l <- ls; s <- strats.map(x => x(l).limp + l.limp)} yield s).distinct
+    val algs1 = strats0 map { st =>
       val topCount = flat.count(_ == st)
       val botCount = flat2.count(_ == st)
-      val rndCount = flat3.count(_ == st)
-      (st, topCount, rndCount, botCount)
+      //      val rndCount = flat3.count(_ == st)
+      (st, topCount, botCount)
+      //      (st, topCount, rndCount, botCount)
     }
 
     println(s"${if (qs == "50") "50" else ""}")
     println( """\begin{tabular}{lccc}
-algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
+algoritmo & \makecell{primeiros\\lugares} & \makecell{últimos\\lugares} \\
 \hline
              """)
-    algs1.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
-      println(s"${st.padTo(10, ' ')} & \t$topCount & \t$rndCount & \t$botCount \\\\")
+    //    println( """\begin{tabular}{lccc}
+    //algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
+    //\hline
+    //             """)
+    algs1.sortBy(_._2).reverse foreach { case (st, topCount, botCount) =>
+      println(s"${st.padTo(10, ' ')} & \t$topCount & \t$botCount \\\\")
     }
+    //    algs1.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
+    //      println(s"${st.padTo(10, ' ')} & \t$topCount & \t$rndCount & \t$botCount \\\\")
+    //    }
     println(
       """\end{tabular}
       """.stripMargin)
