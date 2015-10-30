@@ -33,7 +33,6 @@ trait LearnerTrait {
     , C452()
 
     , RF(learnerSeed)
-    , BagC45(learnerSeed)
     , BagNB(learnerSeed)
   )
 
