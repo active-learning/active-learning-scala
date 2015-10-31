@@ -50,8 +50,8 @@ trait LearnerTrait {
     case "5nnw" | "5NNw" => KNNBatcha(5, "eucl", pool, weighted = true)
     case "c452" | "C4.52" => C452()
     case "rbf" | "SVM" => SVMLibRBF(learnerSeed)
+    case "rf" | "RFw" => RF(learnerSeed)
 
-    case "rf" => RF(learnerSeed)
     case "10nnw" => Knn10(pool, weighted = true, distance_name = "eucl")
     //    case "10nnmw" => Knn10(pool, weighted = true, distance_name = "manh")
     case "10nn" => Knn10(pool, weighted = false, distance_name = "eucl")
