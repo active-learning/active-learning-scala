@@ -429,7 +429,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
               case (patt, idx) =>
                 val t = idx + lastUsedT + 1
                 m = learner.update(m, fast_mutable = true)(patt)
-                val mm = if (learner.id > 100000000) m.asInstanceOf[WekaBatModel2] else m
+                val mm = m //if (learner.id > 100000000) m.asInstanceOf[WekaBatModel2] else m
                 val cm = mm.confusion(testSet)
                 val blob = confusionToBlob(cm)
                 (s"INSERT INTO h values ($pid, $t, ?)", blob)
@@ -601,7 +601,7 @@ case class Ds(dataset: String, readOnly: Boolean) extends Db(s"$dataset", readOn
       case (patt, idx) =>
         val t = idx + nclasses - 1
         if (patt != null) m = learner.update(m, fast_mutable = true)(patt)
-        val mm = if (learner.id > 100000000) m.asInstanceOf[WekaBatModel2] else m
+        val mm = m //if (learner.id > 100000000) m.asInstanceOf[WekaBatModel2] else m
         val cm = mm.confusion(testSet)
         val blob = confusionToBlob(cm)
         (s"INSERT INTO h SELECT id, $t, ? FROM p where s=${

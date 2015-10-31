@@ -97,7 +97,8 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
     } else batmodel.adequaFiltragem(pattern) +: labeled
 
     //esse build é do learner!
-    bl.build(tr)
+    val m0 = bl.build(tr).asInstanceOf[WekaBatModel]
+    WekaBatModel2(m0.batch_classifier, m0.training_set, ftodos)
   }
 
   /**
@@ -110,7 +111,10 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
     val bl = if (labeled.size != labeled.head.nclasses) throw new Error("MetaLearner.build() chamado sem |Y| exemplos!")
     else bestlea(labeled.size)
     val tr = if (bl.querFiltro) labeled map (p => ftodos(p.id)) else labeled map (p => todos(p.id))
-    bl.build(tr)
+
+    //esse build é do learner!
+    val m0 = bl.build(tr).asInstanceOf[WekaBatModel]
+    WekaBatModel2(m0.batch_classifier, m0.training_set, ftodos)
   }
 
   protected def cast2wekabatmodel2(model: Model) = model match {
