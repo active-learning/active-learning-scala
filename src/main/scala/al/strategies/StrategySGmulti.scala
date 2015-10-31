@@ -19,7 +19,7 @@
 package al.strategies
 
 import ml.Pattern
-import ml.models.{WekaBatModel, Model}
+import ml.models.{WekaBatModel2, WekaBatModel, Model}
 import util.Graphics.Plot
 
 trait StrategySGmulti extends Strategy {
@@ -44,10 +44,24 @@ trait StrategySGmulti extends Strategy {
       if (debug) visual_test(null, unlabeled, labeled)
       val selected = controversial(unlabeled, current_models)
 
-      val new_models = current_models map { m =>
-        val wm = m.asInstanceOf[WekaBatModel]
-        val newTR = selected +: wm.training_set.diff(Seq(selected)) //troca por ele mesmo mas com peso integral
-        learner.build(newTR) //assume batch learning
+      val new_models = learner.id match {
+        case 2651110 | 556665 | 165111 => //SVM não lida bem com exemplos duplicados, suponho que tire a média; então temos que tirar o antigo e por o novo com o peso integral; suponho que ELMs não tenham problema
+          current_models map { m =>
+            val wm = m.asInstanceOf[WekaBatModel]
+            val newTR = selected +: wm.training_set.diff(Seq(selected)) //troca por ele mesmo mas com peso integral
+            learner.build(newTR) //assume batch learning
+          }
+        case x if x >= 100000000 => //ML
+          current_models map { m =>
+            val wm = m.asInstanceOf[WekaBatModel2]
+            val newTR = selected +: wm.labeled.diff(Seq(selected)) //troca por ele mesmo mas com peso integral
+            learner.build(newTR)
+          }
+        case _ =>
+          //Update specific models with queried label.
+          //The real weight (1) is far bigger than the artificial weight(<< 0.01).
+          //Therefore, instead of a total retraining, just a incremental retraining with the correct label/weight should suffice.
+          current_models map (m => learner.update(m, fast_mutable = true)(selected))
       }
 
       if (debug) {
@@ -55,7 +69,7 @@ trait StrategySGmulti extends Strategy {
         visual_test(selected, unlabeled, labeled)
       }
       selected #:: queries_rec(new_models, unlabeled.diff(Seq(selected)), labeled :+ selected)
-    }
+      }
   }
 
   protected def most_votes(votes: Array[Int]) = votes.groupBy(identity).map(_._2.size).max
