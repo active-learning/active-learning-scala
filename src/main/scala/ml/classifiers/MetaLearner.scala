@@ -41,9 +41,24 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   lazy val (best1, best2) = {
     val metads = new Db("metanew", readOnly = true)
     metads.open()
+    /*
+    +-------+-------------+------+-----+---------+-------+
+   | Field | Type        | Null | Key | Default | Extra |
+   +-------+-------------+------+-----+---------+-------+
+   | ds    | varchar(50) | NO   | PRI |         |       |
+   | fs    | int(11)     | NO   | PRI | 0       |       |
+   | i     | varchar(2)  | NO   | PRI |         |       |
+   | f     | varchar(2)  | NO   | PRI |         |       |
+   | st    | varchar(20) | NO   | PRI |         |       |
+   | leas  | varchar(50) | NO   | PRI |         |       |
+   | mc    | varchar(20) | NO   | PRI |         |       |
+   | esp   | varchar(20) | YES  |     | NULL    |       |
+   | pre   | varchar(20) | YES  |     | NULL    |       |
+   +-------+-------------+------+-----+---------+-------+
+     */
     val sqls = Seq(
-      s"select pre from e where ds='$ds' and fs=$fs and ini='ti' and fim='th' and st='${st.limpa}' and leas='$leas' and mc='$mc';",
-      s"select pre from e where ds='$ds' and fs=$fs and ini='th' and fim='tf' and st='${st.limpa}' and leas='$leas' and mc='$mc';"
+      s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limpa}' and leas='$leas' and mc='$mc';",
+      s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limpa}' and leas='$leas' and mc='$mc';"
     )
     val reses = sqls map { sql =>
       print(s"metasql: $sql\t\t")
