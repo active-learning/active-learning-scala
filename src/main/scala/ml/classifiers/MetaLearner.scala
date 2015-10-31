@@ -108,8 +108,10 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
    * @return
    */
   def build(labeled: Seq[Pattern]) = {
-    val bl = if (labeled.size != labeled.head.nclasses) throw new Error("MetaLearner.build() chamado sem |Y| exemplos!")
-    else bestlea(labeled.size)
+    val bl = if (labeled.size != labeled.head.nclasses) {
+      println(s"SGmulti detectado no $abr")
+      bestlea(labeled.count(_.weight() == 1))
+    } else bestlea(labeled.size)
     val tr = if (bl.querFiltro) labeled map (p => ftodos(p.id)) else labeled map (p => todos(p.id))
 
     //esse build é do learner!
