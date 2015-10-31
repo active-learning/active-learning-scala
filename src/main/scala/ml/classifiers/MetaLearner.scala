@@ -29,23 +29,24 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   val abr = s"Meta-$mc"
   val boundaryType = "nenhum"
   val attPref = "nenhum"
-  val fs = 87
+  val fs = 100
   val id = "metade" match {
     case "metade" => 100000000 + ((mc +: leas).hashCode % 100000000).abs //94172909: maior sid+convlid até então.
     //    case "inteira" => 200000000 + ((mc +: leas).hashCode % 100000000).abs
   }
   //id não precisa (nem deve for the sake of querying the database) conter st, pois no BD já vem a strat nas tabelas q e h via tabela p
-  //se for ALC inteira, basta copiar todas as queries (ou melhor ainda, nem copiar?); acho que compensa criar um Learner só pra ela. ou nem ter MEta-inteira
+  //se for ALC inteira, basta copiar todas as queries (ou melhor ainda, nem copiar?);
+  // acho que compensa criar um Learner só pra ela. ou nem ter MEta-inteira
 
   lazy val (best1, best2) = {
     val metads = new Db("metanew", readOnly = true)
     metads.open()
     val sqls = Seq(
-      s"select pre from e where ds='$ds' and fs=$fs and ini='ti' and fim='tf' and st='${st.limpa}' and leas='$leas' and mc='$mc';",
-      s"select pre from e where ds='$ds' and fs=$fs and ini='ti' and fim='tf' and st='${st.limpa}' and leas='$leas' and mc='$mc';"
+      s"select pre from e where ds='$ds' and fs=$fs and ini='ti' and fim='th' and st='${st.limpa}' and leas='$leas' and mc='$mc';",
+      s"select pre from e where ds='$ds' and fs=$fs and ini='th' and fim='tf' and st='${st.limpa}' and leas='$leas' and mc='$mc';"
     )
     val reses = sqls map { sql =>
-      print(s"metasql1: $sql\t\t")
+      print(s"metasql: $sql\t\t")
       metads.readString(sql) match {
         case List(Vector(pre)) => pre //as vezes tinha strat junto, as vezes nao tinha; acho que agora arrumei na origem do problema
         case x => sys.error(x.toString())
@@ -64,22 +65,22 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   lazy val bestleafinal = leamap(best2)
 
   /**
-   * Best learner for the next pattern.
-   * @param labeled
-   * @return
+   * Best learner for the AMOUNT OF patternS.
    */
-  def bestlea(labeled: Seq[Pattern]) = if (labeled.size <= 48) bestleacomeco else bestleafinal
+  def bestlea(n: Int) = if (n <= 50) bestleacomeco else bestleafinal
 
   def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = {
     val batmodel = cast2wekabatmodel2(model)
     val labeled = batmodel.labeled
-    val bl = bestlea(labeled)
+    val bl = bestlea(labeled.size + 1)
 
     val tr = if (labeled.size == 50) {
+      //transição
       if (bl.querFiltro) (pattern +: labeled) map (p => ftodos(p.id))
       else (pattern +: labeled) map (p => todos(p.id))
     } else batmodel.adequaFiltragem(pattern) +: labeled
 
+    //esse build é do learner!
     bl.build(tr)
   }
 
@@ -91,7 +92,7 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
    */
   def build(labeled: Seq[Pattern]) = {
     val bl = if (labeled.size != labeled.head.nclasses) throw new Error("MetaLearner.build() chamado sem |Y| exemplos!")
-    else bestlea(labeled) //"labeled" - 1 seria mais preciso, mas dá na mesma
+    else bestlea(labeled.size)
     val tr = if (bl.querFiltro) labeled map (p => ftodos(p.id)) else labeled map (p => todos(p.id))
     bl.build(tr)
   }
