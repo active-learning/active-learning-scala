@@ -44,7 +44,6 @@ trait LearnerTrait {
 
   def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
     case "bagnb" | "BagNB" => BagNB(learnerSeed)
-    case "bagc45" | "BagC45" => BagC45(learnerSeed)
     case "rof" | "RoF" => RoF(learnerSeed)
     case "nbb" | "NB" => NBBatch()
     case "5nnw" | "5NNw" => KNNBatcha(5, "eucl", pool, weighted = true)
@@ -52,10 +51,10 @@ trait LearnerTrait {
     case "rbf" | "SVM" => SVMLibRBF(learnerSeed)
     case "rf" | "RFw" => RF(learnerSeed)
 
+    case "bagc45" | "BagC45" => BagC45(learnerSeed)
     case "10nnw" => Knn10(pool, weighted = true, distance_name = "eucl")
     //    case "10nnmw" => Knn10(pool, weighted = true, distance_name = "manh")
     case "10nn" => Knn10(pool, weighted = false, distance_name = "eucl")
-
     case "10nnm" => Knn10(pool, weighted = false, distance_name = "manh")
     //    case "5nnmw" => KNNBatcha(5, "manh", pool, weighted = true)
     case "aboo" => ABoo(learnerSeed)
