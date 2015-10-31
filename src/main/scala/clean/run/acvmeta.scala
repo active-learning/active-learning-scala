@@ -54,7 +54,7 @@ object acvmeta extends Exp with StratsTrait with LearnerTrait {
       ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
       //         val best = BestPassiveClassif(ds, learnerSeed, pool)
 
-      val mapa = ((fpool ++ ftestSet) map (p => p.id -> p)) toMap
+      val mapa = ((pool ++ testSet) map (p => p.id -> p)) toMap
       val fmapa = ((fpool ++ ftestSet) map (p => p.id -> p)) toMap
 
       stratsPool("all", pool, pool).map { st =>

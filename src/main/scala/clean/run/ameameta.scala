@@ -51,7 +51,7 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
     } else {
       ds.startbeat(run, fold)
       ds.log(s"Iniciando trabalho para pool $run.$fold ...", 30)
-      val mapa = ((fpool ++ ftestSet) map (p => p.id -> p)) toMap
+      val mapa = ((pool ++ testSet) map (p => p.id -> p)) toMap
       val fmapa = ((fpool ++ ftestSet) map (p => p.id -> p)) toMap
 
       stratsPool("all", pool, pool).map { st =>

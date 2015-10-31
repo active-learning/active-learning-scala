@@ -58,8 +58,8 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
    +-------+-------------+------+-----+---------+-------+
      */
     val sqls = Seq(
-      s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limpa}' and leas='$leas' and mc='$mc';",
-      s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limpa}' and leas='$leas' and mc='$mc';"
+      s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limp}' and leas='$leas' and mc='$mc';",
+      s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limp}' and leas='$leas' and mc='$mc';"
     )
     val reses = sqls map { sql =>
       print(s"metasql: $sql\t\t")
@@ -69,7 +69,7 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
       }
     }
     metads.close()
-    println(reses)
+    println("preditos: " + reses)
     reses(0) -> reses(1)
   }
   lazy val ls = leas map str2learner(pool, learnerSeed)
