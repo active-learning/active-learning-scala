@@ -25,6 +25,7 @@ import util.Datasets
 
 case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, Pattern], ftodos: Map[Int, Pattern], learnerSeed: Int, ds: Ds, st: Strategy, leas: Seq[String])(mc: String)
   extends Learner with LearnerTrait {
+  override val toString = "ML" + mc
   if (pool.head.vector.sameElements(ftodos(pool.head.id).vector)) throw new Error("filtragem inócua detectada: afeta uma premissa importante em MEtaLearner")
   val abr = s"Meta-$mc"
   val boundaryType = "nenhum"
