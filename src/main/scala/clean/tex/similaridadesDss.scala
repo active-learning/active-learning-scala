@@ -70,7 +70,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
               kappa(cmres)
             }
           }
-          println(s"tempo: $ds $leaFake $t k:${v.sum / v.size}")
+          println(s"tempo: $ds $leaFake $t \tk:${(100 * v.sum / v.size).round / 100}")
           v
         }
         ds.close()
