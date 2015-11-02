@@ -61,7 +61,7 @@ trait LearnerTrait {
     case "5nn" => KNNBatcha(5, "eucl", pool, weighted = false)
     case "5nnm" => KNNBatcha(5, "manh", pool, weighted = false)
     case "c45" => C45()
-    //      case "reg" => LogReg(learnerSeed)
+    //          case "reg" => LogReg(learnerSeed)
     case "vfdt" => VFDT()
     case "poly1" => SVMLibDegree1(learnerSeed)
     //      case "nb" => NB()
