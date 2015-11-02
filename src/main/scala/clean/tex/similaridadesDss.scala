@@ -54,8 +54,8 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
         val preds = learnersfun(learnersStr).map { learnerfun =>
           val leaFake = learnerfun(Seq(), 42)
           val (v, t) = Tempo.timev {
-            (1 to 100) map { run =>
-              val patts0 = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
+            (1 to 10) map { run =>
+              val patts0 = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(1000))
               val patts = if (leaFake.querFiltro) criaFiltro(patts0, run)._1 else patts0
               val cms = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
                 val learner = learnerfun(tr, (1000 * fold) + run + seed.toInt)
