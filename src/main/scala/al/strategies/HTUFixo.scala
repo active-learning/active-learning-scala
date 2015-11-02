@@ -23,7 +23,7 @@ import ml.classifiers._
 import ml.models.Model
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 
-case class HTUFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false, pearson: Double = 0.999)
+case class HTUFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pattern], distance_name: String, alpha: Double = 1, beta: Double = 1, debug: Boolean = false, pearson: Double = 0.999, print: Boolean = false)
   extends StrategyWithLearnerAndMaps with MarginMeasure with EntropyMeasure {
   override lazy val toString = "HTU" + learner.limpa + " a" + alpha + " b" + beta + " (" + distance_name + ")"
   lazy val abr = "\\textbf{HTU" + distance_name.take(3) + "}"
@@ -59,10 +59,17 @@ case class HTUFixo(poolForLearner: Seq[Pattern], learner: Learner, pool: Seq[Pat
         mixmax = mix
         xTUmax = x
       }
-      gn -> mix
+      (ag, gn, mix)
     }
-    val (mar, tu) = list_gn_mix.unzip
+    val (_, mar, tu) = list_gn_mix.unzip3
     lazy val co = new PearsonsCorrelation().correlation(mar.toArray, tu.toArray)
+    if (print) {
+      val atumx = list_gn_mix.map(_._1).max
+      val marmx = list_gn_mix.map(_._2).max
+      val tumx = list_gn_mix.map(_._3).max
+      println(s"$ls $atumx $marmx $tumx $co")
+    }
+
     if (mar.size > 1 && co < pearson) xATUmax else xTUmax
   }
 }
