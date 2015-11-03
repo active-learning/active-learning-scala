@@ -1,8 +1,6 @@
 abalone-3class
 artificial-characters
 autoUniv-au1-1000
-autoUniv-au6-1000
-autoUniv-au6-250-drift-au6-cd1-500
 autoUniv-au6-cd1-400
 autoUniv-au7-300-drift-au7-cpd1-800
 autoUniv-au7-700
@@ -36,11 +34,9 @@ leaf
 lymphography
 magic
 mammographic-mass
-meta-data
 mfeat-fourier
 molecular-splice-junction
 monks1
-monks2
 monks3
 movement-libras
 mushroom
@@ -53,7 +49,6 @@ parkinsons
 pendigits
 phoneme
 pima-indians-diabetes
-planning-relax
 qsar-biodegradation
 ringnorm
 robot-failure-lp5
@@ -66,7 +61,6 @@ statlog-australian-credit
 statlog-german-credit
 statlog-heart
 statlog-image-segmentation
-statlog-landsat-satellite
 statlog-vehicle-silhouettes
 steel-plates-faults
 systhetic-control
@@ -81,14 +75,10 @@ twonorm
 user-knowledge
 vertebra-column-2c
 vertebra-column-3c
-volcanoes-a1
 volcanoes-a3
-volcanoes-a4
 volcanoes-b5
 volcanoes-d1
-volcanoes-d4
 volcanoes-e1
-volcanoes-e5
 voting
 waveform-v2
 wdbc
