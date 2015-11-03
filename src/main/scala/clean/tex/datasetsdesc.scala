@@ -89,9 +89,9 @@ object datasetsdesc extends Exp with Lock {
     //    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (34-66).", todas.drop(47)))
 
     val fw2 = new PrintWriter("/home/davi/wcs/tese/dataset-tables.tex", "UTF-8")
-    fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-34).", todas.take(34)))
-    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (35-68).", todas.drop(34).take(34)))
-    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (68-100).", todas.drop(68).take(34)))
+    fw2.write(tabela("tab:datasetsa", "Características das bases de dados (1-30).", todas.take(30)))
+    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (31-60).", todas.drop(30).take(30)))
+    fw2.write(tabela("tab:datasetsb", "Características das bases de dados (61-90).", todas.drop(60).take(300)))
     fw2.close()
 
     val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables-reduxes.tex") //, "ISO-8859-1")
