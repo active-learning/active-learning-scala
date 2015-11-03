@@ -43,6 +43,7 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
   override def run() = {
     super.run()
     val dss = datasets
+    val seedFixo = 123
     //    println(dss)
     println(dss.size)
     val mat = for {
@@ -55,10 +56,10 @@ object similaridadesDss extends AppWithUsage with LearnerTrait with StratsTrait 
           val leaFake = learnerfun(Seq(), 42)
           val (v, t) = Tempo.timev {
             (1 to 100) map { run =>
-              val patts0 = new Random(run + seed).shuffle(transpose(new Random(run + 1 + seed).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
+              val patts0 = new Random(run + seedFixo).shuffle(transpose(new Random(run + 1 + seedFixo).shuffle(ds.patterns).groupBy(_.label).map(_._2.toList.take(500)).toList).flatten.take(100))
               val patts = if (leaFake.querFiltro) criaFiltro(patts0, run)._1 else patts0
               val cms = Datasets.kfoldCV(patts.toVector, 10, parallel = true) { (tr, testset, fold, min) =>
-                val learner = learnerfun(tr, (1000 * fold) + run + seed.toInt)
+                val learner = learnerfun(tr, (1000 * fold) + run + seedFixo.toInt)
                 val model = learner.build(tr)
                 //              if (testset.size != 10) error("testset.size != 10")
                 model.confusion(testset)
