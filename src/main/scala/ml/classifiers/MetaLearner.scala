@@ -80,7 +80,7 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   lazy val bestleacomeco = leamap(best1)
   lazy val bestleafinal = leamap(best2)
 
-  /**
+  /** 98
    * Best learner for the AMOUNT OF patternS.
    */
   def bestlea(n: Int) = if (n <= 50) bestleacomeco else bestleafinal
