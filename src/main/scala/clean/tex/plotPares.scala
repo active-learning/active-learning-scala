@@ -92,7 +92,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       }
     val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
     val plot = plot0.toList.transpose.map { x =>
-      x.sliding(10).map(y => y.sum / y.size).toList
+      x.sliding(5).map(y => y.sum / y.size).toList
     }.transpose
 
     val porLea = algs.zip(plot.transpose).groupBy(_._1.replace("-a", "+a").split("-").last).toList
@@ -111,7 +111,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
     val fw = new PrintWriter(arq) //, "ISO-8859-1")
     fw.write("budget " + algs2.mkString(" ") + "\n")
     plot2.zipWithIndex foreach { case (re, i) =>
-      fw.write((i + 5) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
+      fw.write((i + 2) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
     }
     fw.close()
     println(s"$arq")
