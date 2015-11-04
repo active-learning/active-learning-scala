@@ -19,11 +19,12 @@ Copyright (c) 2014 Davi Pereira dos Santos
 
 package clean.lib
 
+import al.strategies.Strategy
 import ml.Pattern
 import ml.classifiers._
 
 trait LearnerTrait {
-  def learners(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersStr map str2learner(pool, learnerSeed)
+  def learners(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1, ds: Ds = null, st: Strategy = null) = learnersStr map str2learner(pool, learnerSeed, ds, st, learnersStr.filter(_ != "meta"))
 
   def learnersfun(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersStr map str2learnerfun
 
@@ -42,7 +43,7 @@ trait LearnerTrait {
     , RoF(learnerSeed)
   )
 
-  def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1)(str: String) = str match {
+  def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1, ds: Ds = null, st: Strategy = null, ls: Seq[String] = null)(str: String) = str match {
     case "bagnb" | "BagNB" => BagNB(learnerSeed)
     case "rof" | "RoF" => RoF(learnerSeed)
     case "nbb" | "NB" => NBBatch()
@@ -50,6 +51,7 @@ trait LearnerTrait {
     case "c452" | "C4.52" => C452()
     case "rbf" | "SVM" => SVMLibRBF(learnerSeed)
     case "rf" | "RFw" => RF(learnerSeed)
+    case "meta" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls)("PCTr-a")
 
     case "bagc45" | "BagC45" => BagC45(learnerSeed)
     case "10nnw" => Knn10(pool, weighted = true, distance_name = "eucl")

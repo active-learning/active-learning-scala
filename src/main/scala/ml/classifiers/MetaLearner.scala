@@ -26,11 +26,10 @@ import util.Datasets
 case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, Pattern], ftodos: Map[Int, Pattern], learnerSeed: Int, ds: Ds, st: Strategy, leas: Seq[String])(mc: String)
   extends Learner with LearnerTrait {
   override val toString = "ML" + mc
-  if (pool.head.vector.sameElements(ftodos(pool.head.id).vector)) throw new Error("filtragem inócua detectada: afeta uma premissa importante em MEtaLearner")
   val abr = s"Meta-$mc"
   val boundaryType = "nenhum"
   val attPref = "nenhum"
-  val fs = 100
+  val fs = 90
   val id = "metade" match {
     case "metade" => 100000000 + ((mc +: leas).hashCode % 100000000).abs //94172909: maior sid+convlid até então.
     //    case "inteira" => 200000000 + ((mc +: leas).hashCode % 100000000).abs
@@ -40,6 +39,7 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   // acho que compensa criar um Learner só pra ela. ou nem ter MEta-inteira
 
   lazy val (best1, best2) = {
+    if (pool.head.vector.sameElements(ftodos(pool.head.id).vector)) throw new Error("filtragem inócua detectada: afeta uma premissa importante em MEtaLearner")
     val metads = new Db("metanew", readOnly = true)
     metads.open()
     /*
