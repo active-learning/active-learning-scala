@@ -49,7 +49,7 @@ trait Exp extends AppWithUsage with FilterTrait {
          val ds = Ds(dataset, readOnly)
          ds.open()
          val res1 = if (isAlreadyDone(ds)) {
-           ds.log(s"$dataset\tdone/depending!", 20)
+           println(s"$dataset\tdone/depending!", 20)
             ds.dataset -> true
          } else {
             if (!ignoreNotDone) {
