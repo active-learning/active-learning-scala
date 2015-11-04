@@ -88,7 +88,7 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
 
   def isAlreadyDone(ds: Ds) = {
     val despreparado = if (!ds.isFinishedRun("meta" + versao)) {
-      ds.log(s"acv ou acvf ainda não terminaram este dataset, skipping...")
+      ds.log(s"acv ou acvf ainda não terminaram este dataset, skipping...", 50)
       true
     } else false
     despreparado || ds.isFinishedRun("metaamea" + versao)
