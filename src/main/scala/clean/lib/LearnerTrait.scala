@@ -43,7 +43,7 @@ trait LearnerTrait {
     , RoF(learnerSeed)
   )
 
-  def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1, ds: Ds = null, st: Strategy = null, ls: Seq[String] = null)(str: String) = str match {
+  def str2learner(pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1, ds: Ds = null, st: Strategy = null, ls: Seq[String] = null)(str: String): Learner = str match {
     case "bagnb" | "BagNB" => BagNB(learnerSeed)
     case "rof" | "RoF" => RoF(learnerSeed)
     case "nbb" | "NB" => NBBatch()
