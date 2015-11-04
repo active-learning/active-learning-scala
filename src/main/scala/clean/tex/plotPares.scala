@@ -48,7 +48,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       U >= 100
     }
     val dsss = dss.take(599)
-    val arq = s"/home/davi/wcs/tese/$learnersStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+    val arq = s"/home/davi/wcs/tese/$learnerStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
     println(s"$arq")
     val algs = (for {s <- strats; l <- ls(null, null)} yield s(l).limp + "-" + l.limp).toVector
     val res0 = for {
