@@ -48,7 +48,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       U >= 100
     }
     val dsss = dss.take(599)
-    val arq = s"/home/davi/wcs/tese/kappa$dist${tipoSumariz}Pares" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
+    val arq = s"/home/davi/wcs/tese/$learnersStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".plot"
     println(s"$arq")
     val algs = (for {s <- strats; l <- ls(null, null)} yield s(l).limp + "-" + l.limp).toVector
     val res0 = for {
@@ -108,7 +108,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
     }
     val (algs2, plot3) = minMaxBest.flatten.sortBy(_._2.sum).unzip
     val plot2 = plot3.transpose
-    val fw = new PrintWriter(arq, "ISO-8859-1")
+    val fw = new PrintWriter(arq) //, "ISO-8859-1")
     fw.write("budget " + algs2.mkString(" ") + "\n")
     plot2.zipWithIndex foreach { case (re, i) =>
       fw.write((i + 5) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
