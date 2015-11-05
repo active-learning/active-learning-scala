@@ -123,6 +123,17 @@ trait StratsTrait {
     , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")
     , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")
   )
+  val stratsTexForGraficoSimples = Seq(
+    (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+    , (learner: Learner) => ClusterBased(fakePool) //1
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => MarginFixo(learner, fakePool)
+    , (learner: Learner) => RandomSampling(fakePool)
+    , (learner: Learner) => SGmultiFixo(learner, fakePool, "consensus")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")
+  )
 
 
   def stratsTex(dist: String) = {
