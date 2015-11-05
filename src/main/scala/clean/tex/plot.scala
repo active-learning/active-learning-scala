@@ -36,7 +36,7 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
   val strats = conf match {
     case "artigos/hais14-expandido" => stratsTexRedux(dist)
     case "artigos/bracis15" => stratsForBRACIS15
-    case "tese" => stratsTexForGraficoComplexo(dist)
+    case "tese" => stratsTexForGraficoComplexo
   }
   run()
 

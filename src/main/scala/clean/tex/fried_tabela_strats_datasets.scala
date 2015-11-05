@@ -37,7 +37,7 @@ object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with 
       case "pt" => s"Um contra um (STR). Medida: $measure. \\textit{Legenda na Tabela \\ref{tab:friedClassif}.}"
       case "en" => s"Pairwise comparison: each asterisk/cross/dot indicates that the algorithm at the row has better $measure than the strategy at the column within a confidence interval of 0.99/0.95/0.90."
     }
-    val strats = stratsTexForGraficoComplexo("all")
+    val strats = stratsTexForGraficoComplexo
     for (le <- learners(learnersStr)) {
       val (sls, res0) = (for {
         dataset <- datasets.filter { d =>

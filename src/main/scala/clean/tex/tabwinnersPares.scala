@@ -34,7 +34,7 @@ object tabwinnersPares extends AppWithUsage with LearnerTrait with StratsTrait w
   override def run() = {
     super.run()
     val ls = learners(learnersStr)
-    val strats = if (porRank) Seq((learner: Learner) => MarginFixo(learner, fakePool)) else stratsTexForGraficoComplexo("all")
+    val strats = if (porRank) Seq((learner: Learner) => MarginFixo(learner, fakePool)) else stratsTexForGraficoComplexo
 
     val datasetLearnerAndBoth = for {
       dataset <- datasets.toList

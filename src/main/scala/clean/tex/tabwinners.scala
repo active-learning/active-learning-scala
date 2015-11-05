@@ -30,7 +30,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
    val context = "tabwinnerstex"
    val n = 3
    val measure = ALCKappa
-  val sts = stratsTexForGraficoComplexo("all")
+  val sts = stratsTexForGraficoComplexo
    run()
 
    override def run() = {

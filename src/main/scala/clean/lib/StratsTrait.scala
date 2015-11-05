@@ -107,31 +107,23 @@ trait StratsTrait {
     ).flatten
   }
 
-  def stratsTexForGraficoComplexo(dist: String) = {
-    val fakePool = Seq()
-    Seq(
-      if (dist == "eucl" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")) else None
-      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")) else None
-      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "balacc"))
-      , Some((learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy"))
-      , Some((learner: Learner) => ClusterBased(fakePool)) //1
-      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")) else None
-      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")) else None
-      , Some((learner: Learner) => MarginFixo(learner, fakePool))
-      , Some((learner: Learner) => RandomSampling(fakePool)) //0
-      , Some((learner: Learner) => SGmultiFixo(learner, fakePool, "consensus"))
-      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")) else None
-      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")) else None
+  val stratsTexForGraficoComplexo = Seq(
+    (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
+    , (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "balacc")
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+    , (learner: Learner) => ClusterBased(fakePool) //1
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => MarginFixo(learner, fakePool)
+    , (learner: Learner) => RandomSampling(fakePool)
+    , (learner: Learner) => SGmultiFixo(learner, fakePool, "consensus")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")
+  )
 
-      , if (dist == "eucl" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")) else None
-      , if (dist == "manh" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")) else None
-      //      , if (dist == "maha" || dist == "all") Some((learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "maha")) else None
-
-    ).flatten
-  }
 
   def stratsTex(dist: String) = {
     val fakePool = Seq()

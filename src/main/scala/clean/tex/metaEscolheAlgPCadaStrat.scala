@@ -40,7 +40,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       Maj()
     )
     val leastxt = learnerStr
-    stratsTexForGraficoComplexo("all") foreach { strat =>
+    stratsTexForGraficoComplexo foreach { strat =>
       Tempo.start
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l
