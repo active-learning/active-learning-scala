@@ -40,19 +40,11 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
 
   override def run() = {
     super.run()
-    lazy val dss = datasets.filter { d =>
-      val ds = Ds(d, readOnly = true)
-      ds.open()
-      val U = ds.poolSize.toInt
-      ds.close()
-      U >= 100
-    }
-    val dsss = dss.take(599)
     val arq = s"/home/davi/wcs/tese/$learnerStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
     println(s"$arq")
     val algs = (for {s <- strats; l <- ls(null, null)} yield s(l).limp + "-" + l.limp).toVector
     val res0 = for {
-      dataset <- dsss
+      dataset <- datasets
     } yield {
         val ds = Ds(dataset, readOnly = true)
         println(s"$ds")
@@ -111,13 +103,13 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
     val fw = new PrintWriter(arq) //, "ISO-8859-1")
     fw.write("budget " + algs2.mkString(" ") + "\n")
     plot2.zipWithIndex foreach { case (re, i) =>
-      fw.write((i + 2) + " " + re.map(_ / dss.size).mkString(" ") + "\n")
+      fw.write((i + 2) + " " + re.map(_ / datasets.size).mkString(" ") + "\n")
     }
     fw.close()
     println(s"$arq")
 
     algs2.zip(plot2.transpose).filter(x => !x._1.contains("max") && !x._1.contains("min")).foreach { case (alg, plo) =>
-      println(s"${(100 * plo.map(_ / dsss.size).sum / plo.size).round / 100d} & $alg \\\\")
+      println(s"${(100 * plo.map(_ / datasets.size).sum / plo.size).round / 100d} & $alg \\\\")
     }
   }
 }

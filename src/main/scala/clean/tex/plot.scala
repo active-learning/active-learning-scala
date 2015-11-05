@@ -32,14 +32,12 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
   val tipoLearner = "all"
   val tipoSumariz = "media"
   val measure = Kappa
-  val conf = "artigos/bracis15"
-  //"hais14-expandido"
+  val conf = "tese"
   val strats = conf match {
     case "artigos/hais14-expandido" => stratsTexRedux(dist)
     case "artigos/bracis15" => stratsForBRACIS15
-    case "tese" => stratsTexRedux(dist)
+    case "tese" => stratsTexForGraficoComplexo(dist)
   }
-  val bina = true
   run()
 
   override def run() = {
@@ -49,30 +47,29 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
       case "best" | "mediano" => Seq(NoLearner())
       case "all" => ls
     }
-    val arq = s"/home/davi/wcs/$conf/${ls2.map(_.limp).mkString}$measure$dist$tipoSumariz$tipoLearner$bina" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
+    //    val arq = s"/home/davi/wcs/$conf/${ls2.map(_.limp).mkString}$measure$dist$tipoSumariz$tipoLearner$bina" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
+    val arq = s"/home/davi/wcs/$conf/$learnerStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + s"$tipoSumariz.tex"
     println(s"$arq")
     println(s"${ls2} <- ls2")
-    val dss = DsBy(datasets, 200, bina)
-    println(dss.size)
+    println(datasets.size)
     val (sls0, res9) = (for {
-      dataset <- dss
+      dataset <- datasets
       le0 <- ls2.par
     } yield {
         val ds = Ds(dataset, readOnly = true)
         println(s"$ds")
         ds.open()
         val le = tipoLearner match {
-          case "mediano" => ls.map { l =>
-            val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
-            l -> Stat.media_desvioPadrao(vs.toVector)._1
-          }.sortBy(_._2).apply(ls.size / 2)._1
-          case "best" => ls.map { l =>
-            val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
-            l -> Stat.media_desvioPadrao(vs.toVector)._1
-          }.maxBy(_._2)._1
+          //          case "mediano" => ls.map { l =>
+          //            val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
+          //            l -> Stat.media_desvioPadrao(vs.toVector)._1
+          //          }.sortBy(_._2).apply(ls.size / 2)._1
+          //          case "best" => ls.map { l =>
+          //            val vs = for (r <- 0 until runs; f <- 0 until folds) yield measure(ds, Passive(Seq()), l, r, f)(-1).read(ds).getOrElse(ds.quit(" passiva não encontrada"))
+          //            l -> Stat.media_desvioPadrao(vs.toVector)._1
+          //          }.maxBy(_._2)._1
           case "all" => le0
         }
-
 
         val (sls, sres) = (for {
           s0 <- strats
@@ -82,7 +79,7 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
               for {
                 r <- 0 until runs
                 f <- 0 until folds
-              } yield measure(ds, s, le, r, f)(0).readAll(ds)
+              } yield measure(ds, s, le, r, f)(-2).readAll99(ds)
             } catch {
               case _: Throwable => println(s"NA: ${(ds, s, le.abr)}")
                 Seq(None)
@@ -100,7 +97,7 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
                 else Stat.media_desvioPadrao(v.toVector)._1
               }
               val fst = ts.head
-              ts.reverse.padTo(200, fst).reverse.toList
+              ts.reverse.padTo(100, fst).reverse.toList
             }))
           }).unzip
         sls -> (if (sres.contains(None)) None
@@ -117,13 +114,13 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
     val plot0 = res0ToPlot0(res0.toList, tipoSumariz)
 
     val plot = plot0.toList.transpose.map { x =>
-      x.sliding(20).map(y => y.sum / y.size).toList
+      x.sliding(5).map(y => y.sum / y.size).toList
     }.transpose
 
     val fw = new PrintWriter(arq, "UTF-8")
     fw.write("budget " + sls.map(_.limp).mkString(" ") + "\n")
     plot.zipWithIndex foreach { case (re, i) =>
-      fw.write((i + 10) + " " + re.map(_ / (ls2.size * dss.size)).mkString(" ") + "\n")
+      fw.write((i + 2) + " " + re.map(_ / (ls2.size * datasets.size)).mkString(" ") + "\n")
     }
     fw.close()
     println(s"$arq " + (res0.size / ls2.size.toDouble) + " datasets completos.")
