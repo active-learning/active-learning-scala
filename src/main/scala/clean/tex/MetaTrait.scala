@@ -284,6 +284,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             val spearsTrTsAcc = Seq(tr, ts).zipWithIndex map { case (tx, idx) =>
               val hitPorComb = mutable.Queue[(String, String, Double)]()
+              if (porPool && tx.size != 25) justQuit("cadê os 25 pools?")
+              var r = 0
+              var f = 0
               tx foreach { pat =>
                 val esperado = pat.targets.zipWithIndex.minBy(_._1)._2
                 val predito = fm.output(pat).zipWithIndex.minBy(_._1)._2
@@ -293,8 +296,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 //se for cjt de teste
                 if (idx == 1) {
                   if (porPool) {
-                    tx foreach println
-                    sys.exit(0)
+                    val esperadoStr = labels(esperado)
+                    val preditoStr = labels(predito)
+                    val base = tsbags.head.head.nomeBase
+                    val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr', $r, $f)"
+                    println(s"porPool rulez: $sql")
+                    metads.write(sql)
                   } else if (ks == patterns.size) {
                     val esperadoStr = labels(esperado)
                     val preditoStr = labels(predito)
@@ -314,6 +321,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val hit = if (esperados.contains(predito)) 1d else 0d
                 speaPorComb += ((esperado.toString, predito.toString, hit))
                  */
+
+                f += 1
+                if (f == 5) {
+                  r += 1
+                  f = 0
+                }
+                if (r > 4 || f > 4) justQuit("r>4 ou f>4")
               }
               hitPorComb
             }

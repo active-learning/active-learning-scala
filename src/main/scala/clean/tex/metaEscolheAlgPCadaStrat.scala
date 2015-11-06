@@ -88,7 +88,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             //              "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah","AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
             //            "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
             //            "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y"
-            //FS não ajudou, mesmo robando assim:
+            //FS não ajudou, mesmo roubando assim:
             val metaatts0 = ds.metaAttsrf(r, f, suav = false).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
             val metaatts = ("\"bag_" + pares.size + "\"", ds.dataset, "string") +: metaatts0
             val insts = if (porRank) {
@@ -96,7 +96,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
               List(metaatts ++ ranqueia(accs.map(_._2)).zipWithIndex.map { case (x, i) => (s"class$i", x.toString, "numeric") } -> "")
             } else {
               //Acc
-              val melhores = pegaMelhores(accs, n)(_._2 * criterio).map(_._1)
+              val melhores = pegaMelhores(accs, n)(_._2 * criterio).map(_._1) //não preciso me preocupar com "só pode ter 25 em cada bag de teste", pois não é ranking
               melhores map (m => metaatts -> (m._1 + "-" + m._2))
             }
             //insts.map(x => x._1.tail.map(x => (x._2.toDouble * 100).round / 100d).mkString(" ")) foreach println
