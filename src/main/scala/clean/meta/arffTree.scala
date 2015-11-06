@@ -1,39 +1,22 @@
 package clean.meta
 
-import java.io.{PrintWriter, FileWriter}
-
+import java.io.PrintWriter
 import al.strategies._
 import clean.lib._
 import ml.classifiers._
-import util.{Datasets, Stat, StatTests}
+import util.Stat
 
-/*
- active-learning-scala: Active Learning library for Scala
- Copyright (c) 2014 Davi Pereira dos Santos
-
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-  val perdedores = false
-  val mostrar = 0.67
+  val perdedores = true
+  val pioresQRnd = true
+  val mostrar = 0.66
   val measure = ALCKappa
   val context = "metaAttsTreeApp"
   val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
   val n = 1
   //if (!perdedores) 3 else 1
   val pioresAignorar = 0
-  val minObjs = if (!perdedores) 50 else 45
+  val minObjs = 70
   run()
 
   def ff(x: Double) = (x * 100).round / 100d
@@ -58,12 +41,12 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
         ds.open()
         val (tmin, thalf, tmax, tpass) = ranges(ds)
         ds.close()
-        Seq((tmin, thalf, "\"$\\cent\\leq 50$\""), (thalf + 1, tmax, "\"$\\cent > 50$\""))
+        Seq((tmin, thalf, "\"$\\\\cent\\\\leq 50$\""), (thalf + 1, tmax, "\"$\\\\cent maiorque 50$\""))
         //                        Seq((tmin, thalf, "baixo"), (thalf, tmax, "alto"))
         //        Seq((tmin, tmax, "alto"))
       }
     } yield {
-        val strats = stratsTexForGraficoSimples
+        val strats = stratsTexForGraficoComplexo //Simples
         val ds = Ds(name, readOnly = true)
         ds.open()
         val medidas = for (s0 <- strats) yield {
@@ -80,11 +63,11 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
             case _: Throwable => ds.error(s" base incompleta para intervalo [$ti;$tf] e pool ${(s, l)}.")
           }
         }
-        val res = if (perdedores) pegaMelhores(medidas, n)(-_._2._1).map { bs =>
-          (ds.metaAttsHumanAndKnowingLabels, l.abr, bs._1, budix, l.attPref, l.boundaryType)
-        } else pegaMelhores(medidas, n)(_._2._1).map { bs =>
-          (ds.metaAttsHumanAndKnowingLabels, l.abr, bs._1, budix, l.attPref, l.boundaryType)
-        }
+        val rnd = medidas.find(_._1 == RandomSampling(Seq()).limp).get._2._1
+        val selected = if (pioresQRnd) medidas.filter(_._2._1 < rnd)
+        else if (perdedores) pegaMelhores(medidas, n)(-_._2._1)
+        else pegaMelhores(medidas, n)(_._2._1)
+        val res = selected.map(bs => (ds.metaAttsHumanAndKnowingLabels, l.abr, bs._1, budix, l.attPref, l.boundaryType))
         ds.close()
         res
       }
@@ -96,7 +79,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
     val labels = pred.distinct.sorted
     val data = metadata.map { case (numericos, learne, vencedora, budget, attPref, boundaryType) => numericos.mkString(",") + s",$budget,$learne,$attPref,$boundaryType," + "\"" + vencedora + "\"" }
     val numAtts = Ds("iris", readOnly = true).humanNumAttsNames
-    val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {\"$\\cent\\leq 50$\",\"$\\cent > 50$\"}", "@attribute algoritmo {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+    val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {\"$\\\\cent\\\\leq 50$\",\"$\\\\cent maiorque 50$\"}", "@attribute algoritmo {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
     val pronto = header ++ data
     //      pronto foreach println
 
@@ -112,3 +95,21 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
     C45(laplace = false, minObjs, mostrar).tree(arq, tex)
   }
 }
+
+/*
+ active-learning-scala: Active Learning library for Scala
+ Copyright (c) 2014 Davi Pereira dos Santos
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */

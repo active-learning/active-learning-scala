@@ -26,79 +26,92 @@ import util.Stat
 
 object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator {
   lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-   //, "porRisco:r", "dist:euc,man,mah")
-   val context = "tabwinnerstex"
-   val n = 3
-   val measure = ALCKappa
-  val sts = stratsTexForGraficoComplexo
-   run()
+  //, "porRisco:r", "dist:euc,man,mah")
+  val context = "tabwinnerstex"
+  val n = 1
+  val measure = ALCKappa
+  val sts = stratsTexForGraficoSimples //.dropRight(1)
+  run()
 
-   override def run() = {
-      super.run()
-      val ls = learners(learnersStr)
-      val datasetLearnerAndBoth = for {
-         dataset <- datasets.toList.par
-         l <- ls
-      } yield {
-          val ds = Ds(dataset, readOnly = true)
-         ds.open()
-         val (ti, th, tf0, tpass) = ranges(ds)
-          val tf = 99
-         val sres = for {
-            s0 <- sts
-            s = s0(l)
-         } yield {
+  override def run() = {
+    super.run()
+    val ls = learners(learnersStr)
+    val datasetLearnerAndBoth = for {
+      dataset <- datasets.toList.par
+      l <- ls
+    } yield {
+        val ds = Ds(dataset, readOnly = true)
+        ds.open()
+        val (ti, th, tf0, tpass) = ranges(ds)
+        val tf = 99
+        val sres = for {
+          s0 <- sts
+          s = s0(l)
+        } yield {
             val vs = for {
-               r <- 0 until runs
-               f <- 0 until folds
+              r <- 0 until runs
+              f <- 0 until folds
             } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
-                  throw new Error((ds, s, l, r, f) + ": medida não encontrada")
-               }
-            s.limpa.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._1
-         }
-         val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).get._2
-         val r = Some(ds.dataset + l.abr -> pegaMelhores(sres, n)(_._2).map(_._1),
-            ds.dataset + l.abr -> pegaMelhores(sres, n)(-_._2).map(_._1),
-            ds.dataset + l.abr -> sres.filter(_._2 <= rnd).map(_._1))
-         ds.close()
-         r
+                throw new Error((ds, s, l, r, f) + ": medida não encontrada")
+              }
+            s.limp.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._1
+          }
+        val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).get._2
+        val r = Some(ds.dataset + l.abr -> pegaMelhores(sres, n)(_._2).map(_._1),
+          ds.dataset + l.abr -> pegaMelhores(sres, n)(-_._2).map(_._1),
+          ds.dataset + l.abr -> sres.filter(_._2 < rnd).map(_._1))
+        ds.close()
+        r
       }
 
-      val (datasetLearnerAndWinners, datasetLearnerAndLosers, pioresQueRnd) = datasetLearnerAndBoth.flatten.unzip3
+    val (datasetLearnerAndWinners, datasetLearnerAndLosers, pioresQueRnd) = datasetLearnerAndBoth.flatten.unzip3
 
-      println(datasetLearnerAndWinners)
-      println(s"${datasetLearnerAndBoth.size} tests.")
-      println(s"--------$measure---------------")
-      //      datasetLearnerAndWinners foreach println
-      val flat = datasetLearnerAndWinners.flatMap(_._2)
-      val flat2 = datasetLearnerAndLosers.flatMap(_._2)
-      val flat3 = pioresQueRnd.flatMap(_._2)
-     val algs = (for (s <- sts) yield s(NoLearner()).limp) map { st =>
-         val topCount = flat.count(_ == st)
-         val botCount = flat2.count(_ == st)
-         val rndCount = flat3.count(_ == st)
-         (st, topCount, rndCount, botCount)
-      }
+    println(datasetLearnerAndWinners)
+    println(s"${datasetLearnerAndBoth.size} tests.")
+    println(s"--------$measure---------------")
+    //      datasetLearnerAndWinners foreach println
+    val flat = datasetLearnerAndWinners.flatMap(_._2)
+    val flat2 = datasetLearnerAndLosers.flatMap(_._2)
+    val flat3 = pioresQueRnd.flatMap(_._2)
+    val algs = (for (s <- sts) yield s(NoLearner()).limp) map { st =>
+      val topCount = flat.count(_ == st)
+      val botCount = flat2.count(_ == st)
+      val rndCount = flat3.count(_ == st)
+      (st, topCount, rndCount, botCount)
+    }
+    val topseq = Seq(algs.map(_._2).sorted.reverse(1), algs.map(_._2).max, algs.map(_._2).min)
+    val rndseq = Seq(algs.map(_._3).sorted.toList(1), algs.map(_._3).min, algs.map(_._3).max)
+    val botseq = Seq(algs.map(_._4).sorted.toList(1), algs.map(_._4).min, algs.map(_._4).max)
+    //    val Rounds = ls.size * datasets.size
+    def decorar(C: Int, S: Seq[Int]) = (C, S) match {
+      case (0, _) => "-"
+      case (_, Seq(_, C, _)) => s"\\bom{$C}"
+      case (_, Seq(C, _, _)) => s"\\bomd{$C}"
+      case (_, Seq(_, _, C)) => s"\\ruim{$C}"
+      case _ => C.toString
+    }
 
-      println( """\begin{tabular}{lccc}
+    println( """\begin{tabular}{lccc}
 algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \makecell{últimos\\lugares} \\
 \hline
-               """)
-      algs.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
-         println(s"${st.padTo(10, ' ')} & $topCount & $rndCount & $botCount \\\\")
-      }
-      println(
-         """\end{tabular}
-         """.stripMargin)
+             """)
+    algs.sortBy(_._2).reverse foreach { case (st, topCount, rndCount, botCount) =>
+      val top = decorar(topCount, topseq)
+      val rn = decorar(rndCount, rndseq)
+      val bot = decorar(botCount, botseq)
+      println(s"${st.padTo(10, ' ')} & $top & $rn & $bot \\\\")
+    }
+    println(
+      """\end{tabular}
+      """.stripMargin)
 
-      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
-      //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
-      //      val tbs = res.map(x => x._1 -> x._2.padTo(ss.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 100
-      //      tbs foreach { case res1 =>
-      //        StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), ss.toVector.map(_.toString), "nomeTab", measure.toString)
-      //      }
-   }
-
+    //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList.sortBy(_._1) grouped 50
+    //      val tbs = res.map(x => x._1 -> x._2.padTo(sl.size, (-1d, -1d))).toList grouped 50
+    //      val tbs = res.map(x => x._1 -> x._2.padTo(ss.size, (-1d, -1d))).toList.sortBy(x => x._2.head) grouped 100
+    //      tbs foreach { case res1 =>
+    //        StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), ss.toVector.map(_.toString), "nomeTab", measure.toString)
+    //      }
+  }
 }
 
 /*
