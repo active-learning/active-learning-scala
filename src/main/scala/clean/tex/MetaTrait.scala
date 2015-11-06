@@ -189,7 +189,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
 
-  def cv(bags: List[Vector[Pattern]], ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(porPool: Boolean, bags: List[Vector[Pattern]], ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
@@ -214,14 +214,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         }
 
         if (tr.isEmpty || ts.isEmpty) {
-          println()
-          println()
-          println(s"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
           tr foreach println
           println("---------")
           ts foreach println
-          println("----------------------------------------------------------------------")
-          println()
           println("Empty set before weka filters. quiting...")
           sys.exit(0)
         }
@@ -233,19 +228,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
         lazy val trSemParecidos = (tr0.zip(tr).groupBy(_._1.base).map(_._2.map(_._2)) map meanPattern(rank)).toVector
         //        lazy val (trSemParecidos, trfSemParecidos) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
 
+        //se for ranking
         if (leas(tr).isEmpty) {
-          //          //ELMBag
-          //          val elmFM = (1 to ntrees).foldLeft(FakeModelRank(Map())) { (fm, seedinc) =>
-          //            val l = NinteraELM(seed + seedinc * 10000)
-          //            //selecionar com todos foi pior (e bem mais lento) que tirando similares 38.6 < 44.0
-          //            var m0 = l.batchBuild(trfSemParecidos).asInstanceOf[ELMModel]
-          //            val L = l.LForMeta(m0, LOO = false)
-          //            //treinar com todos foi melhor que tirando similares 44.0 > 42.5 (subamostras não melhorou muito, então nem deixei)
-          //            m0 = l.batchBuild(trf).asInstanceOf[ELMModel]
-          //            m0 = l.fullBuildForMeta(L, m0)
-          //            fm + FakeModelRank(((trf ++ tsf) map (x => x.id -> m0.output(x).clone())).toList.toMap) //array.clone is needed to free FM object
-          //          }
-
           //clus; seed tb serve pra situar run e fold durante paralelização
           val arqtr = s"/run/shm/tr$seed$id"
           val arqtrts = s"/run/shm/trts$seed$id"
@@ -309,14 +293,19 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val hit = if (predito == esperado) 1d else 0d
                 speaPorComb += ((esperado.toString, predito.toString, hit))
 
-                if (idx == 1 && ks == patterns.size) {
-                  val esperadoStr = labels(esperado)
-                  val preditoStr = labels(predito)
-                  val base = tsbags.head.head.nomeBase
-                  val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr')"
-                  print(s"${sql} <- sql ")
-                  println(s"LOO ativa registro para contagem de vitorias, mesmo no Rank, ranqueadores tb merecem recomendar o melhor, porque talvez errem menos feio que classificadores, mesmo que acertem menos")
-                  metads.write(sql)
+                //se for cjt de teste
+                if (idx == 1) {
+                  if (porPool) {
+                    bags.find(_.head.nomeBase ==)
+                  } else if (ks == patterns.size) {
+                    val esperadoStr = labels(esperado)
+                    val preditoStr = labels(predito)
+                    val base = tsbags.head.head.nomeBase
+                    val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr')"
+                    print(s"${sql} <- sql ")
+                    println(s"LOO ativa registro para contagem de vitorias, mesmo no Rank, ranqueadores tb merecem recomendar o melhor, porque talvez errem menos feio que classificadores, mesmo que acertem menos")
+                    metads.write(sql)
+                  }
                 }
 
                 /*
@@ -366,7 +355,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val base = tsbags.head.head.nomeBase
                 if (idx == 1) {
                   if (!rank) {
-                    if (true == "porPool") {
+                    if (porPool) {
 
                     } else if (ks == patterns.size) {
                       val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito')"
