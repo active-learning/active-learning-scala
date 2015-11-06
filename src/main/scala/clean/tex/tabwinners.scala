@@ -80,7 +80,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
       (st, topCount, rndCount, botCount)
     }
     val topseq = Seq(algs.map(_._2).sorted.reverse(1), algs.map(_._2).max, algs.map(_._2).min)
-    val rndseq = Seq(algs.map(_._3).sorted.toList(1), algs.map(_._3).min, algs.map(_._3).max)
+    val rndseq = Seq(algs.map(_._3).sorted.toList(2), algs.map(_._3).sorted.toList(1), algs.map(_._3).max)
     val botseq = Seq(algs.map(_._4).sorted.toList(1), algs.map(_._4).min, algs.map(_._4).max)
     //    val Rounds = ls.size * datasets.size
     def decorar(C: Int, S: Seq[Int]) = (C, S) match {

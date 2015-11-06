@@ -7,22 +7,25 @@ import ml.classifiers._
 import util.Stat
 
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-  val perdedores = true
-  val pioresQRnd = true
-  val mostrar = 0.66
+  val perdedores = false
+  val pioresQRnd = perdedores
+  val mostrar = 0.5
   val measure = ALCKappa
   val context = "metaAttsTreeApp"
   val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
-  val n = 1
-  //if (!perdedores) 3 else 1
+  val n = if (!perdedores) 3 else 1
   val pioresAignorar = 0
-  val minObjs = 70
+  val minObjs = if (!perdedores) 150 else 100
   run()
 
   def ff(x: Double) = (x * 100).round / 100d
 
   override def run() = {
     super.run()
+    val pequeno = "\"$50$\""
+    val grande = "\"$100$\""
+    //    val pequeno = "\"$|Y| \\\\leq \\\\cent\\\\ simbolomenor 50$\""
+    //    val grande = "\"$|Y| \\\\leq \\\\cent\\\\ simbolomenor 100$\""
     val bestLearners = pioresAignorar > 0
     val metadata0 = for {
       name <- datasets.toList.par
@@ -41,9 +44,8 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
         ds.open()
         val (tmin, thalf, tmax, tpass) = ranges(ds)
         ds.close()
-        Seq((tmin, thalf, "\"$\\\\cent\\\\leq 50$\""), (thalf + 1, tmax, "\"$\\\\cent maiorque 50$\""))
-        //                        Seq((tmin, thalf, "baixo"), (thalf, tmax, "alto"))
-        //        Seq((tmin, tmax, "alto"))
+        //        Seq((tmin, thalf, pequeno), (thalf + 1, tmax, grande))
+        Seq((tmin, thalf, pequeno), (tmin, tmax, grande))
       }
     } yield {
         val strats = stratsTexForGraficoComplexo //Simples
@@ -79,7 +81,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
     val labels = pred.distinct.sorted
     val data = metadata.map { case (numericos, learne, vencedora, budget, attPref, boundaryType) => numericos.mkString(",") + s",$budget,$learne,$attPref,$boundaryType," + "\"" + vencedora + "\"" }
     val numAtts = Ds("iris", readOnly = true).humanNumAttsNames
-    val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {\"$\\\\cent\\\\leq 50$\",\"$\\\\cent maiorque 50$\"}", "@attribute algoritmo {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
+    val header = List("@relation data") ++ numAtts.split(",").map(i => s"@attribute $i numeric") ++ List("@attribute \"orçamento\" {" + pequeno + "," + grande + "}", "@attribute algoritmo {" + learners(learnersStr).map(x => "\"" + x.abr + "\"").mkString(",") + "}", "@attribute \"atributo aceito\" {\"numérico\",\"nominal\",\"ambos\"}", "@attribute \"fronteira\" {\"rígida\",\"flexível\",\"nenhuma\"}", "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}", "@data")
     val pronto = header ++ data
     //      pronto foreach println
 
