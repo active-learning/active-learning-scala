@@ -288,6 +288,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               var r = 0
               var f = 0
               tx foreach { pat =>
+                if (r > 4 || f > 4) justQuit("r>4 ou f>4")
                 val esperado = pat.targets.zipWithIndex.minBy(_._1)._2
                 val predito = fm.output(pat).zipWithIndex.minBy(_._1)._2
                 val hit = if (predito == esperado) 1d else 0d
@@ -327,7 +328,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                   r += 1
                   f = 0
                 }
-                if (r > 4 || f > 4) justQuit("r>4 ou f>4")
               }
               hitPorComb
             }
