@@ -11,9 +11,9 @@ import scala.io.Source
 
 object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++
-    List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim")
+    List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "porPool:p"
+  ")
 
-  val porPool = true
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -46,7 +46,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       Tempo.start
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l
-      val arq = s"/home/davi/wcs/arff/$context-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${leastxt.replace(" ", ".")}-U$dsminSize.arff"
+      val arq = s"/home/davi/wcs/arff/$context-$porPool-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${leastxt.replace(" ", ".")}-U$dsminSize.arff"
       val labels = pares.map { case (s, l) => s(l).limpa }
       val labelsleas = ls.map {
         _.limpa
@@ -126,7 +126,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       val metads = new Db("metanew", readOnly = false)
       metads.open()
       //      select ra,cr,i,f,st,ls,rs,fs,mc,nt,dsminsize from r
-      val sql69 = s"select mc from r where ra='$ra' and cr=$criterio and i='$ini' and f='$fim' and st='$stratName' and ls='$leastxt' and rs=$rus and fs=$ks and nt=$ntrees and dsminsize='$dsminSize'"
+      val sql69 = s"select mc from r where porPool='$porPool' and ra='$ra' and cr=$criterio and i='$ini' and f='$fim' and st='$stratName' and ls='$leastxt' and rs=$rus and fs=$ks and nt=$ntrees and dsminsize='$dsminSize'"
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
@@ -141,7 +141,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
             //            val r = resultados reduce (_ ++ _)
             //            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
-            metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2})")
+            metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$porPool')")
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
           }
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
