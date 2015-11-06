@@ -11,8 +11,7 @@ import scala.io.Source
 
 object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++
-    List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "porPool:p"
-  ")
+    List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "porPool:p")
 
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
