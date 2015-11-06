@@ -58,8 +58,8 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
    +-------+-------------+------+-----+---------+-------+
      */
     val sqls = Seq(
-      s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limp}' and leas='$leas' and mc='$mc' and r=$r and f=$f;",
-      s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limp}' and leas='$leas' and mc='$mc' and r=$r and f=$f;"
+      s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limp}' and leas='$leas' and mc='$mc' and run=$r and fold=$f;",
+      s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limp}' and leas='$leas' and mc='$mc' and run=$r and fold=$f;"
     )
     val reses = sqls map { sql =>
       print(s"metasql: $sql\t\t")
