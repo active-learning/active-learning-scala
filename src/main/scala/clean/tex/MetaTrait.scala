@@ -284,7 +284,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             val spearsTrTsAcc = Seq(tr, ts).zipWithIndex map { case (tx, idx) =>
               val hitPorComb = mutable.Queue[(String, String, Double)]()
-              if (porPool && tx.size != 25) justQuit("cadê os 25 pools?")
+              if (porPool && tx.size != 25 && idx == 1) justQuit("cadê os 25 pools?")
               var r = 0
               var f = 0
               tx foreach { pat =>
