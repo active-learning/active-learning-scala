@@ -26,7 +26,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
 
   override def run() = {
     super.run()
-    if (porPool && (rus != 1 || ks != 90)) error("porPool ativado com parametros errados!")
+    if (porPool && (rus != 1 || ks != 90 || !porRank)) justQuit("porPool ativado com parametros errados!")
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
@@ -74,7 +74,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             //descobre vencedores deste pool
             val accs = pares map { case (s, l) =>
               //            p -> measure(ds, Passive(Seq()), ds.bestPassiveLearner, r, f)(ti,tf).read(ds).getOrElse(error("sem medida"))
-              (s(NoLearner()).limpa, l.limpa) -> measure(ds, s(l), l, r, f)(ti, tf).read(ds).getOrElse(error("sem medida"))
+              (s(NoLearner()).limpa, l.limpa) -> measure(ds, s(l), l, r, f)(ti, tf).read(ds).getOrElse(justQuit("sem medida"))
             }
             //gera metaexemplos
             //            "\"#classes\",\"#atributos\",\"#exemplos\"," +
@@ -91,7 +91,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             //FS não ajudou, mesmo robando assim:
             val metaatts0 = ds.metaAttsrf(r, f, suav = false).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
             val metaatts = ("\"bag_" + pares.size + "\"", ds.dataset, "string") +: metaatts0
-            if (porRank) {
+            val insts = if (porRank) {
               //rank legivel por clus e ELM
               List(metaatts ++ ranqueia(accs.map(_._2)).zipWithIndex.map { case (x, i) => (s"class$i", x.toString, "numeric") } -> "")
             } else {
@@ -99,6 +99,9 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
               val melhores = pegaMelhores(accs, n)(_._2 * criterio).map(_._1)
               melhores map (m => metaatts -> (m._1 + "-" + m._2))
             }
+            //insts.map(x => x._1.tail.map(x => (x._2.toDouble * 100).round / 100d).mkString(" ")) foreach println
+            //            println(s"$r $f")
+            insts
           }
         ds.close()
         res.flatten
@@ -106,13 +109,13 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       def bagsCbases = bagsNaN
       if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bagsCbases.toList.flatten, print = true, context, porRank))
 
-      val (patterns, bags) = Datasets.arff(arq, dedup, rmuseless = false) match {
+      val patterns = Datasets.arff(arq, dedup, rmuseless = false) match {
         case Right(x) =>
           //não consegui descobrir como aumentar qtd de atributos no weka (vai ficar sem atts desvio.
           val osbags = x.groupBy(_.base).map(_._2)
           val ps = (osbags map meanPattern(porRank)).toVector
           patts2file(ps, arq + ".arff")
-          ps -> osbags //retorna p/ LOO e p/ porPool
+          if (porPool) osbags.flatten.toVector else ps
         case Left(m) => error(s"${m} <- m")
       }
 
@@ -128,7 +131,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
         case x: List[Vector[String]] if x.isEmpty =>
-          val porMetaLea = cv(porPool, bags.toList, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>
