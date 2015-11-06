@@ -7,7 +7,7 @@ import ml.classifiers._
 import util.Stat
 
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
-  val perdedores = false
+  val perdedores = true
   val pioresQRnd = perdedores
   val mostrar = 0.5
   val measure = ALCKappa
@@ -15,7 +15,7 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
   val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
   val n = if (!perdedores) 3 else 1
   val pioresAignorar = 0
-  val minObjs = if (!perdedores) 150 else 100
+  val minObjs = if (!perdedores) 150 else 150
   run()
 
   def ff(x: Double) = (x * 100).round / 100d
