@@ -21,12 +21,12 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{NoLearner, MetaLearner}
+import ml.classifiers.{MetaLearner, NoLearner}
 import weka.filters.Filter
 
 import scala.collection.mutable
 
-object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
+object ameameta0 extends Exp with LearnerTrait with StratsTrait with RangeGenerator {
   val context = "ameametaApp"
   val arguments = superArguments :+ "leas(unused)" :+ "versao"
   val ignoreNotDone = false
@@ -56,8 +56,8 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
 
       stratsPool("all", pool, pool).map { st =>
         //      (stratsPool("all", pool, pool) ++ stratsFpool(pool, fpool)).map { st =>
-        val fakelearner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(NoLearner()), seqleas,run,fold)("PCTr-a")
-        val learner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(fakelearner), seqleas,run,fold)("PCTr-a")
+        val fakelearner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(NoLearner()), seqleas)("PCTr-a")
+        val learner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(fakelearner), seqleas)("PCTr-a")
         learner -> st(learner)
       } foreach { case (metalea, strat) =>
         lazy val (tmin, _, tmax, _) = ranges(ds)
@@ -79,7 +79,7 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("meta1amea" + versao)
+      ds.markAsFinishedRun("metaamea" + versao)
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
@@ -87,11 +87,11 @@ object ameameta extends Exp with LearnerTrait with StratsTrait with RangeGenerat
   }
 
   def isAlreadyDone(ds: Ds) = {
-    val despreparado = if (!ds.isFinishedRun("meta1" + versao)) {
+    val despreparado = if (!ds.isFinishedRun("meta" + versao)) {
       print(s"acv ou acvf ainda não terminaram este dataset, skipping... ")
       true
     } else false
-    despreparado || ds.isFinishedRun("meta1amea" + versao)
+    despreparado || ds.isFinishedRun("metaamea" + versao)
   }
 
   def end(res: Map[String, Boolean]): Unit = {

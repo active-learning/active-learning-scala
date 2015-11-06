@@ -34,7 +34,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
   val tipoSumariz = "media"
   //  val ls = (ds: Ds, st: Strategy) => (Seq("SVM", "PCTr-a", "PCT", "RFw1000", "5NN", "chu", "defr-a", "maj", "C4.55", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
   //  val ls = (ds: Ds, st: Strategy) => (Seq("PCTr-a", "PCT", "RFw1000", "chu", "defr-a", "maj", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
-  val ls = (ds: Ds, st: Strategy) => learners(learnersStr, Seq(), -1, ds, st)
+  //  def ls (ds: Ds, st: Strategy,r:Int,f:Int) = learners(learnersStr, Seq(), -1, ds, st,r,f)
   val strats = stratsTexForGraficoComplexo
   run()
 
@@ -42,23 +42,23 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
     super.run()
     val arq = s"/home/davi/wcs/tese/$learnerStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
     println(s"$arq")
-    val algs = (for {s <- strats; l <- ls(null, null)} yield s(l).limp + "-" + l.limp).toVector
+    val algs = (for {s <- strats; l <- learners(learnersStr)} yield s(l).limp + "-" + l.limp).toVector
     val res0 = for {
       dataset <- datasets
     } yield {
         val ds = Ds(dataset, readOnly = true)
         println(s"$ds")
         ds.open()
-
         val sres = for {
           s0 <- strats.toList
-          le <- ls(ds, s0(NoLearner()))
+          lestr <- learnersStr
         } yield {
-            val s = s0(le)
             val vs00 = for {
               r <- 0 until runs
               f <- 0 until folds
             } yield {
+                val le = str2learner(Seq(), -1, ds, s0(NoLearner()), learnersStr.filter(_ != "meta"), r, f)(lestr)
+                val s = s0(le)
                 measure(ds, s, le, r, f)(-2).readAll99(ds).getOrElse {
                   //pelo que entendi -2 poderia ser -3456,... (19/9/15)
                   println((ds, s, le, r, f) + ": medida não encontrada")
@@ -68,7 +68,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
             val sizes = vs00.map(_.size)
             val minsiz = sizes.min
             val vs0 = vs00.map(_.take(minsiz))
-            if (minsiz != vs00.map(_.size).max) println(s"$dataset $s " + vs0.map(_.size).min + " " + vs0.map(_.size).max)
+            //            if (minsiz != vs00.map(_.size).max) println(s"$dataset $s " + vs0.map(_.size).min + " " + vs0.map(_.size).max)
             val ts = vs0.transpose.map { v =>
               if (porRisco) Stat.media_desvioPadrao(v.toVector)._2 * (if (porRank) -1 else 1)
               else Stat.media_desvioPadrao(v.toVector)._1

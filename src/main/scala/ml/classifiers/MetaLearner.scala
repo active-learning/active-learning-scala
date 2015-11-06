@@ -23,7 +23,7 @@ import ml.Pattern
 import ml.models.{WekaBatModel2, WekaBatModel, Model}
 import util.Datasets
 
-case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, Pattern], ftodos: Map[Int, Pattern], learnerSeed: Int, ds: Ds, st: Strategy, leas: Seq[String])(mc: String)
+case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, Pattern], ftodos: Map[Int, Pattern], learnerSeed: Int, ds: Ds, st: Strategy, leas: Seq[String], r: Int = -1, f: Int = -1)(mc: String)
   extends Learner with LearnerTrait {
   override val toString = "ML" + mc
   val abr = s"Meta-$mc"
@@ -31,7 +31,7 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   val attPref = "nenhum"
   val fs = 90
   val id = "metade" match {
-    case "metade" => 100000000 + ((mc +: leas).hashCode % 100000000).abs //94172909: maior sid+convlid até então.
+    case "metade" => (if (r == -1 && f == -1) 100000000 else 200000000) + (((mc +: leas).hashCode) % 100000000).abs //94172909: maior sid+convlid até então.
     //    case "inteira" => 200000000 + ((mc +: leas).hashCode % 100000000).abs
   }
   //id não precisa (nem deve for the sake of querying the database) conter st, pois no BD já vem a strat nas tabelas q e h via tabela p
@@ -58,8 +58,8 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
    +-------+-------------+------+-----+---------+-------+
      */
     val sqls = Seq(
-      s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limp}' and leas='$leas' and mc='$mc';",
-      s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limp}' and leas='$leas' and mc='$mc';"
+      s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limp}' and leas='$leas' and mc='$mc' and r=$r and f=$f;",
+      s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limp}' and leas='$leas' and mc='$mc' and r=$r and f=$f;"
     )
     val reses = sqls map { sql =>
       print(s"metasql: $sql\t\t")
@@ -81,8 +81,8 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   lazy val bestleafinal = leamap(best2)
 
   /** 98
-   * Best learner for the AMOUNT OF patternS.
-   */
+    * Best learner for the AMOUNT OF patternS.
+    */
   def bestlea(n: Int) = if (n <= 50) bestleacomeco else bestleafinal
 
   def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean)(pattern: Pattern) = {
