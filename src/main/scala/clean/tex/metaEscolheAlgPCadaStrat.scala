@@ -13,6 +13,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
   lazy val arguments = superArguments ++
     List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim")
 
+  val porPool = true
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
   //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
@@ -25,6 +26,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
 
   override def run() = {
     super.run()
+    if (porPool && (rus != 1 || ks != 90)) error("porPool ativado com parametros errados!")
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
@@ -87,7 +89,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             //            "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
             //            "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y"
             //FS não ajudou, mesmo robando assim:
-            val metaatts0 = ds.metaAttsrf(r, f, false).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
+            val metaatts0 = ds.metaAttsrf(r, f, suav = false).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
             val metaatts = ("\"bag_" + pares.size + "\"", ds.dataset, "string") +: metaatts0
             if (porRank) {
               //rank legivel por clus e ELM
@@ -101,25 +103,18 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
         ds.close()
         res.flatten
       }
-      def bags = bagsNaN
-      if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bags.toList.flatten, print = true, context, porRank))
+      def bagsCbases = bagsNaN
+      if (!new File(arq).exists()) grava(arq, arff(labels.mkString(","), bagsCbases.toList.flatten, print = true, context, porRank))
 
-      val patterns = Datasets.arff(arq, dedup, rmuseless = false) match {
+      val (patterns, bags) = Datasets.arff(arq, dedup, rmuseless = false) match {
         case Right(x) =>
           //não consegui descobrir como aumentar qtd de atributos no weka (vai ficar sem atts desvio.
-          //          val dat = new Instances(x.head.dataset())
-          //          println(s"${dat.numAttributes()} <- dat.numAttributes()")
-          //          def at(nr: Int) = new Attribute("desviopad" + nr.toString)
-          //          ((if (porRank) x.head.ndescs else x.head.numAttributes() - 1) to 1) foreach (nr => dat.insertAttributeAt(at(nr), 1))
-          //          println(s"${dat.numAttributes()} <- dat.numAttributes()")
-          //          val parent=PatternParent(dat)
-          //          val ps = (x.groupBy(_.base).map(_._2) map meanPatternComDesvios(porRank, parent)).toVector
-          val ps = (x.groupBy(_.base).map(_._2) map meanPattern(porRank)).toVector
+          val osbags = x.groupBy(_.base).map(_._2)
+          val ps = (osbags map meanPattern(porRank)).toVector
           patts2file(ps, arq + ".arff")
-          ps
+          ps -> osbags //retorna p/ LOO e p/ porPool
         case Left(m) => error(s"${m} <- m")
       }
-      var tx1 = ""
 
       if (porRank) print(s"$stratName Spearman correl. $rus*$ks-fold CV. " + arq + " ")
       else print(s"$stratName Accuracy. $rus*$ks-fold CV. " + arq + " ")
@@ -133,7 +128,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
         case x: List[Vector[String]] if x.isEmpty =>
-          val porMetaLea = cv(ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(bags.toList, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>

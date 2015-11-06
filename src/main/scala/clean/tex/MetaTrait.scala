@@ -189,7 +189,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
   }
 
 
-  def cv(ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(bags: List[Vector[Pattern]], ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
@@ -198,16 +198,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
     val rrr = (0 to rs - 1).par map { run =>
       val shuffled = new Random(run).shuffle(patterns)
-      val bags = shuffled.groupBy(_.base).values.toVector
+      val bagsrefeito = shuffled.groupBy(_.base).values.toVector
 
-
-      Datasets.kfoldCV2(bags, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+      Datasets.kfoldCV2(bagsrefeito, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
         //seed tem sobreposição acima de 100 folds
         if (ks > 100) ???
         val seed = run * 100 + fold
 
         val (tr0, ts0) = trbags.flatten.toVector -> tsbags.flatten.toVector
-
         val (tr, ts) = if (rank) tr0 -> ts0
         else {
           val f = Datasets.removeBagFilter(tr0)
@@ -227,12 +225,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           println("Empty set before weka filters. quiting...")
           sys.exit(0)
         }
-        lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
+        //        lazy val (trf, tsf) = replacemissingNom2binRmuselessZscore(tr, ts)
         //pega apenas um ex. por base (um que tiver label mais frequente)
-        lazy val tr_trfSemParecidos = Seq(tr0.zip(tr).groupBy(_._1.base).map(_._2.map(_._2)), tr0.zip(trf).groupBy(_._1.base).map(_._2.map(_._2))) map { bags =>
-          bags map meanPattern(rank)
-        }
-        lazy val (trSemParecidos, trfSemParecidos) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
+        //        lazy val tr_trfSemParecidos = Seq(tr0.zip(tr).groupBy(_._1.base).map(_._2.map(_._2)), tr0.zip(trf).groupBy(_._1.base).map(_._2.map(_._2))) map { bags =>
+        //          bags map meanPattern(rank)
+        //        }
+        lazy val trSemParecidos = (tr0.zip(tr).groupBy(_._1.base).map(_._2.map(_._2)) map meanPattern(rank)).toVector
+        //        lazy val (trSemParecidos, trfSemParecidos) = tr_trfSemParecidos.head.toVector -> tr_trfSemParecidos(1).toVector
 
         if (leas(tr).isEmpty) {
           //          //ELMBag
@@ -339,13 +338,15 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             println(s"LOO+ank ativa registro para contagem de vitorias")
           }
           leas(tr) map { mc =>
-            val (trtestbags, tstestbags, m) = if (mc.querFiltro) {
-              val mo = mc match {
-                case SVMLibRBF(_) => SVMLibRBF(seed).build(trf) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
-                case _ => mc.build(trf)
-              }
-              (trf.groupBy(x => x.id), tsf.groupBy(x => x.id), mo)
-            } else {
+            val (trtestbags, tstestbags, m) = {
+              //              if (mc.querFiltro) {
+              //              val mo = mc match {
+              //                case SVMLibRBF(_) => SVMLibRBF(seed).build(trf) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
+              //                case _ => mc.build(trf)
+              //              }
+              //              (trf.groupBy(x => x.id), tsf.groupBy(x => x.id), mo)
+              //            }
+              //              else  {
               val mo = mc match {
                 case RF(_, n, _, _) => RF(seed, n).build(tr)
                 case Chute(_) => Chute(seed).build(tr)
@@ -364,10 +365,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val predito = xbag.head.classAttribute().value(pred).split("-").last
                 val base = tsbags.head.head.nomeBase
                 if (idx == 1) {
-                  if (ks == patterns.size && !rank) {
-                    val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito')"
-                    print(s"${sql} <- sql ")
-                    metads.write(sql)
+                  if (!rank) {
+                    if (true == "porPool") {
+
+                    } else if (ks == patterns.size) {
+                      val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito')"
+                      print(s"${sql} <- sql ")
+                      metads.write(sql)
+                    }
                   }
                 }
                 resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
