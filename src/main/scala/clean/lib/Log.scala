@@ -41,6 +41,6 @@ trait Log {
       log(s"${java.net.InetAddress.getLocalHost.getHostName} $context : Quiting: $msg", 30)
       Global.running = false
       Thread.sleep(10)
-      sys.exit(1)
+     sys.exit(0)
    }
 }
