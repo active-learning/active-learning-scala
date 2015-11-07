@@ -35,28 +35,11 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
     //    case "inteira" => 200000000 + ((mc +: leas).hashCode % 100000000).abs
   }
   //id não precisa (nem deve for the sake of querying the database) conter st, pois no BD já vem a strat nas tabelas q e h via tabela p
-  //se for ALC inteira, basta copiar todas as queries (ou melhor ainda, nem copiar?);
-  // acho que compensa criar um Learner só pra ela. ou nem ter MEta-inteira
 
   lazy val (best1, best2) = {
     if (pool.head.vector.sameElements(ftodos(pool.head.id).vector)) throw new Error("filtragem inócua detectada: afeta uma premissa importante em MEtaLearner")
     val metads = new Db("metanew", readOnly = true)
     metads.open()
-    /*
-    +-------+-------------+------+-----+---------+-------+
-   | Field | Type        | Null | Key | Default | Extra |
-   +-------+-------------+------+-----+---------+-------+
-   | ds    | varchar(50) | NO   | PRI |         |       |
-   | fs    | int(11)     | NO   | PRI | 0       |       |
-   | i     | varchar(2)  | NO   | PRI |         |       |
-   | f     | varchar(2)  | NO   | PRI |         |       |
-   | st    | varchar(20) | NO   | PRI |         |       |
-   | leas  | varchar(50) | NO   | PRI |         |       |
-   | mc    | varchar(20) | NO   | PRI |         |       |
-   | esp   | varchar(20) | YES  |     | NULL    |       |
-   | pre   | varchar(20) | YES  |     | NULL    |       |
-   +-------+-------------+------+-----+---------+-------+
-     */
     val sqls = Seq(
       s"select pre from e where ds='$ds' and fs=$fs and i='ti' and f='th' and st='${st.limp}' and leas='$leas' and mc='$mc' and run=$r and fold=$f;",
       s"select pre from e where ds='$ds' and fs=$fs and i='th' and f='tf' and st='${st.limp}' and leas='$leas' and mc='$mc' and run=$r and fold=$f;"

@@ -21,14 +21,14 @@ package clean.run
 
 import clean.lib._
 import ml.Pattern
-import ml.classifiers.{NoLearner, MetaLearner}
+import ml.classifiers.{MetaLearner, NoLearner}
 import weka.filters.Filter
 
 import scala.collection.mutable
 
 object acvmeta extends Exp with StratsTrait with LearnerTrait {
   val context = "acvmetaApp"
-  val arguments = superArguments :+ "leas" :+ "versao"
+  val arguments = superArguments :+ "leas" :+ "versao" :+ "mc"
   val ignoreNotDone = false
   var outroProcessoVaiTerminarEsteDataset = false
   var acabou = true
@@ -60,8 +60,8 @@ object acvmeta extends Exp with StratsTrait with LearnerTrait {
       stratsPool("all", pool, pool).map { st =>
         // defr pode ser apenas interessante pra tabela de acurácias, que vai ter também RF1000 e qq outro que seja interessante
         // MetaLearner(pool, mapa, learnerSeed, ds, "metade", st, seqleas)("defr-a")
-        val fakelearner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(NoLearner()), seqleas,run,fold)("PCTr-a")
-        val learner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(fakelearner), seqleas,run,fold)("PCTr-a")
+        val fakelearner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(NoLearner()), seqleas, run, fold)(mcArg)
+        val learner = MetaLearner(pool, fpool, mapa, fmapa, learnerSeed, ds, st(fakelearner), seqleas, run, fold)(mcArg)
         learner -> st(learner)
       } foreach { case (learner, strat) =>
         ds.log(s"$learner $strat ...")
@@ -86,14 +86,14 @@ object acvmeta extends Exp with StratsTrait with LearnerTrait {
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("meta1" + versao)
+      ds.markAsFinishedRun("meta1" + versao + mcArg)
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
     acabou = true
   }
 
-  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("meta1" + versao)
+  def isAlreadyDone(ds: Ds) = ds.isFinishedRun("meta1" + versao + mcArg)
 
   def end(res: Map[String, Boolean]): Unit = {
   }
