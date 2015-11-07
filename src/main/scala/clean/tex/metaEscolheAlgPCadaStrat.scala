@@ -15,9 +15,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
 
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
-  //se mudar medida, precisa verficar mais dois lugares: dsminSize e no código. ALC é mais fácil.
   val measure = ALCKappa
-  //1 100 200 (Kappa exige 200)
   val dsminSize = 100
   //n=2 estraga stats
   val n = 1
@@ -52,9 +50,8 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       }
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
-      val dssss = DsBy(datasets, dsminSize, false)
-      println(s"${dssss.size} <- dssss.size")
-      def bagsNaN = dssss.par map { d =>
+      println(s"${datasets.size} <- dssss.size")
+      def bagsNaN = datasets.par map { d =>
         val ds = Ds(d, readOnly = true)
         ds.open()
         val (ti0, th0, tf0, tpass) = ranges(ds)
