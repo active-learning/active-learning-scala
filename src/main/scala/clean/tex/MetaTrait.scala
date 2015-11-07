@@ -201,7 +201,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
       val shuffled = new Random(run).shuffle(bagsrefeito)
 
-      Datasets.kfoldCV2(bagsrefeito, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+      Datasets.kfoldCV2(shuffled, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
         //seed tem sobreposição acima de 100 folds
         if (ks > 100) ???
         val seed = run * 100 + fold
@@ -265,7 +265,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val rankMedio = media(tr.toSeq map (_.targets)) //tanto faz tb
           val defaultFM = FakeModelRank((tr ++ ts).map(x => x.id -> rankMedio).toMap)
 
-          Vector(RandomRank(seed), clusFM, defaultFM).zip(Vector("rndr", "PCTr", "defr")) flatMap { case (fm, alg) =>
+          val filaDeInserts = mutable.Queue[String]()
+          val resres = Vector(RandomRank(seed), clusFM, defaultFM).zip(Vector("rndr", "PCTr", "defr")) flatMap { case (fm, alg) =>
             val spearsTrTs = Seq(tr, ts).map { tx =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
@@ -296,22 +297,17 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
                 //se for cjt de teste
                 if (idx == 1) {
-                  if (porPool) {
+                  filaDeInserts += (if (porPool) {
                     val esperadoStr = labels(esperado)
                     val preditoStr = labels(predito)
                     val base = tsbags.head.head.nomeBase
-                    val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr', $r, $f)"
-                    println(s"porPool rulez: $sql")
-                    metads.write(sql)
+                    s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr', $r, $f)"
                   } else if (ks == patterns.size) {
                     val esperadoStr = labels(esperado)
                     val preditoStr = labels(predito)
                     val base = tsbags.head.head.nomeBase
-                    val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr', -1, -1)"
-                    print(s"${sql} <- sql ")
-                    println(s"LOO ativa registro para contagem de vitorias, mesmo no Rank, ranqueadores tb merecem recomendar o melhor, porque talvez errem menos feio que classificadores, mesmo que acertem menos")
-                    metads.write(sql)
-                  }
+                    s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr', -1, -1)"
+                  } else "")
                 }
 
                 /*
@@ -333,6 +329,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Vector(Resultado(alg + "-a", spearsTrTsAcc.head, spearsTrTsAcc(1)), Resultado(alg, spearsTrTs.head, spearsTrTs(1)))
           }
+          metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
+          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
+          resres
 
         } else {
           if (ks == patterns.size && !rank) {
