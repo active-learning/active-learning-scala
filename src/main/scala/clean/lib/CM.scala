@@ -105,3 +105,8 @@ trait CM extends Log {
 
    def ALC(CMs: Seq[Array[Array[Int]]])(f: Array[Array[Int]] => Double) = (CMs map f).sum / CMs.size
 }
+
+object testaKappa extends App with CM {
+  val context = ""
+  println(s"${kappa(Array(Array(0, 0, 0, 33), Array(0, 33, 0, 0), Array(0, 0, 0, 33), Array(0, 0, 0, 33)))} <- kappa(Array(Array(   ...)))")
+}
