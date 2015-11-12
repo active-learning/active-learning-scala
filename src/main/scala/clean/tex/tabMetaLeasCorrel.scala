@@ -2,43 +2,32 @@ package clean.tex
 
 import clean.lib._
 import ml.classifiers.NoLearner
-import util.StatTests
 
-object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
+object tabMetaLeasCorrel extends App with StratsTrait with LearnerTrait with CM {
   val context = this.getClass.getName
   val ls = (args(0).split(",") map str2learner()).map(_.limp).toBuffer
-  //defr-a equivale a maj, com a vantagem de nunca dar zero no LOO;
-  // como chu tá com bug, suponho que o mesmo acima valha para usar rnd-r no lugar dele.
+  val mcs = List("PCTr", "defr", "rndr")
   val db = new Db("metanew", true)
-  val mcs = List("RoF500", "PCTr-a", "RFw500", "ABoo500", "defr-a", "rndr-a")
   val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
   db.open()
   val tudo = Seq("f", "i").par map { fi =>
     sts.par map { st =>
       val nome = st + (if (fi == "f") "¹" else "²")
-      val medidas3 = (mcs.par map { mc =>
+      val medidas = mcs.par map { mc =>
         val m = ls.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val cm = Array.fill(ls.size)(Array.fill(ls.size)(0))
-        val sql = s"select esp,pre,count(0) from e where fs=90 and $fi='th' and st='$st' and leas='$ls' and mc='$mc' and run=-1 and fold=-1 group by esp,pre"
-        //        println(s"${sql} <- sql")
-        db.readString(sql) foreach {
-          case Vector(a, b, v) => cm(m(a))(m(b)) = v.toInt
-        }
-        if (cm.flatten.sum != 90) justQuit(s"$fi $st $mc " + cm.flatten.sum.toString)
-        ((100 * acc(cm)).round / 100d, (100 * accBal(cm)).round / 100d, (100 * kappa(cm)).round / 100d)
-        //      cm.map(_.toList) foreach println
-      }).unzip3
-      t3map(medidas3)(nome -> _.toList)
+        val sql = s"select ats from r where $fi='th' and st='$st' and ra='ra' and mc='$mc' and ls='5nnw,nbb,c452,rbf' and fs=90 and nt=500 and cr=1 and rs=1 and dsminsize=100 and porPool='false' order by ats desc"
+        db.readString(sql).head.head.toDouble
+      }
+      nome -> medidas.toList
     }
   }
   val fla = tudo.flatten.toList
-  val txt = t3map(fla.unzip3) { case nomesEmedidas =>
-    val sorted = nomesEmedidas.sortBy(_._2.sum).reverse
-    val header = Seq("estratégia") ++ mcs mkString " "
-    println(header)
-    sorted foreach { case (nome, meds) =>
-      println(s"$nome " + meds.mkString(" "))
-    }
+  val txt = fla.sortBy(_._2.sum).reverse
+  val header = Seq("estratégia") ++ mcs mkString " "
+  println(header)
+  txt foreach { case (nome, meds) =>
+    println(s"$nome " + meds.mkString(" "))
   }
   db.close()
 

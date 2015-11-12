@@ -29,12 +29,14 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
   //, "porRisco:r", "dist:euc,man,mah")
   val context = "tabwinnerstex"
   val n = 1
+  val risco = true
   val measure = ALCKappa
   val sts = stratsTexForGraficoSimples //.dropRight(1)
   run()
 
   override def run() = {
     super.run()
+    if (risco) println(s" medindo risco!!!!")
     val ls = learners(learnersStr)
     val datasetLearnerAndBoth = for {
       dataset <- datasets.toList.par
@@ -54,7 +56,8 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
             } yield measure(ds, s, l, r, f)(ti, tf).read(ds).getOrElse {
                 throw new Error((ds, s, l, r, f) + ": medida não encontrada")
               }
-            s.limp.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._1
+            if (risco) s.limp.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._2 * -1
+            else s.limp.takeWhile(x => x != ' ') -> Stat.media_desvioPadrao(vs.toVector)._1
           }
         val rnd = sres.find(_._1 == RandomSampling(Seq()).limp).get._2
         val r = Some(ds.dataset + l.abr -> pegaMelhores(sres, n)(_._2).map(_._1),
@@ -111,6 +114,7 @@ algoritmo & \makecell{primeiros\\lugares} & \makecell{derrotas\\para Rnd}  & \ma
     //      tbs foreach { case res1 =>
     //        StatTests.extensiveTable2(res1.toSeq.map(x => x._1.take(3) + x._1.takeRight(12) -> x._2), ss.toVector.map(_.toString), "nomeTab", measure.toString)
     //      }
+    if (risco) println(s" medindo risco!!!!")
   }
 }
 
