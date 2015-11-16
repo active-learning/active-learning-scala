@@ -25,31 +25,38 @@ import ml.classifiers.RoF
 import util.Tempo
 import weka.filters.Filter
 
-import scala.collection.mutable
-
 object acvTempo extends Exp with LearnerTrait with StratsTrait {
   val context = "acvApp"
-  val arguments = superArguments :+ "leas(unused)" :+ "versao(unused)"
+  val arguments = superArguments
   val ignoreNotDone = false
-  var t = 0d
+
+  //  val t = Tempo.now
+  override def runs = 1
+
+  override def folds = 2
+
   run()
 
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
     ds.log(s"Iniciando tempo para pool $run.$fold ...", 30)
     val flearner = RoF(learnerSeed, 2)
-    stratsForTempo(pool, fpool, flearner) foreach { strat =>
-      ds.log(s"$flearner $strat ...")
-      strat.queries.take(50).toList
+    stratsForTempoResposta(fpool, pool, flearner) foreach { strat =>
+      strat.queries.take(ds.nclasses + 1).toList
+      var t = Tempo.now
+      strat.queries.take(100).zipWithIndex foreach { case (q, i) =>
+        println(s"$i $fold tempo ${strat.limp} $ds ${5 * (Tempo.now - t) / 1000d}")
+        t = Tempo.now
+      }
     }
   }
 
   def isAlreadyDone(ds: Ds) = {
-    t = Tempo.now
+    //    t = Tempo.now
     false
   }
 
   def datasetFinished(ds: Ds) = {
-    println(s"tempo $ds ${(Tempo.now - t) / 1000d}")
+    //    println(s"tempo $ds ${(Tempo.now - t) / 1000d}")
   }
 
   def end(res: Map[String, Boolean]): Unit = {

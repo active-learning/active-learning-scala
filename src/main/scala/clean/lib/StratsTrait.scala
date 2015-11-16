@@ -134,6 +134,12 @@ trait StratsTrait {
     , (learner: Learner) => SGmultiFixo(learner, fakePool, "consensus")
     , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
   )
+  val stratsTexForGraficoSimplesIlustra = Seq(
+    (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+    , (learner: Learner) => MarginFixo(learner, fakePool)
+    , (learner: Learner) => RandomSampling(fakePool)
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+  )
 
 
   def stratsTex(dist: String) = {
@@ -399,6 +405,12 @@ trait StratsTrait {
     AgDensityWeightedTrainingUtility(pool, "eucl")
     , new SGmultiFixo(learner, fpool, "consensus")
     , ExpErrorReductionMarginFixo(learner, fpool, "balacc")
+  )
+
+  def stratsForTempoResposta(poolForLearner: Seq[Pattern] = Seq(), pool: Seq[Pattern] = Seq(), learner: Learner = NoLearner()) = Seq(
+    AgDensityWeightedTrainingUtility(pool, "eucl")
+    , ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy")
+    , HTUFixo(poolForLearner, learner, pool, "eucl")
   )
 }
 

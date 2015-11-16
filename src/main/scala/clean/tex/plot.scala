@@ -21,9 +21,8 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies._
 import clean.lib._
-import ml.classifiers.{Learner, NoLearner}
+import ml.classifiers.NoLearner
 import util.Stat
 
 object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
@@ -33,10 +32,13 @@ object plot extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
   val tipoSumariz = "media"
   val measure = Kappa
   val conf = "tese"
+  //  val conf = "teseilustraall"
   val strats = conf match {
     case "artigos/hais14-expandido" => stratsTexRedux(dist)
     case "artigos/bracis15" => stratsForBRACIS15
     case "tese" => stratsTexForGraficoSimples
+    case "teseilustra" => stratsTexForGraficoSimplesIlustra
+    case "teseilustraall" => stratsTexForGraficoSimplesIlustra
   }
   run()
 

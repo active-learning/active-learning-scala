@@ -108,5 +108,5 @@ trait CM extends Log {
 
 object testaKappa extends App with CM {
   val context = ""
-  println(s"${kappa(Array(Array(0, 0, 0, 33), Array(0, 33, 0, 0), Array(0, 0, 0, 33), Array(0, 0, 0, 33)))} <- kappa(Array(Array(   ...)))")
+  println(s"${kappa(Array(Array(0, 9), Array(9, 0)))} <- kappa(Array(Array(   ...)))")
 }

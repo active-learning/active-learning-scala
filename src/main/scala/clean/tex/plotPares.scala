@@ -21,7 +21,6 @@ package clean.tex
 
 import java.io.PrintWriter
 
-import al.strategies.Strategy
 import clean.lib._
 import ml.classifiers.NoLearner
 import util.Stat
@@ -36,11 +35,13 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
   //  val ls = (ds: Ds, st: Strategy) => (Seq("PCTr-a", "PCT", "RFw1000", "chu", "defr-a", "maj", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
   //  def ls (ds: Ds, st: Strategy,r:Int,f:Int) = learners(learnersStr, Seq(), -1, ds, st,r,f)
   val strats = stratsTexForGraficoComplexo
+  //  val strats = stratsTexForGraficoSimplesIlustra
   run()
 
   override def run() = {
     super.run()
     val arq = s"/home/davi/wcs/tese/$learnerStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
+    //    val arq = s"/home/davi/wcs/tese/ilustra$learnerStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
     println(s"$arq")
     val algs = (for {s <- strats; l <- learners(learnersStr)} yield s(l).limp + "-" + l.limp).toVector
     val res0 = for {
