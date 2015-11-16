@@ -21,12 +21,13 @@ package clean.tex
 
 import java.io.PrintWriter
 
+import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.NoLearner
+import ml.classifiers.{Learner, NoLearner}
 import util.Stat
 
 object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank {
-  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah")
+  lazy val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "porRank:r", "porRisco:r", "dist:euc,man,mah", "sóRnd:rnd")
   val context = "plotPares"
   //   val tipoSumariz = "mediana"
   val measure = Kappa
@@ -34,7 +35,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
   //  val ls = (ds: Ds, st: Strategy) => (Seq("SVM", "PCTr-a", "PCT", "RFw1000", "5NN", "chu", "defr-a", "maj", "C4.55", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
   //  val ls = (ds: Ds, st: Strategy) => (Seq("PCTr-a", "PCT", "RFw1000", "chu", "defr-a", "maj", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
   //  def ls (ds: Ds, st: Strategy,r:Int,f:Int) = learners(learnersStr, Seq(), -1, ds, st,r,f)
-  val strats = stratsTexForGraficoComplexo
+  val strats = if (sohRnd) Seq((l: Learner) => RandomSampling(Seq())) else stratsTexForGraficoComplexo
   //  val strats = stratsTexForGraficoSimplesIlustra
   run()
 

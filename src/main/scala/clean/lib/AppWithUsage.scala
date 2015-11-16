@@ -55,6 +55,7 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   lazy val comprimento = args(5)
   lazy val porRisco = args(6).contains("r")
   lazy val dist = args(7)
+  lazy val sohRnd = args(8).toUpperCase.contains("RND")
   lazy val normalizar = args(4).contains("y")
   lazy val path = args(4) + "/"
   lazy val trulyrnd = new SecureRandom()
