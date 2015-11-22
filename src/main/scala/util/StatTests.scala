@@ -1,7 +1,6 @@
 package util
 
 import clean.lib.RoundFilter
-import clean.tex.tabwinners
 
 /*
  active-learning-scala: Active Learning library for Scala
@@ -83,12 +82,11 @@ object StatTests extends RoundFilter {
       """\definecolor{darkgreen}{rgb}{0.0, 0.4, 0.0}
 \begin{table}[h]
 \caption{""" + caption + """}
-\begin{center}""" + (if (strategies.size > 8) "\\scalebox{0.75}{" else "") +
+\centering""" + (if (strategies.size > 6) "\\scalebox{0.684}{" else "") +
          """\begin{tabular}{l""" + Seq.fill(nstrats)("c").mkString("|") + "}\n & " + strategies.mkString(" & ") + "\\\\\n" + """ \hline """ + "\n" +
          core +
-         """\end{tabular}""" + "\n" + (if (strategies.size > 8) "}" else "") +
+        """\end{tabular}""" + "\n" + (if (strategies.size > 6) "}" else "") +
          """\label{""" + tableName + """}
-\end{center}
 \end{table}
                                      """
    }

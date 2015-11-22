@@ -1,6 +1,7 @@
 package clean.meta
 
 import java.io.PrintWriter
+
 import al.strategies._
 import clean.lib._
 import ml.classifiers._
@@ -9,13 +10,13 @@ import util.Stat
 object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with RangeGenerator {
   val perdedores = true
   val pioresQRnd = perdedores
-  val mostrar = 0.5
+  val mostrar = 0.9
   val measure = ALCKappa
   val context = "metaAttsTreeApp"
   val arguments = superArguments ++ List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm")
   val n = if (!perdedores) 3 else 1
   val pioresAignorar = 0
-  val minObjs = if (!perdedores) 150 else 150
+  val minObjs = if (!perdedores) 120 else 120
   run()
 
   def ff(x: Double) = (x * 100).round / 100d
