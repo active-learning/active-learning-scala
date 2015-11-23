@@ -59,7 +59,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
               r <- 0 until runs
               f <- 0 until folds
             } yield {
-                val le = str2learner(Seq(), -1, ds, s0(NoLearner()), learnersStr.filter(!_.startsWith("meta")), r, f)(lestr)
+                val le = str2learner(Seq(), -1, ds, s0(NoLearner()), learners(learnersStr.filter(!_.startsWith("meta"))).map(_.limpa), r, f)(lestr)
                 val s = s0(le)
                 measure(ds, s, le, r, f)(-2).readAll99(ds).getOrElse {
                   //pelo que entendi -2 poderia ser -3456,... (19/9/15)

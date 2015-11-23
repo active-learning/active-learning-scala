@@ -18,10 +18,9 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import al.strategies.Strategy
-import clean.lib.{LearnerTrait, Db, CM, Ds}
+import clean.lib.{Db, Ds, LearnerTrait}
 import ml.Pattern
-import ml.models.{WekaBatModel2, WekaBatModel, Model}
-import util.Datasets
+import ml.models.{Model, WekaBatModel, WekaBatModel2}
 
 case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, Pattern], ftodos: Map[Int, Pattern], learnerSeed: Int, ds: Ds, st: Strategy, leas: Seq[String], r: Int = -1, f: Int = -1)(mc: String)
   extends Learner with LearnerTrait {
@@ -30,9 +29,13 @@ case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, 
   val boundaryType = "nenhum"
   val attPref = "nenhum"
   val fs = 90
-  val id = "metade" match {
-    case "metade" => (if (r == -1 && f == -1) 100000000 else 200000000) + (((mc +: leas).hashCode) % 100000000).abs //94172909: maior sid+convlid até então.
-    //    case "inteira" => 200000000 + ((mc +: leas).hashCode % 100000000).abs
+  lazy val id = {
+    val rrr = "metade" match {
+      case "metade" => (if (r == -1 && f == -1) 100000000 else 200000000) + ((mc +: leas.toList).hashCode % 100000000).abs //94172909: maior sid+convlid até então.
+      //    case "inteira" => 200000000 + ((mc +: leas).hashCode % 100000000).abs
+    }
+    ds.log(s"${rrr} <- id   $leas $mc", 0)
+    rrr
   }
   //id não precisa (nem deve for the sake of querying the database) conter st, pois no BD já vem a strat nas tabelas q e h via tabela p
 
