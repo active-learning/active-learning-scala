@@ -51,7 +51,8 @@ trait LearnerTrait {
     case "c452" | "C4.52" => C452()
     case "rbf" | "SVM" => SVMLibRBF(learnerSeed)
     case "rf" | "RFw" => RF(learnerSeed)
-    case "meta" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("PCTr-a")
+    case "metapct" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("PCTr-a")
+    case "metadef" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("defr-a")
 
     case "bagc45" | "BagC45" => BagC45(learnerSeed)
     case "10nnw" => Knn10(pool, weighted = true, distance_name = "eucl")
