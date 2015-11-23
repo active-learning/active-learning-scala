@@ -24,7 +24,7 @@ import ml.Pattern
 import ml.classifiers._
 
 trait LearnerTrait {
-  def learners(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1, ds: Ds = null, st: Strategy = null) = learnersStr map str2learner(pool, learnerSeed, ds, st, learnersStr.filter(_ != "meta"))
+  def learners(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1, ds: Ds = null, st: Strategy = null) = learnersStr map str2learner(pool, learnerSeed, ds, st, learnersStr.filter(!_.startsWith("meta")))
 
   def learnersfun(learnersStr: Seq[String], pool: Seq[Pattern] = Seq(), learnerSeed: Int = -1) = learnersStr map str2learnerfun
 
