@@ -41,6 +41,7 @@ object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait wi
     val les1 = learners(learnersStr)
     val pares1 = for {s <- sts1; l <- les1} yield s -> l
     val txts = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
+    println(s"${txts.mkString(";")} ${txts.mkString(";").size} <- txts.mkString()")
     pares1 foreach { case (estr, apren) =>
       Tempo.start
       val parName = estr(apren).limp + "-" + apren.limp
