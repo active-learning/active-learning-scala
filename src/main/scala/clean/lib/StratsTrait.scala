@@ -419,7 +419,6 @@ trait StratsTrait {
     , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
     , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
     , (learner: Learner) => MarginFixo(learner, fakePool)
-    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
   )
 }
 
