@@ -423,6 +423,7 @@ trait StratsTrait {
   )
 }
 
+
 /* ids:
       Majoritary(pool) //21
       , RandomSampling(pool) //0

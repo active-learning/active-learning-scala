@@ -44,7 +44,7 @@ object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait wi
     pares1 foreach { case (estr, apren) =>
       Tempo.start
       val parName = estr(apren).limp + "-" + apren.limp
-      val arq = s"/home/davi/wcs/arff/$context-$porPool-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${parName + (if (porRank) "Rank" else "")}-${txts.mkString.replace("-","").replace("EE","").replace("NN","")}-U$dsminSize.arff"
+      val arq = s"/home/davi/wcs/arff/$context-$porPool-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${parName + (if (porRank) "Rank" else "")}-${txts.mkString.replace("-","").replace("EE","").replace("euc","").replace("NN","").replace("multi","")}-U$dsminSize.arff"
       val labels = txts
       val labelssts = txts
 
