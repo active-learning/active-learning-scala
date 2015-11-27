@@ -412,6 +412,15 @@ trait StratsTrait {
     , ExpErrorReductionMarginFixo(learner, poolForLearner, "entropy")
     , HTUFixo(poolForLearner, learner, pool, "eucl")
   )
+
+  val stratsPMetaStrat = Seq(
+    (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
+    , (learner: Learner) => ClusterBased(fakePool) //1
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => MarginFixo(learner, fakePool)
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+  )
 }
 
 /* ids:
