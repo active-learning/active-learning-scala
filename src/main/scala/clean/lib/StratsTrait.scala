@@ -427,6 +427,11 @@ trait StratsTrait {
     , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
     , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
   )
+
+  val stratsPMetaStratmicro = Seq(
+    (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+  )
 }
 
 
