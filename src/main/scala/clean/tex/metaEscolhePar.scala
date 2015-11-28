@@ -23,7 +23,7 @@ object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait wi
     super.run()
     println(s"escolhe strat p/cada alg")
     if (porPool && (rus != 1 || ks != 90 || !porRank)) justQuit("porPool ativado com parametros errados!")
-    val sts1 = stratsPMetaStrat
+    val sts1 = stratsPMetaStratmini
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
       PCT(),

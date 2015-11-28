@@ -421,6 +421,12 @@ trait StratsTrait {
     , (learner: Learner) => MarginFixo(learner, fakePool)
     , (learner: Learner) => new SGmultiFixo(learner, fakePool, "consensus")
   )
+
+  val stratsPMetaStratmini = Seq(
+    (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+  )
 }
 
 
