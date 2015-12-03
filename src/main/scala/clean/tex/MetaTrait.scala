@@ -266,16 +266,16 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val defaultFM = FakeModelRank((tr ++ ts).map(x => x.id -> rankMedio).toMap)
 
           val filaDeInserts = mutable.Queue[String]()
+          val base = tsbags.head.head.nomeBase
           val resres = Vector(RandomRank(seed), clusFM, defaultFM).zip(Vector("rndr", "PCTr", "defr")) flatMap { case (fm, alg) =>
-            val spearsTrTs = Seq(tr, ts).map { tx =>
+            val spearsTrTs = Seq(tr, ts).zipWithIndex.map { case (tx, idx) =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
               tx foreach { pat =>
                 val (ranking, targets) = fm.output(pat) -> pat.targets
                 val r = try {
                   val res = new SpearmansCorrelation().correlation(ranking, targets)
-                  if (res.isNaN) 0d
-                  //justQuit("\n\n\nNaN no Spear:" + ranking.toList + " " + targets.toList + "\n\n\n")
-                  else res
+                  val rree = if (res.isNaN) 0d else res
+                  rree
                 } catch {
                   case x: Throwable => error("\n " + ranking.toList + "\n " + rankMedio.toList + "\n " + targets.toList + " \n" + x)
                 }
@@ -300,12 +300,10 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                   filaDeInserts += (if (porPool) {
                     val esperadoStr = labels(esperado)
                     val preditoStr = labels(predito)
-                    val base = tsbags.head.head.nomeBase
                     s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr', $r, $f)"
                   } else if (ks == patterns.size) {
                     val esperadoStr = labels(esperado)
                     val preditoStr = labels(predito)
-                    val base = tsbags.head.head.nomeBase
                     s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${alg + "-a"}', '$esperadoStr', '$preditoStr', -1, -1)"
                   } else "")
                 }
