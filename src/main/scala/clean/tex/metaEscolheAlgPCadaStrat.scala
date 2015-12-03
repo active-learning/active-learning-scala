@@ -4,6 +4,7 @@ import java.io.{FileWriter, File}
 import ml.{PatternParent, Pattern}
 import clean.lib._
 import ml.classifiers._
+import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Tempo, Datasets, Stat}
 import weka.core.{Instances, Attribute}
 
@@ -11,7 +12,7 @@ import scala.io.Source
 
 object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++
-    List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "porPool:p")
+    List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "porPool:p", "guardaSohRank:true|false")
 
   val context = this.getClass.getName.split('.').last.dropRight(1)
   val dedup = false
@@ -23,6 +24,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
 
   override def run() = {
     super.run()
+    if (guardaSohRank) println(s"Guardanado só rank!")
     if (porPool && (rus != 1 || ks != 90 || !porRank)) justQuit("porPool ativado com parametros errados!")
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
@@ -31,13 +33,10 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       RF(42, ntrees),
       RoF(42, ntrees),
       ABoo(42, ntrees),
-      //esses 3 precisam de seleção de parâmetros/modelo:
-      //      SVMLibRBF(),
-      //      C45(false, 5),
-      //      KNNBatcha(5, "eucl", patts),
       Chute(),
       Maj()
     )
+    println(s"${metaclassifs} <- metaclassifs")
     val leastxt = learnerStr
     stratsTexForGraficoComplexo foreach { strat =>
       Tempo.start
@@ -127,7 +126,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
         case x: List[Vector[String]] if x.isEmpty =>
-          val porMetaLea = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.flatten.groupBy(_.metalearner)
+          val porMetaLea = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks, guardaSohRank).toVector.flatten.flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
           porMetaLea foreach { case (nome, resultados) =>
@@ -137,7 +136,23 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
             val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
             //            val r = resultados reduce (_ ++ _)
             //            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
-            metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$porPool')")
+            if (!guardaSohRank) metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$porPool')")
+
+            resultados foreach {
+//              case Resultado("PCTr-a" | "defr-a" | "rndr-a", _, _) =>
+//              case Resultado("PCTr" | "defr" | "rndr", esperados, preditos) =>
+              case Resultado(_, esperados, preditos) =>
+                val rankEsperado = esperados.map(_._1.split(" ").map(_.toDouble)).transpose.map(x => x.sum / x.size).mkString(" ")
+                val rankPredito = preditos.map(_._2.split(" ").map(_.toDouble)).transpose.map(x => x.sum / x.size).mkString(" ")
+                val speaEsperado = Stat.media_desvioPadrao(esperados.map(_._3).toVector)._1
+                val speaEsperadostd = Stat.media_desvioPadrao(esperados.map(_._3).toVector)._2
+                val speaPredito = Stat.media_desvioPadrao(preditos.map(_._3).toVector)._1
+                val speaPreditostd = Stat.media_desvioPadrao(preditos.map(_._3).toVector)._2
+                //              if (!readOnly)
+                metads.write(s"insert into rank values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, $rankEsperado, $speaEsperado, $speaEsperadostd, $rankPredito, $speaPredito, $speaPreditostd, '$porPool')")
+                println(s"insert into rank values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, $rankEsperado, $speaEsperado, $speaEsperadostd, $rankPredito, $speaPredito, $speaPreditostd, '$porPool')")
+            }
+
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
           }
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")

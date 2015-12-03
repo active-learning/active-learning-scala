@@ -190,11 +190,11 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
   def fo(x: Double) = "%2.1f".format(x)
 
-  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int) = {
+  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int,readOnly :Boolean=false) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
-    val metads = new Db("metanew", readOnly = false)
+    val metads = new Db("metanew", readOnly)
     metads.open()
 
     val rrr = (0 to rs - 1).par map { run =>
@@ -327,8 +327,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Vector(Resultado(alg + "-a", spearsTrTsAcc.head, spearsTrTsAcc(1)), Resultado(alg, spearsTrTs.head, spearsTrTs(1)))
           }
-          metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
-          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
+          if (!readOnly) metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
+//          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
           resres
 
         } else {
@@ -372,7 +372,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                     } else if (ks == patterns.size) {
                       val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', -1, -1)"
                       print(s"${sql} <- sql ")
-                      metads.write(sql)
+                      if (!readOnly) metads.write(sql)
                     }
                   }
                 }

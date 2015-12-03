@@ -45,6 +45,7 @@ trait AppWithUsage extends App with Log with ArgParser with FilterTrait with Ran
   lazy val (rus, ks) = args(8).toInt -> args(9).toInt
   lazy val (ini, fim) = args(10) -> args(11)
   lazy val porPool = args(12).contains("p")
+  lazy val guardaSohRank = args(13).toBoolean
   //  lazy val featureSel = args(13)
   //  lazy val smote = args(14) == "smote"
   //  lazy val smotePropor = args(15).toInt
