@@ -190,14 +190,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
   def fo(x: Double) = "%2.1f".format(x)
 
-  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int,readOnly :Boolean=false) = {
+  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int, readOnly: Boolean = false) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
     val metads = new Db("metanew", readOnly)
     metads.open()
 
-    val rrr = (0 to rs - 1).par map { run =>
+    val rrr = (0 to rs - 1).par.map { run =>
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
       val shuffled = new Random(run).shuffle(bagsrefeito)
 
@@ -328,14 +328,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             Vector(Resultado(alg + "-a", spearsTrTsAcc.head, spearsTrTsAcc(1)), Resultado(alg, spearsTrTs.head, spearsTrTs(1)))
           }
           if (!readOnly) metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
-//          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
-          resres
+          //          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
+          base -> resres.toSeq
 
         } else {
           if (ks == patterns.size && !rank) {
             println(s"LOO+ank ativa registro para contagem de vitorias")
           }
-          leas(trSemParecidos) map { mc =>
+          val resres = leas(trSemParecidos) map { mc =>
             val (trtestbags, tstestbags, m) = {
               //              if (mc.querFiltro) {
               //              val mo = mc match {
@@ -382,9 +382,10 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Resultado(mc.limpa, tr_ts.head, tr_ts(1))
           }
+          "basefake" -> resres.toSeq
         }
-      }
-    }
+      }.toList
+    }.toArray
     metads.close()
     rrr
   }
