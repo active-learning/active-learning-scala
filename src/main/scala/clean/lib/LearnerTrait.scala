@@ -54,6 +54,8 @@ trait LearnerTrait {
     case "metapct" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("PCTr-a")
     case "metadef" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("defr-a")
     case "metabest" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("best")
+    case "metarof" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("RoF500")
+    case "metarf" => MetaLearner(Seq(), Seq(), Map(), Map(), learnerSeed, ds, st, ls, r, f)("RFw500")
 
     case "bagc45" | "BagC45" => BagC45(learnerSeed)
     case "10nnw" => Knn10(pool, weighted = true, distance_name = "eucl")
