@@ -149,8 +149,8 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
                 val speaPredito = Stat.media_desvioPadrao(preditos.map(_._3).toVector)._1
                 val speaPreditostd = Stat.media_desvioPadrao(preditos.map(_._3).toVector)._2
                 //              if (!readOnly)
-                metads.write(s"insert into rank values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, $rankEsperado, $speaEsperado, $speaEsperadostd, $rankPredito, $speaPredito, $speaPreditostd, '$porPool')")
-                println(s"insert into rank values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, $rankEsperado, $speaEsperado, $speaEsperadostd, $rankPredito, $speaPredito, $speaPreditostd, '$porPool')")
+                metads.write(s"insert into rank values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, '$rankEsperado', $speaEsperado, $speaEsperadostd, '$rankPredito', $speaPredito, $speaPreditostd, '$porPool')")
+                println(s"insert into rank values ('$ra', $criterio, '$ini', '$fim', '$stratName', '$leastxt', $rus, $ks, '$nome', $ntrees, $dsminSize, '$rankEsperado', $speaEsperado, $speaEsperadostd, '$rankPredito', $speaPredito, $speaPreditostd, '$porPool')")
             }
 
             (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
