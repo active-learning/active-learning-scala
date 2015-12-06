@@ -66,7 +66,7 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
                   //pelo que entendi -2 poderia ser -3456,... (19/9/15)
                   println((ds, s, le, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
-                } -> Some(0d )//ALCKappa(ds, s, le, r, f)(ti, tf).read(ds)
+                } -> ALCKappa(ds, s, le, r, f)(ti, tf).read(ds)
               }).unzip
             println(s"${Stat.media_desvioPadrao(alcs.flatten.toVector)._1} <- Stat.media_desvioPadrao(alcs.toVector)._1")
             val sizes = vs00.map(_.size)
