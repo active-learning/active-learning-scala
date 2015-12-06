@@ -55,18 +55,20 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
           s0 <- strats.toList
           lestr <- learnersStr
         } yield {
-            val vs00 = for {
+            val (vs00, alcs) = (for {
               r <- 0 until runs
               f <- 0 until folds
             } yield {
                 val le = str2learner(Seq(), -1, ds, s0(NoLearner()), learners(learnersStr.filter(!_.startsWith("meta"))).map(_.limpa), r, f)(lestr)
                 val s = s0(le)
+                val (ti, _, tf, _) = ranges(ds)
                 measure(ds, s, le, r, f)(-2).readAll99(ds).getOrElse {
                   //pelo que entendi -2 poderia ser -3456,... (19/9/15)
                   println((ds, s, le, r, f) + ": medida não encontrada")
                   sys.exit(0) //NA
-                }
-              }
+                } -> Some(0d )//ALCKappa(ds, s, le, r, f)(ti, tf).read(ds)
+              }).unzip
+            println(s"${Stat.media_desvioPadrao(alcs.flatten.toVector)._1} <- Stat.media_desvioPadrao(alcs.toVector)._1")
             val sizes = vs00.map(_.size)
             val minsiz = sizes.min
             val vs0 = vs00.map(_.take(minsiz))

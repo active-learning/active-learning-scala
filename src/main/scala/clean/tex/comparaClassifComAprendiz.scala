@@ -130,7 +130,7 @@ object comparaClassifComAprendiz extends AppWithUsage with LearnerTrait with Str
     //    //            out.toList.sortBy(_._1).reverse.map(_._2) foreach println
     //    //      out.toList.sortBy(_._2).reverse.map(_._2) foreach println
     //    println(out.toList.sortBy(_._2).reverse.map(_._2).sum / (1650 * 25d))
-    println(Stat.wilcoxon(out.toList))
+//    println(Stat.wilcoxon(out.toList))
   }
 }
 

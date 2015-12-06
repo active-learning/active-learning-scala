@@ -94,8 +94,9 @@ object fried_tabela_datasets_Pares extends AppWithUsage with LearnerTrait with S
     val arq2 = s"/home/davi/wcs/artigos/revista-comparacao/tempstratsfriedPares$measure" + (if (risco) "Risco" else "") + ".tex"
     println(s"")
     println(arq2)
-    val fw2 = new PrintWriter(arq2, "ISO-8859-1")
-    fw2.write(StatTests.pairTable(pairs, "stratsfriedpares" + (if (risco) "Risco" else ""), 2, caption))
-    fw2.close()
+    //val fw2 = new PrintWriter(arq2, "ISO-8859-1")
+    //fw2.write(StatTests.pairTable(pairs, "stratsfriedpares" + (if (risco) "Risco" else ""), 2, caption))
+    //fw2.close()
+    println(StatTests.pairTable(pairs, "stratsfriedpares" + (if (risco) "Risco" else ""), 2, caption))
   }
 }

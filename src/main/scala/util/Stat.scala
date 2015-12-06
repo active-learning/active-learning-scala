@@ -100,12 +100,12 @@ object Stat {
    * @param l
    * @return
    */
-  def wilcoxon(l: Seq[((String, Double), (String, Double))]) = {
+  def wilcoxon(l: Seq[(Double, Double)]) = {
     val temp = 1d / limitToTie
     def arredonda(a: Double) = (a * temp).round / temp
 
     val difs0 = l map {
-      case ((nome, med), (nome2, med2)) =>
+      case (med, med2) =>
         (arredonda(med2 - med), arredonda((med2 - med).abs))
     }
     val difs = difs0.sortBy(_._2) //.filterNot(_==0)
@@ -125,7 +125,7 @@ object Stat {
 
     val winrankhisto = histocomlistas map {
       case (x, ll) =>
-        (x, ll.reduceLeft(_ + _).toDouble / ll.length.toDouble)
+        (x, ll.sum.toDouble / ll.length.toDouble)
     }
 
     val winrank = difs map {
@@ -208,7 +208,8 @@ object Stat {
       (36, List((289, 0.5), (250, 0.2), (227, 0.1), (208, 0.05), (185, 0.02), (171, 0.01), (157, 0.005), (130, 0.001))),
       (37, List((305, 0.5), (265, 0.2), (241, 0.1), (221, 0.05), (198, 0.02), (182, 0.01), (168, 0.005), (140, 0.001))),
       (38, List((323, 0.5), (281, 0.2), (256, 0.1), (235, 0.05), (211, 0.02), (194, 0.01), (180, 0.005), (150, 0.001))),
-      (39, List((340, 0.5), (297, 0.2), (271, 0.1), (249, 0.05), (224, 0.02), (207, 0.01), (192, 0.005), (161, 0.001))) //,        (40, List((358,0.5),(313,0.2),(286,0.1),(264,0.05),(228,0.02),(,0.01),(,0.005),(,0.001))
+      (39, List((340, 0.5), (297, 0.2), (271, 0.1), (249, 0.05), (224, 0.02), (207, 0.01), (192, 0.005), (161, 0.001)))
+//      ,      (40, List((358, 0.5), (313, 0.2), (286, 0.1), (264, 0.05), (228, 0.02), (, 0.01), (, 0.005), (, 0.001))
     )
 
     val alfalist = linhaswtable.filter(_._1 == l.length).head._2
