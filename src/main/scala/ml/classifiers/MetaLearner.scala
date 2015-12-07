@@ -24,7 +24,7 @@ import ml.models.{Model, WekaBatModel, WekaBatModel2}
 
 case class MetaLearner(pool: Seq[Pattern], fpool: Seq[Pattern], todos: Map[Int, Pattern], ftodos: Map[Int, Pattern], learnerSeed: Int, ds: Ds, st: Strategy, leas: Seq[String], r: Int = -1, f: Int = -1)(mc: String)
   extends Learner with LearnerTrait {
-  override val toString = "ML" + mc
+  override val toString = "ML" + mc + leas
   val abr = s"Meta-$mc"
   val boundaryType = "nenhum"
   val attPref = "nenhum"
