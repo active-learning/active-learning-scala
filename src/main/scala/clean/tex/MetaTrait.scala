@@ -333,12 +333,14 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           base -> resres.toSeq
 
         } else {
+          val sqls = mutable.Queue[String]()
           val resres = leas(Vector()) map { mc =>
             val (trtest, tstest) = if (mc.querFiltro) {
               val (trfSemParecidos, binaf, zscof) = criaFiltro(trSemParecidos, -1)
               val tsf = aplicaFiltro(ts, -1, binaf, zscof)
               trfSemParecidos -> tsf
             } else trSemParecidos -> ts
+
             val mo = mc match {
               case Maj() => Maj().build(trtest)
               case RF(_, n, _, _) => RF(seed, n).build(trtest)
@@ -347,11 +349,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               case Chute(_) => Chute(seed).build(trtest)
               case PCT(_, _, _) => PCT(ntrees, seed, tr ++ ts).build(trtest) //os testes são em tr+ts, não em trSemParecidos+ts
             }
-
             if (rank) error("rank")
             if (tstest.size != 25) error("tstest.size!=25")
             Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
-              val sqls = mutable.Queue[String]()
               (tx, rfs).zipped foreach { case (pat, (r, f)) =>
                 val esperado = pat.nominalLabel.split("-").last
                 val pred = mo.predict(pat).toInt
@@ -361,14 +361,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                   sys.exit(0)
                 } else {
                   val sql = s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
-                  println(s"${sql} <- sql ")
                   sqls += sql
                 }
               }
-              if (!readOnly) metads.batchWrite(sqls.toList)
             }
             Resultado("", mutable.Queue(("", "", 0d)), mutable.Queue(("", "", 0d)))
           }
+          if (!readOnly) metads.batchWrite(sqls.toList)
           "basefake" -> resres.toSeq
         }
       }.toList
