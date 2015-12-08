@@ -360,7 +360,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                   justQuit("!porPool")
                   sys.exit(0)
                 } else {
-                  val sql = s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', $esperado', '$predito', '$r', '$f')"
+                  val sql = s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
                   println(s"${sql} <- sql ")
                   sqls += sql
                 }
