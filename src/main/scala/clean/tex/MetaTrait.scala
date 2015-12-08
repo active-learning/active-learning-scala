@@ -351,7 +351,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             if (rank) error("rank")
             if (tstest.size != 25) error("tstest.size!=25")
-            Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
+            Vector(tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
+            //Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               (tx, rfs).zipped foreach { case (pat, (r, f)) =>
                 val esperado = pat.nominalLabel.split("-").last
                 val pred = mo.predict(pat).toInt
