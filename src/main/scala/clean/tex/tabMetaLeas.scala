@@ -5,6 +5,7 @@ import ml.classifiers.NoLearner
 import util.StatTests
 
 object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
+  Global.debug=50
   val context = this.getClass.getName
   val ls = (args(0).split(",") map str2learner()).map(_.limp).toBuffer
   //defr-a equivale a maj, com a vantagem de nunca dar zero no LOO;
@@ -19,7 +20,7 @@ object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
       val medidas3 = (mcs.par map { mc =>
         val m = ls.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val cm = Array.fill(ls.size)(Array.fill(ls.size)(0))
-        val sql = s"select esp,pre,count(0) from e where fs=90 and $fi='th' and st='$st' and leas='$ls' and mc='$mc' and run=-1 and fold=-1 group by esp,pre"
+        val sql = s"select esp,pre,count(0) from acc where tr='ts' and fs=90 and $fi='th' and st='$st' and ls='$ls' and mc='$mc' group by esp,pre"
         //        println(s"${sql} <- sql")
         db.readString(sql) foreach {
           case Vector(a, b, v) => cm(m(a))(m(b)) = v.toInt

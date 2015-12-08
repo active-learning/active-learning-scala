@@ -333,7 +333,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           base -> resres.toSeq
 
         } else {
-          val sqls=mutable.Queue[String]()
+          val sqls = mutable.Queue[String]()
           val resres = leas(Vector()) map { mc =>
             val (trtest, tstest) = if (mc.querFiltro) {
               val (trfSemParecidos, binaf, zscof) = criaFiltro(trSemParecidos, -1)
@@ -362,12 +362,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 } else {
                   val sql = s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
                   println(s"${sql} <- sql ")
-                  sqls+=sql
+                  sqls += sql
                 }
               }
             }
             Resultado("", mutable.Queue(("", "", 0d)), mutable.Queue(("", "", 0d)))
           }
+          println(s"${sqls.size} <- sqls.size $readOnly")
           if (!readOnly) metads.batchWrite(sqls.toList)
           "basefake" -> resres.toSeq
         }
