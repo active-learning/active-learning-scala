@@ -24,18 +24,13 @@ import java.util.UUID
 
 import clean.lib.{Db, FilterTrait, Log, Rank}
 import clus.Clus
-import ml.{PatternParent, Pattern}
 import ml.classifiers._
-import ml.models.{RandomRank, FakeModelRank, EnsembleModel}
+import ml.models.{FakeModelRank, RandomRank}
+import ml.{Pattern, PatternParent}
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation
 import util.{Datasets, Stat}
-import weka.attributeSelection.{BestFirst, AttributeSelection, WrapperSubsetEval, GreedyStepwise}
-import weka.classifiers.`lazy`.IBk
-import weka.classifiers.trees.RandomForest
-import weka.core.{Attribute, Instances, DenseInstance}
+import weka.core.DenseInstance
 import weka.core.converters.ArffSaver
-import weka.filters.supervised.instance.{SMOTE, ClassBalancer}
-import weka.filters.unsupervised.attribute.PrincipalComponents
 
 import scala.collection.mutable
 import scala.io.Source
@@ -350,9 +345,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               case PCT(_, _, _) => PCT(ntrees, seed, tr ++ ts).build(trtest) //os testes são em tr+ts, não em trSemParecidos+ts
             }
             if (rank) error("rank")
-            if (tstest.size != 25) error(s"${tstest.size}!=25")
-            Vector(tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
-            //Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
+            if (tstest.size != 25) log(s"${tstest.size}!=25")
+            Vector(tstest -> (for (a <- 0 to 4444; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
+              //Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               (tx, rfs).zipped foreach { case (pat, (r, f)) =>
                 val esperado = pat.nominalLabel.split("-").last
                 val pred = mo.predict(pat).toInt
