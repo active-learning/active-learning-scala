@@ -350,7 +350,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               case PCT(_, _, _) => PCT(ntrees, seed, tr ++ ts).build(trtest) //os testes são em tr+ts, não em trSemParecidos+ts
             }
             if (rank) error("rank")
-            if (tstest.size != 25) error("tstest.size!=25")
+            if (tstest.size != 25) error(s"${tstest.size}!=25")
             Vector(tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
             //Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               (tx, rfs).zipped foreach { case (pat, (r, f)) =>
