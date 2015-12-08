@@ -202,6 +202,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       val shuffled = new Random(run).shuffle(bagsrefeito)
 
       Datasets.kfoldCV2(shuffled, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+        val base = tsbags.head.head.nomeBase
+
         //seed tem sobreposição acima de 100 folds
         if (ks > 100) ???
         val seed = run * 100 + fold
@@ -266,7 +268,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           val defaultFM = FakeModelRank((tr ++ ts).map(x => x.id -> rankMedio).toMap)
 
           val filaDeInserts = mutable.Queue[String]()
-          val base = tsbags.head.head.nomeBase
           val resres = Vector(RandomRank(seed), clusFM, defaultFM).zip(Vector("rndr", "PCTr", "defr")) flatMap { case (fm, alg) =>
             val spearsTrTs = Seq(tr, ts).zipWithIndex.map { case (tx, idx) =>
               val speaPorComb = mutable.Queue[(String, String, Double)]()
@@ -332,57 +333,43 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           base -> resres.toSeq
 
         } else {
-          if (ks == patterns.size && !rank) {
-            println(s"LOO+ank ativa registro para contagem de vitorias")
-          }
-          val resres = leas(trSemParecidos) map { mc =>
-            val (trtestbags, tstestbags, m) = {
-              //              if (mc.querFiltro) {
-              //              val mo = mc match {
-              //                case SVMLibRBF(_) => SVMLibRBF(seed).build(trf) //SVM fica um pouco mais rápida sem exemplos redundantes, mas 42,5 > 33,1
-              //                case _ => mc.build(trf)
-              //              }
-              //              (trf.groupBy(x => x.id), tsf.groupBy(x => x.id), mo)
-              //            }
-              //              else  {
-              val mo = mc match {
-                case Maj() => Maj().build(trSemParecidos)
-                case RF(_, n, _, _) => RF(seed, n).build(trSemParecidos)
-                case RoF(_, n) => RoF(seed, n).build(trSemParecidos)
-                case ABoo(_, n) => ABoo(seed, n).build(trSemParecidos)
-                case Chute(_) => Chute(seed).build(trSemParecidos)
-                case PCT(_, _, _) => PCT(ntrees, seed, tr ++ ts).build(trSemParecidos) //os testes são em tr+ts, não em trSemParecidos+ts
-              }
-              (trSemParecidos.groupBy(x => x.id), ts.groupBy(x => x.id), mo)
+          val sqls=mutable.Queue[String]()
+          val resres = leas(Vector()) map { mc =>
+            val (trtest, tstest) = if (mc.querFiltro) {
+              val (trfSemParecidos, binaf, zscof) = criaFiltro(trSemParecidos, -1)
+              val tsf = aplicaFiltro(ts, -1, binaf, zscof)
+              trfSemParecidos -> tsf
+            } else trSemParecidos -> ts
+            val mo = mc match {
+              case Maj() => Maj().build(trtest)
+              case RF(_, n, _, _) => RF(seed, n).build(trtest)
+              case RoF(_, n) => RoF(seed, n).build(trtest)
+              case ABoo(_, n) => ABoo(seed, n).build(trtest)
+              case Chute(_) => Chute(seed).build(trtest)
+              case PCT(_, _, _) => PCT(ntrees, seed, tr ++ ts).build(trtest) //os testes são em tr+ts, não em trSemParecidos+ts
             }
-            val tr_ts = Vector(trtestbags, tstestbags).zipWithIndex map { case (bags, idx) =>
-              val resPorClasse = mutable.Queue[(String, String, Double)]()
-              bags.map(_._2) foreach { xbag =>
-                // com n>1 (ou n==1 com empates) statisticas p/ maj vão sair maiores que o verdadeiro valor maj, com esse criterio abaixo (n: número de vencedores)
-                val esperado = xbag.head.nominalLabel.split("-").last
-                val pred = m.predict(xbag.head).toInt
-                val re = if (xbag.map(_.label).contains(pred)) 1d else 0d
-                val predito = xbag.head.classAttribute().value(pred).split("-").last
-                val base = tsbags.head.head.nomeBase
-                if (idx == 1) {
-                  if (!rank) {
-                    if (porPool) {
-                      justQuit("porPool deve ser usado com ranking, porque anking só geraria resultados inuteis e só PCTr-a vai ser usado no MetaLea")
-                      sys.exit(0)
-                    } else if (ks == patterns.size) {
-                      val sql = s"insert into e values ('$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', -1, -1)"
-                      print(s"${sql} <- sql ")
-                      if (!readOnly) metads.write(sql)
-                    }
-                  }
+
+            if (rank) error("rank")
+            if (tstest.size != 25) error("tstest.size!=25")
+            Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
+              (tx, rfs).zipped foreach { case (pat, (r, f)) =>
+                val esperado = pat.nominalLabel.split("-").last
+                val pred = mo.predict(pat).toInt
+                val predito = pat.classAttribute().value(pred).split("-").last
+                if (!porPool) {
+                  justQuit("!porPool")
+                  sys.exit(0)
+                } else {
+                  val sql = s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', $ks, '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
+                  println(s"${sql} <- sql ")
+                  sqls+=sql
                 }
-                resPorClasse += ((esperado, xbag.head.classAttribute.value(pred), re))
               }
-              resPorClasse
             }
-            Resultado(mc.limpa, tr_ts.head, tr_ts(1))
+            Resultado("", mutable.Queue(("", "", 0d)), mutable.Queue(("", "", 0d)))
           }
           "basefake" -> resres.toSeq
+          if (!readOnly) metads.batchWrite(sqls.toList)
         }
       }.toList
     }.toArray
