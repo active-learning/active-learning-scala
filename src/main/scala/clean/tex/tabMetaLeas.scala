@@ -5,7 +5,7 @@ import ml.classifiers.NoLearner
 import util.StatTests
 
 object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
-  Global.debug=50
+  Global.debug = 50
   val context = this.getClass.getName
   val ls = (args(0).split(",") map str2learner()).map(_.limp).toBuffer
   //defr-a equivale a maj, com a vantagem de nunca dar zero no LOO;
@@ -14,20 +14,22 @@ object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
   val mcs = List("RoF500", "PCTr-a", "RFw500", "ABoo500", "defr-a", "rndr-a")
   val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
   db.open()
-  val tudo = Seq("f", "i").par map { fi =>
+  val tudo = Seq("f", "i") map { fi =>
     sts.par map { st =>
       val nome = st + (if (fi == "f") "¹" else "²")
-      val medidas3 = (mcs.par map { mc =>
+      val medidas3 = (mcs map { mc =>
         val m = ls.zipWithIndex.map { case (l, i) => l -> i }.toMap
-        val cm = Array.fill(ls.size)(Array.fill(ls.size)(0))
-        val sql = s"select esp,pre,count(0) from acc where tr='ts' and fs=90 and $fi='th' and st='$st' and ls='$ls' and mc='$mc' group by esp,pre"
-        //        println(s"${sql} <- sql")
-        db.readString(sql) foreach {
-          case Vector(a, b, v) => cm(m(a))(m(b)) = v.toInt
+        val sql = s"select ds,esp,pre,count(0) from acc where tr='ts' and $fi='th' and st='$st' and ls='$ls' and mc='$mc' group by ds,esp,pre"
+        val resPbase = db.readString(sql).groupBy(_.head).map(x => x._1 -> x._2.tail) map { case (ds, list) =>
+          val cm = Array.fill(ls.size)(Array.fill(ls.size)(0))
+          list foreach {
+            case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt
+          }
+          if (cm.flatten.sum < 25) justQuit(s"$fi $st $mc " + cm.flatten.sum.toString)
+          ((100 * acc(cm)).round / 100d, (100 * accBal(cm)).round / 100d, (100 * kappa(cm)).round / 100d)
         }
-        if (cm.flatten.sum != 90) justQuit(s"$fi $st $mc " + cm.flatten.sum.toString)
-        ((100 * acc(cm)).round / 100d, (100 * accBal(cm)).round / 100d, (100 * kappa(cm)).round / 100d)
-        //      cm.map(_.toList) foreach println
+        if(resPbase.size!=90) justQuit(s"${resPbase.size} != 90 bases requerido")
+        t3map(resPbase.unzip3)(_.sum)
       }).unzip3
       t3map(medidas3)(nome -> _.toList)
     }

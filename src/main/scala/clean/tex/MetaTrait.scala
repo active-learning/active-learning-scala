@@ -191,6 +191,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
     val metads = new Db("metanew", readOnly)
     metads.open()
+    val sqls = mutable.Queue[String]()
 
     val rrr = (0 to rs - 1).par.map { run =>
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
@@ -328,7 +329,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           base -> resres.toSeq
 
         } else {
-          val sqls = mutable.Queue[String]()
           val resres = leas(Vector()) map { mc =>
             val (trtest, tstest) = if (mc.querFiltro) {
               val (trfSemParecidos, binaf, zscof) = criaFiltro(trSemParecidos, -1)
@@ -363,11 +363,11 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Resultado("", mutable.Queue(("", "", 0d)), mutable.Queue(("", "", 0d)))
           }
-          if (!readOnly) metads.batchWrite(sqls.toList)
           "basefake" -> resres.toSeq
         }
       }.toList
     }.toArray
+    if (!readOnly) metads.batchWrite(sqls.toList)
     metads.close()
     rrr
   }
