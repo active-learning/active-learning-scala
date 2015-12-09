@@ -125,7 +125,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-        case x: List[Vector[String]] if x.isEmpty | guardaSohRank =>
+        case x: List[Vector[String]] if x.isEmpty | guardaSohRank | true=>
           val cvs = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks, guardaSohRank).toVector
           val cvsf = cvs.flatten
           def fo(x: Double) = "%2.3f".format(x)

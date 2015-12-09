@@ -5,7 +5,7 @@ import ml.classifiers.NoLearner
 import util.StatTests
 
 object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
-  Global.debug = 50
+  Global.debug = 5
   val context = this.getClass.getName
   val ls = (args(0).split(",") map str2learner()).map(_.limp).toBuffer
   //defr-a equivale a maj, com a vantagem de nunca dar zero no LOO;
@@ -15,23 +15,29 @@ object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
   val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
   db.open()
   val tudo = Seq("f", "i") map { fi =>
-    sts.par map { st =>
+    sts map { st =>
       val nome = st + (if (fi == "f") "¹" else "²")
-      val medidas3 = (mcs map { mc =>
+      val (cmss, medidas3) = (mcs map { mc =>
         val m = ls.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val sql = s"select ds,esp,pre,count(0) from acc where tr='ts' and $fi='th' and st='$st' and ls='$ls' and mc='$mc' group by ds,esp,pre"
-        val resPbase = db.readString(sql).groupBy(_.head).map(x => x._1 -> x._2.tail) map { case (ds, list) =>
+        val cms = db.readString(sql).groupBy(_.head).map(x => x._1 -> x._2.map(_.tail)) map { case (ds, list) =>
           val cm = Array.fill(ls.size)(Array.fill(ls.size)(0))
-          list foreach {
-            case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt
-          }
+          list foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
           if (cm.flatten.sum < 25) justQuit(s"$fi $st $mc " + cm.flatten.sum.toString)
-          ((100 * acc(cm)).round / 100d, (100 * accBal(cm)).round / 100d, (100 * kappa(cm)).round / 100d)
+          cm.toList.map(_.toList)
         }
-        if(resPbase.size!=90) justQuit(s"${resPbase.size} != 90 bases requerido")
-        t3map(resPbase.unzip3)(_.sum)
-      }).unzip3
-      t3map(medidas3)(nome -> _.toList)
+        if (cms.size != 90) justQuit(s"${cms.size} != 90 bases requerido\n $sql")
+        val CM = cms.reduce((a, b) => a.flatten.zip(b.flatten).map(x => x._1 + x._2).grouped(cms.head.size).toList).toArray.map(_.toArray)
+        cms.map(_.toArray.map(_.toArray)) ->((100 * acc(CM)).round / 100d, (100 * accBal(CM)).round / 100d, (100 * kappa(CM)).round / 100d)
+      }).unzip
+
+      //Fried
+      val tab = cmss.map(_ map acc).dropRight(1).transpose
+      println(s"${} <   - ")
+      tab foreach (x => println(x.mkString(" ")))
+      println(s"${} <- ")
+
+      t3map(medidas3.unzip3)(nome -> _)
     }
   }
   val fla = tudo.flatten.toList
