@@ -191,13 +191,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
     val metads = new Db("metanew", readOnly)
     metads.open()
-    val sqls = mutable.Queue[String]()
 
     val rrr = (0 to rs - 1).par.map { run =>
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
       val shuffled = new Random(run).shuffle(bagsrefeito)
 
       Datasets.kfoldCV2(shuffled, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+        val sqls = mutable.Queue[String]()
         val base = tsbags.head.head.nomeBase
 
         //seed tem sobreposição acima de 100 folds
@@ -365,9 +365,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           }
           "basefake" -> resres.toSeq
         }
+        if (!readOnly) metads.batchWrite(sqls.toList)
       }.toList
     }.toArray
-    if (!readOnly) metads.batchWrite(sqls.toList)
     metads.close()
     rrr
   }
