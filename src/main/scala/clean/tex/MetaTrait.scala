@@ -352,13 +352,12 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val esperado = pat.nominalLabel.split("-").last
                 val pred = mo.predict(pat).toInt
                 val predito = pat.classAttribute().value(pred).split("-").last
-                if (!porPool) {
-                  justQuit("!porPool")
-                  sys.exit(0)
+                val sql = if (!porPool) {
+                  s"insert into prob values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', ${mo.distribution(pat)(pred)}, -1, -1)"
                 } else {
-                  val sql = s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
-                  sqls += sql
+                  s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
                 }
+                sqls += sql
               }
             }
             Resultado("", mutable.Queue(("", "", 0d)), mutable.Queue(("", "", 0d)))
