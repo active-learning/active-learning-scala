@@ -363,9 +363,9 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Resultado("", mutable.Queue(("", "", 0d)), mutable.Queue(("", "", 0d)))
           }
+          if (!readOnly) metads.batchWrite(sqls.toList)
           "basefake" -> resres.toSeq
         }
-        if (!readOnly) metads.batchWrite(sqls.toList)
       }.toList
     }.toArray
     metads.close()
