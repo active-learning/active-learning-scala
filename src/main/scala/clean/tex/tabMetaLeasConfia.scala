@@ -3,19 +3,22 @@ package clean.tex
 import clean.lib._
 import ml.classifiers.NoLearner
 
-object tabMetaLeasCorrel extends App with StratsTrait with LearnerTrait with CM {
+object tabMetaLeasConfia extends App with StratsTrait with LearnerTrait with CM {
+  Global.debug = 50
   val context = this.getClass.getName
   val ls = (args(0).split(",") map str2learner()).map(_.limp).toBuffer
-  val mcs = List("PCTr", "defr", "rndr")
   val db = new Db("metanew", true)
+  val mcs = List("RoF500", "PCT", "RFw500", "ABoo500", "maj", "chu")
   val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
   db.open()
   val tudo = Seq("f", "i") map { fi =>
     sts map { st =>
       val nome = st + (if (fi == "f") "¹" else "²")
       val medidas = mcs map { mc =>
-        val sql = s"select ats from r where $fi='th' and st='$st' and ra='ra' and mc='$mc' and ls='5nnw,nbb,c452,rbf' and fs=90 and nt=500 and cr=1 and rs=1 and dsminsize=100 and porPool='false' order by ats desc" // orderby inutil
-        db.read(sql).head.head //já tirou a media antes de grava no mysql
+        val sql = s"select p from prob where $fi='th' and st='$st' and mc='$mc' and ls='ArrayBuffer(5NNw, NB, C4.52, SVM)' and run=-1 and fold=-1 order by p desc"
+        db.readString(sql) foreach println
+        println(s"${} <- sdgsdvg")
+        db.readString(sql).map(_.head.toDouble).sum / 90d
       }
       nome -> medidas.toList
     }
