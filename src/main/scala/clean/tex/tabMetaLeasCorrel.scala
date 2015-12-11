@@ -15,7 +15,7 @@ object tabMetaLeasCorrel extends App with StratsTrait with LearnerTrait with CM 
       val nome = st + (if (fi == "f") "¹" else "²")
       val medidas = mcs map { mc =>
         val sql = s"select ats from r where $fi='th' and st='$st' and ra='ra' and mc='$mc' and ls='5nnw,nbb,c452,rbf' and fs=90 and nt=500 and cr=1 and rs=1 and dsminsize=100 and porPool='false' order by ats desc" // orderby inutil
-        db.read(sql).head.head //já tirou a media antes de grava no mysql
+        db.read(sql).head.head //já tirou a media antes de gravar no mysql
       }
       nome -> medidas.toList
     }

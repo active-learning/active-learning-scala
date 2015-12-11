@@ -1,5 +1,7 @@
 package clean.tex
 
+import java.io.FileWriter
+
 import clean.lib._
 import ml.classifiers.NoLearner
 import util.StatTests
@@ -20,22 +22,31 @@ object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
       val (cmss, medidas3) = (mcs map { mc =>
         val m = ls.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val sql = s"select ds,esp,pre,count(0) from acc where tr='ts' and $fi='th' and st='$st' and ls='$ls' and mc='$mc' group by ds,esp,pre"
-        val cms = db.readString(sql).groupBy(_.head).map(x => x._1 -> x._2.map(_.tail)) map { case (ds, list) =>
-          val cm = Array.fill(ls.size)(Array.fill(ls.size)(0))
-          list foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
-          if (cm.flatten.sum < 25) justQuit(s"$fi $st $mc " + cm.flatten.sum.toString)
-          cm.toList.map(_.toList)
-        }
-        if (cms.size != 90) justQuit(s"${cms.size} != 90 bases requerido\n $sql")
+        val (cms, acs) = (db.readString(sql).groupBy(_.head).map(x => x._1 -> x._2.map(_.tail)).toList map {          case (ds, list) =>
+            val cm = Array.fill(ls.size)(Array.fill(ls.size)(0))
+            list foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
+            if (cm.flatten.sum < 25) justQuit(s"$fi $st $mc " + cm.flatten.sum.toString)
+            cm.toList.map(_.toList) ->((100 * acc(cm)).round / 100d, (100 * accBal(cm)).round / 100d, (100 * kappa(cm)).round / 100d)
+        }).unzip
+        if (cms.toList.size != 90) justQuit(s"${cms.size} != 90 bases requerido\n $sql")
         val CM = cms.reduce((a, b) => a.flatten.zip(b.flatten).map(x => x._1 + x._2).grouped(cms.head.size).toList).toArray.map(_.toArray)
-        cms.map(_.toArray.map(_.toArray)) ->((100 * acc(CM)).round / 100d, (100 * accBal(CM)).round / 100d, (100 * kappa(CM)).round / 100d)
+        cms.map(_.toArray.map(_.toArray)) -> ((100 * acc(CM)).round / 100d, (100 * accBal(CM)).round / 100d, (100 * kappa(CM)).round / 100d)
+//        cms.map(_.toArray.map(_.toArray)) -> t3map(acs.toList.reduce((a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3)))(_ / acs.size)
       }).unzip
 
-      //Fried
+      //pro bonferroni:
+      import scala.sys.process._
       val tab = cmss.map(_ map acc).dropRight(1).transpose
-      println(s"${} <   - ")
-      tab foreach (x => println(x.mkString(" ")))
-      println(s"${} <- ")
+      val vals = tab.transpose.flatten.mkString(",")
+      val fw = new FileWriter("/run/shm/asd")
+      fw.write(s"friedman.test(Accuracy ~ algorithm|dataset, data=data.frame(dataset = rep(seq(90), 5), algorithm = rep(c(${mcs.dropRight(1).map(x => "\"" + x + "\"").mkString(",")}),each=90),Accuracy=c($vals)))")
+      fw.close()
+      val log = (Seq("Rscript", "--vanilla", "/run/shm/asd") !!).split("\n").toList
+      println(s"${log} <- log)")
+      val r = log.find(_.contains("p-value")).get.split(" +").last.toDouble
+      println(s"${r} <- r")
+
+
 
       t3map(medidas3.unzip3)(nome -> _)
     }

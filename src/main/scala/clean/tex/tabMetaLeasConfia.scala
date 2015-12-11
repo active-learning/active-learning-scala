@@ -4,7 +4,7 @@ import clean.lib._
 import ml.classifiers.NoLearner
 
 object tabMetaLeasConfia extends App with StratsTrait with LearnerTrait with CM {
-  Global.debug = 50
+  Global.debug = 0
   val context = this.getClass.getName
   val ls = (args(0).split(",") map str2learner()).map(_.limp).toBuffer
   val db = new Db("metanew", true)
@@ -16,10 +16,10 @@ object tabMetaLeasConfia extends App with StratsTrait with LearnerTrait with CM 
       val nome = st + (if (fi == "f") "¹" else "²")
       val medidas = mcs map { mc =>
         val sql = s"select p from prob where $fi='th' and st='$st' and mc='$mc' and ls='ArrayBuffer(5NNw, NB, C4.52, SVM)' and run=-1 and fold=-1 order by p desc"
-        db.readString(sql) foreach println
-        println(s"${} <- sdgsdvg")
+        print(db.readString(sql).map(_.head).mkString(",") + ",")
         db.readString(sql).map(_.head.toDouble).sum / 90d
       }
+      println
       nome -> medidas.toList
     }
   }

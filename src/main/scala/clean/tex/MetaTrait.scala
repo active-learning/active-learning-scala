@@ -354,7 +354,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val espe = pat.label.toInt
                 val predito = pat.classAttribute().value(pred).split("-").last
                 val sql = if (!porPool) {
-                  s"insert into prob values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', ${mo.distribution(pat)(espe)}, -1, -1)"
+                  s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito')"
                 } else {
                   s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
                 }

@@ -129,7 +129,9 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
       fw.write("x=c(" + a.mkString(",") + ");y=c(" + b.mkString(",") + ");wilcox.test(x,y,paired=TRUE,exact=F)")
       fw.close()
       val (ua, ub) = Stat.media_desvioPadrao(a.toVector)._1 -> Stat.media_desvioPadrao(b.toVector)._1
-      val p = (Seq("Rscript", "--vanilla", "/run/shm/asd") !!).split("\n").toList.find(_.contains("p-value")).get.split(" +")(5).toDouble
+      val log = (Seq("Rscript", "--vanilla", "/run/shm/asd") !!).split("\n").toList
+      println(s"${log} <- log)")
+      val p = log.find(_.contains("p-value")).get.split(" +")(5).toDouble
       s"$s $ua $ub $p"
     }
 
