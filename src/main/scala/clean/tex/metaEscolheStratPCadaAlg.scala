@@ -110,20 +110,20 @@ object metaEscolheStratPCadaAlg extends AppWithUsage with LearnerTrait with Stra
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-        case x: List[Vector[String]] if x.isEmpty =>
+        case x: List[Vector[String]] if x.isEmpty | true =>
           val porMetaLea = cv(porPool, ini, fim, labelssts, leaName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector.flatten.map(_._2).flatten.groupBy(_.metalearner)
           def fo(x: Double) = "%2.3f".format(x)
 
-          porMetaLea foreach { case (nome, resultados) =>
-            val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
-            val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
-            val accBalTr = Stat.media_desvioPadrao(resultados.map(_.accBalTr))
-            val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
-            //            val r = resultados reduce (_ ++ _)
-            //            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
-            metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$leaName', '$ststxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$porPool')")
-            (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
-          }
+//          porMetaLea foreach { case (nome, resultados) =>
+//            val accTr = Stat.media_desvioPadrao(resultados.map(_.accTr))
+//            val accTs = Stat.media_desvioPadrao(resultados.map(_.accTs))
+//            val accBalTr = Stat.media_desvioPadrao(resultados.map(_.accBalTr))
+//            val accBalTs = Stat.media_desvioPadrao(resultados.map(_.accBalTs))
+//            //            val r = resultados reduce (_ ++ _)
+//            //            val (resumoTr, resumoTs) = r.resumoTr -> r.resumoTs
+//            metads.write(s"insert into r values ('$ra', $criterio, '$ini', '$fim', '$leaName', '$ststxt', $rus, $ks, '$nome', $ntrees, $dsminSize, ${accTr._1}, ${accTr._2}, ${accTs._1}, ${accTs._2}, ${accBalTr._1}, ${accBalTr._2}, ${accBalTs._1}, ${accBalTs._2}, '$porPool')")
+//            (nome, accTs) -> s"${nome.padTo(8, " ").mkString}:\t${fo(accTr._1)}/${fo(accTr._2)}\t${fo(accTs._1)}/${fo(accTs._2)}"
+//          }
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
       }
       metads.close()
