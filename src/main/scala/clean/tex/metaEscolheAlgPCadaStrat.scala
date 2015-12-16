@@ -38,7 +38,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
     )
     println(s"${metaclassifs} <- metaclassifs")
     val leastxt = learnerStr
-    stratsTexForGraficoComplexo foreach { strat =>
+    stratsPMetaStrat foreach { strat =>
       Tempo.start
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l
