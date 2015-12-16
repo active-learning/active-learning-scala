@@ -29,7 +29,7 @@ object WilcoxonStrats extends App {
   val metads = Ds("metanew", readOnly = true)
   val sts = "ATUeuc,ATUman,Clu,DWeuc,DWman,EERacc,EERent,HTUeuc,HTUman,Mar,Rnd,SGmulti,TUeuc,TUman".split(",")
   val seq = Seq(("5NNw", "ti"), ("C4.52", "ti"), ("NB", "ti"), ("SVM", "ti"), ("5NNw", "th"), ("C4.52", "th"), ("NB", "th"), ("SVM", "th"))
-  val ls = "HTUeuc-EERent"
+  val ls = "ATUeuc-EERent-HTUeuc"
   metads.open()
   val logs = seq map { case (st, i) =>
     val sql = s"select a.spea,b.spea from rank a, rank b where a.ds=b.ds and a.ra=b.ra and a.cr=b.cr and a.i=b.i and a.f=b.f and a.st=b.st and a.ls=b.ls and a.rs=b.rs and a.fs=b.fs and a.nt=b.nt and a.porPool=b.porPool and a.mc='PCTr' and b.mc='defr' and a.st='$st' and a.i='$i' and a.ls='$ls'"
