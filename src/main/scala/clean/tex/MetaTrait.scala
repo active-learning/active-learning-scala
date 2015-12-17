@@ -349,15 +349,16 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             Vector(tstest -> (for (a <- 0 to 4444; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               //Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               (tx, rfs).zipped.toList.zipWithIndex.foreach { case ((pat, (r, f)), idx) =>
-                val esperado = pat.nominalLabel.split("-").head
+                val esperado = pat.nominalLabel
                 val pred = mo.predict(pat).toInt
                 val espe = pat.label.toInt
-                val predito = pat.classAttribute().value(pred).split("-").head
+                val predito = pat.classAttribute().value(pred)
                 val sql = if (!porPool) {
-                  if (this.getClass.getName.contains("StratPCadaAlg")) s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', $run, $fold, $idx)"
-                  else s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', $run, $fold, $idx)"
+                  if (this.getClass.getName.contains("Par")) s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', $run, $fold, $idx)"
+                  else if (this.getClass.getName.contains("StratPCadaAlg")) s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '${esperado.split("-").head}', '${predito.split("-").head}', $run, $fold, $idx)"
+                  else s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '${esperado.split("-").last}', '${predito.split("-").last}', $run, $fold, $idx)"
                 } else {
-                  s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', '$r', '$f')"
+                  s"insert into acc values ('${if (trtest == tx) "tr" else "ts"}', '$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '${esperado.split("-").last}', '${predito.split("-").last}', '$r', '$f')"
                 }
                 sqls += sql
               }
