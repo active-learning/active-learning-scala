@@ -414,11 +414,9 @@ trait StratsTrait {
   )
 
   val stratsPMetaStrat = Seq(
-//    (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
-     (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+    (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
     , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
-    , (learner: Learner) => MarginFixo(learner, fakePool)
-    , (learner: Learner) => new SGmultiFixo(learner, fakePool, "consensus")
+    , ClusterBased(fakePool)
   )
 
   val stratsPMetaStratmini = Seq(
@@ -430,6 +428,12 @@ trait StratsTrait {
   val stratsPMetaStratmicro = Seq(
     (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
     , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+  )
+  val stss = Seq(Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl"), (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")  )
+    , Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl"), (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")  )
+    , Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl"), (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")  )
+    , Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl"), (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")  )
+    , Seq((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl"), (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")  )
   )
 }
 
