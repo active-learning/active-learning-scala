@@ -13,6 +13,7 @@ object tabMetaStrats extends App with StratsTrait with LearnerTrait with CM {
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "PCT", "RFw500", "ABoo500", "maj", "chu")
   val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
+  val leas = "List.EERent..{2,5}. HTUeuc..{2,5}. Mar..{2,5}. SGmulti..{2,5}."
   db.open()
   val tudo = for {
     fi <- Seq("f", "i")
@@ -22,7 +23,7 @@ object tabMetaStrats extends App with StratsTrait with LearnerTrait with CM {
       val medidas3 = mcs map { mc =>
         val m = sts.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val runs = for (run <- 0 to 4) yield {
-          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='$le' and run=$run and ls like 'List(ATUeuc, EERent-%' and mc='$mc' group by esp,pre"
+          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='$le' and run=$run and ls regexp '$leas' and mc='$mc' group by esp,pre"
           val cm = Array.fill(sts.size)(Array.fill(sts.size)(0))
           db.readString(sql) foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
           if (cm.flatten.sum != 90) {
@@ -49,7 +50,7 @@ object tabMetaStrats extends App with StratsTrait with LearnerTrait with CM {
     tudo.sortBy(x => x.map(_._2(med)._1).sum).reverse foreach { nomesEmedidas =>
       val nome = nomesEmedidas.head._1
       val medidas = nomesEmedidas.map(_._2(med)).map(x => f("%4.2f".format(x._1)) + " / " + f("%4.2f".format(x._2))).mkString(" ")
-      println(s"$nome $medidas")
+      println(s"${nome.replace("w","").replace("2","w")} $medidas")
     }
   }
 
