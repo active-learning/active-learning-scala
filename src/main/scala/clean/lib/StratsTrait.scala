@@ -416,7 +416,7 @@ trait StratsTrait {
   val stratsPMetaStrat = Seq(
     (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
     , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
-    , ClusterBased(fakePool)
+    , (learner: Learner) => ClusterBased(fakePool)
   )
 
   val stratsPMetaStratmini = Seq(
