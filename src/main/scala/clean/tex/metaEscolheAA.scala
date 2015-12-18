@@ -7,7 +7,7 @@ import ml.Pattern
 import ml.classifiers._
 import util.{Datasets, Stat, Tempo}
 
-object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
+object metaEscolheAA extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++
     List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "porPool:p", "guardaSohRank:true|false")
 
@@ -115,7 +115,7 @@ object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait wi
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
         case x: List[Vector[String]] if x.isEmpty | true=>
-          val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks, readOnly=true).toVector
+          val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector
           def fo(x: Double) = "%2.3f".format(x)
 
           //        porMetaLea foreach { case (nome, resultados) =>
