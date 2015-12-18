@@ -13,7 +13,7 @@ object tabMetaStrats extends App with StratsTrait with LearnerTrait with CM {
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "PCT", "RFw500", "ABoo500", "maj", "chu")
   val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
-  val leas = "List.EERent..{2,5}. HTUeuc..{2,5}. Mar..{2,5}. SGmulti..{2,5}."
+  val leas = "List.EERent.{3,10} HTUeuc.{3,10} Clu."
   db.open()
   val tudo = for {
     fi <- Seq("f", "i")
@@ -40,7 +40,7 @@ object tabMetaStrats extends App with StratsTrait with LearnerTrait with CM {
   val P = "(.*)(500)".r
   val f = (x: String) => java.text.NumberFormat.getNumberInstance(new java.util.Locale("pt", "BR")).format(x.toDouble)
   for (med <- 0 to 2) {
-    print("estratégia ")
+    print("Algoritmo ")
     println(mcs map {
       case P(x, "500") => x
       case "maj" => "Maj"

@@ -27,10 +27,9 @@ import scala.sys.process._
 
 object WilcoxonStrats extends App {
   val metads = Ds("metanew", readOnly = true)
-  val sts = "ATUeuc,ATUman,Clu,DWeuc,DWman,EERacc,EERent,HTUeuc,HTUman,Mar,Rnd,SGmulti,TUeuc,TUman".split(",")
 //  val seq = Seq(("5NNw", "ti"), ("C4.52", "ti"), ("NB", "ti"), ("SVM", "ti"), ("RFw", "ti"), ("RoF", "ti"), ("5NNw", "th"), ("C4.52", "th"), ("NB", "th"), ("SVM", "th"), ("RFw", "th"), ("RoF", "th"))
   val seq = Seq(("5NNw", "ti"), ("C4.52", "ti"), ("NB", "ti"), ("SVM", "ti"), ("5NNw", "th"), ("C4.52", "th"), ("NB", "th"), ("SVM", "th"))
-  val ls = "EERent-HTUeuc-Mar-SGmulti"
+  val ls = "EERent-HTUeuc-Clu"
   metads.open()
   val f = (x: Double) => java.text.NumberFormat.getNumberInstance(new java.util.Locale("pt", "BR")).format(x)
   val logs = seq map { case (st, i) =>
