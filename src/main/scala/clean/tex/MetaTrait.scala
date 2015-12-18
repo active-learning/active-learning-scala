@@ -324,7 +324,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Vector(Resultado(alg + "-a", spearsTrTsAcc.head, spearsTrTsAcc(1)), Resultado(alg, spearsTrTs.head, spearsTrTs(1)))
           }
-          if (!readOnly) metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
+//          if (!readOnly) metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
           //          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
           base -> resres.toSeq
 
@@ -365,7 +365,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Resultado("", mutable.Queue(("", "", 0d)), mutable.Queue(("", "", 0d)))
           }
-          metads.batchWrite(sqls.toList)
+          if (!readOnly) metads.batchWrite(sqls.toList)
           "basefake" -> resres.toSeq
         }
       }.toList

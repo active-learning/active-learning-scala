@@ -125,7 +125,7 @@ object metaEscolheDist extends AppWithUsage with LearnerTrait with StratsTrait w
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
         case x: List[Vector[String]] if x.isEmpty | true =>
-          val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks, readOnly = true).toVector
+          val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector
           def fo(x: Double) = "%2.3f".format(x)
 
           //        porMetaLea foreach { case (nome, resultados) =>
