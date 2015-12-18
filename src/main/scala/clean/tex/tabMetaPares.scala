@@ -12,8 +12,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
   // como chu tá com bug, suponho que o mesmo acima valha para usar rnd-r no lugar dele.
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "PCT", "RFw500", "ABoo500", "maj", "chu")
-  val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
-  val sts1 = stratsPMetaStratmicro
+  val sts1 = stratsPMetaStrat
   val pares = for {s <- sts1; l <- ls} yield s -> l
   val txts = pares.map(x => x._1(x._2).limp + "-" + x._2.limp)
 
@@ -22,7 +21,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
 
   db.open()
   val tudo = for {
-    fi <- Seq("f", "i")
+    fi <- Seq("f", "i").par
     sts1 <- combstrats
     les1 <- combleas
   } yield {
@@ -34,7 +33,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
         val runs = for (run <- 0 to 4) yield {
           val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='par' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
           val cm = Array.fill(txts.size)(Array.fill(txts.size)(0))
-          db.readString(sql) foreach println //{ case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
+//          db.readString(sql) foreach println
           db.readString(sql) foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
           if (cm.flatten.sum != 90) {
             println(s"${sql}; <- sql")
@@ -57,7 +56,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
       case "chu" => "Alea"
       case x => x
     } mkString "   ")
-    tudo.sortBy(x => x.map(_._2(med)._1).sum).reverse foreach { nomesEmedidas =>
+    tudo.toList.sortBy(x => x.map(_._2(med)._1).sum).reverse foreach { nomesEmedidas =>
       val nome = nomesEmedidas.head._1
       val medidas = nomesEmedidas.map(_._2(med)).map(x => f("%4.2f".format(x._1)) + " / " + f("%4.2f".format(x._2))).mkString(" ")
       println(s"${nome.replace("w", "").replace("2", "w")} $medidas")
