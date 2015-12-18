@@ -41,8 +41,8 @@ object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait wi
     val combleas = (2 to learners(learnersStr).size).flatMap(n => learners(learnersStr).combinations(n).toList)
     for (sts1 <- combstrats; les1 <- combleas) {
       val pares1 = for {s <- sts1; l <- les1} yield s -> l
-
       val txts = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
+
       //    pares1 foreach { case (estr, apren) =>
       Tempo.start
       val parName = "par"
@@ -113,7 +113,7 @@ object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait wi
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-        case x: List[Vector[String]] if x.isEmpty =>
+        case x: List[Vector[String]] if x.isEmpty | true=>
           val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks).toVector
           def fo(x: Double) = "%2.3f".format(x)
 

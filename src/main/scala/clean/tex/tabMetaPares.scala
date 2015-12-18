@@ -13,17 +13,22 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "PCT", "RFw500", "ABoo500", "maj", "chu")
   val sts = stratsTexForGraficoComplexo map (_(NoLearner()).limp)
-  val leas = "List(HTUeuc-5NNw, HTUeuc-NB, HTUeuc-C4.52, HTUeuc-SVM, EERent-5NNw, EERent-NB, EERent-C4.52, EERent-SVM)"
   val sts1 = stratsPMetaStratmicro
   val pares = for {s <- sts1; l <- ls} yield s -> l
   val txts = pares.map(x => x._1(x._2).limp + "-" + x._2.limp)
 
+  val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
+  val combleas = (2 to ls.size).flatMap(n => ls.combinations(n).toList)
+
   db.open()
   val tudo = for {
     fi <- Seq("f", "i")
-//    par <- pares
+    sts1 <- combstrats
+    les1 <- combleas
   } yield {
-      val nome = (if (fi == "f") "¹" else "²")
+      val pares1 = for {s <- sts1; l <- les1} yield s -> l
+      val leas = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
+      val nome = leas + (if (fi == "f") "¹" else "²")
       val medidas3 = mcs map { mc =>
         val m = txts.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val runs = for (run <- 0 to 4) yield {
@@ -55,7 +60,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
     tudo.sortBy(x => x.map(_._2(med)._1).sum).reverse foreach { nomesEmedidas =>
       val nome = nomesEmedidas.head._1
       val medidas = nomesEmedidas.map(_._2(med)).map(x => f("%4.2f".format(x._1)) + " / " + f("%4.2f".format(x._2))).mkString(" ")
-      println(s"${nome.replace("w","").replace("2","w")} $medidas")
+      println(s"${nome.replace("w", "").replace("2", "w")} $medidas")
     }
   }
 
