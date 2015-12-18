@@ -37,7 +37,7 @@ object metaEscolhePar extends AppWithUsage with LearnerTrait with StratsTrait wi
       Maj()
     )
 
-    val combstrats = (2 to stratsPMetaStratmicro.size).flatMap(n => stratsPMetaStratmicro.combinations(n).toList)
+    val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
     val combleas = (2 to learners(learnersStr).size).flatMap(n => learners(learnersStr).combinations(n).toList)
     for (sts1 <- combstrats; les1 <- combleas) {
       val pares1 = for {s <- sts1; l <- les1} yield s -> l
