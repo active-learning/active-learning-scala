@@ -38,7 +38,7 @@ object metaEscolheAA extends AppWithUsage with LearnerTrait with StratsTrait wit
       Maj()
     )
 
-    val combstrats = (1 to 1).flatMap(n => stratsTexForGraficoComplexo.combinations(n).toList)
+    val combstrats = (1 to 1).flatMap(n => stratsTexForGraficoComplexoSemRnd.combinations(n).toList)
     val combleas = (1 to 1).flatMap(n => learners(learnersStr).combinations(n).toList)
     for (sts1 <- combstrats; les1 <- combleas) {
       val pares1 = (for {s <- sts1; l <- les1} yield s -> l) ++ (for {s <- Seq((_:Learner) => RandomSampling(Seq())); l <- les1} yield s -> l)
@@ -46,7 +46,7 @@ object metaEscolheAA extends AppWithUsage with LearnerTrait with StratsTrait wit
 
       //    pares1 foreach { case (estr, apren) =>
       Tempo.start
-      val parName = "par"
+      val parName = "aa"
       val arq = s"/home/davi/wcs/arff/$context-$porPool-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${parName + (if (porRank) "Rank" else "")}-${txts.mkString.replace("-", "").replace("EE", "").replace("euc", "").replace("NN", "").replace("multi", "")}-U$dsminSize.arff"
       val labels = txts
       val labelssts = txts

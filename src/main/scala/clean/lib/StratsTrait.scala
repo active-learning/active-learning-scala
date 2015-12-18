@@ -123,6 +123,21 @@ trait StratsTrait {
     , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")
     , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")
   )
+  val stratsTexForGraficoComplexoSemRnd = Seq(
+    (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
+    , (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "balacc")
+    , (learner: Learner) => ExpErrorReductionMarginFixo(learner, fakePool, "entropy")
+    , (learner: Learner) => ClusterBased(fakePool) //1
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => MarginFixo(learner, fakePool)
+    , (learner: Learner) => SGmultiFixo(learner, fakePool, "consensus")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh")
+  )
   val stratsTexForGraficoSimples = Seq(
     (learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
     , (learner: Learner) => ClusterBased(fakePool) //1
