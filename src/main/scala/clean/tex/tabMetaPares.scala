@@ -27,7 +27,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
   } yield {
       val pares1 = for {s <- sts1; l <- les1} yield s -> l
       val leas = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
-      val nome = leas + (if (fi == "f") "¹" else "²")
+      val nome = leas.mkString(",") + (if (fi == "f") "¹" else "²")
       val medidas3 = mcs map { mc =>
         val m = txts.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val runs = for (run <- 0 to 4) yield {
@@ -49,7 +49,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
   val P = "(.*)(500)".r
   val f = (x: String) => java.text.NumberFormat.getNumberInstance(new java.util.Locale("pt", "BR")).format(x.toDouble)
   for (med <- 0 to 2) {
-    print("Estratégia ")
+    print("Pares disponíveis ")
     println(mcs map {
       case P(x, "500") => x
       case "maj" => "Maj"
