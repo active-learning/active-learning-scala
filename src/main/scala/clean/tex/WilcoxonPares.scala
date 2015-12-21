@@ -56,7 +56,7 @@ object WilcoxonPares extends App with StratsTrait with LearnerTrait {
       (nome, r, i, a.sum / a.size, b.sum / b.size)
     }
   seq.sortBy { case (nome, r, i, a, b) => a + b }.reverse foreach { case (nome, r, i, a, b) =>
-    println(s"${f(r)} ${(if (i == "f") "" else "___") + nome.replace("w", "").replace("2", "w")} " + f(a) + " " + f(b))
+    println(s"${f(r)} ${(if (i == "f") "" else "___") + nome.replace("w", "").replace("2", "w").replace("EERent-5NN,EERent-NB,EERent-C4.5w,EERent-SVM,HTUeuc-5NN,HTUeuc-NB,HTUeuc-C4.5w,HTUeuc-SVM,Clu-5NN,Clu-NB,Clu-C4.5w,Clu-SVM","Todos os pares")} " + f(a) + " " + f(b))
   }
   metads.close()
 }

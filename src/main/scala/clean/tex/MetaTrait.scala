@@ -355,6 +355,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
                 val predito = pat.classAttribute().value(pred)
                 val sql = if (!porPool) {
                   if (this.getClass.getName.contains("Par")) s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '$esperado', '$predito', $run, $fold, $idx)"
+                  else if (this.getClass.getName.contains("AA")) s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '${esperado}', '${predito}', $run, $fold, $idx)"
                   else if (this.getClass.getName.contains("StratPCadaAlg")) s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '${esperado.split("-").head}', '${predito.split("-").head}', $run, $fold, $idx)"
                   else s"insert into tenfold values ('$base', '$ti', '$tf', '$strat', '$labels', '${mc.limp}', '${esperado.split("-").last}', '${predito.split("-").last}', $run, $fold, $idx)"
                 } else {

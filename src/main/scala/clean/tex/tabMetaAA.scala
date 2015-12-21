@@ -1,11 +1,12 @@
 package clean.tex
 
+import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.NoLearner
+import ml.classifiers.Learner
 import util.Stat
 
-object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
-  Global.debug = 5
+object tabMetaAA extends App with StratsTrait with LearnerTrait with CM {
+  Global.debug = 50
   val context = this.getClass.getName
   val ls = args(0).split(",") map str2learner()
   //defr-a equivale a maj, com a vantagem de nunca dar zero no LOO;
@@ -13,11 +14,11 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "RFw500", "PCT", "ABoo500", "maj", "chu")
   val sts1 = stratsPMetaStrat
-  val pares = for {s <- sts1; l <- ls} yield s -> l
+  val pares = for {s <- sts1:+((_: Learner) => RandomSampling(Seq())); l <- ls} yield s -> l
   val txts = pares.map(x => x._1(x._2).limp + "-" + x._2.limp)
 
-  val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
-  val combleas = (2 to ls.size).flatMap(n => ls.combinations(n).toList)
+  val combstrats = (1 to 1).flatMap(n => stratsTexForGraficoComplexoSemRnd.combinations(n).toList)
+  val combleas = (1 to 1).flatMap(n => ls.combinations(n).toList)
 
   db.open()
   val tudo = for {
@@ -25,13 +26,13 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
     sts1 <- combstrats
     les1 <- combleas
   } yield {
-      val pares1 = for {s <- sts1; l <- les1} yield s -> l
+      val pares1 = (for {s <- sts1; l <- les1} yield s -> l) ++ (for {s <- Seq((_: Learner) => RandomSampling(Seq())); l <- les1} yield s -> l)
       val leas = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
       val nome = leas.mkString(",") + (if (fi == "f") "¹" else "²")
       val medidas3 = mcs map { mc =>
         val m = txts.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val runs = for (run <- 0 to 4) yield {
-          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='par' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
+          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='aa' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
           val cm = Array.fill(txts.size)(Array.fill(txts.size)(0))
           //          db.readString(sql) foreach println
           db.readString(sql) foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
