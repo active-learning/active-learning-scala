@@ -79,7 +79,7 @@ object ameaf extends Exp with LearnerTrait with StratsTrait with RangeGenerator 
 
   def datasetFinished(ds: Ds) = {
     if (acabou && !outroProcessoVaiTerminarEsteDataset) {
-      ds.markAsFinishedRun("amea" + versao)
+      ds.markAsFinishedRun("ameaf" + versao)
       ds.log("Dataset marcado como terminado !", 50)
     }
     outroProcessoVaiTerminarEsteDataset = false
@@ -87,11 +87,11 @@ object ameaf extends Exp with LearnerTrait with StratsTrait with RangeGenerator 
   }
 
   def isAlreadyDone(ds: Ds) = {
-    val despreparado = if (!ds.isFinishedRun(versao)) {
+    val despreparado = if (!ds.isFinishedRun("+lapack" + versao)) {
       ds.log(s"acv  ainda não terminou este dataset, skipping...", 30)
       true
     } else false
-    despreparado || ds.isFinishedRun("amea" + versao)
+    despreparado || ds.isFinishedRun("ameaf" + versao)
   }
 
   def end(res: Map[String, Boolean]): Unit = {
