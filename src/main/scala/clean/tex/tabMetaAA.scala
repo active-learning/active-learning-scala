@@ -2,21 +2,20 @@ package clean.tex
 
 import al.strategies.RandomSampling
 import clean.lib._
-import ml.classifiers.Learner
+import ml.classifiers.{NoLearner, Learner}
 import util.Stat
 
 object tabMetaAA extends App with StratsTrait with LearnerTrait with CM {
-  Global.debug = 50
+  Global.debug = 5
   val context = this.getClass.getName
   val ls = args(0).split(",") map str2learner()
   //defr-a equivale a maj, com a vantagem de nunca dar zero no LOO;
   // como chu tá com bug, suponho que o mesmo acima valha para usar rnd-r no lugar dele.
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "RFw500", "PCT", "ABoo500", "maj", "chu")
-  val sts1 = stratsPMetaStrat
+  val sts1 = stratsTexForGraficoComplexo
   val pares = for {s <- sts1:+((_: Learner) => RandomSampling(Seq())); l <- ls} yield s -> l
-  val txts = pares.map(x => x._1(x._2).limp + "-" + x._2.limp)
-
+  val txts = sts1.map(x => x(NoLearner()).limp)
   val combstrats = (1 to 1).flatMap(n => stratsTexForGraficoComplexoSemRnd.combinations(n).toList)
   val combleas = (1 to 1).flatMap(n => ls.combinations(n).toList)
 

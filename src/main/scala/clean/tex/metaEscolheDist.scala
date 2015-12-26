@@ -46,8 +46,12 @@ object metaEscolheDist extends AppWithUsage with LearnerTrait with StratsTrait w
       , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")
       , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")
       , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh"))
+    val maha = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")
+      , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")
+      , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")
+      , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "maha"))
 
-    val combstrats = eucl.zip(manh).map(x => Seq(x._1, x._2))
+    val combstrats = eucl.zip(manh).zip(maha).map(x => Seq(x._1._1, x._1._2, x._2))
     val combleas = (1 to 1).flatMap(n => learners(learnersStr).combinations(n).toList)
     for (sts1 <- combstrats; les1 <- combleas) {
       val pares1 = for {s <- sts1; l <- les1} yield s -> l
