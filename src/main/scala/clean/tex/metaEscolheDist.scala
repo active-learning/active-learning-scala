@@ -23,7 +23,7 @@ object metaEscolheDist extends AppWithUsage with LearnerTrait with StratsTrait w
   override def run() = {
     super.run()
     println(s"escolhe strat p/cada alg")
-    if (porPool && (rus != 1 || ks != 90 || !porRank)) justQuit("porPool ativado com parametros errados!")
+    if (porPool && (rus != 1 || ks != 86 || !porRank)) justQuit("porPool ativado com parametros errados!")
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
       PCT(),
