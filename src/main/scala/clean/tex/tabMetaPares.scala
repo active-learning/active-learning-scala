@@ -1,9 +1,7 @@
 package clean.tex
 
-import al.strategies.{DensityWeightedFixo, DensityWeightedTrainingUtilityFixo, HTUFixo, AgDensityWeightedTrainingUtility}
 import clean.lib._
-import clean.tex.metaEscolheDist._
-import ml.classifiers.{Learner, NoLearner}
+import ml.classifiers.NoLearner
 import util.Stat
 
 object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
@@ -14,26 +12,12 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
   // como chu tá com bug, suponho que o mesmo acima valha para usar rnd-r no lugar dele.
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "RFw500", "PCT", "ABoo500", "maj", "chu")
-  val eucl = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
-    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
-    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
-    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl"))
-  val manh = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")
-    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")
-    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")
-    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh"))
-  val maha = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")
-    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")
-    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")
-    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "maha"))
-
-  val combstrats = eucl.zip(manh).zip(maha).map(x => Seq(x._1._1, x._1._2, x._2))
   val sts1 = stratsPMetaStrat
   val pares = for {s <- sts1; l <- ls} yield s -> l
   val txts = pares.map(x => x._1(x._2).limp + "-" + x._2.limp)
 
-//  val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
-  val combleas = (1 to 1).flatMap(n => ls.combinations(n).toList)
+  val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
+  val combleas = (2 to ls.size).flatMap(n => ls.combinations(n).toList)
 
   db.open()
   val tudo = for {
@@ -47,7 +31,7 @@ object tabMetaPares extends App with StratsTrait with LearnerTrait with CM {
       val medidas3 = mcs map { mc =>
         val m = txts.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val runs = for (run <- 0 to 4) yield {
-          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='dist' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
+          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='par' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
           val cm = Array.fill(txts.size)(Array.fill(txts.size)(0))
           //          db.readString(sql) foreach println
           db.readString(sql) foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }

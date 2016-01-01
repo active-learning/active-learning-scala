@@ -21,18 +21,29 @@ package clean.tex
 
 import java.io.FileWriter
 
-import al.strategies.RandomSampling
+import al.strategies._
 import clean.lib._
 import ml.classifiers.Learner
-
 import scala.sys.process._
 
-object WilcoxonAA extends App with StratsTrait with LearnerTrait {
-  ??? //ranking de dois lugares?
+object WilcoxonDists extends App with StratsTrait with LearnerTrait {
   val ls = args(0).split(",") map str2learner()
   val metads = Ds("metanew", readOnly = true)
 
-  val combstrats = (1 to 1).flatMap(n => stratsTexForGraficoComplexoSemRnd.combinations(n).toList)
+  val eucl = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl"))
+  val manh = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh"))
+  val maha = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "maha"))
+
+  val combstrats = eucl.zip(manh).zip(maha).map(x => Seq(x._1._1, x._1._2, x._2))
   val combleas = (1 to 1).flatMap(n => ls.combinations(n).toList)
 
   val f = (x: Double) => {
@@ -45,17 +56,18 @@ object WilcoxonAA extends App with StratsTrait with LearnerTrait {
     sts1 <- combstrats
     les1 <- combleas
   } yield {
-      val pares1 = (for {s <- sts1; l <- les1} yield s -> l) ++ (for {s <- Seq((_: Learner) => RandomSampling(Seq())); l <- les1} yield s -> l)
+      val pares1 = (for {s <- sts1; l <- les1} yield s -> l)
       val leas = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
-      val nome = leas.mkString(",") + (if (i == "f") "¹" else "²")
+      val nome = leas.head.replace("euc","") + (if (i == "f") "¹" else "²")
 
-      val sql = s"select a.spea,b.spea from rank a inner join rank b on a.ds=b.ds and a.ra=b.ra and a.cr=b.cr and a.i=b.i and a.f=b.f and a.st=b.st and a.ls=b.ls and a.rs=b.rs and a.fs=b.fs and a.nt=b.nt and a.porPool=b.porPool and a.mc='PCTr' and b.mc='defr' and a.st='aa' and a.$i='th' and a.ls='${leas.mkString(";")}'"
-      //      println(s"${sql}; ")
+      val sql = s"select a.spea,b.spea from rank a inner join rank b on a.ds=b.ds and a.ra=b.ra and a.cr=b.cr and a.i=b.i and a.f=b.f and a.st=b.st and a.ls=b.ls and a.rs=b.rs and a.fs=b.fs and a.nt=b.nt and a.porPool=b.porPool and a.mc='PCTr' and b.mc='defr' and a.st='dist' and a.$i='th' and a.ls='${leas.mkString(";")}'"
+//            println(s"${sql}; ")
       val t = metads.read(sql)
       val (a, b) = t.map(x => x(0) -> x(1)).unzip
       val fw = new FileWriter("/run/shm/asd")
       fw.write("x=c(" + a.mkString(",") + ");y=c(" + b.mkString(",") + ");wilcox.test(x,y,paired=TRUE,exact=F)")
       fw.close()
+//      println("x=c(" + a.mkString(",") + ");y=c(" + b.mkString(",") + ");wilcox.test(x,y,paired=TRUE,exact=F)")
       val log = (Seq("Rscript", "--vanilla", "/run/shm/asd") !!).split("\n").toList
       val bla = log.find(_.contains("p-value")).get.split(" +")
       //      println(s"${bla.toList} <- bla.toList")

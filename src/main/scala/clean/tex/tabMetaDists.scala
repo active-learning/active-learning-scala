@@ -1,6 +1,9 @@
 package clean.tex
 
+import al.strategies.{DensityWeightedFixo, DensityWeightedTrainingUtilityFixo, HTUFixo, AgDensityWeightedTrainingUtility}
 import clean.lib._
+import clean.tex.metaEscolheDist._
+import ml.classifiers.{Learner, NoLearner}
 import util.Stat
 
 object tabMetaDists extends App with StratsTrait with LearnerTrait with CM {
@@ -11,12 +14,26 @@ object tabMetaDists extends App with StratsTrait with LearnerTrait with CM {
   // como chu tá com bug, suponho que o mesmo acima valha para usar rnd-r no lugar dele.
   val db = new Db("metanew", true)
   val mcs = List("RoF500", "RFw500", "PCT", "ABoo500", "maj", "chu")
-  val sts1 = stratsPMetaStrat
-  val pares = for {s <- sts1; l <- ls} yield s -> l
-  val txts = pares.map(x => x._1(x._2).limp + "-" + x._2.limp)
+  val eucl = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "eucl")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "eucl")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "eucl"))
+  val manh = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "manh")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "manh")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "manh"))
+  val maha = Seq((learner: Learner) => AgDensityWeightedTrainingUtility(fakePool, "maha")
+    , (learner: Learner) => HTUFixo(fakePool, learner, fakePool, "maha")
+    , (learner: Learner) => DensityWeightedTrainingUtilityFixo(fakePool, learner, fakePool, "maha")
+    , (learner: Learner) => DensityWeightedFixo(fakePool, learner, fakePool, 1, "maha"))
 
-  val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
-  val combleas = (2 to ls.size).flatMap(n => ls.combinations(n).toList)
+  val combstrats = eucl.zip(manh).zip(maha).map(x => Seq(x._1._1, x._1._2, x._2))
+  //  val sts1 = stratsPMetaStrat
+  //  val pares = for {s <- sts1; l <- ls} yield s -> l
+  //  println(s"${txts} <- txts")
+
+  //  val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
+  val combleas = (1 to 1).flatMap(n => ls.combinations(n).toList)
 
   db.open()
   val tudo = for {
@@ -24,17 +41,18 @@ object tabMetaDists extends App with StratsTrait with LearnerTrait with CM {
     sts1 <- combstrats
     les1 <- combleas
   } yield {
+      val txts = sts1.map(x => x(NoLearner()).limp)
       val pares1 = for {s <- sts1; l <- les1} yield s -> l
       val leas = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
-      val nome = leas.mkString(",") + (if (fi == "f") "¹" else "²")
+      val nome = leas.head.replace("euc","") + (if (fi == "f") "¹" else "²")
       val medidas3 = mcs map { mc =>
         val m = txts.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val runs = for (run <- 0 to 4) yield {
-          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='par' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
+          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='dist' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
           val cm = Array.fill(txts.size)(Array.fill(txts.size)(0))
           //          db.readString(sql) foreach println
           db.readString(sql) foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
-          if (cm.flatten.sum != 90) {
+          if (cm.flatten.sum != 86) {
             println(s"${sql}; <- sql")
             justQuit(s"$fi par $mc " + cm.flatten.sum.toString)
           }
@@ -59,7 +77,7 @@ object tabMetaDists extends App with StratsTrait with LearnerTrait with CM {
       val nome = nomesEmedidas.head._1
       val i = if (nome.endsWith("¹")) "f" else "i"
       val medidas = nomesEmedidas.map(_._2(med)).map(x => f("%4.2f".format(x._1)) + " / " + f("%4.2f".format(x._2))).mkString(" ")
-      println(s"${if (i == "f") "" else "___"}${nome.replace("w", "").replace("2", "w").replace("EERent-5NN,EERent-NB,EERent-C4.5w,EERent-SVM,HTUeuc-5NN,HTUeuc-NB,HTUeuc-C4.5w,HTUeuc-SVM,Clu-5NN,Clu-NB,Clu-C4.5w,Clu-SVM", "Todos_os_pares")} $medidas")
+      println(s"${if (i == "f") "" else "___"}${nome.replace("w", "").replace("2", "w").replace("jjhfngfgj", "Todos_os_pares")} $medidas")
     }
   }
 
