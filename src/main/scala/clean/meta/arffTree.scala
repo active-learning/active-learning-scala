@@ -99,6 +99,14 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
   }
 }
 
+object mostraAtributosBons extends App{
+  //constrói e transforma árvore
+  val tex = s"/home/davi/wcs/tese/attsBons.tex"
+  val arq=""
+  println(tex)
+  C45(laplace = false, 10).tree(arq, tex)
+}
+
 /*
  active-learning-scala: Active Learning library for Scala
  Copyright (c) 2014 Davi Pereira dos Santos
