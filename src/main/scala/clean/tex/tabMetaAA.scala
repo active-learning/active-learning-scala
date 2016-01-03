@@ -21,23 +21,24 @@ object tabMetaAA extends App with StratsTrait with LearnerTrait with CM {
 
   db.open()
   val tudo = for {
-    fi <- Seq("f", "i")
+//    fi <- Seq("f", "i")
     sts1 <- combstrats
     les1 <- combleas
   } yield {
       val pares1 = (for {s <- sts1; l <- les1} yield s -> l) ++ (for {s <- Seq((_: Learner) => RandomSampling(Seq())); l <- les1} yield s -> l)
       val leas = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
-      val nome = leas.head + (if (fi == "f") "¹" else "²")
+      val nome = leas.head //+ (if (fi == "f") "¹" else "²")
       val medidas3 = mcs map { mc =>
         val m = txts.zipWithIndex.map { case (l, i) => l -> i }.toMap
         val runs = for (run <- 0 to 4) yield {
-          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='aa' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
+          val sql = s"select esp,pre,count(0) from tenfold where i='ti' and f='tf' and st='aa' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
+//          val sql = s"select esp,pre,count(0) from tenfold where $fi='th' and st='aa' and run=$run and ls = '$leas' and mc='$mc' group by esp,pre"
           val cm = Array.fill(txts.size)(Array.fill(txts.size)(0))
           //          db.readString(sql) foreach println
           db.readString(sql) foreach { case Vector(esp, pre, v) => cm(m(esp))(m(pre)) = v.toInt }
           if (cm.flatten.sum != 90) {
             println(s"${sql}; <- sql")
-            justQuit(s"$fi par $mc " + cm.flatten.sum.toString)
+            justQuit(s" par $mc " + cm.flatten.sum.toString)
           }
           Vector(acc(cm), accBal(cm), kappa(cm))
         }

@@ -116,11 +116,13 @@ object arffTree extends AppWithUsage with StratsTrait with LearnerTrait with Ran
   }
 }
 
-object mostraAtributosBons extends App{
+object mostraAtributosBons extends App {
   //constrói e transforma árvore
   val tex = s"/home/davi/wcs/tese/attsBons.tex"
-  val arq="/home/davi/htu.arff"
+  val arq = "/home/davi/htu-nan.arff"
+//  val tex = s"/home/davi/wcs/tese/attsBonsST.tex"
+  //  val arq = "/home/davi/5nn-nan.arff"
   println(tex)
-  C45(laplace = false, 10).tree(arq, tex)
+  C45(laplace = false, args(0).toInt, 1, 0.25).tree(arq, tex)
 }
 
