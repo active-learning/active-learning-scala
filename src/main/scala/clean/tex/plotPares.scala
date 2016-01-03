@@ -35,10 +35,11 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
   //  val ls = (ds: Ds, st: Strategy) => (Seq("SVM", "PCTr-a", "PCT", "RFw1000", "5NN", "chu", "defr-a", "maj", "C4.55", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
   //  val ls = (ds: Ds, st: Strategy) => (Seq("PCTr-a", "PCT", "RFw1000", "chu", "defr-a", "maj", "rndr-a") map MetaLearner(ds, st)) ++ Seq(MetaLearnerBest(ds, st)) ++ learners(learnersStr)
   //  def ls (ds: Ds, st: Strategy,r:Int,f:Int) = learners(learnersStr, Seq(), -1, ds, st,r,f)
-  val strats = if (sohRnd) Seq((l: Learner) => RandomSampling(Seq()))
-  else if (learnersStr.filter(!_.startsWith("meta")).isEmpty) stratsTexForGraficoComplexo
-  else stratsTexForGraficoSimples
+  //  val strats = if (sohRnd) Seq((l: Learner) => RandomSampling(Seq()))
+  //  else if (learnersStr.filter(!_.startsWith("meta")).isEmpty) stratsTexForGraficoComplexo
+  //  else stratsTexForGraficoSimples
   //  val strats = stratsTexForGraficoSimplesIlustra
+  val strats = stratsFim
   run()
 
   override def run() = {
