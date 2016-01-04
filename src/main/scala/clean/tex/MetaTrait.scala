@@ -185,7 +185,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
   def fo(x: Double) = "%2.1f".format(x)
 
-  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int, readOnly: Boolean = false, paralela: Boolean = false, fake: Boolean = false) = {
+  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int, readOnly: Boolean = false, paralela: Boolean = true, fake: Boolean = false) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
