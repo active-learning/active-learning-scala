@@ -185,18 +185,18 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
   def fo(x: Double) = "%2.1f".format(x)
 
-  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int, readOnly: Boolean = false) = {
+  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int, readOnly: Boolean = false, paralela:Boolean=false) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
     val metads = new Db("metanew", readOnly)
     metads.open()
 
-    val rrr = (0 to rs - 1).par.map { run =>
+    val rrr = (if(paralela) (0 to rs - 1).par else (0 to rs - 1)).map { run =>
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
       val shuffled = new Random(run).shuffle(bagsrefeito)
 
-      Datasets.kfoldCV2(shuffled, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+      Datasets.kfoldCV2(shuffled, ks, paralela) { (trbags, tsbags, fold, minSize) =>
         val baseSohPraLOO =         tsbags.head.head.nomeBase
         val sqls = mutable.Queue[String]()
 
