@@ -7,7 +7,7 @@ import ml.Pattern
 import ml.classifiers._
 import util.{Datasets, Stat, Tempo}
 
-object base extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
+object base2 extends AppWithUsage with LearnerTrait with StratsTrait with RangeGenerator with Rank with MetaTrait {
   lazy val arguments = superArguments ++
     List("learners:nb,5nn,c45,vfdt,ci,...|eci|i|ei|in|svm", "rank", "ntrees", "vencedorOuPerdedor(use1):1|-1", "runs", "folds", "ini", "fim", "porPool:p", "guardaSohRank:true|false")
 
@@ -21,35 +21,29 @@ object base extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
 
   override def run() = {
     super.run()
-    println(s"escolhe strat p/cada alg")
+    if (guardaSohRank) println(s"Guardanado só rank!")
     if (porPool && (rus != 1 || ks != 90 || !porRank)) justQuit("porPool ativado com parametros errados!")
+    val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
-//      PCT(),
-//      RF(42, ntrees),
+      PCT(),
+      RF(42, ntrees),
       RoF(42, ntrees),
-//      ABoo(42, ntrees),
-//      //esses 3 precisam de seleção de parâmetros/modelo:
-//      //      SVMLibRBF(),
-//      //      C45(false, 5),
-//      //      KNNBatcha(5, "eucl", patts),
-//      Chute(),
+      ABoo(42, ntrees),
+      Chute(),
       Maj()
     )
-
-    val combstrats = (2 to stratsPMetaStrat.size).flatMap(n => stratsPMetaStrat.combinations(n).toList)
-    val combleas = (2 to learners(learnersStr).size).flatMap(n => learners(learnersStr).combinations(n).toList)
-    for (sts1 <- combstrats; les1 <- combleas) {
-      val pares1 = for {s <- sts1; l <- les1} yield s -> l
-      val txts = pares1.map(x => x._1(x._2).limp + "-" + x._2.limp)
-
-      //    pares1 foreach { case (estr, apren) =>
+    println(s"${metaclassifs} <- metaclassifs")
+    val leastxt = learnerStr
+    stratsTexForGraficoComplexo foreach { strat =>
       Tempo.start
-      val parName = "par"
-      val arq = s"/home/davi/wcs/arff/$context-$porPool-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${parName + (if (porRank) "Rank" else "")}-${txts.mkString.replace("-", "").replace("EE", "").replace("euc", "").replace("NN", "").replace("multi", "")}-U$dsminSize.arff"
-      val labels = txts
-      val labelssts = txts
-      println(s"${txts} <- txts")
+      val stratName = strat(NoLearner()).limp
+      val pares = for {l <- ls} yield strat -> l
+      val arq = s"/home/davi/wcs/arff/$context-$porPool-n${if (porRank) 1 else n}best${criterio}m$measure-$ini.$fim-${stratName + (if (porRank) "Rank" else "")}-${leastxt.replace(" ", ".")}-U$dsminSize.arff"
+      val labels = pares.map { case (s, l) => s(l).limpa }
+      val labelsleas = ls.map {
+        _.limpa
+      }
 
       //cada dataset produz um bag de metaexemplos (|bag| >= 25)
       println(s"${datasets.size} <- dssss.size")
@@ -70,17 +64,31 @@ object base extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
           f <- 0 until folds
         } yield {
             //descobre vencedores deste pool
-            val accs = pares1 map { case (s, l) =>
+            val accs = pares map { case (s, l) =>
+              //            p -> measure(ds, Passive(Seq()), ds.bestPassiveLearner, r, f)(ti,tf).read(ds).getOrElse(error("sem medida"))
               (s(NoLearner()).limpa, l.limpa) -> measure(ds, s(l), l, r, f)(ti, tf).read(ds).getOrElse(justQuit("sem medida"))
             }
+            //gera metaexemplos
+            //            "\"#classes\",\"#atributos\",\"#exemplos\"," +
+            //              "\"#exemplos/#atributos\",\"%nominais\",\"log(#exs)\",\"log(#exs/#atrs)\"," +
+            //              "skewnessesmin,skewavg,skewnessesmax,skewnessesminByskewnessesmax," +
+            //              "kurtosesmin,kurtavg,kurtosesmax,kurtosesminBykurtosesmax," +
+            //              "nominalValuesCountmin,nominalValuesCountAvg,nominalValuesCountmax,nominalValuesCountminBynominalValuesCountmax," +
+            //              "mediasmin,mediasavg,mediasmax,mediasminBymediasmax," +
+            //              "desviosmin,desviosavg,desviosmax,desviosminBydesviosmax," +
+            //              "entropiasmin,entropiasavg,entropiasmax,entropiasminByentropiasmax," +
+            //              "correlsmin,correlsavg,correlsmax,correlsminBycorrelsmax,correleucmah,correleucman,correlmanmah","AH-conect.-Y", "AH-Dunn-Y", "AH-silhueta-Y", "AH-conect.-1.5Y", "AH-Dunn-1.5Y", "AH-silhueta-1.5Y",
+            //            "AH-conect.-2Y", "AH-Dunn-2Y", "AH-silhueta-2Y", "kM-conect.-Y", "kM-Dunn-Y", "kM-silhueta-Y", "kM-conect.-1.5Y", "kM-Dunn-1.5Y",
+            //            "kM-silhueta-1.5Y", "kM-conect.-2Y", "kM-Dunn-2Y", "kM-silhueta-2Y"
+            //FS não ajudou, mesmo roubando assim:
             val metaatts0 = ds.metaAttsrf(r, f, suav = false).map(x => (x._1, x._2.toString, x._3)) ++ ds.metaAttsFromR(r, f).map(x => (x._1, x._2.toString, x._3))
-            val metaatts = ("\"bag_" + pares1.size + "\"", ds.dataset, "string") +: metaatts0
+            val metaatts = ("\"bag_" + pares.size + "\"", ds.dataset, "string") +: metaatts0
             val insts = if (porRank) {
               //rank legivel por clus e ELM
               List(metaatts ++ ranqueia(accs.map(_._2)).zipWithIndex.map { case (x, i) => (s"class$i", x.toString, "numeric") } -> "")
             } else {
               //Acc
-              val melhores = pegaMelhores(accs, n)(_._2 * criterio).map(_._1)
+              val melhores = pegaMelhores(accs, n)(_._2 * criterio).map(_._1) //não preciso me preocupar com "só pode ter 25 em cada bag de teste", pois não é ranking
               melhores map (m => metaatts -> (m._1 + "-" + m._2))
             }
             //insts.map(x => x._1.tail.map(x => (x._2.toDouble * 100).round / 100d).mkString(" ")) foreach println
@@ -103,19 +111,19 @@ object base extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
         case Left(m) => error(s"${m} <- m")
       }
 
-      if (porRank) print(s"$parName Spearman correl. $rus*$ks-fold CV. " + arq + " ")
-      else print(s"$parName Accuracy. $rus*$ks-fold CV. " + arq + " ")
+      if (porRank) print(s"$stratName Spearman correl. $rus*$ks-fold CV. " + arq + " ")
+      else print(s"$stratName Accuracy. $rus*$ks-fold CV. " + arq + " ")
 
       val ra = if (porRank) "ra" else "ac"
       val metads = new Db("metanew", readOnly = false)
       metads.open()
       //      select ra,cr,i,f,st,ls,rs,fs,mc,nt,dsminsize from r
-      val sql69 = s"select mc from r where porPool='$porPool' and ra='$ra' and cr=$criterio and i='$ini' and f='$fim' and st='$parName' and ls='${txts.mkString(";")}' and rs=$rus and fs=$ks and nt=$ntrees and dsminsize='$dsminSize'"
+      val sql69 = s"select mc from r where porPool='$porPool' and ra='$ra' and cr=$criterio and i='$ini' and f='$fim' and st='$stratName' and ls='$leastxt' and rs=$rus and fs=$ks and nt=$ntrees and dsminsize='$dsminSize'"
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
         case x: List[Vector[String]] if x.isEmpty | true=>
-          val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks,readOnly = true,paralela = false,fake = true).toVector
+          val cvs = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks,readOnly = true,paralela = false,fake = true).toVector
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
       }
       metads.close()
