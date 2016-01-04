@@ -198,7 +198,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
       Datasets.kfoldCV2(shuffled, ks, paralela) { (trbags, tsbags, fold, minSize) =>
         val baseSohPraLOO = tsbags.head.head.nomeBase
-        if (fake) tsbags foreach println
+        if (fake) tsbags.map(_.map(_.nomeBase)) foreach println
         val sqls = mutable.Queue[String]()
 
         //seed tem sobreposição acima de 100 folds
