@@ -2,6 +2,7 @@ package clean.tex
 
 import java.io.File
 
+import al.strategies.HTUFixo
 import clean.lib._
 import ml.Pattern
 import ml.classifiers._
@@ -35,7 +36,7 @@ object base2 extends AppWithUsage with LearnerTrait with StratsTrait with RangeG
     )
     println(s"${metaclassifs} <- metaclassifs")
     val leastxt = learnerStr
-    stratsTexForGraficoComplexo foreach { strat =>
+    Seq((learner: Learner) => HTUFixo(fakePool, learner, fakePool, "eucl")) foreach { strat =>
       Tempo.start
       val stratName = strat(NoLearner()).limp
       val pares = for {l <- ls} yield strat -> l
@@ -122,8 +123,8 @@ object base2 extends AppWithUsage with LearnerTrait with StratsTrait with RangeG
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-        case x: List[Vector[String]] if x.isEmpty | true=>
-          val cvs = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks,readOnly = true,paralela = false,fake = true).toVector
+        case x: List[Vector[String]] if x.isEmpty | true =>
+          val cvs = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks, readOnly = true, paralela = false, fake = true).toVector
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
       }
       metads.close()
