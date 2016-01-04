@@ -115,7 +115,7 @@ object base extends AppWithUsage with LearnerTrait with StratsTrait with RangeGe
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
         case x: List[Vector[String]] if x.isEmpty | true=>
-          val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks,false,false,true).toVector
+          val cvs = cv(porPool, ini, fim, labelssts, parName, ntrees, patterns, metaclassifs, porRank, rus, ks,readOnly = true,paralela = false,fake = true).toVector
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
       }
       metads.close()
