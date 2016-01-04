@@ -196,11 +196,13 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
       val shuffled = if (sohRoF || fake) new Random(run).shuffle(bagsrefeito.sortBy(x => x.head.nomeBase.hashCode)) else new Random(run).shuffle(bagsrefeito)
 
-      Datasets.kfoldCV2(shuffled, ks, paralela) { (trbags, tsbags, fold, minSize) =>
+      Datasets.kfoldCV2(shuffled, ks, paralela, sohRoF || fake, run) { (trbags, tsbags0, fold, minSize) =>
+        val tsbags = tsbags0.sortBy(x => x.head.nomeBase)
         val baseSohPraLOO = tsbags.head.head.nomeBase
         if (fake) {
           println(s"${run}.$fold")
           tsbags.map(_.map(_.nomeBase)) foreach println
+          //          justQuit("fim")
         }
         val bases = tsbags.map(_.head.nomeBase)
         val sqls = mutable.Queue[String]()
