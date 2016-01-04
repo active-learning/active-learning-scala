@@ -112,7 +112,7 @@ object StatTests extends RoundFilter {
    }
 
    def extensiveTable2(capti: String, take11: Boolean, precision: Double, measures: Seq[(String, Seq[(Double, Double)])], strategies: Vector[String], tableName: String, measure: String, seps: Int = 4, language: String = "pt") = {
-     val nnn=7
+     val nnn=14
      val nstrats = if (take11) measures.head._2.take(nnn).length else measures.head._2.drop(nnn).length
       val core = measures.zipWithIndex.map { case ((d, l), i) =>
          val (vs, ds) = l.unzip

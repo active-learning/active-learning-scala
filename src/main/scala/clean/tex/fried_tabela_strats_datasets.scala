@@ -62,7 +62,7 @@ object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with 
       }).unzip
       val sl = sls.head
 
-      val sortedFiltered = res0.filter(!_._2.contains(NA, NA)).toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
+      val sortedFiltered = res0.filter(!_._2.contains(NA, NA)).sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
       val sorted = res0.toList.zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
       //      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
       sorted foreach (x => println(x._2.map(_._1).mkString(" ")))
@@ -72,30 +72,23 @@ object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with 
       print(arq + "   ")
       val fw = new PrintWriter(arq) //, "ISO-8859-1")
       sorted.grouped(45).zipWithIndex.foreach { case (res1, i) =>
-        fw.write(StatTests.extensiveTable2("Comparação de estratégias (algoritmo " + le.abr +
-          "). \\textit{Média e desvio padrão da ALC da medida kappa multiclasse. " +
-          "Maior e menor média de cada base estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. " +
-          "Maiores médias isoladas estão sublinhadas. " +
-          "Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}", true, 100, res1, sl.toVector, s"strats${i}a" + le.abr, "ALC para " + le.abr, 7))
+        val fai = if (i == 0) "1-45" else "46-90"
+        fw.write(StatTests.extensiveTable2(s"\\n\\begin{table}\n\\parbox[t][]{.475\\linewidth}{\\vspace{0pt}\n\\centering\n\\caption[Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + s").]{Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + "). Medida: ALC-$\\mu_\\kappa$/$\\sigma_\\kappa$. \\textit{Maior e menor média de cada linha estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. Maiores médias isoladas estão sublinhadas. Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}}", true, 100, res1, sl.toVector, s"strats${i}a" + le.abr, "ALC para " + le.abr, 7))
         //            if (!redux)
-        fw.write(StatTests.extensiveTable2("Comparação de estratégias (algoritmo " + le.abr +
-          "). \\textit{Média e desvio padrão da ALC da medida kappa multiclasse. " +
-          "Maior e menor média de cada base estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. " +
-          "Maiores médias isoladas estão sublinhadas. " +
-          "Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}", false, 100, res1, sl.toVector, s"strats${i}b" + le.abr, "ALC para " + le.abr, 7))
+        fw.write(StatTests.extensiveTable2(s"\\n\\begin{table}\n\\parbox[t][]{.475\\linewidth}{\\vspace{0pt}\n\\centering\n\\caption[Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + s").]{Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + "). Medida: ALC-$\\mu_\\kappa$/$\\sigma_\\kappa$. \\textit{Maior e menor média de cada linha estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. Maiores médias isoladas estão sublinhadas. Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}}", false, 100, res1, sl.toVector, s"strats${i}b" + le.abr, "ALC para " + le.abr, 7))
       }
       fw.close()
 
-      println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
-      val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
-      else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
-      val arq2 = s"/home/davi/wcs/tese/images/stratsfried$measure" + le.abr + (if (risco) "Risco" else "") + ".tex"
-      //      val arq2 = s"/home/davi/wcs/artigos/revista-comparacao/tempstratsfried$measure" + le.abr + (if (risco) "Risco" else "") + ".tex"
-      println(s"")
-      println(arq2)
-      val fw2 = new PrintWriter(arq2) //, "ISO-8859-1")
-      fw2.write(StatTests.pairTable(pairs, "stratsfried" + le.abr + (if (risco) "Risco" else ""), 2, caption.replace("LEA", le.abr)))
-      fw2.close()
+      //      println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
+      //      val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector)
+      //      else StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(1 - _._2).drop(1)), sl.toVector.drop(1))
+      //      val arq2 = s"/home/davi/wcs/tese/images/stratsfried$measure" + le.abr + (if (risco) "Risco" else "") + ".tex"
+      //      //      val arq2 = s"/home/davi/wcs/artigos/revista-comparacao/tempstratsfried$measure" + le.abr + (if (risco) "Risco" else "") + ".tex"
+      //      println(s"")
+      //      println(arq2)
+      //      val fw2 = new PrintWriter(arq2) //, "ISO-8859-1")
+      //      fw2.write(StatTests.pairTable(pairs, "stratsfried" + le.abr + (if (risco) "Risco" else ""), 2, caption.replace("LEA", le.abr)))
+      //      fw2.close()
     }
   }
 
