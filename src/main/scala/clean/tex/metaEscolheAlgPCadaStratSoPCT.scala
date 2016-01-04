@@ -117,7 +117,7 @@ object metaEscolheAlgPCadaStratSoPCT extends AppWithUsage with LearnerTrait with
       println(s"${sql69} <- sql69")
       metads.readString(sql69) match {
         //        case x: List[Vector[String]] if x.map(_.head).intersect(metaclassifs(Vector()).map(_.limp)).size == 0 =>
-        case x: List[Vector[String]] if x.isEmpty | guardaSohRank =>
+        case x: List[Vector[String]] if x.isEmpty | guardaSohRank | true=>
           val cvs = cv(porPool, ini, fim, labelsleas, stratName, ntrees, patterns, metaclassifs, porRank, rus, ks, guardaSohRank).toVector
           val cvsf = cvs.flatten
         case x: List[Vector[String]] => println(s"${x} <- rows already stored")
