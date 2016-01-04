@@ -197,8 +197,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       val shuffled = new Random(run).shuffle(bagsrefeito)
 
       Datasets.kfoldCV2(shuffled, ks, parallel = true) { (trbags, tsbags, fold, minSize) =>
+        val baseSohPraLOO =         tsbags.head.head.nomeBase
         val sqls = mutable.Queue[String]()
-        val base = tsbags.head.head.nomeBase
 
         //seed tem sobreposição acima de 100 folds
         if (ks > 100) ???
@@ -286,6 +286,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               var r = 0
               var f = 0
               tx foreach { pat =>
+                val base = pat.nomeBase
                 if ((r > 4 || f > 4) && idx == 1) justQuit("r>4 ou f>4")
                 val esperado = pat.targets.zipWithIndex.minBy(_._1)._2
                 val predito = fm.output(pat).zipWithIndex.minBy(_._1)._2
@@ -326,7 +327,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           }
 //          if (!readOnly) metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
           //          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
-          base -> resres.toSeq
+          baseSohPraLOO -> resres.toSeq
 
         } else {
           val resres = leas(Vector()) map { mc =>
@@ -349,6 +350,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             Vector(tstest -> (for (a <- 0 to 4444; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               //Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               (tx, rfs).zipped.toList.zipWithIndex.foreach { case ((pat, (r, f)), idx) =>
+                val base = pat.nomeBase
                 val esperado = pat.nominalLabel
                 val pred = mo.predict(pat).toInt
                 val espe = pat.label.toInt

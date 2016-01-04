@@ -7,7 +7,7 @@ import ml.classifiers.NoLearner
 import util.{Stat, StatTests}
 
 object tabMetaLeas extends App with StratsTrait with LearnerTrait with CM {
-  Global.debug = 5
+  Global.debug = 50
   val context = this.getClass.getName
   val ls = (args(0).split(",") map str2learner()).map(_.limp).toBuffer
   //defr-a equivale a maj, com a vantagem de nunca dar zero no LOO;

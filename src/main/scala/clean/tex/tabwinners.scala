@@ -29,7 +29,7 @@ object tabwinners extends AppWithUsage with LearnerTrait with StratsTrait with R
   //, "porRisco:r", "dist:euc,man,mah")
   val context = "tabwinnerstex"
   val n = 1
-  val risco = true
+  val risco = false
   val measure = ALCKappa
   val sts = stratsTexForGraficoSimples //.dropRight(1)
   run()
