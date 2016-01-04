@@ -185,19 +185,19 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
   def fo(x: Double) = "%2.1f".format(x)
 
-  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int, readOnly: Boolean = false, paralela:Boolean=false) = {
+  def cv(porPool: Boolean, ti: String, tf: String, labels: Seq[String], strat: String, ntrees: Int, patterns: Vector[Pattern], leas: Vector[Pattern] => Vector[Learner], rank: Boolean, rs: Int, ks: Int, readOnly: Boolean = false, paralela: Boolean = false, fake: Boolean = false) = {
     //id serve pra evitar conflito com programas paralelos
     val id = "_id" + UUID.randomUUID() + patterns.map(_.id).mkString.hashCode + System.currentTimeMillis.hashCode
 
     val metads = new Db("metanew", readOnly)
     metads.open()
 
-    val rrr = (if(paralela) (0 to rs - 1).par else (0 to rs - 1)).map { run =>
+    val rrr = (if (paralela) (0 to rs - 1).par else 0 to rs - 1).map { run =>
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
       val shuffled = new Random(run).shuffle(bagsrefeito)
 
       Datasets.kfoldCV2(shuffled, ks, paralela) { (trbags, tsbags, fold, minSize) =>
-        val baseSohPraLOO =         tsbags.head.head.nomeBase
+        val baseSohPraLOO = tsbags.head.head.nomeBase
         val sqls = mutable.Queue[String]()
 
         //seed tem sobreposição acima de 100 folds
@@ -325,7 +325,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             }
             Vector(Resultado(alg + "-a", spearsTrTsAcc.head, spearsTrTsAcc(1)), Resultado(alg, spearsTrTs.head, spearsTrTs(1)))
           }
-//          if (!readOnly) metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
+          //          if (!readOnly) metads.batchWrite(filaDeInserts.filter(_.nonEmpty).toList)
           //          println(s"${filaDeInserts.filter(_.nonEmpty).size} <- filaDeInserts.filter(_.nonEmpty).size")
           baseSohPraLOO -> resres.toSeq
 
@@ -337,7 +337,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
               trfSemParecidos -> tsf
             } else trSemParecidos -> ts
 
-            val mo = mc match {
+            val mo = if (fake) Maj().build(trtest)
+            else mc match {
               case Maj() => Maj().build(trtest)
               case RF(_, n, _, _) => RF(seed, n).build(trtest)
               case RoF(_, n) => RoF(seed, n).build(trtest)
