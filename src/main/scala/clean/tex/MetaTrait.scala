@@ -194,7 +194,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
     val rrr = (if (paralela) (0 to rs - 1).par else 0 to rs - 1).map { run =>
       val bagsrefeito = patterns.groupBy(_.base).values.toVector
-      val shuffled = if (sohRoF || fake) new Random(run).shuffle(bagsrefeito.sortBy(x => x.head.nomeBase.hashCode)) else new Random(run).shuffle(bagsrefeito)
+      val shuffled = if (sohRoF || fake) bagsrefeito.sortBy(x => x.head.nomeBase.hashCode) else new Random(run).shuffle(bagsrefeito)
 
       Datasets.kfoldCV2(shuffled, ks, paralela) { (trbags, tsbags, fold, minSize) =>
         val baseSohPraLOO = tsbags.head.head.nomeBase
