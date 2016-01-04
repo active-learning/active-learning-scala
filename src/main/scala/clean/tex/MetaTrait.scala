@@ -202,7 +202,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
           println(s"${run}.$fold")
           tsbags.map(_.map(_.nomeBase)) foreach println
         }
-        val bases=tsbags.map(_.map(_.nomeBase))
+        val bases = tsbags.map(_.head.nomeBase)
         val sqls = mutable.Queue[String]()
 
         //seed tem sobreposição acima de 100 folds
