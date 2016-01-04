@@ -198,6 +198,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
 
       Datasets.kfoldCV2(shuffled, ks, paralela) { (trbags, tsbags, fold, minSize) =>
         val baseSohPraLOO = tsbags.head.head.nomeBase
+        if (fake) tsbags foreach println
         val sqls = mutable.Queue[String]()
 
         //seed tem sobreposição acima de 100 folds
@@ -351,7 +352,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             Vector(tstest -> (for (a <- 0 to 4444; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               //Vector(trtest -> (0 until trtest.size).map(x => x -> -1), tstest -> (for (a <- 0 to 4; b <- 0 to 4) yield a -> b)) foreach { case (tx, rfs) =>
               (tx, rfs).zipped.toList.zipWithIndex.foreach { case ((pat, (r, f)), idx) =>
-                val base = pat.nomeBase
+                val base = if (fake) "" else pat.nomeBase //não resolvido como pegar nome da base p/ tenfold
                 val esperado = pat.nominalLabel
                 val pred = mo.predict(pat).toInt
                 val espe = pat.label.toInt
