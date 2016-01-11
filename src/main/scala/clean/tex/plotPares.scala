@@ -48,7 +48,8 @@ object plotPares extends AppWithUsage with LearnerTrait with StratsTrait with Ra
     //    val arq = s"/home/davi/wcs/tese/ilustra$learnerStr-" + (if (porRank) "Rank" else "") + (if (porRisco) "Risco" else "") + ".tex"
     println(s"$arq")
     val algs = (for {s <- strats; l <- learners(learnersStr)} yield s(l).limp + "-" + l.limp).toVector
-    val lstr = if (learnersStr.filter(!_.startsWith("meta")).isEmpty) Array("5nnw", "nbb", "c452", "rbf") else learnersStr.filter(!_.startsWith("meta"))
+    val lstr = if (learnersStr.filter(!_.startsWith("meta")).isEmpty) Array("rf","rof") else learnersStr.filter(!_.startsWith("meta"))
+    lstr foreach println
     val (res0, alcs) = (for {
       dataset <- datasets.take(499)
     } yield {

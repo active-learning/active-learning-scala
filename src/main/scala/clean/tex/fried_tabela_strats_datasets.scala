@@ -67,17 +67,17 @@ object fried_tabela_strats_datasets extends AppWithUsage with LearnerTrait with 
       //      val sorted = res0.toList.sortBy(_._1).zipWithIndex.map(x => ((x._2 + 1).toString + "-" + x._1._1) -> x._1._2)
       sorted foreach (x => println(x._2.map(_._1).mkString(" ")))
 
-      val arq = s"/home/davi/wcs/tese/images/stratstab$measure" + le.abr + ".tex"
+      val arq = s"/home/davi/wcs/tese/images/stab" + le.abr
       //      val arq = s"/home/davi/wcs/artigos/revista-comparacao/tempstratstab$measure" + le.abr + ".tex"
       print(arq + "   ")
-      val fw = new PrintWriter(arq) //, "ISO-8859-1")
+
       sorted.grouped(45).zipWithIndex.foreach { case (res1, i) =>
         val fai = if (i == 0) "1-45" else "46-90"
-        fw.write(StatTests.extensiveTable2(s"\\n\\begin{table}\n\\parbox[t][]{.475\\linewidth}{\\vspace{0pt}\n\\centering\n\\caption[Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + s").]{Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + "). Medida: ALC-$\\mu_\\kappa$/$\\sigma_\\kappa$. \\textit{Maior e menor média de cada linha estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. Maiores médias isoladas estão sublinhadas. Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}}", true, 100, res1, sl.toVector, s"strats${i}a" + le.abr, "ALC para " + le.abr, 7))
-        //            if (!redux)
-        fw.write(StatTests.extensiveTable2(s"\\n\\begin{table}\n\\parbox[t][]{.475\\linewidth}{\\vspace{0pt}\n\\centering\n\\caption[Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + s").]{Estratégias comparadas a cada conjunto de dados $fai (aprendiz " + le.abr + "). Medida: ALC-$\\mu_\\kappa$/$\\sigma_\\kappa$. \\textit{Maior e menor média de cada linha estão em \\textcolor{blue}{\\textbf{negrito azul}} e \\textcolor{red}{\\textbf{negrito vermelho}} respectivamente. Maiores médias isoladas estão sublinhadas. Os melhores valores de desvio padrão estão em \\textcolor{darkgreen}{verde}. Apenas negrito indica segundo melhor valor.}}", false, 100, res1, sl.toVector, s"strats${i}b" + le.abr, "ALC para " + le.abr, 7))
+        val fw = new PrintWriter(arq + i + ".tex") //, "ISO-8859-1")
+        fw.write(StatTests.extensiveTable2("", take11 = true, 100, res1, sl.toVector, s"strats${i}a" + le.abr, "ALC para " + le.abr, 5, sohcore = true).dropRight(6))
+        fw.close()
+
       }
-      fw.close()
 
       //      println(s"${le.abr}:\t\t${sortedFiltered.size} datasets completos")
       //      val pairs = if (!risco) StatTests.friedmanNemenyi(sortedFiltered.map(x => x._1 -> x._2.map(_._1)), sl.toVector)

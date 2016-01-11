@@ -43,11 +43,19 @@ object datasetsdesc extends Exp with Lock {
   def op(ds: Ds, pool: Seq[Pattern], testSet: Seq[Pattern], fpool: Seq[Pattern], ftestSet: Seq[Pattern], learnerSeed: Int, run: Int, fold: Int, binaf: Filter, zscof: Filter) {
   }
 
+
+  def f(x: String) = {
+    val nf = java.text.NumberFormat.getNumberInstance(new java.util.Locale("pt", "BR"))
+    nf.setMinimumFractionDigits(1)
+    nf.setMaximumFractionDigits(1)
+    nf.format(x.toDouble)
+  }
+
   def datasetFinished(ds: Ds) {
     acquire()
     //    println(ds.description)
     println(s"${ds.poolSize} $ds")
-    m += renomeia(ds.dataset) -> (ds.description._1.map(x => x.toString) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
+    m += renomeia(ds.dataset) -> (ds.description._1.map(x => x.toString) ++ ds.description._2.dropRight(1).map(x => f("%5.1f".format(x))))
     //    if (ds.nclasses == 2 && ds.poolSize > 200) m += renomeia(ds) -> (ds.description2._1.map(x => x.toString)) // ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     //        if (ds.nclasses == 2) m += renomeia(ds) -> (ds.description._1.map(_.toString)) ++ ds.description._2.dropRight(1).map(x => "%5.1f".format(x)))
     release()
@@ -95,19 +103,19 @@ object datasetsdesc extends Exp with Lock {
     fw2.close()
 
     val fw = new PrintWriter("/home/davi/wcs/tese/dataset-tables-reduxes.tex") //, "ISO-8859-1")
-    val maisDesbalanceadas = todas.filter(x => x._2(4).toDouble > 20 * x._2(5).toDouble).toList.sortBy(x => x._2(4).toDouble / x._2(5).toDouble).reverse
+    val maisDesbalanceadas = todas.filter(x => x._2(4).replace(",",".").toDouble > 20 * x._2(5).replace(",",".").toDouble).toList.sortBy(x => x._2(4).replace(",",".").toDouble / x._2(5).replace(",",".").toDouble).reverse
     fw.write(tabela("tab:imb", "Bases de dados mais desbalanceadas.", maisDesbalanceadas))
 
-    val maisAtributos = todas.filter(x => x._2(2).toDouble >= 60).toList.sortBy(x => x._2(2).toDouble).reverse
+    val maisAtributos = todas.filter(x => x._2(2).replace(",",".").toDouble >= 60).toList.sortBy(x => x._2(2).replace(",",".").toDouble).reverse
     fw.write(tabela("tab:x", "Bases de dados com mais atributos.", maisAtributos))
 
-    val maisClasses = todas.filter(x => x._2(1).toDouble > 6).toList.sortBy(x => x._2(1).toDouble).reverse
+    val maisClasses = todas.filter(x => x._2(1).replace(",",".").toDouble > 6).toList.sortBy(x => x._2(1).replace(",",".").toDouble).reverse
     fw.write(tabela("tab:y", "Bases de dados com mais classes.", maisClasses))
 
-    val maisExemplos = todas.filter(x => x._2(0).toDouble > 4000).toList.sortBy(x => x._2(0).toDouble).reverse
+    val maisExemplos = todas.filter(x => x._2(0).replace(",",".").toDouble > 4000).toList.sortBy(x => x._2(0).replace(",",".").toDouble).reverse
     fw.write(tabela("tab:n", "Bases de dados com mais exemplos.", maisExemplos))
 
-    val menosExemplos = todas.filter(x => x._2(0).toDouble < 200).toList.sortBy(x => x._2(0).toDouble)
+    val menosExemplos = todas.filter(x => x._2(0).replace(",",".").toDouble < 200).toList.sortBy(x => x._2(0).replace(",",".").toDouble)
     fw.write(tabela("tab:nm", "Bases de dados com menos exemplos.", menosExemplos))
     fw.close()
   }
