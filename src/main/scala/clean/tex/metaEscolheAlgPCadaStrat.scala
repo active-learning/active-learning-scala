@@ -25,7 +25,7 @@ object metaEscolheAlgPCadaStrat extends AppWithUsage with LearnerTrait with Stra
   override def run() = {
     super.run()
     if (guardaSohRank) println(s"Guardando só rank!")
-    if (porPool && (rus != 1 || ks != 90 || !porRank)) justQuit("porPool ativado com parametros errados!")
+    if (porPool && (rus != 1 || (ks != 66 && ks != 90) || !porRank)) justQuit("porPool ativado com parametros errados!")
     val ls = learners(learnersStr)
     val metaclassifs = (patts: Vector[Pattern]) => if (porRank) Vector()
     else Vector(//NB não funciona porque quebra na discretização
