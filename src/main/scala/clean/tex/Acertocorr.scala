@@ -21,6 +21,8 @@ package clean.tex
 
 import clean.lib.Ds
 
+import scala.io.Source
+
 object Acertocorr extends App {
   val metads = Ds("metanew", readOnly = true)
   val dominio = Map("abalone-3class" -> 0, "artificial-characters" -> 2, "autoUniv-au1-1000" -> 3, "autoUniv-au6-cd1-400" -> 3, "autoUniv-au7-300-drift-au7-cpd1-800" -> 3, "autoUniv-au7-700" -> 3, "autoUniv-au7-cpd1-500" -> 3, "balance-scale" -> 4, "banana" -> 5, "banknote-authentication" -> 6, "bupa" -> 7, "car-evaluation" -> 8, "cardiotocography-3class" -> 9, "climate-simulation-craches" -> 10, "connectionist-mines-vs-rocks" -> 11,
@@ -32,23 +34,26 @@ object Acertocorr extends App {
 
   case class registro(ds: String, pctr: Double, defr: Double, dif: Double)
 
-  val i = "th"
-  val t = metads.readString(s"select a.ds,a.spea,b.spea,a.spea-b.spea from rank a, rank b where a.ds=b.ds and a.ra=b.ra and a.cr=b.cr and a.i=b.i and a.f=b.f and a.st=b.st and a.ls=b.ls and a.rs=b.rs and a.fs=b.fs and a.nt=b.nt and a.porPool=b.porPool and a.mc='PCTr' and b.mc='defr' and a.st='HTUeuc' and a.i='$i'; ")
+  val i = "ti"
+  val sql =s"select a.ds,a.spea,b.spea,a.spea-b.spea from rank a, rank b where a.fs=${args(0)} and a.ds=b.ds and a.ra=b.ra and a.cr=b.cr and a.i=b.i and a.f=b.f and a.st=b.st and a.ls=b.ls and a.rs=b.rs and a.fs=b.fs and a.nt=b.nt and a.porPool=b.porPool and a.mc='PCTr' and b.mc='defr' and a.st='HTUeuc' and a.i='$i'; "
+  println(s"${sql} <- sql")
+  val t = metads.readString(sql)
+
   val r = t map { case Vector(ds, pctr, defr, dif) => registro(ds, pctr.toDouble, defr.toDouble, dif.toDouble) }
 
-  def qtosRoubos(ds: String) = dominio.values.count(_ == dominio(ds))-1
+  def qtosRoubos(ds: String) = dominio.values.count(_ == dominio(ds)) - 1
 
   def f(x: Double) = {
     val nf = java.text.NumberFormat.getNumberInstance(new java.util.Locale("pt", "BR"))
-    nf.setMinimumFractionDigits(2)
-    nf.setMaximumFractionDigits(2)
+    nf.setMinimumFractionDigits(4)
+    nf.setMaximumFractionDigits(4)
     nf.format(x)
   }
 
   val ds2reg = r.map(x => x.ds -> x).toMap
-  val dss = dominio.keys.toList
+  val dss = if (args(0) == "66") Source.fromFile("nonredundant").getLines().toList else dominio.keys.toList
   val res = (dss map qtosRoubos).zip(dss map ds2reg).sortBy(_._2.ds).sortBy(-_._2.dif).sortBy(-_._1).zipWithIndex foreach { case ((rou, registro(ds, pctr, defr, dif)), idx) =>
-    println(s"${idx + 1}-$ds ${f(rou)} ${f(dif)} $pctr $defr")
+    println(s"${idx + 1}-$ds ${f(rou)} ${f(dif)}") // $pctr $defr
   }
   metads.close()
 }

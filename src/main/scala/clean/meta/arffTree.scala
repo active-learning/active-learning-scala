@@ -120,8 +120,9 @@ object mostraAtributosBons extends App {
   println(s"<- só funfa no sbt")
   //constrói e transforma árvore
 //  val tex = s"/home/davi/wcs/tese/attsBons.tex"
-  val tex = s"/home/davi/wcs/tese/attsBonsCbases.tex"
-  val arq = "/home/davi/wcs/arff/metaEscolheAlgPCadaStrat-false-n1best1mALCKappa-ti.th-HTUeuc-5nnw,nbb,c452,rbf-U100.arff.arff.arff"
+//  val tex = s"/home/davi/wcs/tese/attsBonsCbases.tex"
+  val tex = "/tmp/arvore.tex"
+  val arq = "/tmp/mt.arff" ///metaEscolheAlgPCadaStrat-false-n1best1mALCKappa-ti.th-HTUeuc-5nnw,nbb,c452,rbf-U100.arff.arff.arff"
 //  val arq = "/home/davi/htu-nan.arff"
 //  val tex = s"/home/davi/wcs/tese/attsBonsST.tex"
   //  val arq = "/home/davi/5nn-nan.arff"
