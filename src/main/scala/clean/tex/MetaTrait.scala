@@ -347,7 +347,7 @@ trait MetaTrait extends FilterTrait with Rank with Log {
             val mo = if (fake) Maj().build(trtest)
             else mc match {
               case Maj() => Maj().build(trtest)
-              case RF(_, n, _, _) => RF(seed, n).build(trtest)
+              case RF(_, n, _, _, _) => RF(seed, n).build(trtest)
               case RoF(_, n) => RoF(seed, n).build(trtest)
               case ABoo(_, n) => ABoo(seed, n).build(trtest)
               case Chute(_) => Chute(seed).build(trtest)

@@ -6,7 +6,9 @@ scalaVersion := "2.11.6"
 
 libraryDependencies += "nz.ac.waikato.cms.weka" % "SMOTE" % "1.0.3"
 
-libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-dev" % "3.7.11"
+libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-dev" % "3.9.0"
+
+//libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-dev" % "3.7.11"
 
 //libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.7.15-M1"
 
