@@ -20,10 +20,14 @@ object GeraARFFSintetico extends App {
 
   def uniforme(n: Int) = for {x <- -1000 to 1000 by n; y <- -1000 to 1000 by n} yield (x / 100d, y / 100d)
 
-  val labeled = Seq((6, 6, 0), (4, 0, 1), (5, 4, 0), (-6, -4, 1),  (-5, -5, 1), (-2, -3, 2), (-2, -6, 1),
-    (6.2, 6.1, 0), (4.1, -0.2, 1), (5.2, 3.9, 0), (-5.8, -4.1, 1),  (-5.05, -5.1, 1), (-2.1, -2.9, 2), (-2.2, -5.1, 1),
-    (6.3, 6.4, 0), (4.3, -0.4, 1), (5.3, 3.4, 0))
-  val unlabeled = Seq[(Double, Double, Int)]((5, 5, 15), (7, 7, 15), (-3, 0, 20), (6, 0, 20), (-3.8, 3.5, 10), (-4.2, 2.5, 10), (3, 0, 30), (6, -4, 20), (3, 3, 30), (-6, -4, 30), (0, -4, 20), (0, 0, 30))
+  val labeled0 = Seq[(Double, Double, Int)]((2.4, 2.5, 1), (2.3, 2.6, 1), (2.6, 2.7, 1), (2.7, 2.4, 1), (2.74, 2.85, 1), (2.84, 2.5, 1), (2.94, 2.45, 1), (2.84, 2.75, 1),
+    (6, 6, 0), (4, 0, 0), (5, 4, 0), (-6, -4, 1), (-5, -5, 1), (-2, -3, 2), (-2, -6, 2), (-2.3, -3.3, 2), (-2.8, -6.2, 2),
+    (6.2, 6.1, 0), (4.1, -0.2, 0), (5.2, 3.9, 0), (-5.8, -4.1, 1), (-5.05, -5.1, 1), (-2.1, -2.9, 2), (-2.2, -5.1, 2),
+    (6.3, 6.4, 0), (4.3, -0.4, 0), (5.3, 3.4, 0), (5.5, 6, 0), (4.5, 0, 0), (5.5, 4, 0), (-6.5, -4, 1), (-5.5, -5, 1), (-2.5, -3, 2), (-2.5, -6, 2),
+    (6.25, 6.4, 0), (4.11, -0.22, 0), (5.21, 3.92, 0), (-5.82, -4.17, 1), (-5.35, -5.01, 1), (-2.01, -2.09, 2), (-2.26, -5.51, 2),
+    (6.53, 6.64, 0), (4.83, -0.94, 0), (5.13, 3.04, 0))
+  val labeled = labeled0 ++ labeled0.map { case (a, b, c) => (a + Random.nextDouble(), b + Random.nextDouble(), 2) }
+  val unlabeled = Seq[(Double, Double, Int)]((0.5, 4, 3), (-0.5, 4, 2), (-0.5, 5, 3),  (-1, 4.3, 2), (-0.5, 2.5, 5), (-1, 5, 2), (5, 5, 5), (7, 7, 5), (-3, 0, 5), (6, 0, 5), (-3.8, 3.5, 3), (-4.2, 2.5, 3), (3, 0, 10), (6, -4, 5), (3, 3, 10), (-6, -4, 5), (0, -4, 5), (0, 0, 10))
 
   Seq("unlabeled", "labeled", "ign", "repr", "fundo", "ent") foreach { set =>
     val fw = new FileWriter(s"/home/davi/Dropbox/git/als/$set.arff")
@@ -41,13 +45,13 @@ object GeraARFFSintetico extends App {
         unlabeled foreach { case (x, y, n) => espiralAleatoria(x, y, n) foreach (x => fw.write(printuple(9, 1)(x))) }
       case "ign" =>
         labeled foreach { case (x, y, c) => fw.write(printuple(10, 1)(x, y)) }
-        unlabeled foreach { case (x, y, n) => espiralAleatoria(x, y, n) foreach (x => fw.write(printuple(19, 0.00005)(x))) }
+        unlabeled foreach { case (x, y, n) => espiralAleatoria(x, y, n) foreach (x => fw.write(printuple(19, 0.0000005)(x))) }
       case "repr" =>
         labeled foreach { case (x, y, c) => fw.write(printuple(24, 1)(x, y)) }
         unlabeled foreach { case (x, y, n) => espiralAleatoria(x, y, n) foreach (x => fw.write(printuple(24, 1)(x))) }
-        uniforme(5) foreach (x => fw.write(printuple(29, 0.00005)(x)))
+        uniforme(50) foreach (x => fw.write(printuple(29, 0.00000001)(x)))
       case "fundo" =>
-        uniforme(5) foreach (x => fw.write(printuple(39, 1)(x)))
+        uniforme(15) foreach (x => fw.write(printuple(39, 1)(x)))
       case "ent" => //mig
         labeled foreach { case (x, y, c) => fw.write(printuple(40 + c, 1)(x, y)) }
         unlabeled foreach { case (x, y, n) => espiralAleatoria(x, y, n) foreach (x => fw.write(printuple(49, 0.001)(x))) }
