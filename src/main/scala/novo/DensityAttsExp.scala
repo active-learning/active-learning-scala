@@ -15,8 +15,8 @@ object DensityAttsExp extends App with CM with DistT {
   val datasets = Source.fromFile(args(1)).getLines().toList
   val trees = 100
 
-    Seq("iris", "wine", "banana") foreach processa(add = false, parallel = parallel)
-//  datasets foreach processa(add = false, parallel = parallel)
+//    Seq("iris", "wine", "banana") foreach processa(add = false, parallel = parallel)
+  datasets foreach processa(add = false, parallel = parallel)
 
   //  val accs2 = datasets map processa(add = true, parallel = parallel)
   //  val accs2 = processa(add = true, parallel = parallel)("iris")
