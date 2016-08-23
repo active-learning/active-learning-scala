@@ -87,30 +87,44 @@ case class Dist(pool: Seq[Pattern]) {
     }
 }
 
-trait DistT{
+trait DistT {
   def addAtt(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
     val seqden = Seq(1, 4, 16, 32, 64, 128)
     val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
     val atts = seqden map (i => s"@attribute d$i numeric")
-    val newHeader = header.dropRight(2) ++ atts ++ header.takeRight(2)
+    val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
 
     def denses(p: Pattern) = seqden map den(di, allpatts, p)
-    val newData = patts map { p => (p.toString.split(",").dropRight(1) ++ denses(p) ++ p.toString.split(",").takeRight(1)).mkString(",") }
+    val (newData, newData2) = (patts.par map { p =>
+      val dss = denses(p)
+      (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") ->
+        (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
+    }).unzip
     val arq = s"/run/shm/$dataset.arff"
 
     val fw = new FileWriter(arq)
     fw.write((newHeader ++ Seq("@data") ++ newData).mkString("\n"))
     fw.close()
-    Datasets.arff(arq, dedup = false, rmuseless = false) match {
+    val res = Datasets.arff(arq, dedup = false, rmuseless = false) match {
       case Right(x) => x
       case Left(e) => sys.error(e)
     }
+
+    val fw2 = new FileWriter(arq + "2.arff")
+    fw2.write((newHeader2 ++ Seq("@data") ++ newData2).mkString("\n"))
+    fw2.close()
+    val res2 = Datasets.arff(arq + "2.arff", dedup = false, rmuseless = false) match {
+      case Right(x) => x
+      case Left(e) => sys.error(e)
+    }
+
+    res -> res2
   }
 
   def den(di: Dist, pool: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
-    val simis = pool map { s => s -> 1d / (1 + di.d(x, s)) }
-    val neigs = simis.sortBy(-_._2).take(numNeigs + 1).tail.map(_._2)
+    val simis = pool.par map { s => s -> 1d / (1 + di.d(x, s)) }
+    val neigs = simis.toList.sortBy(-_._2).take(numNeigs + 1).tail.map(_._2)
     neigs.sum / numNeigs
   }
 }
