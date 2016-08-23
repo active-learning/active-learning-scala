@@ -25,7 +25,7 @@ trait Log {
 
    def log(msg: String, level: Int = 10) {
       level match {
-         case x if x >= 30 - Global.debug => println(s"${java.net.InetAddress.getLocalHost.getHostName} $context : $msg    ${Calendar.getInstance().getTime}")
+         case x if x >= 30 - Global.debug => println(s">> ${java.net.InetAddress.getLocalHost.getHostName} $context :\n$msg\n<< ${Calendar.getInstance().getTime}")
          case x =>
       }
    }
