@@ -39,11 +39,14 @@ case class DenAlternIgnUnc(learner: Learner, pool: Seq[Pattern], numNeigs: Int, 
     lazy val mars = unlabeled map { x => x -> (1 - margin(current_model)(m(x.id))) }
     lazy val knos = unlabeled map { x => x -> knowledgeModel.distribution(m(x.id)).head }
 
+    val knosden = rank(densU).zip(rank(knos)).map { case (a, b) => math.max(a,b) }
+    val marsden = rank(densU).zip(rank(mars)).map { case (a, b) => math.max(a,b) }
+
     val (selected, _) = if (explore) {
-      val rankTups = unlabeled.sortBy(_.id) zip (rank(densU), rank(densL), rank(knos)).zipped.toList
+      val rankTups = unlabeled.sortBy(_.id) zip (rank(densU), rank(densL), knosden).zipped.toList
       rankTups map worstPosition3 minBy (_._2)
     } else {
-      val rankTups = unlabeled.sortBy(_.id) zip (rank(densU), rank(densL), rank(mars)).zipped.toList
+      val rankTups = unlabeled.sortBy(_.id) zip (rank(densU), rank(densL), marsden).zipped.toList
       rankTups map worstPosition3 minBy (_._2)
     }
     selected

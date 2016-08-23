@@ -65,11 +65,11 @@ case class EER(learner: Learner, pool: Seq[Pattern], criterion: String, sample: 
   protected def next(current_model: Model, unlabeled0: Seq[Pattern], labeled: Seq[Pattern]) = {
     val unlabeled = new Random(unlabeled0.size).shuffle(unlabeled0).take(n)
     val res = if (labeled.last.missed) {
-      Margin(learner, distinct_pool).next(current_model, unlabeled, labeled)
+      Margin(learner, unlabeled).next(current_model, unlabeled, labeled)
     } else {
       val unlabeledSize = unlabeled.size
       val rnd = new Random(unlabeledSize)
-      val unlabeledSamp = if (unlabeledSize > sample_internal) rnd.shuffle(unlabeled).take(sample_internal) else unlabeled
+      val unlabeledSamp = if (unlabeledSize > n) rnd.shuffle(unlabeled).take(n) else unlabeled
       lazy val optimistic_patterns = unlabeledSamp.map { p =>
         p.relabeled_reweighted(current_model.predict(p), 1, new_missed = false)
       }.toVector
@@ -79,7 +79,7 @@ case class EER(learner: Learner, pool: Seq[Pattern], criterion: String, sample: 
           val artificially_labeled_pattern = pattern.relabeled_reweighted(c, 1, new_missed = false)
           val art_model = learner.update(current_model)(artificially_labeled_pattern)
           //          val art_model = current_model //learner.update(current_model)(artificially_labeled_pattern) //o maior tempo é gasto no cálculo do critério e não na instanciação de modelos
-          //          val art_model = learner.build(artificially_labeled_pattern +: labeled) //idem (deu 10% de ganho para NB, mas poderia prejudicar ELM
+          //          val art_model = learner.build(artificially_labeled_pattern +: labeled) //idem (deu 10% de ganho para NB, mas poderia prejudicar RNN
           criterionInt match {
             case Ventropy => (pattern, c, criterion_entropy(art_model, unlabeledSamp))
             case Vgmeans => (pattern, c, 1 - criterion_gmeans(art_model, optimistic_patterns))

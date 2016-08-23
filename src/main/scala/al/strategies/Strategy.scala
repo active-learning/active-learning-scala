@@ -28,7 +28,8 @@ import util.Graphics.Plot
 import scala.io.Source
 
 trait Strategy extends Log with Limpa {
-  val n = 100
+  val n = 3000
+  val delay: Double = 0.0
   val context = "Strategy"
   val id: Int
   val abr: String
@@ -40,7 +41,6 @@ trait Strategy extends Log with Limpa {
   } else pool
   val debug: Boolean
   lazy val nclasses = if (distinct_pool.nonEmpty) distinct_pool.head.nclasses else throw new Error("Lazy val nclasses undiscoverable from an empty patterns!")
-  val delay: Double = 0
   lazy val plot = new Plot
   lazy val (firstof_each_class, rest) = extract_one_per_class(distinct_pool)
   lazy val old = id

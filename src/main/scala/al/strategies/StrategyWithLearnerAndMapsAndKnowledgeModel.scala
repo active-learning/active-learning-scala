@@ -41,21 +41,19 @@ trait StrategyWithLearnerAndMapsAndKnowledgeModel extends Strategy with Distance
     case (e, (a, b, c, d)) => e -> math.max(math.max(a, b), math.max(b, c))
   }
 
-  def den(set: Seq[Pattern], signal:Int) = {
+  def den(set: Seq[Pattern]) = {
     pool.map { x =>
-      //      val allbut = (unlabeled ++ labeled).diff(Seq(x))
-      val dists = set.map { s =>
-        //      val dists = allbut.map { u =>
-        s -> signal * 1d / (1 + d(x, s))
+      val simis = set.map { s =>
+        s -> 1d / (1 + d(x, s))
       }
-      val neigs = dists.sortBy(_._2).take(numNeigs).map(_._2)
-      x -> neigs.sum
+      val neigs = simis.sortBy(-_._2).take(numNeigs).map(_._2)
+      x -> neigs.sum / numNeigs
     }.toMap
   }
 
   protected def resume_queries_impl(unlabeled: Seq[Pattern], labeled: Seq[Pattern]) = {
-    val initial_mapU = den(unlabeled, 1)
-    val initial_mapL = den(labeled, -1)
+    val initial_mapU = den(unlabeled)
+    val initial_mapL = den(labeled)
     val decisionModel = learner.build(labeled.map(x => m(x.id)))
     val class0set = unlabeled.map(_.relabeled_reweighted(0, w, new_missed = false))
     val class1set = labeled.map(_.relabeled_reweighted(1, 1, new_missed = false))
@@ -73,15 +71,19 @@ trait StrategyWithLearnerAndMapsAndKnowledgeModel extends Strategy with Distance
       val newLabeled = labeled :+ selected
       val newUnlabeled = unlabeled.diff(Seq(selected))
       //agora refaço a densidade, pois ajuda nas consultas eliminar os rotulados .  OLD: ignorance não requer que densidade seja alterada. está usando rotulados + unlabeled
-      val newU = den(newUnlabeled, 1) //(mapU - selected) transform { case (pa, si) => si - 1d / (1 + d(selected, pa)) }
-      val newL = den(newLabeled, -1)
+      val newU = den(newUnlabeled) //(mapU - selected) transform { case (pa, si) => si - 1d / (1 + d(selected, pa)) }
+      val newL = den(newLabeled)
+
+      val pred = newLabeled map current_model.predict
 
       val new_knowledgeSet = knowledgeSet.updated(knowledgeSet.indexOf(selected), selected.relabeled_reweighted(1, 1, new_missed = false))
       val new_decisionModel = learner.update(current_model, fast_mutable = true)(m(selected.id))
       val new_knowledgeModel = learner.build(new_knowledgeSet)
 
-      val newPredictions = pool map new_decisionModel.predict
-      val newExplore = if (this.isInstanceOf[DenAlternIgnUnc] && predictions == newPredictions) {
+      val newPred = newLabeled map new_decisionModel.predict
+
+      //      val newPredictions = pool map new_decisionModel.predict
+      val newExplore = if (this.isInstanceOf[DenAlternIgnUnc] && pred == newPred) {
         if (explore) println("Prospecting...") else println("Exploring...")
         !explore
       } else explore
@@ -92,7 +94,7 @@ trait StrategyWithLearnerAndMapsAndKnowledgeModel extends Strategy with Distance
         visual_test(selected, unlabeled, newLabeled)
       }
 
-      selected #:: queries_rec(newExplore, newPredictions, new_knowledgeModel, new_knowledgeSet, newU, newL, new_decisionModel, newUnlabeled, newLabeled)
+      selected #:: queries_rec(newExplore, Seq(), new_knowledgeModel, new_knowledgeSet, newU, newL, new_decisionModel, newUnlabeled, newLabeled)
     }
   }
 

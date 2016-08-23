@@ -20,24 +20,32 @@ package al.strategies
 import ml.Pattern
 import ml.classifiers.Learner
 import ml.models.Model
+import util.Graphics.Plot
+
 import scala.util.Random
 
 case class IgnUncDen(learner: Learner, pool: Seq[Pattern], numNeigs: Int, poolForLearner: Seq[Pattern], distance_name: String = "eucl", debug: Boolean)
   extends StrategyWithLearnerAndMapsAndKnowledgeModel with MarginMeasure {
   val id: Int = 129587
   val abr: String = "ign"
+  val plo = new Plot
 
   protected def next(explore: Boolean, predictions: Seq[Double], knowledgeModel: Model, mapU: => Map[Pattern, Double], mapL: => Map[Pattern, Double], current_model: Model, unlabeled0: Seq[Pattern], labeled: Seq[Pattern]) = {
-    val unlabeled = new Random(unlabeled0.size).shuffle(unlabeled0).take(n)
-    val us = unlabeled.size
-    val ls = labeled.size
+    val unlabeled = new Random(unlabeled0.size).shuffle(unlabeled0).take(n).sortBy(_.id)
 
-    val densU = unlabeled map { x => x -> mapU(x) / us }
-    val densL = unlabeled map { x => x -> 0*mapL(x) / ls }
+    val densU = unlabeled map { x => x -> mapU(x) }
+    val densL = unlabeled.zip(densU) map { case(x,(y,u)) => x -> u / mapL(x) }
     lazy val mars = unlabeled map { x => x -> (1 - margin(current_model)(m(x.id))) }
     lazy val knos = unlabeled map { x => x -> knowledgeModel.distribution(m(x.id)).head }
 
-    val rankTups = unlabeled.sortBy(_.id) zip zipa(rank(densU), rank(densL), rank(mars), rank(knos))
+    if (labeled.size == 2) {
+      plo.zera()
+      val r = rank(densU)
+      unlabeled.zipWithIndex.foreach { case (p, i) => plo.bola_intense(p.x, p.y, 1 - (r(i) - r.min).toFloat / (r.max - r.min).toFloat, 9) }
+    }
+    plo.mostra()
+
+    val rankTups = unlabeled zip zipa(rank(densL), rank(densL), rank(mars), rank(knos))
     val (selected, _) = rankTups map worstPosition4 minBy (_._2)
 
     //    val (selected, _) = if (explore) {

@@ -37,10 +37,12 @@ object Queries_visualized extends App {
   var labeled = List[Pattern]()
   var model: Model = null
 
-  val cc = RF(100)//KNNBatcha(75, "eucl", train, weighted = true)//SVMLibRBF() //RF(100)
-//  val e = IgnUncDen(cc, train, train.size/10, train, debug = true)
-  val e = DenAlternIgnUnc(cc, train, train.size/10, train, debug = true)
-
+  val cc = RF(5,threads = 4)
+  //KNNBatcha(75, "eucl", train, weighted = true)//SVMLibRBF() //RF(100)
+//  val e = TU(train, cc, train, debug = true)
+//  val e = EER(cc,train,"entropy")
+    val e = IgnUncDen(cc, train, 80, train, debug = true)
+  //  val e = DenAlternIgnUnc(cc, train, train.size/10, train, debug = true)
 
 
   Tempo.start
