@@ -20,14 +20,17 @@ object DensityAttsExp extends Args with CM with DistT {
           val step = run - 1 + "." + fold
           val seed = 1000 * run + fold
           val l = RF(seed, argi("trees"), threads = 4)
-          if (preAdded) {
-            val m = l.build(tr)
-            (accBal(m.confusion(ts)) -> -1d, -1d -> -1d)
-          } else {
-            val ((newTr, newTrOnlyDens), (newTs, newTsOnlyDens)) = addAtt(dataset + step + "tr", tr, tr) -> addAtt(dataset + step + "ts", ts, tr)
-            val (m, m1, m2, mz) = (l.build(tr), l.build(newTr), l.build(newTrOnlyDens), Maj().build(tr))
-            //normal junto sozinho zeroR
-            (accBal(m.confusion(ts)) -> accBal(m1.confusion(newTs)), accBal(m2.confusion(newTsOnlyDens)) -> accBal(mz.confusion(ts)))
+          if (tr.isEmpty) (0d -> 0d, 0d -> 0d)
+          else {
+            if (preAdded) {
+              val m = l.build(tr)
+              (accBal(m.confusion(ts)) -> -1d, -1d -> -1d)
+            } else {
+              val ((newTr, newTrOnlyDens), (newTs, newTsOnlyDens)) = addAtt(dataset + step + "tr", tr, tr) -> addAtt(dataset + step + "ts", ts, tr)
+              val (m, m1, m2, mz) = (l.build(tr), l.build(newTr), l.build(newTrOnlyDens), Maj().build(tr))
+              //normal junto sozinho zeroR
+              (accBal(m.confusion(ts)) -> accBal(m1.confusion(newTs)), accBal(m2.confusion(newTsOnlyDens)) -> accBal(mz.confusion(ts)))
+            }
           }
         }
       }
@@ -45,7 +48,7 @@ object DensityAttsExp extends Args with CM with DistT {
     val nojusoze = exe(patts, preAdded = false)
     val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
     val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
-    (nojusoze ++ juPreAdded ++ soPreAdded) foreach (x => print(x + " "))
+    (nojusoze ++ juPreAdded ++ soPreAdded) map (x => x._1 + " " + x._2 + " ") foreach print
     println
   }
 
