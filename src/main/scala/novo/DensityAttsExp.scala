@@ -13,12 +13,12 @@ object DensityAttsExp extends Args with CM with DistT {
 
   def processa(f: (String, Seq[Pattern], Seq[Pattern]) => (scala.Vector[Pattern], scala.Vector[Pattern]), parallel: Boolean)(dataset: String) = {
     def exe(patts: Vector[Pattern], preAdded: Boolean) = {
-      val runs = (1 to argi("runs")).par map { run =>
+      val runs = (if (argb("parr")) (1 to argi("runs")).par else 1 to argi("runs")) map { run =>
         val shuffled = new Random(run).shuffle(patts)
         Datasets.kfoldCV(shuffled, argi("k"), parallel) { (tr, ts, fold, minSize) =>
           val step = run - 1 + "." + fold
           val seed = 1000 * run + fold
-          val l = RF(seed, argi("trees"), threads = 4)
+          val l = RF(seed, argi("trees"), argi("trees") / 2)
           if (tr.isEmpty) (0d -> 0d, 0d -> 0d)
           else {
             if (preAdded) {
@@ -55,7 +55,7 @@ object DensityAttsExp extends Args with CM with DistT {
     Global.debug = argi("dbg")
     println(args.mkString(" "))
     val f = if (argb("1d")) addAtt1d _ else addAtt _
-    argl.getOrElse("file", argl("datasets")) foreach processa(f, parallel = argb("par"))
+    argl.getOrElse("file", argl("datasets")) foreach processa(f, argb("parf"))
   } catch {
     case e: Throwable =>
       e.printStackTrace()
