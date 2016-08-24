@@ -29,7 +29,7 @@ import weka.core._
 
 import scala.collection.mutable
 
-case class Dist(pool: Seq[Pattern]) {
+case class Dist(pool: Seq[Pattern], pool2: Seq[Pattern] = Seq()) {
   val distance_name = "eucl"
   val dataset = Datasets.patterns2instances(pool)
   lazy val instances_matrix = {
@@ -45,27 +45,18 @@ case class Dist(pool: Seq[Pattern]) {
   lazy val manhattan_ruler = new ManhattanDistance(dataset)
   lazy val chebyshev = new ChebyshevDistance(dataset)
   val d = distance_to(distance_name)
-  lazy val normMapInit = 0 until pool.head.nattributes flatMap { a =>
-    val vals = valsm(a)
-    val mi = vals min
-    val ma = vals max
-    val mami = ma - mi
-    pool map (p => (p.id, a) -> (p.vector(a) - mi) / mami)
-  } toMap
-  lazy val normMap = mutable.Map(normMapInit.toSeq: _*)
+  lazy val mim = valsm map (_.min)
+  lazy val mam = valsm map (_.max)
+  lazy val mamim = mam.zip(mim) map (x => x._1 - x._2)
 
-  def norm(patt: Pattern, attr: Int) = normMap.getOrElseUpdate((patt.id, attr), upd(patt, attr))
+  def norm(patt: Pattern, attr: Int) = upd(patt, attr)
 
   lazy val valsm = 0 until pool.head.nattributes map { a =>
     pool map (_.vector(a))
   } toArray
 
   def upd(patt: Pattern, attr: Int) = {
-    val vals = valsm(attr)
-    val mi = vals min
-    val ma = vals max
-    val mami = ma - mi
-    (patt.vector(attr) - mi) / mami
+    (patt.vector(attr) - mim(attr)) / mamim(attr)
   }
 
   def d1d(pa: Pattern, pb: Pattern, att: Int) = (norm(pa, att) - norm(pb, att)).abs
@@ -150,7 +141,7 @@ trait DistT {
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
     val seqden = Seq(1, 4, 16, 32, 64, 128)
-    val di = Dist(allpatts)
+    val di = Dist(allpatts, allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
     val atts = (for (s <- seqden; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
