@@ -29,7 +29,7 @@ import weka.core._
 
 import scala.collection.mutable
 
-case class Dist(pool: Seq[Pattern], pool2: Seq[Pattern] = Seq()) {
+case class Dist(pool: Seq[Pattern]) {
   val distance_name = "eucl"
   val dataset = Datasets.patterns2instances(pool)
   lazy val instances_matrix = {
@@ -141,7 +141,7 @@ trait DistT {
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
     val seqden = Seq(1, 4, 16, 32, 64, 128)
-    val di = Dist(allpatts, allpatts)
+    val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
     val atts = (for (s <- seqden; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
