@@ -41,21 +41,25 @@ object DensityAttsExp extends Args with CM with DistT {
 
     print(dataset + " ")
     val alive = ALive(dataset, argt("exp"))
-    if (alive.isFinished) print("already finished") else {
-      if (alive.isFree) {
-        alive.start()
-        val ds = Ds(dataset, readOnly = true)
-        ds.open()
-        val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
-        ds.close()
-        val nojusoze = exe(patts, preAdded = false)
-        val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
-        val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
-        (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ") foreach print
-        alive.stop()
-      } else print("busy")
+    if (argb("clear")) alive.clear()
+    alive.getResults match {
+      case Some(str) => println(str)
+      case None =>
+        if (alive.isFree) {
+          alive.start()
+          val ds = Ds(dataset, readOnly = true)
+          ds.open()
+          val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
+          ds.close()
+          val nojusoze = exe(patts, preAdded = false)
+          val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
+          val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
+          val res = (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
+          println(res.mkString)
+          alive.putResults(res.mkString)
+          alive.stop()
+        } else println("busy")
     }
-    println
   }
 
   def run() = try {

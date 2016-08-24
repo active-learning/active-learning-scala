@@ -10,9 +10,17 @@ import util.{Datasets, Stat}
 import scala.util.Random
 
 case class ALive(dataset: String, exp: String) {
-  def isFinished = ds.readString(s"select * from r where s='$exp'").headOption match {
-    case Some(Vector(str)) => true
-    case _ => false
+  def putResults(res: String): Unit = {
+    ds.write(s"replace into r values ('$exp', '$res')")
+  }
+
+  def clear() {
+    ds.write(s"delete from r where s='$exp'")
+  }
+
+  def getResults = ds.readString(s"select o from r where s='$exp'").headOption match {
+    case Some(Vector(str)) => Some(str)
+    case _ => None
   }
 
   val ds = Ds(dataset, readOnly = false)
@@ -64,7 +72,6 @@ case class ALive(dataset: String, exp: String) {
     running = false
     Thread.sleep(timems / 5000)
     ds.write(s"delete from l where u='$id'")
-    ds.write(s"replace into r values ('$exp')")
     ds.close()
   }
 
