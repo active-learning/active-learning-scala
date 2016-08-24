@@ -5,7 +5,6 @@ import ml.Pattern
 import ml.classifiers.{Maj, RF}
 import util.{Datasets, Stat}
 
-import scala.io.Source
 import scala.util.Random
 
 object DensityAttsExp extends Args with CM with DistT {
