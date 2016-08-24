@@ -55,7 +55,7 @@ object DensityAttsExp extends Args with CM with DistT {
     Global.debug = argi("dbg")
     println(args.mkString(" "))
     val f = if (argb("1d")) addAtt1d _ else addAtt _
-    argl("file") foreach processa(f, parallel = argb("par"))
+    argl.getOrElse("file", argl("datasets")) foreach processa(f, parallel = argb("par"))
   } catch {
     case e: Throwable =>
       e.printStackTrace()

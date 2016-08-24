@@ -27,6 +27,8 @@ import org.math.array.StatisticSample
 import util.Datasets
 import weka.core._
 
+import scala.collection.mutable
+
 case class Dist(pool: Seq[Pattern]) {
   val distance_name = "eucl"
   val dataset = Datasets.patterns2instances(pool)
@@ -43,13 +45,28 @@ case class Dist(pool: Seq[Pattern]) {
   lazy val manhattan_ruler = new ManhattanDistance(dataset)
   lazy val chebyshev = new ChebyshevDistance(dataset)
   val d = distance_to(distance_name)
-  lazy val norm = 0 until pool.head.nattributes flatMap { a =>
-    val vals = pool map (_.vector(a))
+  lazy val normMapInit = 0 until pool.head.nattributes flatMap { a =>
+    val vals = valsm(a)
     val mi = vals min
     val ma = vals max
     val mami = ma - mi
-    pool map (p => (p, a) -> (p.vector(a) - mi) / mami)
+    pool map (p => (p.id, a) -> (p.vector(a) - mi) / mami)
   } toMap
+  lazy val normMap = mutable.Map(normMapInit.toSeq: _*)
+
+  def norm(patt: Pattern, attr: Int) = normMap.getOrElseUpdate((patt.id, attr), upd(patt, attr))
+
+  lazy val valsm = 0 until pool.head.nattributes map { a =>
+    pool map (_.vector(a))
+  } toArray
+
+  def upd(patt: Pattern, attr: Int) = {
+    val vals = valsm(attr)
+    val mi = vals min
+    val ma = vals max
+    val mami = ma - mi
+    (patt.vector(attr) - mi) / mami
+  }
 
   def d1d(pa: Pattern, pb: Pattern, att: Int) = (norm(pa, att) - norm(pb, att)).abs
 
@@ -132,10 +149,10 @@ trait DistT {
   }
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
-    val seqden = for (s <- Seq(1, 4, 16, 32, 64, 128); a <- 0 until patts.head.nattributes) yield a * 1000 + s
+    val seqden = Seq(1, 4, 16, 32, 64, 128)
     val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
-    val atts = seqden map (i => s"@attribute d$i numeric")
+    val atts = (for (s <- seqden; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
 
     def denses(p: Pattern) = seqden flatMap den1d(di, allpatts, p)
@@ -165,15 +182,15 @@ trait DistT {
     res -> res2
   }
 
-  def den(di: Dist, pool: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
-    val simis = pool.par map { s => 1d / (1 + di.d(x, s)) }
+  def den(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
+    val simis = patts.par map { s => 1d / (1 + di.d(x, s)) }
     val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
     neigs.sum / numNeigs
   }
 
-  def den1d(di: Dist, pool: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
-    0 until pool.head.nattributes map { a =>
-      val simis = pool.par map { p => 1d / (1 + di.d1d(x, p, a)) }
+  def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
+    0 until patts.head.nattributes map { a =>
+      val simis = patts.par map { p => 1d / (1 + di.d1d(x, p, a)) }
       val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
       neigs.sum / numNeigs
     } toList
