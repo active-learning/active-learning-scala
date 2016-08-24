@@ -60,7 +60,7 @@ trait CM extends Log {
 
    def accBal(cms: Array[Array[Int]]) = {
       val ac = accPorClasse(cms)
-      ac._1.sum / ac._2
+      (10000 * ac._1.sum / ac._2).round / 10000d
    }
 
    def totPerLin(cms: Array[Array[Int]]) = cms.map(_.sum)
