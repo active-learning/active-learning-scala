@@ -28,7 +28,7 @@ trait CM extends Log {
    }
 
    def contaAcertos(m: Array[Array[Int]]) = {
-      val n = m.size
+      val n = m.length
       var i = 0
       var s = 0
       while (i < n) {
@@ -41,7 +41,7 @@ trait CM extends Log {
    def acc(m: Array[Array[Int]]) = contaAcertos(m).toDouble / contaTotal(m)
 
    def contaTotal(m: Array[Array[Int]]) = {
-      val n = m.size
+      val n = m.length
       var i = 0
       var j = 0
       var s = 0
@@ -60,7 +60,7 @@ trait CM extends Log {
 
    def accBal(cms: Array[Array[Int]]) = {
       val ac = accPorClasse(cms)
-      (10000 * ac._1.sum / ac._2).round / 10000d
+      ac._1.sum / ac._2
    }
 
    def totPerLin(cms: Array[Array[Int]]) = cms.map(_.sum)
@@ -68,7 +68,7 @@ trait CM extends Log {
    def totPerCol(cms: Array[Array[Int]]) = totPerLin(cms.transpose)
 
    def dot(u1: Array[Double], u2: Array[Double]) = {
-      val n = u1.size
+      val n = u1.length
       var i = 0
       var res = 0d
       while (i < n) {
@@ -91,7 +91,7 @@ trait CM extends Log {
    }
 
    def accPorClasse(m: Array[Array[Int]]) = {
-      var classesPresentes = m.head.size
+      var classesPresentes = m.head.length
       val r = m.zipWithIndex map { case (li, idx) =>
          val s = li.sum.toDouble
          if (s == 0) {
