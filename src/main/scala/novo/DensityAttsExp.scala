@@ -40,19 +40,26 @@ object DensityAttsExp extends Args with CM with DistT {
     }
 
     print(dataset + " ")
-    val ds = Ds(dataset, readOnly = true)
-    ds.open()
-    val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
-    ds.close()
-    val nojusoze = exe(patts, preAdded = false)
-    val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
-    val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
-    (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round * 1000d + " " + (1000 * x._2).round * 1000d + " ") foreach print
+    val alive = ALive(dataset, argt("exp"))
+    if (alive.isFinished) print("already finished") else {
+      if (alive.isFree) {
+        alive.start()
+        val ds = Ds(dataset, readOnly = true)
+        ds.open()
+        val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
+        ds.close()
+        val nojusoze = exe(patts, preAdded = false)
+        val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
+        val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
+        (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ") foreach print
+        alive.stop()
+      } else print("busy")
+    }
     println
   }
 
   def run() = try {
-    Global.debug = argi("dbg")
+    Global.debug = argi("log")
     println(args.mkString(" "))
     val f = if (argb("1d")) addAtt1d _ else addAtt _
     argl.getOrElse("file", argl("datasets")) foreach processa(f, argb("parf"))
@@ -60,6 +67,6 @@ object DensityAttsExp extends Args with CM with DistT {
     case e: Throwable =>
       e.printStackTrace()
       Thread.sleep(100)
-      log(e.getClass.getName + " " + e.getMessage)
+      println(e.getClass.getName + " " + e.getMessage)
   }
 }

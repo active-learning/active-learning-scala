@@ -24,15 +24,15 @@ import java.util.{Random, Calendar, UUID}
 
 
 /**
- * Cada instancia desta classe representa uma conexao.
- */
+  * Cada instancia desta classe representa uma conexao.
+  */
 class Db(val database: String, readOnly: Boolean) extends Log with Lock {
   override lazy val toString = database
   private var connection: Connection = null
   val context = database
   val connectionWait_ms = 60000
   var alive = Array.fill(Global.runs)(Array.fill(Global.folds)(false))
-  val id = new File("/proc/self").getCanonicalFile.getName + java.net.InetAddress.getLocalHost.getHostName + System.currentTimeMillis() + UUID.randomUUID().toString
+  val id = new File("/proc/self").getCanonicalFile.getName + " " + java.net.InetAddress.getLocalHost.getHostName + " " + System.currentTimeMillis() + " " + UUID.randomUUID().toString
   val rnd = new Random(id.map(_.toByte).sum)
 
   def open() {
@@ -46,8 +46,6 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         error(s"Problems opening db connection: ${e.getMessage} !") // Trying again in 30s...", 30)
-        Thread.sleep(connectionWait_ms)
-        test("")
     }
   }
 
@@ -81,6 +79,40 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
   def toDate(timestamp: java.sql.Timestamp) = {
     val milliseconds = timestamp.getTime + (timestamp.getNanos / 1000000)
     new java.util.Date(milliseconds)
+  }
+
+  def busy(lifetimeSeconds: Double = 60, r: Int = 0, f: Int = 0): Boolean = {
+    val now = Calendar.getInstance().getTime
+    val sql = s"select * from l where r=$r and f=$f"
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      val rsmd = resultSet.getMetaData
+      val numColumns = rsmd.getColumnCount
+      val columnsType = new Array[Int](numColumns + 1)
+      columnsType(0) = 0
+      1 to numColumns foreach (i => columnsType(i) = rsmd.getColumnType(i))
+      val queue = collection.mutable.Queue[(Int, Int, String, Timestamp)]()
+      while (resultSet.next()) {
+        val tup = (resultSet.getInt(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getTimestamp(4))
+        queue.enqueue(tup)
+      }
+      resultSet.close()
+      statement.close()
+      val past = toDate(queue.head._4)
+      val idPast = queue.head._3
+      val elapsedSeconds = (now.getTime - past.getTime) / 1000d
+      val ocupado = idPast != id && elapsedSeconds < lifetimeSeconds
+      if (ocupado) println(s"meu:$id outro:$idPast\n lifetime:$elapsedSeconds r=$r and f=$f", 30)
+      ocupado
+    }
+    catch {
+      case e: Throwable => //e.printStackTrace()
+        error(s"\nProblems executing SQL query [busy] '$sql': ${e.getMessage}") // .\nTrying againg in 60s.\n", 30)
+//        Thread.sleep(120000) //waiting time is longer than normal to allow for other alive connections to update the table
+//        test(sql)
+//        isAliveByOtherJob(r, f, lifetimeSeconds + 120) //each time we recover, the elapsed time should be higher
+    }
   }
 
   def isAliveByOtherJob(r: Int, f: Int, lifetimeSeconds: Double = 600): Boolean = {
@@ -190,7 +222,7 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
 
   override def error(msg: String) = {
     if (connection != null && !connection.isClosed) close()
-    else log("error: closed or null")
+    else println("error: closed or null")
     super.error(database + ": " + msg)
   }
 
@@ -302,6 +334,31 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
     }
   }
 
+  def readTime(sql: String): List[Vector[Timestamp]] = {
+    test(sql)
+    log(s"[$sql]", 5)
+    try {
+      val statement = connection.createStatement()
+      val resultSet = statement.executeQuery(sql)
+      val rsmd = resultSet.getMetaData
+      val numColumns = rsmd.getColumnCount
+      val queue = collection.mutable.Queue[Seq[Timestamp]]()
+      while (resultSet.next()) {
+        val seq = 1 to numColumns map { i => resultSet.getTimestamp(i) }
+        queue.enqueue(seq)
+      }
+      resultSet.close()
+      statement.close()
+      queue.toList.map(_.toVector)
+    } catch {
+      case e: Throwable => //e.printStackTrace()
+        error(s"\nProblems executing SQL read strings query '$sql': ${e.getMessage} .") //\nTrying againg in  $connectionWait_ms ms.\n", 30)
+//        Thread.sleep(connectionWait_ms)
+//        test(sql)
+//        readString(sql)
+    }
+  }
+
   def readBlobs4(sql: String): List[(Array[Byte], Int, Int, Int)] = {
     test(sql)
     log(s"[$sql]", 5)
@@ -348,9 +405,10 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
   }
 
   /**
-   * Several blob writings inside a transaction.
-   * @param sqls
-   */
+    * Several blob writings inside a transaction.
+    *
+    * @param sqls
+    */
   def batchWriteBlob(sqls: List[String], blobs: List[Array[Byte]]): Unit = if (readOnly) error("read only")
   else {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")
@@ -396,9 +454,10 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
   }
 
   /**
-   * Several queries inside a transaction.
-   * @param sqls
-   */
+    * Several queries inside a transaction.
+    *
+    * @param sqls
+    */
   def batchWrite(sqls: List[String]): Unit = if (readOnly) error("read only")
   else {
     if (connection.isClosed) error(s"Not applying sql queries $sqls. Database $database is closed.")

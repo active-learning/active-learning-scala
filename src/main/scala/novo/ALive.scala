@@ -1,0 +1,76 @@
+package novo
+
+import java.util.Calendar
+
+import clean.lib.{CM, Ds, Global}
+import ml.Pattern
+import ml.classifiers.{Maj, RF}
+import util.{Datasets, Stat}
+
+import scala.util.Random
+
+case class ALive(dataset: String, exp: String) {
+  def isFinished = ds.readString(s"select * from r where s='$exp'").headOption match {
+    case Some(Vector(str)) => true
+    case _ => false
+  }
+
+  val ds = Ds(dataset, readOnly = false)
+  val timems = 60000
+  val id = ds.id
+  var running = false
+  val thread = new Thread {
+    override def run() {
+      while (running) {
+        beat()
+        var c = 0
+        while (running && c < 10000) {
+          Thread.sleep(timems / 10000)
+          c += 1
+        }
+      }
+    }
+  }
+
+  def isFree = {
+    if (ds.isClosed) ds.open()
+    val now = ds.readTime(s"select now()").head.head
+    //    val idPast = ds.readString(s"select u from l where r=0 and f=0").headOption match {
+    //      case Some(Vector(res)) => res
+    //      case _ => "no id"
+    //    }
+    ds.readTime(s"select t from l where r=0 and f=0").headOption match {
+      case Some(Vector(res)) =>
+        val past = toDate(res)
+        val elapsedMiliSeconds = now.getTime - past.getTime
+        //        idPast != id &&
+        elapsedMiliSeconds > timems
+      case _ => true
+    }
+  }
+
+  def toDate(timestamp: java.sql.Timestamp) = {
+    val milliseconds = timestamp.getTime + (timestamp.getNanos / 1000000)
+    new java.util.Date(milliseconds)
+  }
+
+  def start() {
+    if (ds.isClosed) ds.open()
+    running = true
+    thread.start()
+  }
+
+  def stop() {
+    running = false
+    Thread.sleep(timems / 5000)
+    ds.write(s"delete from l where u='$id'")
+    ds.write(s"replace into r values ('$exp')")
+    ds.close()
+  }
+
+  def beat() {
+    val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
+    val query = s"replace into l values (0, 0, '$id', '$now')"
+    ds.write(query)
+  }
+}
