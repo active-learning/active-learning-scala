@@ -118,7 +118,7 @@ trait DistT {
       (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") ->
         (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
     }).unzip
-    val arq = s"/run/shm/$dataset.arff"
+    val arq = s"tmp/$dataset.arff"
 
     val fw = new FileWriter(arq)
     fw.write((newHeader ++ Seq("@data") ++ newData).mkString("\n"))
@@ -152,7 +152,7 @@ trait DistT {
       (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") ->
         (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
     }).unzip
-    val arq = s"/run/shm/$dataset.1d.arff"
+    val arq = s"tmp/$dataset.1d.arff"
 
     val fw = new FileWriter(arq)
     fw.write((newHeader ++ Seq("@data") ++ newData).mkString("\n"))

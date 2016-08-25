@@ -9,6 +9,7 @@ case class ALive(dataset: String, exp: String) {
 
   def clear() {
     ds.write(s"delete from r where s='$exp'")
+    ds.write(s"delete from l where r=0 and f=0")
   }
 
   def getResults = ds.readString(s"select o from r where s='$exp'").headOption match {
