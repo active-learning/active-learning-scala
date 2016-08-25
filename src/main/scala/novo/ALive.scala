@@ -52,7 +52,7 @@ case class ALive(dataset: String, exp: String) {
         val past = toDate(res)
         val elapsedMiliSeconds = now.getTime - past.getTime
         //        idPast != id &&
-        elapsedMiliSeconds > timems
+        elapsedMiliSeconds > 2 * timems
       case _ => true
     }
   }
