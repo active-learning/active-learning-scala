@@ -1,13 +1,6 @@
 package novo
 
-import java.util.Calendar
-
-import clean.lib.{CM, Ds, Global}
-import ml.Pattern
-import ml.classifiers.{Maj, RF}
-import util.{Datasets, Stat}
-
-import scala.util.Random
+import clean.lib.Ds
 
 case class ALive(dataset: String, exp: String) {
   def putResults(res: String): Unit = {
