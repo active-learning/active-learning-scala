@@ -70,6 +70,7 @@ case class ALive(dataset: String, exp: String) {
   }
 
   def beat() {
+    //val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
     val query = s"replace into l values (0, 0, '$id', now())"
     ds.write(query)
   }

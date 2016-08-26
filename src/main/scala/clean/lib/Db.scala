@@ -71,9 +71,10 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
   }
 
   private def heartbeat(r: Int, f: Int) {
-    val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
-    if (readOnly) error("read only")
-    else write(s"update l set u='$id', t='$now' where r=$r and f=$f")
+    ???
+    //val now = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Calendar.getInstance().getTime)
+    //if (readOnly) error("read only")
+    //else write(s"update l set u='$id', t='$now' where r=$r and f=$f")
   }
 
   def toDate(timestamp: java.sql.Timestamp) = {
