@@ -10,6 +10,7 @@ import scala.util.Random
 
 object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
   val context: String = "datt exp"
+  lazy val exp = getClass.getSimpleName + ": " + args.filter(!_.startsWith("clear=")).sorted.mkString(" ")
   run()
 
   def processa(f: (String, Seq[Pattern], Seq[Pattern]) => (scala.Vector[Pattern], scala.Vector[Pattern]), parallel: Boolean)(dataset: String) = {
@@ -38,7 +39,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
     }
 
     print(dataset + " ")
-    val alive = ALive(dataset, argt("exp"))
+    val alive = ALive(dataset, exp)
     if (argb("clear")) alive.clear()
     alive.getResults match {
       case Some(str) => println(str)
@@ -62,7 +63,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
 
   def run() = try {
     Global.debug = argi("log")
-    println(args.mkString(" "))
+    println(exp)
     val f = if (argb("1d")) addAtt1d _ else addAtt _
     argl.getOrElse("file", argl("datasets")) foreach processa(f, argb("parf"))
   } catch {
