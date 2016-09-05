@@ -21,7 +21,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
           val step = run - 1 + "." + fold
           val seed = 1000 * run + fold
           val l = RF(seed, argi("trees"), argi("trees") / 2)
-          if (pool.isEmpty) (0d -> 0d, 0d -> 0d)
+          if (pool.size<5) (0d -> 0d, 0d -> 0d)
           else {
             if (preAdded) (alc(l, pool, ts) -> -1d, -1d -> -1d)
             else {

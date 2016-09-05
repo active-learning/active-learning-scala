@@ -136,7 +136,7 @@ trait DistT {
       case Left(e) => sys.error(e)
     }
 
-    res -> res2
+    res.distinct -> res2.distinct
   }
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
@@ -170,7 +170,7 @@ trait DistT {
       case Left(e) => sys.error(e)
     }
 
-    res -> res2
+    res.distinct -> res2.distinct
   }
 
   def den(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
