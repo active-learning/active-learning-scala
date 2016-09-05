@@ -73,7 +73,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
       println(e.getClass.getName + " " + e.getMessage)
   }
 
-  def alc(l: Learner, pool: Vector[Pattern], ts: Vector[Pattern]) = {
+  def alc(l: Learner, pool: Vector[Pattern], ts: Vector[Pattern]) = if (pool.size<10) 0d else {
     val s = TU(pool, l, pool)
     val labeled = initialSet(pool)
     val unlabeled = pool.diff(labeled)
