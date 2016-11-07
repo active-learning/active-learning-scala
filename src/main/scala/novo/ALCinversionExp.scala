@@ -22,22 +22,10 @@ object ALCinversionExp extends Args with CM with DistT with AAInitializer {
           val seed = 1000 * run + fold
           val l = RF(seed, argi("trees")) //, argi("trees") / 2)
 
-          if (pool.size < 5) (0d -> 0d, 0d -> 0d)
-          else {
-            if (preAdded) (alc(l, pool, ts) -> -1d, -1d -> -1d)
-            else {
-              val ((newpool, newpoolOnlyDens), (newTs, newTsOnlyDens)) = f(dataset + step + "tr", pool, pool) -> f(dataset + step + "ts", ts, pool)
-              //normal junto sozinho zeroR
-              (alc(l, pool, ts) -> alc(l, newpool, newTs), alc(l, newpoolOnlyDens, newTsOnlyDens) -> alc(Maj(), pool, ts))
-            }
-          }
+          alc(l, pool, ts) foreach println
 
         }
       }
-      val (la, lb) = runs.flatten.unzip
-      val (nor, jun) = la.unzip
-      val (soz, zer) = lb.unzip
-      Seq(nor.toVector, jun.toVector, soz.toVector, zer.toVector) map Stat.media_desvioPadrao
     }
 
     print(dataset + " ")
@@ -52,12 +40,10 @@ object ALCinversionExp extends Args with CM with DistT with AAInitializer {
           ds.open()
           val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
           ds.close()
-          val nojusoze = exe(patts, preAdded = false)
-          val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
-          val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
-          val res = (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
-          println(res.mkString)
-          alive.putResults(res.mkString)
+
+//          println(res.mkString)
+//          alive.putResults(res.mkString)
+
           alive.stop()
         } else println("busy")
     }
