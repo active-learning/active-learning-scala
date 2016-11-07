@@ -9,19 +9,20 @@ import util.{Datasets, Stat}
 import scala.util.Random
 
 object ALCinversionExp extends Args with CM with DistT with AAInitializer {
-  val context: String = "datt exp"
+  val context: String = "ALC inversion exp"
   lazy val exp = getClass.getSimpleName + ": " + args.filter(!_.startsWith("clear=")).sorted.mkString(" ")
   run()
 
-  def processa(f: (String, Seq[Pattern], Seq[Pattern]) => (scala.Vector[Pattern], scala.Vector[Pattern]), parallel: Boolean)(dataset: String) = {
+  def processa(parallel: Boolean)(dataset: String) = {
     def exe(patts: Vector[Pattern], preAdded: Boolean) = {
       val runs = (if (argb("parr")) (1 to argi("runs")).par else 1 to argi("runs")) map { run =>
         val shuffled = new Random(run).shuffle(patts)
         Datasets.kfoldCV(shuffled, argi("k"), parallel) { (pool, ts, fold, minSize) =>
           val step = run - 1 + "." + fold
           val seed = 1000 * run + fold
-          val l = RF(seed, argi("trees"), argi("trees") / 2)
-          if (pool.size<5) (0d -> 0d, 0d -> 0d)
+          val l = RF(seed, argi("trees")) //, argi("trees") / 2)
+
+          if (pool.size < 5) (0d -> 0d, 0d -> 0d)
           else {
             if (preAdded) (alc(l, pool, ts) -> -1d, -1d -> -1d)
             else {
@@ -30,6 +31,7 @@ object ALCinversionExp extends Args with CM with DistT with AAInitializer {
               (alc(l, pool, ts) -> alc(l, newpool, newTs), alc(l, newpoolOnlyDens, newTsOnlyDens) -> alc(Maj(), pool, ts))
             }
           }
+
         }
       }
       val (la, lb) = runs.flatten.unzip
@@ -64,8 +66,7 @@ object ALCinversionExp extends Args with CM with DistT with AAInitializer {
   def run() = try {
     Global.debug = argi("log")
     println(exp)
-    val f = if (argb("1d")) addAtt1d _ else addAtt _
-    argl.getOrElse("file", argl("datasets")) foreach processa(f, argb("parf"))
+    argl.getOrElse("file", argl("datasets")) foreach processa(argb("parf"))
   } catch {
     case e: Throwable =>
       e.printStackTrace()
@@ -73,7 +74,8 @@ object ALCinversionExp extends Args with CM with DistT with AAInitializer {
       println(e.getClass.getName + " " + e.getMessage)
   }
 
-  def alc(l: Learner, pool: Vector[Pattern], ts: Vector[Pattern]) = if (pool.size<10) 0d else {
+  def alc(l: Learner, pool: Vector[Pattern], ts: Vector[Pattern]) = if (pool.size < 10) List()
+  else {
     val s = TU(pool, l, pool)
     val labeled = initialSet(pool)
     val unlabeled = pool.diff(labeled)
@@ -82,7 +84,7 @@ object ALCinversionExp extends Args with CM with DistT with AAInitializer {
       val m = l.build(queries.take(i))
       accBal(m.confusion(ts))
     }
-    vs.sum / vs.size
+    vs.toList
   }
 
 }
