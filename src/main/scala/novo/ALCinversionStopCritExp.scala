@@ -74,7 +74,7 @@ object ALCinversionStopCritExp extends Args with CM with DistT with AAInitialize
     val s = argt("strat") match {
       case "tu" => TU(pool, l, pool)
       case "rnd" => Rnd(pool)
-      case x => sys.error(s"Strategy $x not reconized.")
+      case x => sys.error(s"Strategy $x not recognized.")
     }
 
     val labeled = initialSet(pool)
