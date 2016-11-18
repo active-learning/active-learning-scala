@@ -80,7 +80,7 @@ object ALCinversionStopCritExp extends Args with CM with DistT with AAInitialize
     val labeled = initialSet(pool)
     val unlabeled = pool.diff(labeled)
     val queries = s.queries_noLabels(unlabeled, labeled).take(argi("q") - labeled.size).toVector
-    val vs = 1 to argi("q") map { fim =>
+    val vs = (1 to argi("q") take pool.size by 10).par map { fim =>
       val queriesrev = queries.take(fim).reverse
       val accs = 1 to fim map (i => accBal(l.build(queries.take(i)).confusion(ts)))
       val accsrev = 1 to fim map (i => accBal(l.build(queriesrev.take(i)).confusion(ts)))

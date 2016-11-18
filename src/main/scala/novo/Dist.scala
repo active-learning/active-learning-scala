@@ -149,8 +149,7 @@ trait DistT {
     def denses(p: Pattern) = seqden flatMap den1d(di, allpatts, p)
     val (newData, newData2) = (patts.par map { p =>
       val dss = denses(p)
-      (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") ->
-        (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
+      (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") -> (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
     }).unzip
     val arq = s"tmp/$dataset.1d.arff"
 
@@ -177,6 +176,14 @@ trait DistT {
     val simis = patts.par map { s => 1d / (1 + di.d(x, s)) }
     val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
     neigs.sum / numNeigs
+  }
+
+  def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
+    0 until patts.head.nattributes map { a =>
+      val simis = patts.par map { p => 1d / (1 + di.d1d(x, p, a)) }
+      val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
+      neigs.sum / numNeigs
+    } toList
   }
 
   def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
