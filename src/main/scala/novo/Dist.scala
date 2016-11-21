@@ -186,11 +186,11 @@ trait DistT {
     } toList
   }
 
-  def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
-    0 until patts.head.nattributes map { a =>
-      val simis = patts.par map { p => 1d / (1 + di.d1d(x, p, a)) }
-      val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
-      neigs.sum / numNeigs
-    } toList
-  }
+//  def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
+//    0 until patts.head.nattributes map { a =>
+//      val simis = patts.par map { p => 1d / (1 + di.d1d(x, p, a)) }
+//      val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
+//      neigs.sum / numNeigs
+//    } toList
+//  }
 }
