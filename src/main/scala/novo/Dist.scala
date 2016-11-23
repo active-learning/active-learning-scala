@@ -140,14 +140,14 @@ trait DistT {
   }
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
-    val seqden = Seq(3, 1, 4, 16, 32, 64, 128)
+    val seqden = Seq(1, 4, 16, 32, 64, 128)
     val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
     val atts = (for (s <- seqden; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
 
     val (newData, newData2) = (patts map { p =>
-      val dss = seqden flatMap den1d(di, allpatts, p)
+      val dss = den1d(di, allpatts, p, seqden)
       (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") -> (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
     }).unzip
     val arq = s"tmp/$dataset.1d.arff"
@@ -177,24 +177,32 @@ trait DistT {
     neigs.sum / numNeigs
   }
 
-  def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
+  def den1d(di: Dist, patts: Seq[Pattern], x: Pattern, listOfnumNeigs: Seq[Int]) = {
     val natts = patts.head.nattributes
-    val rankings = 0 until natts map { a =>
+    val rankings = (0 until natts).par map { a =>
       val listOfPXsForA = patts map { p => p.id -> 1d / (1 + di.d1d(x, p, a)) }
       listOfPXsForA.sortBy(_._2).map(_._1)
     } toList
-    val hist = patts.map(pat => pat.id -> Array(0d)).toMap
-    rankings.transpose takeWhile { col =>
-      col foreach (id => hist(id)(0) += 1)
-      hist.count(x => x._2(0) == natts) < numNeigs
+
+    listOfnumNeigs.par map { numNeigs =>
+      val set = mutable.Set[Int]()
+      val hist = patts.map(pat => pat.id -> Array(0)).toMap
+      rankings.transpose takeWhile { col =>
+        val novos = col flatMap { id =>
+          val h = hist(id)(0) + 1
+          hist(id)(0) = h
+          if (h == natts) Some(id) else None
+        }
+        set ++= novos
+        set.size < numNeigs
+      }
+
+      val neigboors = patts.filter(x => set.contains(x.id))
+      (0 until natts) map { a =>
+        val simis = neigboors map { p => 1d / (1 + di.d1d(x, p, a)) }
+        val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
+        neigs.sum / numNeigs
+      } toList
     }
-
-    val neigboors = hist.zip(patts).filter(x => x._1._2(0) == natts).values
-    0 until natts map { a =>
-      val simis = neigboors map { p => 1d / (1 + di.d1d(x, p, a)) }
-      val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
-      neigs.sum / numNeigs
-    } toList
-  }
-
+  }.flatten
 }
