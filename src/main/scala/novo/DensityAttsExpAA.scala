@@ -57,7 +57,6 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
           val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
           val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
           val res = (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
-          //normal junto sozinho zeroR    junto-preadd sozinho-preadd
           println(res.mkString)
           alive.putResults(res.mkString)
           alive.stop()
@@ -68,6 +67,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
   def run() = try {
     Global.debug = argi("log")
     println(exp)
+    println("normal junto sozinho zeroR    junto-preadd sozinho-preadd")
     val f = if (argb("1d")) addAtt1d _ else addAtt _
     argl.getOrElse("file", argl("datasets")) foreach processa(f, argb("parf"))
   } catch {
