@@ -140,7 +140,7 @@ trait DistT {
   }
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
-    val seqden = Seq(3) //1, 4, 16, 32, 64, 128)
+    val seqden = Seq(3, 1, 4, 16, 32, 64, 128)
     val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
     val atts = (for (s <- seqden; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")

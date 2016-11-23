@@ -21,7 +21,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
           val step = run - 1 + "." + fold
           val seed = 1000 * run + fold
           val l = RF(seed, argi("trees"), argi("trees") / 2)
-          if (pool.size<5) (0d -> 0d, 0d -> 0d)
+          if (pool.size < 5) (0d -> 0d, 0d -> 0d)
           else {
             if (preAdded) (alc(l, pool, ts) -> -1d, -1d -> -1d)
             else {
@@ -40,7 +40,10 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
 
     print(dataset + " ")
     val alive = ALive(dataset, exp)
-    if (argb("clear")) alive.clear()
+    if (argb("clear")) {
+      println("Apagando...")
+      alive.clear()
+    }
     alive.getResults match {
       case Some(str) => println(str)
       case None =>
@@ -54,6 +57,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
           val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
           val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
           val res = (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
+          //normal junto sozinho zeroR    junto-preadd sozinho-preadd
           println(res.mkString)
           alive.putResults(res.mkString)
           alive.stop()
@@ -73,7 +77,8 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
       println(e.getClass.getName + " " + e.getMessage)
   }
 
-  def alc(l: Learner, pool: Vector[Pattern], ts: Vector[Pattern]) = if (pool.size<10) 0d else {
+  def alc(l: Learner, pool: Vector[Pattern], ts: Vector[Pattern]) = if (pool.size < 10) 0d
+  else {
     val s = TU(pool, l, pool)
     val labeled = initialSet(pool)
     val unlabeled = pool.diff(labeled)
