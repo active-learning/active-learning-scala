@@ -65,7 +65,7 @@ object DensityAttsExp extends Args with CM with DistT {
   def run() = try {
     Global.debug = argi("log")
     println(args.mkString(" "))
-    val f = if (argb("1d")) addAtt1d _ else addAtt _
+    val f = if (argb("1d")) ??? /*addAtt1d _ */ else addAtt _
     argl.getOrElse("file", argl("datasets")) foreach processa(f, argb("parf"))
   } catch {
     case e: Throwable =>

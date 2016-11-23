@@ -113,7 +113,7 @@ trait DistT {
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
 
     def denses(p: Pattern) = seqden map den(di, allpatts, p)
-    val (newData, newData2) = (patts.par map { p =>
+    val (newData, newData2) = (patts map { p =>
       val dss = denses(p)
       (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") ->
         (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
@@ -140,15 +140,14 @@ trait DistT {
   }
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
-    val seqden = Seq(1, 4, 16, 32, 64, 128)
+    val seqden = Seq(3) //1, 4, 16, 32, 64, 128)
     val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
     val atts = (for (s <- seqden; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
 
-    def denses(p: Pattern) = seqden flatMap den1d(di, allpatts, p)
-    val (newData, newData2) = (patts.par map { p =>
-      val dss = denses(p)
+    val (newData, newData2) = (patts map { p =>
+      val dss = seqden flatMap den1d(di, allpatts, p)
       (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") -> (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
     }).unzip
     val arq = s"tmp/$dataset.1d.arff"
@@ -173,24 +172,29 @@ trait DistT {
   }
 
   def den(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
-    val simis = patts.par map { s => 1d / (1 + di.d(x, s)) }
+    val simis = patts map { s => 1d / (1 + di.d(x, s)) }
     val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
     neigs.sum / numNeigs
   }
 
   def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
-    0 until patts.head.nattributes map { a =>
-      val simis = patts.par map { p => 1d / (1 + di.d1d(x, p, a)) }
+    val natts = patts.head.nattributes
+    val rankings = 0 until natts map { a =>
+      val listOfPXsForA = patts map { p => p.id -> 1d / (1 + di.d1d(x, p, a)) }
+      listOfPXsForA.sortBy(_._2).map(_._1)
+    } toList
+    val hist = patts.map(pat => pat.id -> Array(0d)).toMap
+    rankings.transpose takeWhile { col =>
+      col foreach (id => hist(id)(0) += 1)
+      hist.count(x => x._2(0) == natts) < numNeigs
+    }
+
+    val neigboors = hist.zip(patts).filter(x => x._1._2(0) == natts).values
+    0 until natts map { a =>
+      val simis = neigboors map { p => 1d / (1 + di.d1d(x, p, a)) }
       val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
       neigs.sum / numNeigs
     } toList
   }
 
-//  def den1d(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
-//    0 until patts.head.nattributes map { a =>
-//      val simis = patts.par map { p => 1d / (1 + di.d1d(x, p, a)) }
-//      val neigs = simis.toList.sortBy(-_).take(numNeigs + 1).tail
-//      neigs.sum / numNeigs
-//    } toList
-//  }
 }

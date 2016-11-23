@@ -10,7 +10,7 @@ import scala.util.Random
 
 object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
   val context: String = "datt exp"
-  lazy val exp = getClass.getSimpleName + ": " + args.filter(!_.startsWith("clear=")).sorted.mkString(" ")
+  lazy val exp = getClass.getSimpleName + "novo: " + args.filter(!_.startsWith("clear=")).sorted.mkString(" ")
   run()
 
   def processa(f: (String, Seq[Pattern], Seq[Pattern]) => (scala.Vector[Pattern], scala.Vector[Pattern]), parallel: Boolean)(dataset: String) = {
