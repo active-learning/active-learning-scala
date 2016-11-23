@@ -105,14 +105,15 @@ case class Dist(pool: Seq[Pattern]) {
 }
 
 trait DistT {
+  val neigs: Seq[Int]
+
   def addAtt(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
-    val seqden = Seq(1, 4, 16, 32, 64, 128)
     val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
-    val atts = seqden map (i => s"@attribute d$i numeric")
+    val atts = neigs map (i => s"@attribute d$i numeric")
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
 
-    def denses(p: Pattern) = seqden map den(di, allpatts, p)
+    def denses(p: Pattern) = neigs map den(di, allpatts, p)
     val (newData, newData2) = (patts map { p =>
       val dss = denses(p)
       (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") ->
@@ -140,14 +141,13 @@ trait DistT {
   }
 
   def addAtt1d(dataset: String, patts: Seq[Pattern], allpatts: Seq[Pattern]) = {
-    val seqden = Seq(1, 4, 16, 32, 64, 128)
     val di = Dist(allpatts)
     val header = patts.head.dataset.toString.split("\n").takeWhile(!_.contains("@data"))
-    val atts = (for (s <- seqden; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")
+    val atts = (for (s <- neigs; a <- 0 until patts.head.nattributes) yield a * 1000 + s) map (i => s"@attribute d$i numeric")
     val (newHeader, newHeader2) = (header.dropRight(2) ++ atts ++ header.takeRight(2), header.take(1) ++ atts ++ header.takeRight(2))
 
     val (newData, newData2) = (patts map { p =>
-      val dss = den1d(di, allpatts, p, seqden)
+      val dss = den1d(di, allpatts, p, neigs)
       (p.toString.split(",").dropRight(1) ++ dss ++ p.toString.split(",").takeRight(1)).mkString(",") -> (dss ++ p.toString.split(",").takeRight(1)).mkString(",")
     }).unzip
     val arq = s"tmp/$dataset.1d.arff"

@@ -8,6 +8,7 @@ import util.{Datasets, Stat}
 import scala.util.Random
 
 object DensityAttsExp extends Args with CM with DistT {
+  lazy val neigs = argl("neigs").map(_.toInt)
   val context: String = "datt exp"
   run()
 

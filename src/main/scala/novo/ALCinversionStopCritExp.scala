@@ -9,6 +9,7 @@ import util.Datasets
 import scala.util.Random
 
 object ALCinversionStopCritExp extends Args with CM with DistT with AAInitializer {
+  lazy val neigs = argl("neigs").map(_.toInt)
   val context: String = "ALC inversion stopping criterion exp"
   lazy val exp = getClass.getSimpleName + ": " + args.filter(x => !x.startsWith("clear=") && !x.startsWith("log")).sorted.mkString(" ")
   run()
