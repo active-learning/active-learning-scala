@@ -10,7 +10,7 @@ import scala.util.Random
 trait Args extends App {
   private lazy val argsb = args filter (x => x.endsWith("=y") || x.endsWith("=n"))
   private lazy val argsn = args filter (x => x.split('=').last.filter(x => x != '.' && x != '-').forall(x => x.isDigit))
-  private lazy val argsl = args filter (x => x.contains(",") || x.startsWith("file=") || x.startsWith("datasets="))
+  private lazy val argsl = args filter (x => x.contains(",") || x.startsWith("file=") || x.startsWith("datasets=") || x.startsWith("neigs="))
   private lazy val argst = args diff argsb diff argsn diff argsl
 
   lazy val argb = argsb map parse map (x => x._1 -> x._2.equals("y")) toMap
