@@ -1,11 +1,10 @@
 package novo
 
-import clean.lib.{CM, Ds, Global}
-import ml.classifiers.{Maj, RF}
-import util.{Datasets, Stat}
+import al.strategies._
+import ml.Pattern
+import ml.classifiers.Learner
 
 import scala.io.Source
-import scala.util.Random
 
 trait Args extends App {
   private lazy val argsb = args filter (x => x.endsWith("=y") || x.endsWith("=n"))
@@ -25,5 +24,16 @@ trait Args extends App {
   def parse(s: String) = {
     val Seq(a, b) = s.split('=').toSeq
     a -> b
+  }
+
+  def strat(pool: Seq[Pattern], l: Learner) = argt("strat") match {
+    case "?" => println("Strats: rnd, mar, tu, eer, hs, sg"); sys.exit
+    case "tu" => TU(pool, l, pool)
+    case "mar" => Mar(l, pool)
+    case "hs" => HS(pool)
+    case "eer" => EER(l, pool, "entropy")
+    case "sg" => SG(l, pool, "consensus")
+    case "rnd" => Rnd(pool)
+    case x => sys.error(s"Strategy $x not reconized.")
   }
 }

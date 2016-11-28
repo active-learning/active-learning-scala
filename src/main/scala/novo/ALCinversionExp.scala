@@ -72,12 +72,7 @@ object ALCinversionExp extends Args with CM with DistT with AAInitializer {
 
   def lc(l: Learner, pool: Vector[Pattern], ts: Vector[Pattern]) = if (pool.size < 10) sys.error("pool.size < 10")
   else {
-    val s = argt("strat") match {
-      case "tu" => TU(pool, l, pool)
-      case "rnd" => Rnd(pool)
-      case x => sys.error(s"Strategy $x not reconized.")
-    }
-
+    val s = strat(pool, l)
     val labeled = initialSet(pool)
     val unlabeled = pool.diff(labeled)
     val queries = s.queries_noLabels(unlabeled, labeled).take(argi("q") - labeled.size).toVector
