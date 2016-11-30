@@ -47,22 +47,22 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
     }
     alive.getResults match {
       case Some(str) => println(str)
-      case None =>
-        if (alive.isFree) {
-          alive.start()
-          val ds = Ds(dataset, readOnly = true)
-          ds.open()
-          val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
-          ds.close()
-          val nojusoze = exe(patts, preAdded = false)
-//          val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
-//          val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
-//          val res = (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
-          val res = nojusoze map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
-          println(res.mkString)
-          alive.putResults(res.mkString)
-          alive.stop()
-        } else println("busy")
+      case None if argb("dry") => println("...")
+      case None if alive.isFree =>
+        alive.start()
+        val ds = Ds(dataset, readOnly = true)
+        ds.open()
+        val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
+        ds.close()
+        val nojusoze = exe(patts, preAdded = false)
+        //          val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
+        //          val soPreAdded = exe(newPattsOnlyDens, preAdded = true).filter(_._1 > -1d)
+        //          val res = (nojusoze ++ juPreAdded ++ soPreAdded) map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
+        val res = nojusoze map (x => (1000 * x._1).round / 1000d + "/" + (1000 * x._2).round / 1000d + " ")
+        println(res.mkString)
+        alive.putResults(res.mkString)
+        alive.stop()
+      case _ => println("busy")
     }
   }
 
