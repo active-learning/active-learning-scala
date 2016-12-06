@@ -1,6 +1,5 @@
 package novo
 
-import al.strategies.TU
 import clean.lib.{CM, Ds, Global}
 import ml.Pattern
 import ml.classifiers.{Learner, Maj, RF}
@@ -11,7 +10,8 @@ import scala.util.Random
 object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
   lazy val neigs = argl("neigs").map(_.toInt)
   val context: String = "datt exp"
-  lazy val exp = getClass.getSimpleName + "novo: " + args.filter(!_.startsWith("clear=")).filter(!_.startsWith("par")).filter(!_.startsWith("dry=")).filter(!_.startsWith("log")).filter(!_.startsWith("datasets")).sorted.mkString(" ")
+  lazy val exp = getClass.getSimpleName + "novo: " + args.filter(!_.startsWith("clear=")).filter(!_.startsWith("par")).filter(!_.startsWith("dry=" +
+    "")).filter(!_.startsWith("log")).filter(!_.startsWith("datasets")).sorted.mkString(" ")
   run()
 
   def processa(f: (String, Seq[Pattern], Seq[Pattern]) => (scala.Vector[Pattern], scala.Vector[Pattern]), parallel: Boolean)(dataset: String) = {
@@ -52,7 +52,7 @@ object DensityAttsExpAA extends Args with CM with DistT with AAInitializer {
         alive.start()
         val ds = Ds(dataset, readOnly = true)
         ds.open()
-        val (patts, (newPatts, newPattsOnlyDens)) = ds.patterns -> f(dataset, ds.patterns, ds.patterns)
+        val patts = ds.patterns
         ds.close()
         val nojusoze = exe(patts, preAdded = false)
         //          val juPreAdded = exe(newPatts, preAdded = true).filter(_._1 > -1d)
