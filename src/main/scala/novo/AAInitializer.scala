@@ -15,7 +15,6 @@ trait AAInitializer {
       pool find (_.label == c)
     }.toList
     if (firstof_each_class.size < Y) Seq()
-
     else {
       val rnd = RandomSampling(pool)
       val qs = rnd.queries.takeWhile { p =>
