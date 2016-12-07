@@ -7,10 +7,10 @@ import util.{Datasets, Stat}
 
 import scala.util.Random
 
-object DensityAttsExpAAComparaAcertos extends Args with CM with DistT with AAInitializer {
+object DensityAttsExpAAComparaAcertos2 extends Args with CM with DistT with AAInitializer {
   lazy val neigs = argl("neigs").map(_.toInt)
   val context: String = "datt exp"
-  lazy val exp = getClass.getSimpleName + "novo: " + args.filter(!_.startsWith("clear=")).filter(!_.startsWith("par")).filter(!_.startsWith("dry=" +
+  lazy val exp = getClass.getSimpleName + ": " + args.filter(!_.startsWith("clear=")).filter(!_.startsWith("par")).filter(!_.startsWith("dry=" +
     "")).filter(!_.startsWith("log")).filter(!_.startsWith("datasets")).sorted.mkString(" ")
   run()
 
@@ -24,17 +24,18 @@ object DensityAttsExpAAComparaAcertos extends Args with CM with DistT with AAIni
           val l = RF(seed, argi("trees"), argi("trees") / 2)
           if (pool.size < 5) 0d
           else {
-            val ((_, densPool), (_, densTs)) = f(dataset + step + "tr", pool, pool) -> f(dataset + step + "ts", ts, pool)
+            val ((juntoPool, densPool), (_, densTs)) = f(dataset + step + "tr", pool, pool) -> f(dataset + step + "ts", ts, pool)
             val s = strat(pool, l)
             val labeled = initialSet(pool)
             val unlabeled = pool.diff(labeled)
-            val queries = s.queries_noLabels(unlabeled, labeled).take(argi("q") - labeled.size).toVector
-            val m = l.build(queries.take(argi("q")))
-            val origHits = ts.zipWithIndex flatMap { case (p, i) => if (m.hit(p)) Some(i) else None }
+            val queries = s.queries_noLabels(unlabeled, labeled).take(argi("q")).toVector
+            val m = l.build(queries)
+            val origHits = ts flatMap { p => if (m.hit(p)) Some(p.id) else None }
 
-            val densQueries = densPool filter (p => queries.exists(_.id == p.id))
+            val densmap = densPool.map(p => p.id -> p).toMap
+            val densQueries = queries.map(_.id) map densmap
             val densM = l.build(densQueries)
-            val densHits = densTs.zipWithIndex flatMap { case (p, i) => if (densM.hit(p)) Some(i) else None }
+            val densHits = densTs flatMap { p => if (densM.hit(p)) Some(p.id) else None }
 
             densHits.diff(origHits).size / ts.size.toDouble
           }
@@ -51,7 +52,7 @@ object DensityAttsExpAAComparaAcertos extends Args with CM with DistT with AAIni
     }
     alive.getResults match {
       case Some(str) => println(str)
-      case None if argb("dry") && !alive.isFree =>  println("busy...")
+      case None if argb("dry") && !alive.isFree => println("busy...")
       case None if argb("dry") => println("free...")
       case None if alive.isFree =>
         alive.start()

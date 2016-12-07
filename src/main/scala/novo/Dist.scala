@@ -168,7 +168,13 @@ trait DistT {
       case Left(e) => sys.error(e)
     }
 
-    res.distinct -> res2.distinct
+    val (a, b) = patts.zip(res.zip(res2)) map { case (o, (d, j)) =>
+      d.id = o.id
+      j.id = o.id
+      j -> d
+    } unzip
+
+    a.toVector -> b.toVector
   }
 
   def den(di: Dist, patts: Seq[Pattern], x: Pattern)(numNeigs: Int) = {
