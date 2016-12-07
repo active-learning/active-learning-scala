@@ -51,7 +51,8 @@ object DensityAttsExpAAComparaAcertos extends Args with CM with DistT with AAIni
     }
     alive.getResults match {
       case Some(str) => println(str)
-      case None if argb("dry") => println("...")
+      case None if argb("dry") && !alive.isFree =>  println("busy...")
+      case None if argb("dry") => println("free...")
       case None if alive.isFree =>
         alive.start()
         val ds = Ds(dataset, readOnly = true)
