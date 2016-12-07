@@ -71,7 +71,7 @@ object DensityAttsExpAAComparaAcertos2 extends Args with CM with DistT with AAIn
   def run() = try {
     Global.debug = argi("log")
     println(exp)
-    println("normal junto sozinho zeroR    junto-preadd sozinho-preadd")
+    println("acertos exclusivos usando densidade:  media desvio")
     val f = if (argb("1d")) addAtt1d _ else addAtt _
     argl.getOrElse("file", argl("datasets")) foreach processa(f, argb("parf"))
   } catch {
