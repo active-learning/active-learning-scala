@@ -30,11 +30,11 @@ object DensityAttsExpAAComparaAcertos extends Args with CM with DistT with AAIni
             val unlabeled = pool.diff(labeled)
             val queries = s.queries_noLabels(unlabeled, labeled).take(argi("q") - labeled.size).toVector
             val m = l.build(queries.take(argi("q")))
-            val origHits = ts flatMap (p => if (m.hit(p)) Some(p.id) else None)
+            val origHits = ts.zipWithIndex flatMap { case (p, i) => if (m.hit(p)) Some(i) else None }
 
-            val densQueries = pool filter queries.contains
+            val densQueries = densPool filter (p => queries.exists(_.id == p.id))
             val densM = l.build(densQueries)
-            val densHits = densTs flatMap (p => if (densM.hit(p)) Some(p.id) else None)
+            val densHits = densTs.zipWithIndex flatMap { case (p, i) => if (densM.hit(p)) Some(i) else None }
 
             densHits.diff(origHits).size / ts.size.toDouble
           }
@@ -59,7 +59,7 @@ object DensityAttsExpAAComparaAcertos extends Args with CM with DistT with AAIni
         val patts = ds.patterns
         ds.close()
         val res = exe(patts)
-        println(res)
+        println(res._1 + " " + res._2)
         alive.putResults(res._1 + " " + res._2)
         alive.stop()
       case _ => println("busy")
