@@ -32,9 +32,10 @@ object DensityAttsExpAAComparaAcertos2 extends Args with CM with DistT with AAIn
             val m = l.build(queries)
             val origHits = ts flatMap { p => if (m.hit(p)) Some(p.id) else None }
 
+            val le = if (argb("maj")) Maj() else l
             val densmap = densPool.map(p => p.id -> p).toMap
             val densQueries = queries.map(_.id) map densmap
-            val densM = l.build(densQueries)
+            val densM = le.build(densQueries)
             val densHits = densTs flatMap { p => if (densM.hit(p)) Some(p.id) else None }
 
             densHits.diff(origHits).size / ts.size.toDouble
