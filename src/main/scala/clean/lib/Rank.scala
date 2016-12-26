@@ -64,7 +64,7 @@ trait Rank extends FilterTrait with RoundFilter {
             //                        val spearMaj = new SpearmansCorrelation().correlation(rankMedio.zipWithIndex.map(_._2.toDouble), p.nominalSplit)
             (spear, spearMaj)
           } catch {
-            case x: Throwable => error("\n " + rank.toList + "\n " + rankMedio.toList + "\n " + p.nominalSplit.toList + " \n" + x)
+            case x: Throwable => sys.error("\n " + rank.toList + "\n " + rankMedio.toList + "\n " + p.nominalSplit.toList + " \n" + x)
           }
         }
         val (spearELM, spearMaj) = twoSpears.unzip
