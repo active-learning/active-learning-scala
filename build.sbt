@@ -2,7 +2,7 @@ name := "als"
 
 version := "a"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.12.1"
 
 libraryDependencies += "nz.ac.waikato.cms.weka" % "SMOTE" % "1.0.3"
 
