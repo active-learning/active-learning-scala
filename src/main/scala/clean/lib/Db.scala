@@ -31,7 +31,10 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
   private var connection: Connection = null
   val context = database
   val connectionWait_ms = 60000
-  var alive = Array.fill(Global.runs)(Array.fill(Global.folds)(false))
+  var alivev: Array[Array[Boolean]] = null
+
+  def alive = if (alivev == null) Array.fill(Global.runs)(Array.fill(Global.folds)(false)) else alivev
+
   val id = new File("/proc/self").getCanonicalFile.getName + " " + java.net.InetAddress.getLocalHost.getHostName + " " + System.currentTimeMillis() + " " + UUID.randomUUID().toString
   val rnd = new Random(id.map(_.toByte).sum)
 
@@ -110,9 +113,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
     catch {
       case e: Throwable => //e.printStackTrace()
         error(s"\nProblems executing SQL query [busy] '$sql': ${e.getMessage}") // .\nTrying againg in 60s.\n", 30)
-//        Thread.sleep(120000) //waiting time is longer than normal to allow for other alive connections to update the table
-//        test(sql)
-//        isAliveByOtherJob(r, f, lifetimeSeconds + 120) //each time we recover, the elapsed time should be higher
+      //        Thread.sleep(120000) //waiting time is longer than normal to allow for other alive connections to update the table
+      //        test(sql)
+      //        isAliveByOtherJob(r, f, lifetimeSeconds + 120) //each time we recover, the elapsed time should be higher
     }
   }
 
@@ -354,9 +357,9 @@ class Db(val database: String, readOnly: Boolean) extends Log with Lock {
     } catch {
       case e: Throwable => //e.printStackTrace()
         error(s"\nProblems executing SQL read strings query '$sql': ${e.getMessage} .") //\nTrying againg in  $connectionWait_ms ms.\n", 30)
-//        Thread.sleep(connectionWait_ms)
-//        test(sql)
-//        readString(sql)
+      //        Thread.sleep(connectionWait_ms)
+      //        test(sql)
+      //        readString(sql)
     }
   }
 
