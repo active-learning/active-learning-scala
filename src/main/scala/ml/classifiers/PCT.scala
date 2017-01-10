@@ -70,7 +70,7 @@ case class PCT(ntrees: Int = 1000, seed: Int = 42, trts: Vector[Pattern] = Vecto
     new File(s"/run/shm/cla-clus$seed$id.out").delete
     new File(s"/run/shm/cla-clus$seed$id.model").delete
 
-    val clusTRTSRanks = clusTSPredictionsARFF.zip(trts).map { case (pa, pats) =>
+    lazy val clusTRTSRanks = clusTSPredictionsARFF.zip(trts).map { case (pa, pats) =>
       pats.id -> pa.array.drop(2).take(pats.nclasses)
       //      pats.id -> pa.array.zipWithIndex.flatMap { case (v, i) => if (pa.attribute(i).name.startsWith("Original-p")) Some(v) else None }
     }

@@ -73,7 +73,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
       ).mkString("\n")
   }
 
-
   def arff(strats: String, exemplos: Seq[(Seq[(String, String, String)], String)], print: Boolean = false, context: String, rank: Boolean) = {
     lazy val labels = exemplos.map(x => x._2).distinct.sorted
     lazy val classAtt = "@attribute class {" + labels.map(x => "\"" + x + "\"").mkString(",") + "}"
@@ -120,8 +119,8 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     fw.close()
   }
 
-  val originalStream = System.out
-  val dummyStream = new PrintStream(new OutputStream() {
+  lazy val originalStream = System.out
+  lazy val dummyStream = new PrintStream(new OutputStream() {
     def write(b: Int) {}
   })
 
@@ -150,7 +149,6 @@ trait MetaTrait extends FilterTrait with Rank with Log {
     inst.setDataset(pa.dataset)
     Pattern(id, inst, missed = false, pa.parent)
   }
-
 
   /**
    * Para fazer umPorBase.
