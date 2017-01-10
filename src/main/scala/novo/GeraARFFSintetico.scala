@@ -30,7 +30,7 @@ object GeraARFFSintetico extends App {
   val unlabeled = Seq[(Double, Double, Int)]((0.5, 4, 3), (-0.5, 4, 2), (-0.5, 5, 3),  (-1, 4.3, 2), (-0.5, 2.5, 5), (-1, 5, 2), (5, 5, 5), (7, 7, 5), (-3, 0, 5), (6, 0, 5), (-3.8, 3.5, 3), (-4.2, 2.5, 3), (3, 0, 10), (6, -4, 5), (3, 3, 10), (-6, -4, 5), (0, -4, 5), (0, 0, 10))
 
   Seq("unlabeled", "labeled", "ign", "repr", "fundo", "ent") foreach { set =>
-    val fw = new FileWriter(s"/home/davi/Dropbox/git/als/$set.arff")
+    val fw = new FileWriter(s"/home/davi/git/als/$set.arff")
     fw.write(s"@relation synthetic-$set\n")
     fw.write("@attribute x numeric\n")
     fw.write("@attribute y numeric\n")

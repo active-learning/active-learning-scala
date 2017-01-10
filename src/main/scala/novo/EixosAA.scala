@@ -13,7 +13,7 @@ object EixosAA extends App with DistanceMeasure with EntropyMeasure {
   val fast = !true
   val (distance_name, context, debug, learner) = ("eucl", "", false, NoLearner())
   val ds = Seq("unlabeled", "repr", "ign", "labeled", "fundo", "ent") map { arq =>
-    Datasets.arff(s"/home/davi/Dropbox/git/als/$arq.arff", false, false) match {
+    Datasets.arff(s"/home/davi/git/als/$arq.arff", false, false) match {
       case Right(x) => x
       case Left(str) => sys.error(str)
     }
