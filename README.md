@@ -1,3 +1,6 @@
+Read-only repository, future improvements will be at [personal repo](https://github.com/davips/active-learning-scala)!
+===========
+
 active-learning-scala
 =====================
 
